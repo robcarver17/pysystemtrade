@@ -214,7 +214,7 @@ ib_orders_data.modify_limit_price_given_control_object(broker_order_with_control
 ### Position data
 
 ```
-from sysbrokers.IB.ib_position_data import ibContractPositionData
+from sysbrokers.IB.ib_contract_position_data import ibContractPositionData
 ib_contract_position_data = ibContractPositionData(conn)
 ib_contract_position_data.get_all_current_positions_as_list_with_contract_objects()
 ```
