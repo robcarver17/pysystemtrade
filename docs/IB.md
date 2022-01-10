@@ -150,7 +150,7 @@ from sysobjects.contracts import futuresContract
 from sysbrokers.IB.ib_futures_contract_price_data import ibFuturesContractPriceData
 ibfuturesdata = ibFuturesContractPriceData(conn)
 
-ibfuturesdata.get_instruments_with_price_data() # returns list of instruments defined in [futures config file](/sysbrokers/IB/ibConfigFutures.csv)
+ibfuturesdata.get_list_of_instrument_codes_with_price_data() # returns list of instruments defined in [futures config file](/sysbrokers/IB/ibConfigFutures.csv)
 ibfuturesdata.contract_dates_with_price_data_for_instrument_code("EDOLLAR") # returns list of contract dates
 ibfuturesdata.get_prices_for_contract_object(futuresContract("EDOLLAR", "201203")) # returns OHLC price and volume data
 ```
