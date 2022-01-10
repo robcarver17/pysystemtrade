@@ -1,7 +1,5 @@
 import pandas as pd
-from sysdata.futures.multiple_prices import (
-    futuresMultiplePricesData,
-)
+from sysdata.futures.multiple_prices import futuresMultiplePricesData
 from sysobjects.multiple_prices import (
     futuresMultiplePrices,
     list_of_contract_column_names,
@@ -83,7 +81,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
         try:
             instr_all_price_data = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
         except OSError:
-            self.log.warning(
+            self.log.warn(
                 "Can't find multiple price file %s or error reading" % filename,
                 instrument_code=instrument_code,
             )

@@ -45,7 +45,7 @@ class csvRollCalendarData(rollCalendarData):
 
             roll_calendar = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
         except OSError:
-            self.log.warning("Can't find roll calendar file %s" % filename)
+            self.log.warn("Can't find roll calendar file %s" % filename)
             return rollCalendar.create_empty()
 
         roll_calendar = rollCalendar(roll_calendar)
