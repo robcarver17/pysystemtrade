@@ -79,7 +79,6 @@ class simData(baseData):
 
         if start_date is missing_data:
             start_date = self._get_and_set_start_date_for_data_from_config()
-
         return start_date
 
     def _get_and_set_start_date_for_data_from_config(self) -> datetime:
@@ -170,7 +169,6 @@ class simData(baseData):
 
         """
         raise NotImplementedError("Need to inherit from simData")
-
 
     def get_instrument_list(self) -> list:
         """
@@ -274,7 +272,12 @@ def _resolve_start_date(sim_data: simData):
     if start_date is missing_data:
         start_date = ARBITRARY_START
     else:
-        if type(start_date) is not datetime.datetime:
+        if isinstance(start_date, datetime.date):
+            # yaml parses unquoted date like 2000-01-01 to datetime.date
+            start_date = datetime.datetime.combine(
+                start_date, datetime.datetime.min.time()
+            )
+        elif not isinstance(start_date, datetime.datetime):
             try:
                 start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
             except:

@@ -92,7 +92,7 @@ This is an open source project, designed for people who are already comfortable 
 However I can't guarantee that I will reply immediately, or at all. If you need that level of support then you are better off with another project. The most efficient way of doing this is by [opening an issue on github](https://github.com/robcarver17/pysystemtrade/issues/new). If you discover a bug please include:
 
 - The full script that produces the error, including all `import` statements, or if it's a standard example file a pointer to the file. Ideally this should be a "minimal example" - the shortest possible script that produces the problem.
-- Versions of any neccessary libraries you have installed
+- Versions of any necessary libraries you have installed
 - The full output trace including the error messages
 
 If you don't include the information above I will close the issue and then ignore it.

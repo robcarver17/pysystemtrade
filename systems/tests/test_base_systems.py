@@ -23,6 +23,7 @@ class Test(unittest.TestCase):
         system = System([stage], data=data, config=config)
         self.system = system
 
+    @unittest.SkipTest
     def test_quicktest(self):
         system = self.system
         instrument_list = system.get_instrument_list()

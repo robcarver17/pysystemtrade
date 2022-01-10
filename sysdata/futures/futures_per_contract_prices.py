@@ -215,7 +215,7 @@ class futuresContractPriceData(baseData):
 
         if merged_prices is spike_in_data:
             new_log.msg(
-                "Price has moved too much - will need to manually check - no price updated done"
+                "Price has moved too much - will need to manually check - no price update done"
             )
             return spike_in_data
 

@@ -251,7 +251,7 @@ You need to:
 - Read this document very thoroughly!
 - Prerequisites:
     - Install [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), install or update [python3](https://docs.python-guide.org/starting/install3/linux/). You may also find a simple text editor (like emacs) is useful for fine tuning, and if you are using a headless server then [x11vnc](http://www.karlrunge.com/x11vnc/) is helpful.
-    - Add the following environment variables to your .profile: (feel free to use other directories):
+    - Add the following environment variables to your `~/.profile`: (feel free to use other directories):
         - MONGO_DATA=/home/user_name/data/mongodb/
         - PYSYS_CODE=/home/user_name/pysystemtrade
         - SCRIPT_PATH=/home/user_name/pysystemtrade/sysproduction/linux/scripts
@@ -824,7 +824,7 @@ Once all the child orders of an order are completed, then a parent order can als
 # The journey of an order
 
 
-The most complex part of any trading system is the order management process. It is particularly complex in pysystemtrade, since it's designed to handle (in principal) some very complex types of trading strategy, and to trade multiple strategies. We also have the inherent complexity involved in trading futures. Let's look at the journey for a typical order. We'll consider the following:
+The most complex part of any trading system is the order management process. It is particularly complex in pysystemtrade, since it's designed to handle (in principle) some very complex types of trading strategy, and to trade multiple strategies. We also have the inherent complexity involved in trading futures. Let's look at the journey for a typical order. We'll consider the following:
 
 - A normal order in a trading system which does not trade spreads. This could involve passively rolling from one contract to the next.
 - A roll order which is a calendar spread (a FORCE roll)

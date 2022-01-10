@@ -52,7 +52,7 @@ This is keyed off the multiple instruments database. This should be as extensive
 
 # Instruments we have adjusted prices for, used for simulation and production system backtest raw data
 
-If they're both coming from a database, then this in principal should be the same as the previous list, however if you use .csv prices for simulated backtesting then you might have a different set of instruments. Obviously try and avoid this! (Unless it's deliberate, eg you're doing a quick and dirty backtest on a subset of instruments).
+If they're both coming from a database, then this in principle should be the same as the previous list, however if you use .csv prices for simulated backtesting then you might have a different set of instruments. Obviously try and avoid this! (Unless it's deliberate, eg you're doing a quick and dirty backtest on a subset of instruments).
 
 ```python
 from systems.provided.futures_chapter15.basesystem import *
@@ -74,7 +74,7 @@ This is where it gets complicated :-) Basically we start with the instruments we
 
 ## The global list of instruments, when defined
 
-If we load a default config that contains no instrument information, then in principal we'll have available every instrument with an adjusted price in the source we're using (sim .csv or database):
+If we load a default config that contains no instrument information, then in principle we'll have available every instrument with an adjusted price in the source we're using (sim .csv or database):
 
 ```python
 from systems.provided.futures_chapter15.basesystem import *
@@ -480,7 +480,7 @@ You can also set database trade overrides here.
 
 In a dynamic system we apply an optimisation to the optimal positions from the production backtest before generating orders. This optimisation needs to know about instruments with status 'reduce_only' and 'dont_trade'; again it will pull this information from a combination of configuration .yaml information (importantly, ignoring the backtest .yaml file) and what is loaded in the database. 
 
-In principal the orders which are generated will also be subjected to the same constraints as for a static system, but since the optimisation takes care of them already this step won't have any effect on the orders that have been created.
+In principle the orders which are generated will also be subjected to the same constraints as for a static system, but since the optimisation takes care of them already this step won't have any effect on the orders that have been created.
 
 This also means that there will be a more gradual transition out of newly added bad instruments (or ignored, or duplicate) instruments into ones that have been redeemed, since this is done in an optimisation with full knowledge of costs. Again if you wish to close a position today, you will need to issue a manual trade.
 
