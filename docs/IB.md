@@ -133,7 +133,7 @@ ib_orders_data.ibconnection
 ### FX Data
 
 ```
-from sysbrokers.IB.ib_spot_FX_data import ibFxPricesData
+from sysbrokers.IB.ib_Fx_prices_data import ibFxPricesData
 ibfxpricedata = ibFxPricesData(conn)
 
 ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFX.csv
@@ -150,7 +150,7 @@ from sysobjects.contracts import futuresContract
 from sysbrokers.IB.ib_futures_contract_price_data import ibFuturesContractPriceData
 ibfuturesdata = ibFuturesContractPriceData(conn)
 
-ibfuturesdata.get_instruments_with_price_data() # returns list of instruments defined in [futures config file](/sysbrokers/IB/ibConfigFutures.csv)
+ibfuturesdata.get_list_of_instrument_codes_with_price_data() # returns list of instruments defined in [futures config file](/sysbrokers/IB/ibConfigFutures.csv)
 ibfuturesdata.contract_dates_with_price_data_for_instrument_code("EDOLLAR") # returns list of contract dates
 ibfuturesdata.get_prices_for_contract_object(futuresContract("EDOLLAR", "201203")) # returns OHLC price and volume data
 ```
@@ -158,9 +158,10 @@ ibfuturesdata.get_prices_for_contract_object(futuresContract("EDOLLAR", "201203"
 ### Capital data
 
 ```
-ib_capital_data = ibCapitalData()
+from sysbrokers.IB.ib_capital_data import ibCapitalData
 ib_capital_data = ibCapitalData(conn)
-ib_capital_data.get_account_value_across_currency_across_accounts()
+
+ib_capital_data.get_account_value_across_currency()
 ```
 
 
@@ -194,9 +195,10 @@ ib_futures_instrument_data.get_instrument_code_from_broker_code("GE") # reverse 
 ### Orders data
 
 ```
-from sysbrokers.IB.ib_orders_data import ibOrdersData
-ib_orders_data = ibOrdersData(conn)
-ib_orders_data.get_list_of_broker_orders() # Get the list of orders that the broker has executed in the last 24 hours
+from sysbrokers.IB.ib_orders import ibExecutionStackData
+ib_orders_data = ibExecutionStackData(conn)
+
+ib_orders_data.get_list_of_broker_orders_with_account_id() # Get the list of orders that the broker has executed in the last 24 hours
 ib_orders_data.get_list_of_orders_from_storage() # Get the list of orders that this instance has exected
 ib_orders_data.put_order_on_stack(broker_order) # this will actually trade! It returns an orderWithControls: a broker order that contains the dynamic IB order object 
 ib_orders_data.match_db_broker_order_to_order_from_brokers(broker_order) # Useful to see if an order has been filled for example
@@ -212,7 +214,7 @@ ib_orders_data.modify_limit_price_given_control_object(broker_order_with_control
 ### Position data
 
 ```
-from sysbrokers.IB.ib_position_data import ibContractPositionData
+from sysbrokers.IB.ib_contract_position_data import ibContractPositionData
 ib_contract_position_data = ibContractPositionData(conn)
 ib_contract_position_data.get_all_current_positions_as_list_with_contract_objects()
 ```
