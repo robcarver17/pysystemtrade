@@ -56,8 +56,10 @@ class logToDb(logger):
 
     def email_user(self, log_entry: logEntry):
         data = self.data
-        log_entry_text= str(log_entry.text)
-        subject_line = log_entry_text[:30]
+        subject_line = str(log_entry.attributes)+ ": "+ \
+            str(log_entry.text)
+
+        log_entry_text = str(log_entry)
         send_production_mail_msg(data,
                                  log_entry_text,
                                  "*CRITICAL* ERROR: %s" % subject_line)
