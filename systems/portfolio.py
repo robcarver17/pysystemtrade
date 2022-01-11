@@ -135,6 +135,8 @@ class Portfolios(SystemStage):
             buffer = self.get_forecast_method_buffer(instrument_code)
         elif buffer_method == "position":
             buffer = self.get_position_method_buffer(instrument_code)
+        elif buffer_method == "none":
+            buffer = self._get_buffer_if_not_buffering(instrument_code)
         else:
             self.log.critical(
                 "Buffer method %s not recognised - not buffering" % buffer_method
