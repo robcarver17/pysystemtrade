@@ -219,7 +219,7 @@ class System(object):
         config = self.config
         try:
             # if instrument weights specified in config ...
-            instrument_list = config.instrument_weights.keys()
+            instrument_list = list(config.instrument_weights.keys())
         except:
             try:
                 # alternative place if no instrument weights
