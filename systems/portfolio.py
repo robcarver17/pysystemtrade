@@ -231,8 +231,8 @@ class Portfolios(SystemStage):
     @dont_cache
     def _get_buffer_if_not_buffering(self, instrument_code: str) -> pd.Series:
         position = self.get_notional_position(instrument_code)
-        max_max_position = float(position.abs().max()) * 10.0
-        buffer = pd.Series([max_max_position] * position.shape[0], index=position.index)
+        EPSILON_POSITION = 0.001
+        buffer = pd.Series([EPSILON_POSITION] * position.shape[0], index=position.index)
 
         return buffer
 
