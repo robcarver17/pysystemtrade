@@ -345,6 +345,10 @@ Notice the differences from before:
 
 *Note if you'd passed the dict of trading rules into Rules()* **and** *into the config, only the former would be used*
 
+Why do we have this alternative method of specifying trading rules? Indeed why the option of using config at all. The answer it's that's a much more robust method for defining system behaviour than having pages of scripts defining how the system behaves. This is especially true in a production system. Why do we need an empty instance of Rules()? Well effectively we build our System object up from building blocks like Rules. These are usually just empty instances of a given class with no arguments passed, which are controlled by the contents of the configuration object also passed to system.
+ 
+So in a sense passing Rules(dict(....)) is not the normal behaviour, it's just sometimes nice to be able to do this so I allow it.
+
 Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. To fix this we need to add another *stage* to our system: forecast scaling and capping.
 Stages are added by including extra objects in the list which is the first argument passed to `System`. The order of these doesn't matter.
 
