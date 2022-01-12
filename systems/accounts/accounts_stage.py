@@ -1,4 +1,4 @@
-## We don't need to inherit from accountForecast, accountInputs, accountBuffering, accountInstruments
+## We don't need to inherit from accountForecast, accountInputs, accountBufferingSystemLevel, accountInstruments
 ## as we get those via these other objects
 
 from systems.accounts.account_with_multiplier import accountWithMultiplier

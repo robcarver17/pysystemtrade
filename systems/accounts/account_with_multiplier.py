@@ -8,14 +8,14 @@ from syscore.algos import apply_buffer
 
 from systems.system_cache import output, diagnostic
 from systems.accounts.account_portfolio import accountPortfolio
-from systems.accounts.account_buffering import accountBuffering
+from systems.accounts.account_buffering_system import accountBufferingSystemLevel
 
 from systems.accounts.curves.dict_of_account_curves import dictOfAccountCurves
 from systems.accounts.curves.account_curve_group import accountCurveGroup
 from systems.accounts.curves.account_curve import accountCurve
 
 
-class accountWithMultiplier(accountPortfolio, accountBuffering):
+class accountWithMultiplier(accountPortfolio, accountBufferingSystemLevel):
     @output(not_pickable=True)
     def portfolio_with_multiplier(self, delayfill=True, roundpositions=True):
 

@@ -3225,6 +3225,8 @@ Note that in a live trading system buffering is done downstream of the
 system module, in a process which can also see the actual current positions we
 hold [the strategy order generation)](/docs/production.md).
 
+Finally, if you set buffer_method to none there will be no buffering.
+
 #### Capital correction
 
 If you want to see positions that reflect varying capital, then read the

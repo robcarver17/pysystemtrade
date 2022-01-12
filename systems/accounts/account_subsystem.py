@@ -1,5 +1,5 @@
 from systems.system_cache import diagnostic, dont_cache
-from systems.accounts.account_costs import accountCosts
+from systems.accounts.account_buffering_subsystem import accountBufferingSubSystemLevel
 from systems.accounts.pandl_calculators.pandl_SR_cost import pandlCalculationWithSRCosts
 from systems.accounts.pandl_calculators.pandl_cash_costs import (
     pandlCalculationWithCashCostsAndFills,
@@ -9,7 +9,7 @@ from systems.accounts.curves.account_curve_group import accountCurveGroup
 from systems.accounts.curves.dict_of_account_curves import dictOfAccountCurves
 
 
-class accountSubsystem(accountCosts):
+class accountSubsystem(accountBufferingSubSystemLevel):
     @diagnostic(not_pickable=True)
     def pandl_across_subsystems(
         self, delayfill=True, roundpositions=False
@@ -106,7 +106,7 @@ class accountSubsystem(accountCosts):
     ) -> accountCurve:
 
         price = self.get_daily_price(instrument_code)
-        positions = self.get_subsystem_position(instrument_code)
+        positions = self.get_buffered_subsystem_position(instrument_code)
 
         fx = self.get_fx_rate(instrument_code)
 
@@ -147,7 +147,7 @@ class accountSubsystem(accountCosts):
 
         raw_costs = self.get_raw_cost_data(instrument_code)
         price = self.get_daily_price(instrument_code)
-        positions = self.get_subsystem_position(instrument_code)
+        positions = self.get_buffered_subsystem_position(instrument_code)
 
         fx = self.get_fx_rate(instrument_code)
 

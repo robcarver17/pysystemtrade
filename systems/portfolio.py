@@ -18,6 +18,7 @@ from sysquant.returns import (
     returnsForOptimisationWithCosts,
 )
 
+from systems.buffering import calculate_buffers, calculate_actual_buffers, apply_buffers_to_position
 from systems.stage import SystemStage
 from systems.system_cache import input, dont_cache, diagnostic, output
 from systems.positionsizing import PositionSizing
@@ -85,7 +86,7 @@ class Portfolios(SystemStage):
         cap_multiplier = self.capital_multiplier()
         buffers = self.get_buffers_for_position(instrument_code)
 
-        actual_buffers_for_position = _calculate_actual_buffers(buffers, cap_multiplier)
+        actual_buffers_for_position = calculate_actual_buffers(buffers, cap_multiplier)
 
         return actual_buffers_for_position
 
@@ -117,124 +118,30 @@ class Portfolios(SystemStage):
         position = self.get_notional_position(instrument_code)
         buffer = self.get_buffers(instrument_code)
 
-        pos_buffers = _apply_buffers_to_position(position=position, buffer=buffer)
+        pos_buffers = apply_buffers_to_position(position=position, buffer=buffer)
 
         return pos_buffers
 
     @diagnostic()
     def get_buffers(self, instrument_code: str) -> pd.Series:
 
-        self.log.msg(
-            "Calculating buffers for %s" % instrument_code,
-            instrument_code=instrument_code,
-        )
-
-        buffer_method = self.config.buffer_method
-
-        if buffer_method == "forecast":
-            buffer = self.get_forecast_method_buffer(instrument_code)
-        elif buffer_method == "position":
-            buffer = self.get_position_method_buffer(instrument_code)
-        elif buffer_method == "none":
-            buffer = self._get_buffer_if_not_buffering(instrument_code)
-        else:
-            self.log.critical(
-                "Buffer method %s not recognised - not buffering" % buffer_method
-            )
-            buffer = self._get_buffer_if_not_buffering(instrument_code)
-
-        return buffer
-
-    @diagnostic()
-    def get_forecast_method_buffer(self, instrument_code: str) -> pd.Series:
-        """
-        Gets the buffers for positions, using proportion of average forecast method
-
-
-        :param instrument_code: instrument to get values for
-        :type instrument_code: str
-
-        :returns: Tx1 pd.DataFrame
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
-        >>> from systems.basesystem import System
-        >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
-        >>>
-        >>> ## from config
-        >>> system.portfolio.get_forecast_method_buffer("EDOLLAR").tail(2)
-                      buffer
-        2015-12-10  0.671272
-        2015-12-11  0.619976
-        """
-
-        self.log.msg(
-            "Calculating forecast method buffers for %s" % instrument_code,
-            instrument_code=instrument_code,
-        )
-
-        buffer_size = self.config.buffer_size
         position = self.get_notional_position(instrument_code)
-
+        vol_scalar = self.get_volatility_scalar(instrument_code)
+        log = self.log
+        config = self.config
         idm = self.get_instrument_diversification_multiplier()
         instr_weights = self.get_instrument_weights()
-        vol_scalar = self.get_volatility_scalar(instrument_code)
-        inst_weight_this_code = instr_weights[instrument_code]
 
-        buffer = _calculate_forecast_buffer_method(
-            buffer_size=buffer_size,
-            position=position,
-            idm=idm,
-            inst_weight_this_code=inst_weight_this_code,
-            vol_scalar=vol_scalar,
-        )
+        buffer = calculate_buffers(instrument_code=instrument_code,
+                                   position=position,
+                                   log=log,
+                                   config = config,
+                                   idm = idm,
+                                   instr_weights=instr_weights,
+                                   vol_scalar = vol_scalar)
 
         return buffer
 
-    @diagnostic()
-    def get_position_method_buffer(self, instrument_code: str) -> pd.Series:
-        """
-        Gets the buffers for positions, using proportion of position method
-
-        :param instrument_code: instrument to get values for
-        :type instrument_code: str
-
-        :returns: Tx1 pd.DataFrame
-
-        >>> from systems.tests.testdata import get_test_object_futures_with_pos_sizing
-        >>> from systems.basesystem import System
-        >>> (posobject, combobject, capobject, rules, rawdata, data, config)=get_test_object_futures_with_pos_sizing()
-        >>> system=System([rawdata, rules, posobject, combobject, capobject,Portfolios()], data, config)
-        >>>
-        >>> ## from config
-        >>> system.portfolio.get_position_method_buffer("EDOLLAR").tail(2)
-                      buffer
-        2015-12-10  0.108688
-        2015-12-11  0.152676
-        """
-
-        self.log.msg(
-            "Calculating position method buffer for %s" % instrument_code,
-            instrument_code=instrument_code,
-        )
-
-        buffer_size = self.config.buffer_size
-        position = self.get_notional_position(instrument_code)
-        abs_position = abs(position)
-
-        buffer = abs_position * buffer_size
-
-        buffer.columns = ["buffer"]
-
-        return buffer
-
-    @dont_cache
-    def _get_buffer_if_not_buffering(self, instrument_code: str) -> pd.Series:
-        position = self.get_notional_position(instrument_code)
-        EPSILON_POSITION = 0.001
-        buffer = pd.Series([EPSILON_POSITION] * position.shape[0], index=position.index)
-
-        return buffer
 
     ## notional position
     @output()
@@ -940,48 +847,6 @@ class Portfolios(SystemStage):
     @property
     def position_size_stage(self) -> PositionSizing:
         return self.parent.positionSize
-
-
-def _calculate_actual_buffers(
-    buffers: pd.DataFrame, cap_multiplier: pd.Series
-) -> pd.DataFrame:
-
-    cap_multiplier = cap_multiplier.reindex(buffers.index).ffill()
-    cap_multiplier = pd.concat([cap_multiplier, cap_multiplier], axis=1)
-    cap_multiplier.columns = buffers.columns
-
-    actual_buffers_for_position = buffers * cap_multiplier
-
-    return actual_buffers_for_position
-
-
-def _apply_buffers_to_position(position: pd.Series, buffer: pd.Series) -> pd.DataFrame:
-    top_position = position.ffill() + buffer.ffill()
-    bottom_position = position.ffill() - buffer.ffill()
-
-    pos_buffers = pd.concat([top_position, bottom_position], axis=1)
-    pos_buffers.columns = ["top_pos", "bot_pos"]
-
-    return pos_buffers
-
-
-def _calculate_forecast_buffer_method(
-    inst_weight_this_code: pd.Series,
-    idm: pd.Series,
-    vol_scalar: pd.Series,
-    position: pd.Series,
-    buffer_size: float,
-):
-
-    inst_weight_this_code = inst_weight_this_code.reindex(position.index).ffill()
-    idm = idm.reindex(position.index).ffill()
-    vol_scalar = vol_scalar.reindex(position.index).ffill()
-
-    average_position = abs(vol_scalar * inst_weight_this_code * idm)
-
-    buffer = average_position * buffer_size
-
-    return buffer
 
 
 if __name__ == "__main__":

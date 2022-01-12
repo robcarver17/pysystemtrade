@@ -8,7 +8,7 @@ from systems.system_cache import diagnostic
 from systems.accounts.account_inputs import accountInputs
 
 
-class accountBuffering(accountInputs):
+class accountBufferingSystemLevel(accountInputs):
     @diagnostic()
     def instrument_turnover(
         self, instrument_code: str, roundpositions: bool = True

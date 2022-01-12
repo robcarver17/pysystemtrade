@@ -4,7 +4,7 @@ from syscore.pdutils import turnover
 
 from systems.system_cache import diagnostic, output, dont_cache
 from systems.accounts.account_costs import accountCosts
-from systems.accounts.account_buffering import accountBuffering
+from systems.accounts.account_buffering_system import accountBufferingSystemLevel
 from systems.accounts.pandl_calculators.pandl_SR_cost import pandlCalculationWithSRCosts
 from systems.accounts.pandl_calculators.pandl_cash_costs import (
     pandlCalculationWithCashCostsAndFills,
@@ -12,7 +12,7 @@ from systems.accounts.pandl_calculators.pandl_cash_costs import (
 from systems.accounts.curves.account_curve import accountCurve
 
 
-class accountInstruments(accountCosts, accountBuffering):
+class accountInstruments(accountCosts, accountBufferingSystemLevel):
     # dont' cache: just a switch method
     @dont_cache
     def pandl_for_instrument(
