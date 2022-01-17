@@ -181,6 +181,7 @@ account.weekly ## weekly returns (also daily [default], monthly, annual)
 account.gross.ann_mean() ## annual mean for gross returns, also costs (there are none in this simple example)
 ```
 
+[Here](notebooks/introduction_with_fxdata.ipynb) you can find a modified version of this example using IB data instead of pre-baked CSV data files.
 
 ## A simple system
 
