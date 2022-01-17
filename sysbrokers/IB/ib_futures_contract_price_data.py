@@ -301,7 +301,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         )
         if contract_object_with_ib_data is missing_contract:
             new_log.warn("Can't get data for %s" % str(contract_object))
-            return futuresContractPrices.create_empty()
+            return dataFrameOfRecentTicks.create_empty()
 
         tick_data = self.ib_client.ib_get_recent_bid_ask_tick_data(
             contract_object_with_ib_data

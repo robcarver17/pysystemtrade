@@ -7,23 +7,32 @@ from collections import namedtuple
 from syscore.genutils import quickTimer
 from syscore.objects import arg_not_supplied, missing_data
 
+TICK_REQUIRED_COLUMNS = ["priceAsk", "priceBid", "sizeAsk", "sizeBid"]
 
 class dataFrameOfRecentTicks(pd.DataFrame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         columns = self.columns
         sorted_columns = sorted(columns)
-        required_columns = ["priceAsk", "priceBid", "sizeAsk", "sizeBid"]
+
         try:
-            assert all([x == y for x, y in zip(sorted_columns, required_columns)])
+            assert all([x == y for x, y in zip(sorted_columns, TICK_REQUIRED_COLUMNS)])
         except:
             raise Exception(
-                "historical ticks should have columns %s" % str(required_columns)
+                "historical ticks should have columns %s" % str(TICK_REQUIRED_COLUMNS)
             )
 
     def average_bid_offer_spread(self, remove_negative=True) -> float:
         return average_bid_offer_spread(self, remove_negative=remove_negative)
 
+    @classmethod
+    def create_empty(dataFrameOfRecentTicks):
+        return dataFrameOfRecentTicks(pd.DataFrame(
+            columns = TICK_REQUIRED_COLUMNS
+        ))
+
+    def is_empty(self) -> bool:
+        return len(self)==0
 
 def analyse_tick_data_frame(
     tick_data: dataFrameOfRecentTicks,
@@ -33,6 +42,10 @@ def analyse_tick_data_frame(
 ):
     if tick_data is missing_data:
         return missing_data
+
+    if tick_data.is_empty():
+        return missing_data
+
     tick = extract_final_row_of_tick_data_frame(tick_data, forward_fill=forward_fill)
     results = analyse_tick(tick, qty, replace_qty_nans=replace_qty_nans)
 
@@ -87,7 +100,7 @@ def extract_nth_row_of_tick_data_frame(
 def average_bid_offer_spread(
     tick_data: dataFrameOfRecentTicks, remove_negative: bool = True
 ) -> float:
-    if len(tick_data) == 0:
+    if tick_data.is_empty():
         return missing_data
     all_spreads = tick_data.priceAsk - tick_data.priceBid
     if remove_negative:
