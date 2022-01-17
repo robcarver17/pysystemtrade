@@ -507,7 +507,12 @@ class ForecastCombine(SystemStage):
             ## will come back as 2*N data frame
             forecast_weights = self.get_raw_fixed_forecast_weights(instrument_code)
 
-        return forecast_weights
+        forecast_weights_cheap_rules_only = self._remove_expensive_rules_from_weights(
+            instrument_code, forecast_weights
+        )
+
+
+        return forecast_weights_cheap_rules_only
 
     @dont_cache
     def _use_estimated_weights(self):
@@ -552,13 +557,9 @@ class ForecastCombine(SystemStage):
         optimiser = self.calculation_of_raw_estimated_monthly_forecast_weights(
             instrument_code
         )
-        weights = optimiser.weights()
-        # Apply postprocessing cheap rules
-        forecast_weights_cheap_rules_only = self._remove_expensive_rules_from_weights(
-            instrument_code, weights
-        )
+        forecast_weights = optimiser.weights()
 
-        return forecast_weights_cheap_rules_only
+        return forecast_weights
 
     @diagnostic(not_pickable=True, protected=True)
     def calculation_of_raw_estimated_monthly_forecast_weights(self, instrument_code):
