@@ -50,9 +50,7 @@ class futuresAdjustedPrices(pd.Series):
         :return: futuresAdjustedPrices
 
         """
-
-        adjusted_prices = _panama_stitch(multiple_prices)
-
+        adjusted_prices = _panama_stitch(multiple_prices, forward_fill)
         return futuresAdjustedPrices(adjusted_prices)
 
     def update_with_multiple_prices_no_roll(
@@ -82,6 +80,8 @@ def _panama_stitch(
     :return: pd.Series of adjusted prices
     """
     multiple_prices = copy(multiple_prices_input)
+    if forward_fill:
+        multiple_prices.ffill(inplace=True)
 
     if multiple_prices.empty:
         raise Exception("Can't stitch an empty multiple prices object")
