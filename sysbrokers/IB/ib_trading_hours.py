@@ -200,6 +200,9 @@ def one_off_adjustments(symbol: str) -> tuple:
     # Should actually be
     # 20220124:0900-20220125:1145;
     # 20220125:1230-20220125:1620;
-    adj_dict = dict(EOE=(-10, -16), CAC40=(-10, -16))
-    one_off = adj_dict.get(symbol, NO_ADJUSTMENTS)
-    return one_off
+    #adj_dict = dict(EOE=(-10, -16), CAC40=(-10, -16))
+    #one_off = adj_dict.get(symbol, NO_ADJUSTMENTS)
+
+    #return one_off
+
+    return NO_ADJUSTMENTS
