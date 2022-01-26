@@ -1,3 +1,5 @@
+from syscore.objects import missing_contract
+from syscore.dateutils import manyTradingStartAndEndDateTimes, listOfOpeningTimes
 from sysdata.futures.contracts import futuresContractData
 
 from sysobjects.contract_dates_and_expiries import expiryDate
@@ -19,25 +21,30 @@ class brokerFuturesContractData(futuresContractData):
         raise NotImplementedError
 
     def is_contract_okay_to_trade(self, futures_contract: futuresContract) -> bool:
-        raise NotImplementedError
+        new_log = futures_contract.log(self.log)
+        trading_hours = self.get_trading_hours_for_contract(futures_contract)
+        if trading_hours is missing_contract:
+            new_log.critical(
+                "Error! Cannot find active contract! Expired? interactive_update_roll_status.py not executed?"
+            )
+            return False
 
-    def is_contract_conservatively_okay_to_trade(
-        self, futures_contract: futuresContract
-    ) -> bool:
-        raise NotImplementedError
+        trading_hours_checker = manyTradingStartAndEndDateTimes(trading_hours)
+        return trading_hours_checker.okay_to_trade_now()
+
 
     def less_than_N_hours_of_trading_left_for_contract(
         self, contract_object: futuresContract, N_hours: float = 1.0
     ) -> bool:
+        trading_hours = self.get_trading_hours_for_contract(contract_object)
+        trading_hours_checker = manyTradingStartAndEndDateTimes(trading_hours)
+
+        return trading_hours_checker.less_than_N_hours_left(N_hours=N_hours)
+
+    def get_trading_hours_for_contract(self, futures_contract: futuresContract) -> \
+            listOfOpeningTimes:
         raise NotImplementedError
 
-    def get_trading_hours_for_contract(self, futures_contract: futuresContract) -> list:
-        raise NotImplementedError
-
-    def get_conservative_trading_hours_for_contract(
-        self, futures_contract: futuresContract
-    ) -> list:
-        raise NotImplementedError
 
     def get_list_of_contract_dates_for_instrument_code(self, instrument_code: str):
         raise NotImplementedError("Consider implementing for consistent interface")

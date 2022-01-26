@@ -192,17 +192,7 @@ def get_time_difference(time_zone_id: str) -> int:
 
 
 def one_off_adjustments(symbol: str) -> tuple:
-    ## This is what we get
-    # 20220124:1900-20220125:0745; # -10 hours, -16 hours
-    # 20220125:0830-20220125:1320;
-    # 20220125:1900-20220126:0745;
-    # 20220126:0830-20220126:1320;
-    # Should actually be
-    # 20220124:0900-20220125:1145;
-    # 20220125:1230-20220125:1620;
-    #adj_dict = dict(EOE=(-10, -16), CAC40=(-10, -16))
-    #one_off = adj_dict.get(symbol, NO_ADJUSTMENTS)
-
-    #return one_off
+    ## Instrument specific - none needed any more
+    ## Leave code unless have problems again
 
     return NO_ADJUSTMENTS

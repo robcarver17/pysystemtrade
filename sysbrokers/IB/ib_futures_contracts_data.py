@@ -7,7 +7,6 @@ from sysbrokers.broker_futures_contract_data import brokerFuturesContractData
 from syscore.objects import missing_contract, missing_instrument
 
 
-from syscore.dateutils import manyTradingStartAndEndDateTimes
 
 from sysobjects.contract_dates_and_expiries import expiryDate
 from sysobjects.contracts import futuresContract
@@ -158,25 +157,7 @@ class ibFuturesContractData(brokerFuturesContractData):
 
         return min_tick_size
 
-    def is_contract_okay_to_trade(self, futures_contract: futuresContract) -> bool:
-        new_log = futures_contract.log(self.log)
-        trading_hours = self.get_trading_hours_for_contract(futures_contract)
-        if trading_hours is missing_contract:
-            new_log.critical(
-                "Error! Cannot find active contract! Expired? interactive_update_roll_status.py not executed?"
-            )
-            return False
 
-        trading_hours_checker = manyTradingStartAndEndDateTimes(trading_hours)
-        return trading_hours_checker.okay_to_trade_now()
-
-    def less_than_N_hours_of_trading_left_for_contract(
-        self, contract_object: futuresContract, N_hours: float = 1.0
-    ) -> bool:
-        trading_hours = self.get_trading_hours_for_contract(contract_object)
-        trading_hours_checker = manyTradingStartAndEndDateTimes(trading_hours)
-
-        return trading_hours_checker.less_than_N_hours_left(N_hours=N_hours)
 
     def get_trading_hours_for_contract(self, futures_contract: futuresContract) -> list:
         """
