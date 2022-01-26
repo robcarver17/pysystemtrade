@@ -673,7 +673,7 @@ def check_trading_hours(trading_hours: listOfOpeningTimes,
 
 def check_trading_hours_one_day(trading_hours_this_instrument: openingTimes,
                         instrument_code: str):
-    if trading_hours_this_instrument.opening_time > \
+    if trading_hours_this_instrument.opening_time >= \
             trading_hours_this_instrument.closing_time:
         print(
             "%s Trading hours appear to be wrong: %s"
