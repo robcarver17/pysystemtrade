@@ -4,6 +4,7 @@ import time
 from importlib import import_module
 import os
 import sys
+from pathlib import Path
 
 from syscore.dateutils import SECONDS_PER_DAY
 
@@ -49,6 +50,8 @@ def get_filename_for_package(pathname: str, filename=None):
     Absolute filenames always begin with ., / or \
     Relative filenames do not
     """
+    if isinstance(pathname, Path):
+        pathname = str(pathname)
     pathname_replaced_with_ampersands = add_ampersand_to_pathname(pathname)
     if filename is None:
         # filename will be at the end of the pathname
@@ -79,6 +82,8 @@ def add_ampersand_to_pathname(pathname: str) -> str:
 
 
 def get_resolved_pathname(pathname):
+    if isinstance(pathname, Path):
+        pathname = str(pathname)
     # Turn /,\ into . so system independent
     if "@" in pathname:
         # This is an ssh address for rsync - don't change
