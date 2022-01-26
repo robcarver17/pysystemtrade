@@ -324,81 +324,7 @@ def get_datetime_input(
             continue
 
 
-class tradingStartAndEndDateTimes(object):
-    def __init__(self, hour_tuple):
-        self._start_time = hour_tuple[0]
-        self._end_time = hour_tuple[1]
 
-    @property
-    def start_time(self):
-        return self._start_time
-
-    @property
-    def end_time(self):
-        return self._end_time
-
-    def okay_to_trade_now(self) -> bool:
-        datetime_now = datetime.datetime.now()
-        if datetime_now >= self.start_time and datetime_now <= self.end_time:
-            return True
-        else:
-            return False
-
-    def hours_left_before_market_close(self) -> float:
-        if not self.okay_to_trade_now():
-            # market closed
-            return 0
-
-        datetime_now = datetime.datetime.now()
-        time_left = self.end_time - datetime_now
-        seconds_left = time_left.total_seconds()
-        hours_left = float(seconds_left) / SECONDS_PER_HOUR
-
-        return hours_left
-
-    def less_than_N_hours_left(self, N_hours: float = 1.0) -> bool:
-        hours_left = self.hours_left_before_market_close()
-        if hours_left < N_hours:
-            return True
-        else:
-            return False
-
-
-class manyTradingStartAndEndDateTimes(list):
-    def __init__(self, list_of_trading_hours):
-        """
-
-        :param list_of_trading_hours: list of tuples, both datetime, first is start and second is end
-        """
-
-        list_of_start_and_end_objects = []
-        for hour_tuple in list_of_trading_hours:
-            this_period = tradingStartAndEndDateTimes(hour_tuple)
-            list_of_start_and_end_objects.append(this_period)
-
-        super().__init__(list_of_start_and_end_objects)
-
-    def okay_to_trade_now(self):
-        for check_period in self:
-            if check_period.okay_to_trade_now():
-                # okay to trade if it's okay to trade on some date
-                return True
-        return False
-
-    def less_than_N_hours_left(self, N_hours: float = 1.0):
-        for check_period in self:
-            if check_period.okay_to_trade_now():
-                # market is open, but for how long?
-                if check_period.less_than_N_hours_left(N_hours=N_hours):
-                    return True
-                else:
-                    return False
-            else:
-                # move on to next period
-                continue
-
-        # market closed, we treat that as 'less than one hour left'
-        return True
 
 
 SHORT_DATE_PATTERN = "%m/%d %H:%M:%S"
@@ -519,6 +445,82 @@ def adjust_date_conservatively(
 ) -> datetime.datetime:
 
     return datetime.datetime.combine(datetime_to_be_adjusted.date(), conservative_time)
+
+class tradingStartAndEndDateTimes(object):
+    def __init__(self, hour_tuple: openingTimes):
+        self._start_time = hour_tuple.opening_time
+        self._end_time = hour_tuple.closing_time
+
+    @property
+    def start_time(self):
+        return self._start_time
+
+    @property
+    def end_time(self):
+        return self._end_time
+
+    def okay_to_trade_now(self) -> bool:
+        datetime_now = datetime.datetime.now()
+        if datetime_now >= self.start_time and datetime_now <= self.end_time:
+            return True
+        else:
+            return False
+
+    def hours_left_before_market_close(self) -> float:
+        if not self.okay_to_trade_now():
+            # market closed
+            return 0
+
+        datetime_now = datetime.datetime.now()
+        time_left = self.end_time - datetime_now
+        seconds_left = time_left.total_seconds()
+        hours_left = float(seconds_left) / SECONDS_PER_HOUR
+
+        return hours_left
+
+    def less_than_N_hours_left(self, N_hours: float = 1.0) -> bool:
+        hours_left = self.hours_left_before_market_close()
+        if hours_left < N_hours:
+            return True
+        else:
+            return False
+
+class manyTradingStartAndEndDateTimes(listOfOpeningTimes):
+    def __init__(self, ):
+        """
+
+        :param list_of_trading_hours: list of tuples, both datetime, first is start and second is end
+        """
+
+        list_of_start_and_end_objects = []
+        for hour_tuple in listOfOpeningTimes:
+            this_period = tradingStartAndEndDateTimes(hour_tuple)
+            list_of_start_and_end_objects.append(this_period)
+
+        super().__init__(list_of_start_and_end_objects)
+
+    def okay_to_trade_now(self):
+        for check_period in self:
+            if check_period.okay_to_trade_now():
+                # okay to trade if it's okay to trade on some date
+                return True
+        return False
+
+    def less_than_N_hours_left(self, N_hours: float = 1.0):
+        for check_period in self:
+            if check_period.okay_to_trade_now():
+                # market is open, but for how long?
+                if check_period.less_than_N_hours_left(N_hours=N_hours):
+                    return True
+                else:
+                    return False
+            else:
+                # move on to next period
+                continue
+
+        # market closed, we treat that as 'less than one hour left'
+        return True
+
 
 
 def generate_equal_dates_within_year(

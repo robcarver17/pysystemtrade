@@ -25,7 +25,7 @@ from syscore.objects import (
     missing_contract,
     missing_data,
 )
-from syscore.dateutils import Frequency
+from syscore.dateutils import Frequency, listOfOpeningTimes, openingTimes
 
 from sysdata.data_blob import dataBlob
 
@@ -188,7 +188,7 @@ class dataBroker(productionDataLayerGeneric):
         )
         return result
 
-    def get_trading_hours_for_contract(self, contract: futuresContract) -> list:
+    def get_trading_hours_for_contract(self, contract: futuresContract) -> listOfOpeningTimes:
         result = self.broker_futures_contract_data.get_trading_hours_for_contract(
             contract
         )
