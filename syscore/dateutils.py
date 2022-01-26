@@ -376,6 +376,11 @@ def n_days_ago(n_days: int, date_ref=arg_not_supplied):
 class openingTimes():
     opening_time: datetime.datetime
     closing_time: datetime.datetime
+    def not_zero_length(self):
+        return not self.zero_length()
+
+    def zero_length(self):
+        return self.opening_time==self.closing_time()
 
 @dataclass()
 class openingTimesAnyDay():
@@ -383,7 +388,11 @@ class openingTimesAnyDay():
     closing_time: datetime.time
 
 class listOfOpeningTimes(list):
-    pass
+    def remove_zero_length_from_opening_times(self):
+        list_of_opening_times = [opening_time for opening_time in self
+                                 if opening_time.not_zero_length()]
+        list_of_opening_times = listOfOpeningTimes(list_of_opening_times)
+        return list_of_opening_times
 
 def adjust_trading_hours_conservatively(
     trading_hours: listOfOpeningTimes,
@@ -394,8 +403,10 @@ def adjust_trading_hours_conservatively(
         adjust_single_day_conservatively(single_days_hours, conservative_times)
         for single_days_hours in trading_hours
     ]
+    new_trading_hours = listOfOpeningTimes(new_trading_hours)
+    new_trading_hours_remove_zeros = new_trading_hours.remove_zero_length_from_opening_times()
 
-    return listOfOpeningTimes(new_trading_hours)
+    return new_trading_hours_remove_zeros
 
 
 def adjust_single_day_conservatively(

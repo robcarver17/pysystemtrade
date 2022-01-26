@@ -614,7 +614,7 @@ def display_a_dict_of_trading_hours(all_trading_hours):
         )
         )
 
-MAX_WIDTH_OF_PRINTABLE_TRADING_HOURS = 4
+MAX_WIDTH_OF_PRINTABLE_TRADING_HOURS = 3
 def nice_print_list_of_trading_hours(trading_hours: listOfOpeningTimes) -> str:
     list_of_nice_str = [nice_print_trading_hours(trading_hour_entry)
                         for trading_hour_entry in trading_hours[:MAX_WIDTH_OF_PRINTABLE_TRADING_HOURS]]
