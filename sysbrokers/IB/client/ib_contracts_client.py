@@ -95,7 +95,7 @@ class ibContractsClient(ibClient):
         ib_contract_details = ib_contract_details_list[0]
 
         try:
-            trading_hours = get_trading_hours(ib_contract_details)
+            trading_hours = get_conservative_trading_hours(ib_contract_details)
         except Exception as e:
             specific_log.warn(
                 "%s when getting trading hours from %s!"
