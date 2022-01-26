@@ -380,7 +380,7 @@ class openingTimes():
         return not self.zero_length()
 
     def zero_length(self):
-        return self.opening_time==self.closing_time()
+        return self.opening_time==self.closing_time
 
 @dataclass()
 class openingTimesAnyDay():
