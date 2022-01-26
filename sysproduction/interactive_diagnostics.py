@@ -605,14 +605,21 @@ def print_trading_hours_for_all_instruments(data=arg_not_supplied):
 
 
 def display_a_dict_of_trading_hours(all_trading_hours):
-    for key, trading_hour_entry in sorted(
+    for key, trading_hours_this_instrument in sorted(
         all_trading_hours.items(), key=lambda x: x[0]
     ):
         print(
             "%s: %s"
-            % ("{:20}".format(key), nice_print_trading_hours(trading_hour_entry))
+            % ("{:20}".format(key), nice_print_list_of_trading_hours(trading_hours_this_instrument)
+        )
         )
 
+MAX_WIDTH_OF_PRINTABLE_TRADING_HOURS = 4
+def nice_print_list_of_trading_hours(trading_hours: listOfOpeningTimes) -> str:
+    list_of_nice_str = [nice_print_trading_hours(trading_hour_entry)
+                        for trading_hour_entry in trading_hours[:MAX_WIDTH_OF_PRINTABLE_TRADING_HOURS]]
+    nice_string = " ".join(list_of_nice_str)
+    return nice_string
 
 def nice_print_trading_hours(trading_hour_entry: openingTimes) -> str:
     start_datetime = trading_hour_entry.opening_time
@@ -651,16 +658,20 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied):
             continue
 
         ## will have several days use first one
-        trading_hours_this_instrument = trading_hours[0]
-        check_trading_hours(trading_hours_this_instrument, instrument_code)
-        all_trading_hours[instrument_code] = trading_hours_this_instrument
+        check_trading_hours(trading_hours, instrument_code)
+        all_trading_hours[instrument_code] = trading_hours
 
     p.finished()
 
     return all_trading_hours
 
 
-def check_trading_hours(trading_hours_this_instrument: openingTimes,
+def check_trading_hours(trading_hours: listOfOpeningTimes,
+                        instrument_code: str):
+    for trading_hours_this_instrument in trading_hours:
+        check_trading_hours_one_day(trading_hours_this_instrument, instrument_code)
+
+def check_trading_hours_one_day(trading_hours_this_instrument: openingTimes,
                         instrument_code: str):
     if trading_hours_this_instrument.opening_time > \
             trading_hours_this_instrument.closing_time:
