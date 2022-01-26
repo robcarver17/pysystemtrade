@@ -200,11 +200,24 @@ class futuresContract(object):
         return self.contract_date.expiry_date
 
     def expired(self):
-        expiry_date = self.expiry_date
-        if expiry_date < datetime.datetime.now():
+        days_until_expiry = self.days_since_expiry()
+        if days_until_expiry<=0:
             return True
         else:
             return False
+
+    def days_since_expiry(self) -> float:
+        days_until_expiry = self.days_until_expiry()
+        days_since_expiry = -days_until_expiry
+
+        return days_since_expiry
+
+    def days_until_expiry(self) -> int:
+        expiry_date = self.expiry_date.date()
+        date_now = datetime.datetime.now().date()
+        timedelta = expiry_date - date_now
+        return timedelta.days
+
 
     def update_single_expiry_date(self, new_expiry_date: expiryDate):
         self.contract_date.update_single_expiry_date(new_expiry_date)

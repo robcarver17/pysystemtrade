@@ -1,11 +1,10 @@
-import pandas as pd
-from syscore.pdutils import check_df_equals, check_ts_equals
-
-from sysobjects.production.tradeable_object import instrumentStrategy
-
-from sysdata.data_blob import dataBlob
-from sysproduction.data.strategies import get_list_of_strategies
 import os
+import pandas as pd
+
+from syscore.pdutils import check_df_equals, check_ts_equals
+from syscore.objects import missing_data
+from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
+from sysdata.data_blob import dataBlob
 
 from sysdata.csv.csv_futures_contracts import csvFuturesContractData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
@@ -47,9 +46,11 @@ from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 
-from sysproduction.data.directories import get_csv_backup_directory, get_csv_dump_dir
-from syscore.objects import missing_data
+from sysobjects.contracts import futuresContract
+from sysobjects.production.tradeable_object import instrumentStrategy
 
+from sysproduction.data.directories import get_csv_backup_directory, get_csv_dump_dir
+from sysproduction.data.strategies import get_list_of_strategies
 
 def backup_arctic_to_csv():
     data = dataBlob(log_name="backup_arctic_to_csv")
@@ -182,29 +183,41 @@ def backup_futures_contract_prices_for_instrument_to_csv(
         instrument_code
     )
 
-    for contract in list_of_contracts:
+    for futures_contract in list_of_contracts:
+        backup_futures_contract_prices_for_contract_to_csv(data, futures_contract)
+
+
+def backup_futures_contract_prices_for_contract_to_csv(
+        data: dataBlob, futures_contract: futuresContract
+        ):
+        if futures_contract.days_since_expiry()>CALENDAR_DAYS_IN_YEAR:
+            ## Almost certainly expired, skip
+            data.log.msg("Skipping expired contract %s" % futures_contract)
+
+            return None
+
         arctic_data = data.arctic_futures_contract_price.get_prices_for_contract_object(
-            contract
+            futures_contract
         )
 
         csv_data = data.csv_futures_contract_price.get_prices_for_contract_object(
-            contract
+            futures_contract
         )
 
         if check_df_equals(arctic_data, csv_data):
             # No update needed, move on
-            data.log.msg("No prices backup needed for %s" % contract)
+            data.log.msg("No prices backup needed for %s" % futures_contract)
         else:
             # Write backup
             try:
                 data.csv_futures_contract_price.write_prices_for_contract_object(
-                    contract,
+                    futures_contract,
                     arctic_data,
                     ignore_duplication=True,
                 )
-                data.log.msg("Written backup .csv of prices for %s" % (contract))
+                data.log.msg("Written backup .csv of prices for %s" % (futures_contract))
             except BaseException:
-                data.log.warn("Problem writing .csv of prices for %s %s" % (contract))
+                data.log.warn("Problem writing .csv of prices for %s %s" % (futures_contract))
 
 
 # fx
