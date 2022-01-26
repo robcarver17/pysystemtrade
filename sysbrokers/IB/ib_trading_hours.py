@@ -1,14 +1,12 @@
 import datetime
 from ib_insync import ContractDetails as ibContractDetails
 
-from syscore.dateutils import adjust_trading_hours_conservatively
+from syscore.dateutils import adjust_trading_hours_conservatively, openingTimesAnyDay, openingTimes, listOfOpeningTimes
 
 
-def get_conservative_trading_hours(ib_contract_details: ibContractDetails):
-    ## KEEP THE GENERAL IDEA, BUT AT SOME POINT REPLACE WITH A MAPPING FUNCTION
-    ##   BASED ON ACTUAL LIQUIDITY
+def get_conservative_trading_hours(ib_contract_details: ibContractDetails) -> listOfOpeningTimes:
     time_zone_id = ib_contract_details.timeZoneId
-    conservative_times = get_conservative_trading_time_UTC(time_zone_id)
+    conservative_times = get_conservative_trading_time_for_time_zone(time_zone_id)
 
     trading_hours = get_trading_hours(ib_contract_details)
 
@@ -19,7 +17,7 @@ def get_conservative_trading_hours(ib_contract_details: ibContractDetails):
     return trading_hours_adjusted_to_be_conservative
 
 
-def get_trading_hours(ib_contract_details: ibContractDetails) -> list:
+def get_trading_hours(ib_contract_details: ibContractDetails) -> listOfOpeningTimes:
     try:
         time_zone_id = ib_contract_details.timeZoneId
         time_zone_adjustment = get_time_difference(time_zone_id)
@@ -38,13 +36,14 @@ def get_trading_hours(ib_contract_details: ibContractDetails) -> list:
 
 
 NO_ADJUSTMENTS = 0, 0
-
+CLOSED_ALL_DAY = object()
 
 def parse_trading_hours_string(
     trading_hours_string: str,
     adjustment_hours: int = 0,
     one_off_adjustment: tuple = NO_ADJUSTMENTS,
-):
+    ) -> listOfOpeningTimes:
+
     day_by_day = trading_hours_string.split(";")
     list_of_open_times = [
         parse_trading_for_day(
@@ -56,8 +55,10 @@ def parse_trading_hours_string(
     ]
 
     list_of_open_times = [
-        open_time for open_time in list_of_open_times if open_time is not None
+        open_time for open_time in list_of_open_times if open_time is not CLOSED_ALL_DAY
     ]
+
+    list_of_open_times = listOfOpeningTimes(list_of_open_times)
 
     return list_of_open_times
 
@@ -66,11 +67,12 @@ def parse_trading_for_day(
     string_for_day: str,
     adjustment_hours: int = 0,
     one_off_adjustment: tuple = NO_ADJUSTMENTS,
-):
+    ) -> openingTimes:
+
     start_and_end = string_for_day.split("-")
     if len(start_and_end) == 1:
         # closed
-        return None
+        return CLOSED_ALL_DAY
 
     start_phrase = start_and_end[0]
     end_phrase = start_and_end[1]
@@ -88,10 +90,11 @@ def parse_trading_for_day(
         end_phrase, adjustment_hours=adjustment_hours, additional_adjust=adjust_end
     )
 
-    return (start_dt, end_dt)
+    return openingTimes(start_dt, end_dt)
 
 
-def parse_phrase(phrase: str, adjustment_hours: int = 0, additional_adjust: int = 0):
+def parse_phrase(phrase: str, adjustment_hours: int = 0, additional_adjust: int = 0)\
+        -> datetime.datetime:
     total_adjustment = adjustment_hours + additional_adjust
     original_time = datetime.datetime.strptime(phrase, "%Y%m%d:%H%M")
     adjustment = datetime.timedelta(hours=total_adjustment)
@@ -99,18 +102,67 @@ def parse_phrase(phrase: str, adjustment_hours: int = 0, additional_adjust: int 
     return original_time + adjustment
 
 
-def get_conservative_trading_time_UTC(time_zone_id: str) -> tuple:
+def get_conservative_trading_time_for_time_zone(time_zone_id: str) -> openingTimesAnyDay:
     # ALthough many things are liquid all day, we want to be conservative
     # confusingly, IB seem to have changed their time zone codes in 2020
-    start_time = 10
-    end_time = 16
+    # times returned are in UTC
 
-    time_diff = get_time_difference(time_zone_id)
+    start_times = {
+        ## US
+        "CST (Central Standard Time)": 15,
+        "US/Central": 15,
+        "CST": 15,
 
-    adjusted_start_time = datetime.time(hour=start_time + time_diff)
-    adjusted_end_time = datetime.time(hour=end_time + time_diff)
+        "EST (Eastern Standard Time)": 14,
+        "US/Eastern": 14,
+        "EST": 14,
 
-    return adjusted_start_time, adjusted_end_time
+        ## UK
+        "GB-Eire": 9,
+        "": 9,
+
+        ## Middle European
+        "MET (Middle Europe Time)": 8,
+        "MET": 8,
+
+        ## Asia
+        "JST (Japan Standard Time)": 1,
+        "JST": 1,
+        "Japan": 1,
+        "Hongkong": 1,
+
+    }
+
+    end_times = {
+        ## US
+        "CST (Central Standard Time)": 20,
+        "US/Central": 20,
+        "CST": 20,
+
+        "EST (Eastern Standard Time)": 19,
+        "US/Eastern": 19,
+        "EST": 19,
+
+        ## UK
+        "GB-Eire": 16,
+        "": 16,
+
+        ## Middle European
+        "MET (Middle Europe Time)": 15,
+        "MET": 15,
+
+        ## Asia
+        "JST (Japan Standard Time)": 6,
+        "JST": 6,
+        "Japan": 6,
+        "Hongkong": 6,
+    }
+
+    conservative_start_time = datetime.time(start_times[time_zone_id])
+    conservative_end_time = datetime.time(end_times[time_zone_id])
+
+    return openingTimesAnyDay(conservative_start_time,
+                              conservative_end_time)
 
 
 def get_time_difference(time_zone_id: str) -> int:

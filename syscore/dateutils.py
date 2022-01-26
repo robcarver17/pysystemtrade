@@ -1,15 +1,14 @@
 """
 Various routines to do with dates
 """
+from dataclasses import dataclass
 from enum import Enum
 
 import datetime
 import time
 import calendar
-import numpy as np
 import pandas as pd
 
-from syscore.genutils import sign
 from syscore.objects import missing_data, arg_not_supplied
 
 """
@@ -445,51 +444,74 @@ def n_days_ago(n_days: int, date_ref=arg_not_supplied):
     date_diff = datetime.timedelta(days=n_days)
     return date_ref - date_diff
 
+### Opening times
+
+@dataclass()
+class openingTimes():
+    opening_time: datetime.datetime
+    closing_time: datetime.datetime
+
+@dataclass()
+class openingTimesAnyDay():
+    opening_time: datetime.time
+    closing_time: datetime.time
+
+class listOfOpeningTimes(list):
+    pass
 
 def adjust_trading_hours_conservatively(
-    trading_hours: list, conservative_times: tuple
-) -> list:
+    trading_hours: listOfOpeningTimes,
+        conservative_times: openingTimesAnyDay
+) -> listOfOpeningTimes:
 
     new_trading_hours = [
         adjust_single_day_conservatively(single_days_hours, conservative_times)
         for single_days_hours in trading_hours
     ]
 
-    return new_trading_hours
+    return listOfOpeningTimes(new_trading_hours)
 
 
 def adjust_single_day_conservatively(
-    single_days_hours: tuple, conservative_times: tuple
-) -> tuple:
+    single_days_hours: openingTimes,
+        conservative_times: openingTimesAnyDay
+    ) -> openingTimes:
 
     adjusted_start_datetime = adjust_start_time_conservatively(
-        single_days_hours[0], conservative_times[0]
+        single_days_hours.opening_time, conservative_times.opening_time
     )
     adjusted_end_datetime = adjust_end_time_conservatively(
-        single_days_hours[1], conservative_times[1]
+        single_days_hours.closing_time, conservative_times.closing_time
     )
 
-    return (adjusted_start_datetime, adjusted_end_datetime)
+    if adjusted_end_datetime<adjusted_start_datetime:
+        ## Whoops
+        adjusted_end_datetime = adjusted_start_datetime
+
+    return openingTimes(adjusted_start_datetime, adjusted_end_datetime)
 
 
 def adjust_start_time_conservatively(
     start_datetime: datetime.datetime, start_conservative: datetime.time
 ) -> datetime.datetime:
-
+    time_part_for_start = start_datetime.time()
+    conservative_time = max(time_part_for_start, start_conservative)
     start_conservative_datetime = adjust_date_conservatively(
-        start_datetime, start_conservative
+        start_datetime, conservative_time
     )
-    return max(start_datetime, start_conservative_datetime)
+    return start_conservative_datetime
 
 
 def adjust_end_time_conservatively(
     end_datetime: datetime.datetime, end_conservative: datetime.time
 ) -> datetime.datetime:
 
+    time_part_for_end = end_datetime.time()
+    conservative_time = min(time_part_for_end, end_conservative)
     end_conservative_datetime = adjust_date_conservatively(
-        end_datetime, end_conservative
+        end_datetime, conservative_time
     )
-    return min(end_datetime, end_conservative_datetime)
+    return end_conservative_datetime
 
 
 def adjust_date_conservatively(

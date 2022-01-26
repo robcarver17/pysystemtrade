@@ -192,7 +192,7 @@ def backup_futures_contract_prices_for_contract_to_csv(
         ):
         if futures_contract.days_since_expiry()>CALENDAR_DAYS_IN_YEAR:
             ## Almost certainly expired, skip
-            data.log.msg("Skipping expired contract %s" % futures_contract)
+            data.log.msg("Skipping expired contract %s" % str(futures_contract))
 
             return None
 
@@ -206,7 +206,7 @@ def backup_futures_contract_prices_for_contract_to_csv(
 
         if check_df_equals(arctic_data, csv_data):
             # No update needed, move on
-            data.log.msg("No prices backup needed for %s" % futures_contract)
+            data.log.msg("No prices backup needed for %s" % str(futures_contract))
         else:
             # Write backup
             try:
@@ -215,9 +215,9 @@ def backup_futures_contract_prices_for_contract_to_csv(
                     arctic_data,
                     ignore_duplication=True,
                 )
-                data.log.msg("Written backup .csv of prices for %s" % (futures_contract))
+                data.log.msg("Written backup .csv of prices for %s" % str(futures_contract))
             except BaseException:
-                data.log.warn("Problem writing .csv of prices for %s %s" % (futures_contract))
+                data.log.warn("Problem writing .csv of prices for %s" % str(futures_contract))
 
 
 # fx
