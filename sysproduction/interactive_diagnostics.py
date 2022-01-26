@@ -1,4 +1,4 @@
-from syscore.dateutils import get_datetime_input, SECONDS_PER_HOUR
+from syscore.dateutils import get_datetime_input, SECONDS_PER_HOUR, openingTimes, listOfOpeningTimes
 from syscore.interactive import (
     get_and_convert,
     run_interactive_menu,
@@ -613,9 +613,9 @@ def display_a_dict_of_trading_hours(all_trading_hours):
         )
 
 
-def nice_print_trading_hours(trading_hour_entry) -> str:
-    start_datetime = trading_hour_entry[0]
-    end_datetime = trading_hour_entry[1]
+def nice_print_trading_hours(trading_hour_entry: openingTimes) -> str:
+    start_datetime = trading_hour_entry.opening_time
+    end_datetime = trading_hour_entry.closing_time
     diff_time = end_datetime - start_datetime
     hours_in_between = (diff_time.total_seconds()) / SECONDS_PER_HOUR
 
@@ -652,15 +652,18 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied):
     return all_trading_hours
 
 
-def check_trading_hours(trading_hours_this_instrument, instrument_code):
-    if trading_hours_this_instrument[0] > trading_hours_this_instrument[1]:
+def check_trading_hours(trading_hours_this_instrument: openingTimes,
+                        instrument_code: str):
+    if trading_hours_this_instrument.opening_time > \
+            trading_hours_this_instrument.closing_time:
         print(
             "%s Trading hours appear to be wrong: %s"
             % (instrument_code, nice_print_trading_hours(trading_hours_this_instrument))
         )
 
 
-def get_trading_hours_for_instrument(data, instrument_code):
+def get_trading_hours_for_instrument(data: dataBlob,
+                                     instrument_code: str) -> listOfOpeningTimes:
 
     diag_contracts = dataContracts(data)
     contract_id = diag_contracts.get_priced_contract_id(instrument_code)

@@ -485,15 +485,15 @@ class tradingStartAndEndDateTimes(object):
         else:
             return False
 
-class manyTradingStartAndEndDateTimes(listOfOpeningTimes):
-    def __init__(self, ):
+class manyTradingStartAndEndDateTimes(list):
+    def __init__(self, list_of_opening_times: listOfOpeningTimes):
         """
 
         :param list_of_trading_hours: list of tuples, both datetime, first is start and second is end
         """
 
         list_of_start_and_end_objects = []
-        for hour_tuple in listOfOpeningTimes:
+        for hour_tuple in list_of_opening_times:
             this_period = tradingStartAndEndDateTimes(hour_tuple)
             list_of_start_and_end_objects.append(this_period)
 
