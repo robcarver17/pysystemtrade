@@ -6,7 +6,7 @@ from syscore.interactive import (
     print_menu_and_get_response,
 )
 from syscore.pdutils import set_pd_print_options
-from syscore.objects import user_exit, arg_not_supplied
+from syscore.objects import user_exit, arg_not_supplied, missing_contract
 from sysexecution.orders.list_of_orders import listOfOrders
 
 from sysdata.data_blob import dataBlob
@@ -643,6 +643,8 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied):
     all_trading_hours = {}
     for instrument_code in list_of_instruments:
         trading_hours = get_trading_hours_for_instrument(data, instrument_code)
+        if trading_hours is missing_contract:
+            print("*** NO EXPIRY FOR %s ***" % instrument_code)
 
         ## will have several days use first one
         trading_hours_this_instrument = trading_hours[0]
