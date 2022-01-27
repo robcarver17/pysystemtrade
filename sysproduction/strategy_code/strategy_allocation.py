@@ -34,7 +34,9 @@ from sysproduction.data.strategies import get_list_of_strategies_from_config
 
 
 def weighted_strategy_allocation(
-    data: dataBlob, strategy_weights: dict = arg_not_supplied
+    data: dataBlob,
+        capital_to_allocate: float,
+        strategy_weights: dict = arg_not_supplied
 ):
     """
     Used to allocate capital to strategies
@@ -50,24 +52,12 @@ def weighted_strategy_allocation(
         strategy_weights = strategy_weights_if_none_passed(data)
 
     sum_of_weights = sum(strategy_weights.values())
-    total_capital = get_total_current_capital(data)
     output_dict = {}
     for strategy_name, weight in strategy_weights.items():
-        strategy_capital = (weight / sum_of_weights) * total_capital
+        strategy_capital = (weight / sum_of_weights) * capital_to_allocate
         output_dict[strategy_name] = strategy_capital
 
     return output_dict
-
-
-def get_total_current_capital(data: dataBlob) -> float:
-    data_capital = dataCapital(data)
-    total_capital = data_capital.get_current_total_capital()
-
-    if total_capital is missing_data:
-        data.log.critical("Can't allocate strategy capital without total capital")
-        raise Exception()
-
-    return total_capital
 
 
 def strategy_weights_if_none_passed(data: dataBlob) -> dict:

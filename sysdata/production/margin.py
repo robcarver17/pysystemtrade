@@ -1,9 +1,14 @@
 import pandas as pd
 import datetime
+
+from syscore.objects import missing_data
+
 TOTAL_MARGIN = "_TOTAL_MARGIN"
 
 class seriesOfMargin(pd.Series):
     def final_value(self)-> float:
+        if len(self)==0:
+            return missing_data
         return self.values[-1]
 
     def add_value(self, value: float,
