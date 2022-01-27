@@ -51,7 +51,7 @@ def get_filename_for_package(pathname: str, filename=None):
     Relative filenames do not
     """
     if isinstance(pathname, Path):
-        pathname = str(pathname)
+        pathname = str(pathname.absolute())
     pathname_replaced_with_ampersands = add_ampersand_to_pathname(pathname)
     if filename is None:
         # filename will be at the end of the pathname
@@ -83,7 +83,7 @@ def add_ampersand_to_pathname(pathname: str) -> str:
 
 def get_resolved_pathname(pathname):
     if isinstance(pathname, Path):
-        pathname = str(pathname)
+        pathname = str(pathname.absolute())
     # Turn /,\ into . so system independent
     if "@" in pathname:
         # This is an ssh address for rsync - don't change
