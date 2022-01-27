@@ -1,13 +1,13 @@
 from syscore.objects import success, failure
 
 from sysdata.data_blob import dataBlob
-from sysproduction.data.capital import dataCapital
+from sysproduction.data.capital import dataCapital, dataMargin
 from sysproduction.data.broker import dataBroker
 
 
 def update_total_capital():
     """
-    Do a daily update of accounting information
+    Do an update of accounting information
 
     Get the total account value from IB, and calculate the p&l since we last ran
 
@@ -33,6 +33,28 @@ class totalCapitalUpdate(object):
         self.data = data
 
     def update_total_capital(self):
+        self.update_capital()
+        self.update_margin()
+
+    def update_margin(self):
+        data = self.data
+        margin_data = dataMargin(data)
+        broker_data = dataBroker(data)
+
+        log = data.log
+
+        margin_in_base_currency = (
+            broker_data.get_margin_used_in_base_currency()
+        )
+        log.msg("Broker margin value is %f" % margin_in_base_currency)
+
+        # Update total capital
+        margin_data.add_total_margin_entry(margin_in_base_currency)
+        margin_series = margin_data.get_series_of_total_margin()
+
+        log.msg("Recent margin\n %s" % str(margin_series.tail(10)))
+
+    def update_capital(self):
         data = self.data
         capital_data = dataCapital(data)
         broker_data = dataBroker(data)

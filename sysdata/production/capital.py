@@ -6,6 +6,7 @@ from syscore.objects import arg_not_supplied, failure, missing_data
 from sysdata.production.timed_storage import (
     listOfEntriesData,
 )
+
 from sysobjects.production.capital import (
     capitalEntry,
     LIST_OF_COMPOUND_METHODS,
