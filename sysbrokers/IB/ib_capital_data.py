@@ -41,6 +41,13 @@ class ibCapitalData(brokerCapitalData):
             account_id=account_id
         )
 
+    def get_excess_liquidity_value_across_currency(self,
+                                                   account_id: str = arg_not_supplied
+                                                   )-> listOfCurrencyValues:
+        return self.ib_client.broker_get_excess_liquidity_value_across_currency(
+            account_id=account_id
+        )
+
     """
     Can add other functions not in parent class to get IB specific stuff which could be required for
       strategy decomposition

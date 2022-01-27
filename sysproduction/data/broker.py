@@ -493,11 +493,34 @@ class dataBroker(productionDataLayerGeneric):
         )
         return new_order_with_controls
 
+    def get_margin_used_in_base_currency(self) -> float:
+        capital_value = self.get_total_capital_value_in_base_currency()
+        excess_liquidity = self.get_total_excess_liquidity_in_base_currency()
+
+        return capital_value - excess_liquidity
+
     def get_total_capital_value_in_base_currency(self) -> float:
         currency_data = dataCurrency(self.data)
         account_id = self.get_broker_account()
         values_across_accounts = (
             self.broker_capital_data.get_account_value_across_currency(account_id)
+        )
+
+        # This assumes that each account only reports either in one currency or
+        # for each currency, i.e. no double counting
+        total_account_value_in_base_currency = (
+            currency_data.total_of_list_of_currency_values_in_base(
+                values_across_accounts
+            )
+        )
+
+        return total_account_value_in_base_currency
+
+    def get_total_excess_liquidity_in_base_currency(self) -> float:
+        currency_data = dataCurrency(self.data)
+        account_id = self.get_broker_account()
+        values_across_accounts = (
+            self.broker_capital_data.get_excess_liquidity_value_across_currency(account_id)
         )
 
         # This assumes that each account only reports either in one currency or
