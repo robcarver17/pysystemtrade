@@ -64,7 +64,7 @@ def from_dict_of_entries_to_margin_series(dict_of_entries: dict) ->seriesOfMargi
     list_of_keys = dict_of_entries.keys()
     list_of_keys_as_datetime = [long_to_datetime(int(key_entry))
                                 for key_entry in list_of_keys]
-    list_of_values = dict_of_entries.values()
+    list_of_values = list(dict_of_entries.values())
 
     pd_series = pd.Series(list_of_values, index = list_of_keys_as_datetime)
     pd_series = pd_series.sort_index()
