@@ -17,9 +17,7 @@ from systems.provided.dynamic_small_system_optimise.buffering import (
 from systems.stage import SystemStage
 from systems.system_cache import diagnostic
 
-from systems.provided.dynamic_small_system_optimise.portfolio_weights_stage import (
-    portfolioWeightsStage,
-)
+from systems.portfolio import Portfolios
 
 from sysquant.optimisation.weights import portfolioWeights
 from sysquant.estimators.covariance import covarianceEstimate
@@ -234,18 +232,18 @@ class optimisedPositions(SystemStage):
         self, relevant_date: datetime.datetime = arg_not_supplied
     ) -> covarianceEstimate:
 
-        return self.portfolio_weights_stage.get_covariance_matrix(
+        return self.portfolio_stage.get_covariance_matrix(
             relevant_date=relevant_date
         )
 
     def get_per_contract_value(
         self, relevant_date: datetime.datetime = arg_not_supplied
     ):
-        return self.portfolio_weights_stage.get_per_contract_value(relevant_date)
+        return self.portfolio_stage.get_per_contract_value(relevant_date)
 
     def get_per_contract_value_as_proportion_of_capital_df(self) -> pd.DataFrame:
         return (
-            self.portfolio_weights_stage.get_per_contract_value_as_proportion_of_capital_df()
+            self.portfolio_stage.get_per_contract_value_as_proportion_of_capital_df()
         )
 
     def instrument_list(self) -> list:
@@ -255,12 +253,12 @@ class optimisedPositions(SystemStage):
         return self.portfolio_stage.get_instrument_weights()
 
     def common_index(self):
-        return self.portfolio_weights_stage.common_index()
+        return self.portfolio_stage.common_index()
 
     def original_position_contracts_for_relevant_date(
         self, relevant_date: datetime.datetime = arg_not_supplied
     ):
-        return self.portfolio_weights_stage.get_position_contracts_for_relevant_date(
+        return self.portfolio_stage.get_position_contracts_for_relevant_date(
             relevant_date
         )
 
@@ -284,15 +282,11 @@ class optimisedPositions(SystemStage):
         return self.parent.accounts
 
     @property
-    def portfolio_weights_stage(self) -> portfolioWeightsStage:
-        return self.parent.portfolioWeights
-
-    @property
     def position_size_stage(self):
         return self.parent.positionSize
 
     @property
-    def portfolio_stage(self):
+    def portfolio_stage(self) -> Portfolios:
         return self.parent.portfolio
 
     @property
