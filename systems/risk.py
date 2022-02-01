@@ -12,10 +12,7 @@ from syscore.objects import arg_not_supplied
 from syscore.pdutils import listOfDataFrames, get_row_of_df_aligned_to_weights_as_dict
 
 
-from sysquant.optimisation.shared import variance
-from sysquant.optimisation.weights import portfolioWeights
-from sysquant.estimators.covariance import covarianceEstimate
-
+from sysquant.optimisation.weights import seriesOfPortfolioWeights
 
 class Risk(SystemStage):
     @property
@@ -28,14 +25,15 @@ class Risk(SystemStage):
         return self._get_portfolio_risk_given_weights(weights)
 
     @diagnostic()
-    def get_portfolio_risk_for_original_positions(self) -> pd.Series:
-        return self.portfolio_stage.get_portfolio_risk_for_original_positions()
-
-    @diagnostic()
     def get_portfolio_risk_for_original_positions_rounded_buffered(self) -> pd.Series:
         positions = self.get_original_buffered_rounded_positions_df()
         positions = positions.round()
         return self._get_portfolio_risk_given_positions(positions)
+
+    @diagnostic()
+    def get_portfolio_risk_for_original_positions(self) -> pd.Series:
+        return self.portfolio_stage.get_portfolio_risk_for_original_positions()
+
 
     @diagnostic()
     def get_original_buffered_rounded_positions_df(self) -> pd.DataFrame:
@@ -60,7 +58,7 @@ class Risk(SystemStage):
     @diagnostic()
     def get_original_buffered_rounded_position_for_instrument(
         self, instrument_code: str
-    ):
+    ) -> pd.Series:
         return self.accounts_stage.get_buffered_position(
             instrument_code, roundpositions=True
         )
@@ -73,15 +71,16 @@ class Risk(SystemStage):
             [weight_per_position, positions]
         ).fill_and_multipy()
 
+        portfolio_weights = seriesOfPortfolioWeights(portfolio_weights)
+
         return self._get_portfolio_risk_given_weights(portfolio_weights)
 
     def _get_portfolio_risk_given_weights(
-        self, portfolio_weights: pd.DataFrame
+        self, portfolio_weights: seriesOfPortfolioWeights
     ) -> pd.Series:
-        self.portfolio_stage.get_portfolio_risk_given_weights(portfolio_weights)
+        return self.portfolio_stage.get_portfolio_risk_given_weights(portfolio_weights)
 
-
-    def get_optimised_weights_df(self):
+    def get_optimised_weights_df(self) -> seriesOfPortfolioWeights:
         return self.optimised_stage.get_optimised_weights_df()
 
     @property

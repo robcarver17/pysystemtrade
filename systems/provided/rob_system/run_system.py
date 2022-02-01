@@ -53,3 +53,11 @@ def futures_system(
     return system
 
 
+"""
+system = futures_system()
+system.config.instruments = ['AEX', 'AUD',  'BITCOIN', 'BOBL', 'BTP', 'BUND', 'CAC',
+                                 'SOYBEAN', 'SOYMEAL','SP500_micro', 'US10', 'US2', 'US20', 'US5',
+                                 'VIX', 'WHEAT']
+system.config.use_instrument_weight_estimates = True
+del(system.config.instrument_weights)
+"""

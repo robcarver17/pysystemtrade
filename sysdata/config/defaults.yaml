@@ -242,8 +242,9 @@ vol_normalise_currency_costs: True
 # risk overlay
 risk_overlay:
   max_risk_fraction_normal_risk: 2.0
-  max_risk_fraction_correlation_risk: 4.0
   max_risk_fraction_stdev_risk: 6.0
+  max_risk_limit_sum_abs_risk: 3.0
+  max_risk_leverage: 100.0
 #
 instrument_returns_correlation:
   func: sysquant.estimators.correlation_over_time.correlation_over_time_for_returns

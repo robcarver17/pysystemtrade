@@ -3,7 +3,6 @@ import datetime
 from copy import copy
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.genutils import progressBar
 from syscore.pdutils import (
     fix_weights_vs_position_or_forecast,
     from_dict_of_values_to_df,
@@ -15,8 +14,7 @@ from syscore.genutils import str2Bool
 
 from sysdata.config.configdata import Config
 
-from sysquant.estimators.stdev_estimator import stdevEstimates
-
+from sysquant.estimators.stdev_estimator import stdevEstimates, seriesOfStdevEstimates
 from sysquant.estimators.correlations import (
     correlationEstimate,
     create_boring_corr_matrix,
@@ -26,10 +24,10 @@ from sysquant.estimators.covariance import (
     covarianceEstimate,
     covariance_from_stdev_and_correlation,
 )
-
 from sysquant.estimators.turnover import turnoverDataAcrossSubsystems
+from sysquant.portfolio_risk import calc_portfolio_risk_series, calc_sum_annualised_risk_given_portfolio_weights
 from sysquant.optimisation.pre_processing import returnsPreProcessor
-from sysquant.optimisation.weights import portfolioWeights
+from sysquant.optimisation.weights import portfolioWeights, seriesOfPortfolioWeights
 
 from sysquant.returns import (
     dictOfReturnsForOptimisationWithCosts,
@@ -41,6 +39,7 @@ from systems.stage import SystemStage
 from systems.system_cache import input, dont_cache, diagnostic, output
 from systems.positionsizing import PositionSizing
 from systems.accounts.curves.account_curve_group import accountCurveGroup
+from systems.risk_overlay import get_risk_multiplier
 
 """
 Stage for portfolios
@@ -87,7 +86,7 @@ class Portfolios(SystemStage):
         return actual_position
 
     @output()
-    def get_actual_buffers_for_position(self, instrument_code: str) -> pd.Series:
+    def get_actual_buffers_for_position(self, instrument_code: str) -> pd.DataFrame:
         """
         Gets the actual buffers for a position, accounting for cap multiplier
         :param instrument_code: instrument to get values for
@@ -199,20 +198,12 @@ class Portfolios(SystemStage):
             instrument_code
         )
 
-        # FIXME UNTIL RISK SCALAR IMPLEMENTED
-        #risk_scalar = self.get_risk_scalar()
-        #risk_scalar_reindex = risk_scalar.reindex(notional_position_without_risk_scalar.index)
-        #notional_position = notional_position_without_risk_scalar * risk_scalar_reindex.ffill()
+        risk_scalar = self.get_risk_scalar()
+        risk_scalar_reindex = risk_scalar.reindex(notional_position_without_risk_scalar.index)
+        notional_position = notional_position_without_risk_scalar * risk_scalar_reindex.ffill()
         notional_position = notional_position_without_risk_scalar
 
         return notional_position
-
-    @diagnostic()
-    def get_risk_scalar(self, instrument_code: str) -> pd.Series:
-        # FIXME RISK SCALAR NOT YET IMPLEMENTED
-        #risk_overlay_config = self.config.risk_overlay
-        #original_notional_position = self.get_notional_position_before_risk_scaling()
-        return None
 
 
     ## notional position
@@ -864,33 +855,98 @@ class Portfolios(SystemStage):
 
     ## RISK
     @diagnostic()
+    def get_risk_scalar(self) -> pd.Series:
+
+        risk_overlay_config = self.config.get_element_or_arg_not_supplied('risk_overlay')
+        if risk_overlay_config is arg_not_supplied:
+            self.log.msg("No risk overlay in config: won't apply risk scaling")
+            return 1.0
+
+        normal_risk = self.get_portfolio_risk_for_original_positions()
+        shocked_vol_risk = self.get_portfolio_risk_for_original_positions_with_shocked_vol()
+        sum_abs_risk = self.get_sum_annualised_risk_for_original_positions()
+        leverage = self.get_leverage_for_original_position()
+        percentage_vol_target = self.get_percentage_vol_target()
+
+        risk_scalar = get_risk_multiplier(risk_overlay_config = risk_overlay_config,
+                                     normal_risk=normal_risk,
+                                          shocked_vol_risk=shocked_vol_risk,
+                                          sum_abs_risk = sum_abs_risk,
+                                          leverage = leverage,
+                                          percentage_vol_target=percentage_vol_target)
+
+        return risk_scalar
+
+    @diagnostic()
+    def get_leverage_for_original_position(self) -> pd.Series:
+        portfolio_weights = self.get_original_portfolio_weight_df()
+        leverage = portfolio_weights.get_sum_leverage()
+
+        return leverage
+
+
+    @diagnostic()
+    def get_sum_annualised_risk_for_original_positions(
+            self,
+            ) -> pd.Series:
+        portfolio_weights = self.get_original_portfolio_weight_df()
+        return \
+            self.get_sum_annualised_risk_given_portfolio_weights(
+            portfolio_weights)
+
+    def get_sum_annualised_risk_given_portfolio_weights(
+        self,
+            portfolio_weights: seriesOfPortfolioWeights,
+        ) -> pd.Series:
+
+        pd_of_stdev = self.get_stdev_df()
+        risk_series = calc_sum_annualised_risk_given_portfolio_weights(portfolio_weights=portfolio_weights,
+                                                 pd_of_stdev = pd_of_stdev)
+
+        return risk_series
+
+
+    @diagnostic()
     def get_portfolio_risk_for_original_positions(self) -> pd.Series:
         weights = self.get_original_portfolio_weight_df()
         return self.get_portfolio_risk_given_weights(weights)
 
+    @diagnostic()
+    def get_portfolio_risk_for_original_positions_with_shocked_vol(self) -> pd.Series:
+        weights = self.get_original_portfolio_weight_df()
+        return self.get_portfolio_risk_given_weights(weights, use_shocked_vol=True)
+
     def get_portfolio_risk_given_weights(
-        self, portfolio_weights: pd.DataFrame
+        self, portfolio_weights: seriesOfPortfolioWeights,
+            use_shocked_vol = False
     ) -> pd.Series:
-        risk_series = []
-        common_index = self.common_index()
-        p = progressBar(len(common_index), show_timings=True, show_each_time=False)
 
-        for relevant_date in common_index:
-            p.iterate()
-            weights_on_date = portfolioWeights(
-                get_row_of_df_aligned_to_weights_as_dict(
-                    portfolio_weights, relevant_date
-                )
-            )
-            covariance = self.get_covariance_matrix(relevant_date)
-            risk_on_date = weights_on_date.portfolio_stdev(covariance)
-            risk_series.append(risk_on_date)
-
-        p.finished()
-        risk_series = pd.Series(risk_series, common_index)
+        list_of_correlations = self.get_list_of_instrument_returns_correlations()
+        pd_of_stdev = self.get_stdev_df(shocked=use_shocked_vol)
+        risk_series = calc_portfolio_risk_series(portfolio_weights=portfolio_weights,
+                                                 list_of_correlations=list_of_correlations,
+                                                 pd_of_stdev = pd_of_stdev)
 
         return risk_series
 
+    def get_stdev_df(
+        self,
+            shocked: bool = False
+    ) -> seriesOfStdevEstimates:
+        if shocked:
+            return self.get_shocked_df_of_perc_vol()
+        else:
+            return self.get_df_of_perc_vol()
+
+    @diagnostic()
+    def get_shocked_df_of_perc_vol(
+        self
+    ) -> seriesOfStdevEstimates:
+
+        df_of_vol = self.get_df_of_perc_vol()
+        shocked_df_of_vol = df_of_vol.shocked()
+
+        return shocked_df_of_vol
 
 
     ## PORTFOLIO WEIGHTS
@@ -985,16 +1041,11 @@ class Portfolios(SystemStage):
         self, relevant_date: datetime.datetime = arg_not_supplied
     ) -> stdevEstimates:
         df_of_vol = self.get_df_of_perc_vol()
-        stdev_at_date = get_row_of_df_aligned_to_weights_as_dict(
-            df_of_vol, relevant_date
-        )
 
-        stdev_estimate = stdevEstimates(stdev_at_date)
-
-        return stdev_estimate
+        return df_of_vol.get_stdev_on_date(relevant_date)
 
     @diagnostic()
-    def get_df_of_perc_vol(self) -> pd.DataFrame:
+    def get_df_of_perc_vol(self) -> seriesOfStdevEstimates:
         instrument_list = self.get_instrument_list()
         vol_as_dict = dict(
             [
@@ -1006,7 +1057,7 @@ class Portfolios(SystemStage):
         vol_as_pd = pd.DataFrame(vol_as_dict)
         vol_as_pd = vol_as_pd.ffill()
 
-        return vol_as_pd
+        return seriesOfStdevEstimates(vol_as_pd)
 
     @diagnostic()
     def common_index(self):
@@ -1016,7 +1067,7 @@ class Portfolios(SystemStage):
         return common_index
 
     @diagnostic()
-    def get_original_portfolio_weight_df(self) -> pd.DataFrame:
+    def get_original_portfolio_weight_df(self) -> seriesOfPortfolioWeights:
         instrument_list = self.get_instrument_list()
         weights_as_dict = dict(
             [
@@ -1033,7 +1084,7 @@ class Portfolios(SystemStage):
         weights_as_pd = pd.DataFrame(weights_as_dict)
         weights_as_pd = weights_as_pd.ffill()
 
-        return weights_as_pd
+        return seriesOfPortfolioWeights(weights_as_pd)
 
     @diagnostic()
     def get_per_contract_value_as_proportion_of_capital_df(self) -> pd.DataFrame:
@@ -1140,6 +1191,9 @@ class Portfolios(SystemStage):
     ## INPUTS
     def daily_percentage_vol100scale(self, instrument_code: str) -> pd.Series:
         return self.rawdata.get_daily_percentage_volatility(instrument_code)
+
+    def get_percentage_vol_target(self) -> float:
+        return self.position_size_stage.get_percentage_vol_target()
 
     def get_trading_capital(self) -> float:
         return self.position_size_stage.get_notional_trading_capital()

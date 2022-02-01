@@ -19,7 +19,7 @@ from systems.system_cache import diagnostic
 
 from systems.portfolio import Portfolios
 
-from sysquant.optimisation.weights import portfolioWeights
+from sysquant.optimisation.weights import portfolioWeights, seriesOfPortfolioWeights
 from sysquant.estimators.covariance import covarianceEstimate
 from sysquant.estimators.mean_estimator import meanEstimates
 
@@ -30,13 +30,14 @@ class optimisedPositions(SystemStage):
         return "optimisedPositions"
 
     @diagnostic()
-    def get_optimised_weights_df(self) -> pd.DataFrame:
+    def get_optimised_weights_df(self) -> seriesOfPortfolioWeights:
         position_df = self.get_optimised_position_df()
         per_contract_value_as_proportion_of_df = (
             self.get_per_contract_value_as_proportion_of_capital_df()
         )
 
-        weights = position_df * per_contract_value_as_proportion_of_df
+        weights_as_df = position_df * per_contract_value_as_proportion_of_df
+        weights = seriesOfPortfolioWeights(weights_as_df)
 
         return weights
 

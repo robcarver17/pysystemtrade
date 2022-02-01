@@ -1,9 +1,11 @@
-from dataclasses import dataclass
-
 import pandas as pd
 import numpy as np
+import datetime
+from dataclasses import dataclass
+
 
 from syscore.genutils import flatten_list
+from syscore.pdutils import get_row_of_df_aligned_to_weights_as_dict
 
 from sysquant.estimators.estimates import Estimates
 from sysquant.estimators.correlation_estimator import correlationEstimate
@@ -151,6 +153,16 @@ class portfolioWeights(dict):
 
         return risk
 
+class seriesOfPortfolioWeights(pd.DataFrame):
+    def get_weights_on_date(self, relevant_date: datetime.datetime) \
+            -> portfolioWeights:
+        weights_as_dict = get_row_of_df_aligned_to_weights_as_dict(df=self,
+                                                 relevant_date=relevant_date)
+
+        return portfolioWeights(weights_as_dict)
+
+    def get_sum_leverage(self) -> pd.Series:
+        return self.abs().sum(axis=1)
 
 def _int_from_nan(x: float):
     if np.isnan(x):
@@ -184,3 +196,4 @@ def one_over_n_weights_given_asset_names(list_of_asset_names: list) -> portfolio
     return portfolioWeights(
         [(asset_name, weight) for asset_name in list_of_asset_names]
     )
+

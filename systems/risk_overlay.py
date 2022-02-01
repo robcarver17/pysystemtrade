@@ -1,4 +1,11 @@
-def get_risk_multiplier(self):
+import pandas as pd
+
+def get_risk_multiplier(risk_overlay_config: dict,
+                                     normal_risk: pd.Series,
+                                          shocked_vol_risk: pd.Series,
+                                          sum_abs_risk: pd.Series,
+                                          leverage: pd.Series,
+                                        percentage_vol_target: float):
     """
     The risk overlay calculates a risk position multiplier, which is between 0 and 1.
       When this multiplier is one we make no changes to the positions calculated by our system.
@@ -16,15 +23,37 @@ def get_risk_multiplier(self):
 
     :return:Tx1 pd.DataFrame
     """
-    risk_multiplier = self.get_normal_risk_multiplier()
-    risk_multiplier_for_correlation = self.get_correlation_risk_multiplier()
-    risk_multiplier_for_stdev = self.get_stdev_risk_multiplier()
+    risk_limit_for_normal_risk = risk_overlay_config['max_risk_fraction_normal_risk'] * percentage_vol_target / 100.0
+    risk_multiplier_for_normal_risk = multiplier_given_series_and_limit(
+        risk_measure=normal_risk,
+        risk_limit=risk_limit_for_normal_risk
+    )
+
+    risk_limit_for_normal_risk = risk_overlay_config['max_risk_fraction_stdev_risk'] * percentage_vol_target / 100.0
+    risk_multiplier_for_shocked_stdev = multiplier_given_series_and_limit(
+        risk_measure=shocked_vol_risk,
+        risk_limit=risk_limit_for_normal_risk
+    )
+
+    risk_limit_for_sum_abs_risk = risk_overlay_config['max_risk_limit_sum_abs_risk'] * percentage_vol_target / 100.0
+    risk_multiplier_for_sum_abs_risk = multiplier_given_series_and_limit(
+        risk_measure=sum_abs_risk,
+        risk_limit=risk_limit_for_sum_abs_risk
+    )
+
+    risk_limit_for_leverage = risk_overlay_config['max_risk_leverage']
+    risk_multiplier_for_leverage = multiplier_given_series_and_limit(
+        risk_measure=leverage,
+        risk_limit=risk_limit_for_leverage
+    )
+
 
     all_mult = pd.concat(
         [
-            risk_multiplier_for_stdev,
-            risk_multiplier,
-            risk_multiplier_for_correlation,
+            risk_multiplier_for_shocked_stdev,
+            risk_multiplier_for_normal_risk,
+            risk_multiplier_for_sum_abs_risk,
+            risk_multiplier_for_leverage
         ],
         axis=1,
     )
@@ -33,107 +62,13 @@ def get_risk_multiplier(self):
     return joint_mult
 
 
-@input
-def get_vol_target_as_number(self):
-    return self.parent.config.percentage_vol_target / 100.0
+def multiplier_given_series_and_limit(risk_measure: pd.Series,
+                                      risk_limit: float) -> pd.Series:
 
+    limit_as_series = pd.Series([risk_limit]*len(risk_measure.index),
+                                risk_measure.index)
+    joined_up = pd.concat([limit_as_series, risk_measure], axis=1)
+    max_value = joined_up.max(axis=1)
+    max_value_as_ratio_to_limit = risk_limit / max_value
 
-@input
-def get_risk_overlay_config_dict(self):
-    return self.parent.config.risk_overlay
-
-
-@diagnostic()
-def get_normal_risk_multiplier(self):
-    """
-    Risk multiplier assuming estimates are valid
-
-    :return: Tx1 pd.DataFrame
-    """
-
-    target_risk = self.get_vol_target_as_number()
-    max_risk_allowed = self.get_risk_overlay_config_dict()[
-        "max_risk_fraction_normal_risk"
-    ]
-    estimated_risk = self.get_estimated_portfolio_risk(
-        shock_correlations_and_abs_weights=False, shock_vols=False
-    )
-    risk_scalar = get_risk_scalar(
-        estimated_risk,
-        target_risk=target_risk,
-        max_risk_allowed=max_risk_allowed)
-
-    return risk_scalar
-
-
-def get_correlation_risk_multiplier(self):
-    """
-    Risk multiplier assuming all correlations go to worse possible values
-
-    :return:  Tx1 pd.DataFrame
-    """
-    target_risk = self.get_vol_target_as_number()
-    max_risk_allowed = self.get_risk_overlay_config_dict()[
-        "max_risk_fraction_correlation_risk"
-    ]
-    estimated_risk = self.get_estimated_portfolio_risk(
-        shock_correlations_and_abs_weights=True, shock_vols=False
-    )
-    risk_scalar = get_risk_scalar(
-        estimated_risk,
-        target_risk=target_risk,
-        max_risk_allowed=max_risk_allowed)
-
-    return risk_scalar
-
-
-def get_stdev_risk_multiplier(self):
-    """
-    Risk multiplier assuming standard deviations go to 99% percentile point
-
-    :return:  Tx1 pd.DataFrame
-    """
-
-    target_risk = self.get_vol_target_as_number()
-    max_risk_allowed = self.get_risk_overlay_config_dict()[
-        "max_risk_fraction_stdev_risk"
-    ]
-    estimated_risk = self.get_estimated_portfolio_risk(
-        shock_correlations_and_abs_weights=False, shock_vols=True
-    )
-    risk_scalar = get_risk_scalar(
-        estimated_risk,
-        target_risk=target_risk,
-        max_risk_allowed=max_risk_allowed)
-
-    return risk_scalar
-
-
-def get_estimated_portfolio_risk(
-        self, shock_correlations_and_abs_weights=False, shock_vols=False
-):
-    """
-
-    :param shock_correlations_and_abs_weights: if True, set all correlations to 1 and use abs weights
-    :param shock_vols: Use 99% percentile volatilities
-    :return: Tx1 pd.DataFrame
-    """
-
-    positions_as_proportion_of_capital = (
-        self.get_positions_as_proportion_of_capital()
-    )
-    if shock_correlations_and_abs_weights:
-        positions_as_proportion_of_capital = (
-            positions_as_proportion_of_capital.abs()
-        )
-
-    covariance_estimates = self.get_covariance_estimates(
-        shock_correlations_and_abs_weights=shock_correlations_and_abs_weights,
-        shock_vols=shock_vols,
-    )
-
-    expected_risk = calc_expected_risk_over_time(
-        covariance_estimates, positions_as_proportion_of_capital
-    )
-
-    return expected_risk
+    return max_value_as_ratio_to_limit
