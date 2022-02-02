@@ -818,7 +818,7 @@ def suggest_bad_markets(data: dataBlob):
     display_bad_market_info(bad_markets)
 
 def from_auto_parameters_to_min_ann_perc_std(auto_parameters: parametersForAutoPopulation) -> float:
-    return auto_parameters.max_vs_average_forecast *         \
+    return 100*auto_parameters.max_vs_average_forecast *         \
             auto_parameters.approx_IDM *                     \
             auto_parameters.notional_instrument_weight *     \
             auto_parameters.notional_risk_target /           \
@@ -872,13 +872,13 @@ def print_and_return_entire_bad_market_list(    SR_costs: pd.DataFrame,
                             min_contracts=min_contracts,
                             min_ann_perc_std=min_ann_perc_std)
 
-    print("Too expensive:\n")
+    print("Too expensive: (SR cost> %.2f)\n" % max_cost)
     print(expensive)
-    print("\n Too safe:\n")
+    print("\n Too safe: (Annual risk< %.2f) \n" % min_ann_perc_std)
     print(too_safe)
-    print("\n Not enough volume (contracts): \n")
+    print("\n Not enough volume (contracts < %d):  \n" % int(min_contracts))
     print(not_enough_trading_contracts)
-    print("\n Not enough volume (risk): \n")
+    print("\n Not enough volume (risk < %.2f): \n" % min_risk)
     print(not_enough_trading_risk)
 
     bad_markets = list(set(expensive
@@ -917,16 +917,8 @@ def get_bad_market_list(
     return expensive, not_enough_trading_risk, too_safe, not_enough_trading_contracts
 
 def display_bad_market_info(bad_markets: list):
-    print("Add the following to yaml .config under bad_markets heading:\n")
-    print("bad_markets:")
-    __ = [print("  - %s" % instrument) for instrument in bad_markets]
 
-    production_config = get_production_config()
-
-    ## this should be a function
-    existing_bad_markets = production_config.get_element_or_missing_data("bad_markets")
-    if existing_bad_markets is missing_data:
-        existing_bad_markets = []
+    existing_bad_markets = get_existing_bad_markets()
     existing_bad_markets.sort()
 
     new_bad_markets = list(set(bad_markets).difference(set(existing_bad_markets)))
@@ -935,6 +927,21 @@ def display_bad_market_info(bad_markets: list):
     print("New bad markets %s" % new_bad_markets)
     print("Removed bad markets %s" % removed_bad_markets)
 
+    print("Add the following to yaml .config under bad_markets heading:\n")
+    print("bad_markets:")
+    __ = [print("  - %s" % instrument) for instrument in bad_markets]
+
+def get_existing_bad_markets():
+    production_config = get_production_config()
+
+    config = production_config.get_element_or_missing_data("exclude_instrument_lists")
+    if config is missing_data:
+        print("NO BAD MARKETS IN CONFIG!")
+        existing_bad_markets = []
+    else:
+        existing_bad_markets = config['bad_markets']
+
+    return existing_bad_markets
 
 no_change = object()
 

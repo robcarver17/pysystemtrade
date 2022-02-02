@@ -336,7 +336,19 @@ class reportingApi(object):
     def table_of_risk_all_instruments(self):
         instrument_risk_all = self.instrument_risk_data_all_instruments()
         instrument_risk_sorted = instrument_risk_all.sort_values('annual_perc_stdev')
-        instrument_risk_sorted = instrument_risk_sorted.round(3)
+        instrument_risk_sorted = instrument_risk_sorted[['daily_price_stdev',
+                    'annual_price_stdev', 'price', 'daily_perc_stdev',
+       'annual_perc_stdev', 'point_size_base', 'contract_exposure',
+       'annual_risk_per_contract']]
+        instrument_risk_sorted = \
+            instrument_risk_sorted.round({'daily_price_stdev': 4,
+                                            'annual_price_stdev': 3,
+                                          'price': 4,
+                                          'daily_perc_stdev': 3,
+                                          'annual_perc_stdev': 1,
+                                          'point_size_base': 3,
+                                          'contract_exposure': 0,
+                                          'annual_risk_per_contract': 0})
         instrument_risk_sorted_table = table("Risk of all instruments",
                                              instrument_risk_sorted)
 
