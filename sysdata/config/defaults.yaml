@@ -241,10 +241,10 @@ vol_normalise_currency_costs: True
 #
 # risk overlay
 risk_overlay:
-  max_risk_fraction_normal_risk: 2.0
-  max_risk_fraction_stdev_risk: 6.0
-  max_risk_limit_sum_abs_risk: 3.0
-  max_risk_leverage: 100.0
+  max_risk_fraction_normal_risk: 1.4
+  max_risk_fraction_stdev_risk: 3.6
+  max_risk_limit_sum_abs_risk: 3.4
+  max_risk_leverage: 13.0
 #
 instrument_returns_correlation:
   func: sysquant.estimators.correlation_over_time.correlation_over_time_for_returns
@@ -397,6 +397,7 @@ exclude_instrument_lists:
     - COPPER-mini
     - CZK
     - DJSTX-SMALL
+    - EDOLLAR
     - ETHANOL
     - ETHER-micro
     - ETHEREUM
@@ -422,6 +423,7 @@ exclude_instrument_lists:
     - EUROSTX200-LARGE
     - FTSEINDO
     - IRS
+    - JGB
     - JGB-SGX-mini
     - JP-REALESTATE
     - KOSPI_mini
@@ -440,6 +442,7 @@ exclude_instrument_lists:
     - SGX
     - SHATZ
     - SMI-MID
+    - US2
     - US-DISCRETE
     - US-ENERGY
     - US-FINANCE

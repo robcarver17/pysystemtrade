@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
@@ -42,6 +43,15 @@ from sysproduction.reporting.api import reportingApi
 
 # could get from config, but might be different by system
 MAX_VS_AVERAGE_FORECAST = 2.0
+
+
+@dataclass()
+class parametersForAutoPopulation:
+    raw_max_leverage: float
+    max_vs_average_forecast: float
+    notional_risk_target: float
+    approx_IDM: float
+    notional_instrument_weight: float
 
 
 def interactive_controls():
@@ -205,7 +215,8 @@ def reset_limit_for_instrument_strategy(data):
 
 def auto_populate_limits(data: dataBlob):
     instrument_list = get_list_of_instruments(data)
-    risk_multiplier, max_leverage = get_risk_multiplier_and_max_leverage()
+    auto_parameters = get_auto_population_parameters()
+
     trade_multiplier = get_and_convert(
         "Higgest proportion of standard position expected to trade daily?",
         type_expected=float,
@@ -218,33 +229,32 @@ def auto_populate_limits(data: dataBlob):
         set_trade_limit_for_instrument(
             data,
             instrument_code=instrument_code,
-            risk_multiplier=risk_multiplier,
+            auto_parameters = auto_parameters,
             trade_multiplier=trade_multiplier,
             period_days=period_days,
-            max_leverage=max_leverage,
+
         )
         for instrument_code in instrument_list
     ]
     return None
 
 
+
 def set_trade_limit_for_instrument(
     data,
     instrument_code: str,
-    risk_multiplier: float,
     trade_multiplier: float,
     period_days: int,
-    max_leverage: float,
+    auto_parameters: parametersForAutoPopulation
 ):
 
     trade_limits = dataTradeLimits(data)
     new_limit = calc_trade_limit_for_instrument(
         data,
         instrument_code=instrument_code,
-        risk_multiplier=risk_multiplier,
+        auto_parameters = auto_parameters,
         trade_multiplier=trade_multiplier,
-        max_leverage=max_leverage,
-        period_days=period_days,
+        period_days=period_days
     )
     if np.isnan(new_limit):
         print("Can't calculate trade limit for %s, not setting" % instrument_code)
@@ -260,16 +270,15 @@ def set_trade_limit_for_instrument(
 def calc_trade_limit_for_instrument(
     data: dataBlob,
     instrument_code: str,
-    risk_multiplier: float,
     trade_multiplier: float,
     period_days: int,
-    max_leverage: float,
+    auto_parameters: parametersForAutoPopulation
+
 ):
-    standard_position = get_standardised_position(
+    standard_position = get_standardised_position_at_max_forecast(
         data,
         instrument_code=instrument_code,
-        risk_multiplier=risk_multiplier,
-        max_leverage=max_leverage,
+        auto_parameters = auto_parameters
     )
     if np.isnan(standard_position):
         return np.nan
@@ -280,8 +289,7 @@ def calc_trade_limit_for_instrument(
 
     return standard_trade_int
 
-
-def get_risk_multiplier_and_max_leverage() -> (float, float):
+def get_auto_population_parameters() -> parametersForAutoPopulation:
     print("Enter parameters to estimate typical position sizes")
     notional_risk_target = get_and_convert(
         "Notional risk target (% per year)", type_expected=float, default_value=0.25
@@ -300,25 +308,28 @@ def get_risk_multiplier_and_max_leverage() -> (float, float):
         default_value=1.0,
     )
     # because we multiply by eg 2, need to half this
-    max_leverage = raw_max_leverage / MAX_VS_AVERAGE_FORECAST
+    auto_parameters = parametersForAutoPopulation(raw_max_leverage = raw_max_leverage,
+                   max_vs_average_forecast = MAX_VS_AVERAGE_FORECAST,
+                   notional_risk_target =notional_risk_target,
+                   approx_IDM = approx_IDM,
+                   notional_instrument_weight = notional_instrument_weight)
 
-    risk_multiplier = notional_risk_target * approx_IDM * notional_instrument_weight
-
-    return risk_multiplier, max_leverage
+    return auto_parameters
 
 
-def get_standardised_position(
+def get_standardised_position_at_max_forecast(
     data: dataBlob,
     instrument_code: str,
-    risk_multiplier: float,
-    max_leverage: float = 1.0,
+    auto_parameters: parametersForAutoPopulation
 ) -> float:
 
     risk_data = get_risk_data_for_instrument(data, instrument_code)
-    position_for_risk = get_standardised_position_for_risk(risk_data, risk_multiplier)
+    position_for_risk = get_standardised_position_for_risk(risk_data,
+                                                           auto_parameters = auto_parameters)
     position_with_leverage = get_maximum_position_given_leverage_limit(
-        risk_data, max_leverage
-    )
+                        risk_data,
+                        auto_parameters = auto_parameters
+                        )
 
     standard_position = min(position_for_risk, position_with_leverage)
 
@@ -335,22 +346,33 @@ def get_standardised_position(
     return standard_position
 
 
-def get_standardised_position_for_risk(risk_data: dict, risk_multiplier: float) -> int:
+
+
+
+def get_standardised_position_for_risk(risk_data: dict,
+                                       auto_parameters: parametersForAutoPopulation) -> int:
 
     capital = risk_data["capital"]
     annual_risk_per_contract = risk_data["annual_risk_per_contract"]
+    max_forecast_ratio = auto_parameters.max_vs_average_forecast
+    idm = auto_parameters.approx_IDM
+    instr_weight = auto_parameters.notional_instrument_weight
+    risk_target = auto_parameters.notional_risk_target
 
-    annual_risk_target = capital * risk_multiplier
-    standard_position = annual_risk_target / annual_risk_per_contract
+    standard_position = max_forecast_ratio *             \
+                        capital * idm      *             \
+                        instr_weight * risk_target /     \
+                        (annual_risk_per_contract)
 
     return abs(standard_position)
 
 
 def get_maximum_position_given_leverage_limit(
-    risk_data: dict, leverage_limit: float = 1.0
+    risk_data: dict,
+        auto_parameters: parametersForAutoPopulation
 ) -> float:
     notional_exposure_per_contract = risk_data["contract_exposure"]
-    max_exposure = risk_data["capital"] * leverage_limit
+    max_exposure = risk_data["capital"] * auto_parameters.raw_max_leverage
 
     return abs(max_exposure / notional_exposure_per_contract)
 
@@ -424,13 +446,12 @@ def change_position_limit_for_instrument_strategy(data):
 
 def auto_populate_position_limits(data: dataBlob):
     instrument_list = get_list_of_instruments(data)
-    risk_multiplier, max_leverage = get_risk_multiplier_and_max_leverage()
+    auto_parameters = get_auto_population_parameters()
     [
         set_position_limit_for_instrument(
             data,
             instrument_code=instrument_code,
-            risk_multiplier=risk_multiplier,
-            max_leverage=max_leverage,
+            auto_parameters = auto_parameters
         )
         for instrument_code in instrument_list
     ]
@@ -438,15 +459,15 @@ def auto_populate_position_limits(data: dataBlob):
 
 
 def set_position_limit_for_instrument(
-    data, instrument_code: str, risk_multiplier: float, max_leverage: float
+    data, instrument_code: str,
+        auto_parameters: parametersForAutoPopulation
 ):
 
     data_position_limits = dataPositionLimits(data)
-    max_position_int = get_max_position_for_instrument(
+    max_position_int = get_max_rounded_position_for_instrument(
         data,
         instrument_code=instrument_code,
-        risk_multiplier=risk_multiplier,
-        max_leverage=max_leverage,
+        auto_parameters = auto_parameters
     )
 
     if np.isnan(max_position_int):
@@ -461,20 +482,19 @@ def set_position_limit_for_instrument(
         )
 
 
-def get_max_position_for_instrument(
-    data, instrument_code: str, risk_multiplier: float, max_leverage: float
+def get_max_rounded_position_for_instrument(
+    data, instrument_code: str,
+        auto_parameters: parametersForAutoPopulation
 ):
 
-    standard_position = get_standardised_position(
+    max_position = get_standardised_position_at_max_forecast(
         data,
         instrument_code=instrument_code,
-        risk_multiplier=risk_multiplier,
-        max_leverage=max_leverage,
+        auto_parameters = auto_parameters
     )
-    if np.isnan(standard_position):
+    if np.isnan(max_position):
         return np.nan
 
-    max_position = MAX_VS_AVERAGE_FORECAST * standard_position
     max_position_int = max(1, int(np.ceil(abs(max_position))))
 
     return max_position_int
@@ -780,17 +800,29 @@ def backup_instrument_data_to_csv(data: dataBlob):
 
 
 def suggest_bad_markets(data: dataBlob):
-    max_cost, min_contracts, min_risk = get_bad_market_filter_parameters()
-    SR_costs, liquidity_data, _unused_risk_data = get_data_for_markets(data)
-    bad_markets = get_bad_market_list(
+    max_cost, min_contracts, min_risk, \
+             = get_bad_market_filter_parameters()
+
+    auto_parameters = get_auto_population_parameters()
+    min_ann_perc_std = from_auto_parameters_to_min_ann_perc_std(auto_parameters)
+    SR_costs, liquidity_data, risk_data = get_data_for_markets(data)
+    bad_markets = print_and_return_entire_bad_market_list(
         SR_costs=SR_costs,
         liquidity_data=liquidity_data,
+        risk_data =risk_data,
         min_risk=min_risk,
         min_contracts=min_contracts,
         max_cost=max_cost,
+        min_ann_perc_std=min_ann_perc_std
     )
     display_bad_market_info(bad_markets)
 
+def from_auto_parameters_to_min_ann_perc_std(auto_parameters: parametersForAutoPopulation) -> float:
+    return auto_parameters.max_vs_average_forecast *         \
+            auto_parameters.approx_IDM *                     \
+            auto_parameters.notional_instrument_weight *     \
+            auto_parameters.notional_risk_target /           \
+            auto_parameters.raw_max_leverage
 
 def get_bad_market_filter_parameters():
     max_cost = get_and_convert(
@@ -821,26 +853,68 @@ def get_data_for_markets(data):
 
     return SR_costs, liquidity_data, risk_data
 
-
-def get_bad_market_list(
-    SR_costs: pd.DataFrame,
+def print_and_return_entire_bad_market_list(    SR_costs: pd.DataFrame,
     liquidity_data: pd.DataFrame,
+    risk_data: pd.DataFrame,
     max_cost: float = 0.01,
     min_risk: float = 1.5,
     min_contracts: int = 100,
-) -> list:
-    expensive = list(SR_costs[SR_costs.SR_cost > max_cost].index)
+    min_ann_perc_std = 1.25
+    ) -> list:
 
-    not_enough_contracts = list(
-        liquidity_data[liquidity_data.contracts < min_contracts].index
-    )
-    not_enough_risk = list(liquidity_data[liquidity_data.risk < min_risk].index)
+    expensive, not_enough_trading_risk, \
+    too_safe, not_enough_trading_contracts =\
+        get_bad_market_list(SR_costs=SR_costs,
+                            liquidity_data=liquidity_data,
+                            risk_data=risk_data,
+                            max_cost=max_cost,
+                            min_risk=min_risk,
+                            min_contracts=min_contracts,
+                            min_ann_perc_std=min_ann_perc_std)
 
-    bad_markets = list(set(expensive + not_enough_risk + not_enough_contracts))
+    print("Too expensive:\n")
+    print(expensive)
+    print("\n Too safe:\n")
+    print(too_safe)
+    print("\n Not enough volume (contracts): \n")
+    print(not_enough_trading_contracts)
+    print("\n Not enough volume (risk): \n")
+    print(not_enough_trading_risk)
+
+    bad_markets = list(set(expensive
+                           + not_enough_trading_risk
+                           + not_enough_trading_contracts
+                           + too_safe))
     bad_markets.sort()
 
     return bad_markets
 
+
+
+def get_bad_market_list(
+    SR_costs: pd.DataFrame,
+    liquidity_data: pd.DataFrame,
+    risk_data: pd.DataFrame,
+    max_cost: float = 0.01,
+    min_risk: float = 1.5,
+    min_contracts: int = 100,
+    min_ann_perc_std = 1.25
+) -> tuple:
+    expensive = list(SR_costs[SR_costs.SR_cost > max_cost].index)
+
+    not_enough_trading_contracts = list(
+        liquidity_data[liquidity_data.contracts < min_contracts].index
+    )
+    not_enough_trading_risk = list(liquidity_data[liquidity_data.risk < min_risk].index)
+
+    too_safe = list(risk_data[risk_data.annual_perc_stdev<min_ann_perc_std].index)
+
+    too_safe.sort()
+    expensive.sort()
+    not_enough_trading_contracts.sort()
+    not_enough_trading_risk.sort()
+
+    return expensive, not_enough_trading_risk, too_safe, not_enough_trading_contracts
 
 def display_bad_market_info(bad_markets: list):
     print("Add the following to yaml .config under bad_markets heading:\n")
