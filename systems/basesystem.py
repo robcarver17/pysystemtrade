@@ -190,7 +190,6 @@ class System(object):
 
         return instrument_list
 
-    @base_system_cache()
     def _get_instrument_list_from_config(
         self,
         remove_duplicates=True,
@@ -216,7 +215,6 @@ class System(object):
 
         return instrument_list
 
-    @base_system_cache()
     def _get_raw_instrument_list_from_config(self) -> list:
         config = self.config
         try:
@@ -235,7 +233,6 @@ class System(object):
 
         return instrument_list
 
-    @base_system_cache()
     def _remove_instruments_from_instrument_list(
         self,
         instrument_list,
@@ -269,7 +266,7 @@ class System(object):
 
         return instrument_list
 
-    # @base_system_cache()
+    @base_system_cache()
     def get_list_of_markets_not_trading_but_with_data(
         self,
         remove_duplicates=True,
@@ -303,7 +300,6 @@ class System(object):
 
         return not_trading_in_instrument_list
 
-    # @base_system_cache()
     def get_list_of_instruments_to_remove(
         self,
         remove_duplicates=True,
@@ -340,7 +336,6 @@ class System(object):
 
         return list_to_remove
 
-    # @base_system_cache()
     def get_list_of_duplicate_instruments_to_remove(self):
         duplicate_list = get_duplicate_list_of_instruments_to_remove_from_config(
             self.config
@@ -354,7 +349,6 @@ class System(object):
 
         return duplicate_list
 
-    # @base_system_cache()
     def get_list_of_ignored_instruments_to_remove(self) -> list:
         ignore_instruments = get_list_of_ignored_instruments_in_config(self.config)
         ignore_instruments.sort()
@@ -366,7 +360,6 @@ class System(object):
 
         return ignore_instruments
 
-    # @base_system_cache()
     def get_list_of_markets_with_trading_restrictions(self) -> list:
         trading_restrictions = get_list_of_untradeable_instruments_in_config(
             self.config
@@ -380,7 +373,6 @@ class System(object):
             )
         return trading_restrictions
 
-    # @base_system_cache()
     def get_list_of_bad_markets(self) -> list:
         bad_markets = get_list_of_bad_instruments_in_config(self.config)
         bad_markets.sort()
@@ -393,7 +385,6 @@ class System(object):
 
         return bad_markets
 
-    # @base_system_cache()
     def get_list_of_short_history(self, days_required: int = 750) -> list:
         instrument_list = self.data.get_instrument_list()
 
