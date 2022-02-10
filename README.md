@@ -16,7 +16,7 @@ Version 1.20
 
 ## Release notes
 
-See [DONE_TO_DO](DONE_TO_DO.md) for release notes, and future plans.
+See [DONE_TO_DO](CHANGELOG.md) for release notes, and future plans.
 
 
 ## Description
