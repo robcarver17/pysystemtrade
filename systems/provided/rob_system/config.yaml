@@ -6870,3 +6870,9 @@ instrument_weights:
   YENEUR: 0.013
 instrument_div_multiplier:
   2.5
+#
+risk_overlay:
+  max_risk_fraction_normal_risk: 1.4
+  max_risk_fraction_stdev_risk: 3.6
+  max_risk_limit_sum_abs_risk: 3.4
+  max_risk_leverage: 13.0
