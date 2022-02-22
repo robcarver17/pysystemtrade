@@ -199,9 +199,11 @@ class Portfolios(SystemStage):
         )
 
         risk_scalar = self.get_risk_scalar()
-        risk_scalar_reindex = risk_scalar.reindex(notional_position_without_risk_scalar.index)
-        notional_position = notional_position_without_risk_scalar * risk_scalar_reindex.ffill()
-        notional_position = notional_position_without_risk_scalar
+        if type(risk_scalar) is pd.Series:
+            risk_scalar_reindex = risk_scalar.reindex(notional_position_without_risk_scalar.index)
+            notional_position = notional_position_without_risk_scalar * risk_scalar_reindex.ffill()
+        else:
+            notional_position = notional_position_without_risk_scalar
 
         return notional_position
 
