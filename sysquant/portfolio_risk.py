@@ -33,10 +33,15 @@ def calc_portfolio_risk_series(
 
     risk_series = []
     common_index = list(portfolio_weights.index)
-    p = progressBar(len(common_index), show_timings=True, show_each_time=False)
+    progress = progressBar(
+        len(common_index),
+        suffix="Calculating portfolio risk",
+        show_timings=True,
+        show_each_time=False
+    )
 
     for relevant_date in common_index:
-        p.iterate()
+        progress.iterate()
         weights_on_date = portfolio_weights.get_weights_on_date(relevant_date)
 
         covariance = get_covariance_matrix(list_of_correlations = list_of_correlations,
@@ -46,7 +51,7 @@ def calc_portfolio_risk_series(
         risk_on_date = weights_on_date.portfolio_stdev(covariance)
         risk_series.append(risk_on_date)
 
-    p.finished()
+    progress.finished()
     risk_series = pd.Series(risk_series, common_index)
 
     return risk_series
