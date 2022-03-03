@@ -7,7 +7,7 @@
 #
 # we use rsync so we can exclude the git directory; which will screw things up as there is already one there
 #
-rsync -av ~/linuxprojects/pysystemtrade-me/private/ ~/private/pysystemtrade --exclude .git
+rsync -av ~/linuxprojects/pysystemtrade-me/private/ ~/private/pysystemtrade-me --exclude .git
 #
 # git add/commit/push cycle on the main pysystemtrade directory
 #
