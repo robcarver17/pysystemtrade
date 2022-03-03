@@ -1,3 +1,4 @@
+import datetime
 import pandas as pd
 import numpy as np
 
@@ -5,7 +6,9 @@ from syscore.algos import apply_with_min_periods
 from syscore.pdutils import (
     how_many_times_a_year_is_pd_frequency,
     get_max_index_before_datetime,
+get_row_of_df_aligned_to_weights_as_dict
 )
+from syscore.dateutils import BUSINESS_DAYS_IN_YEAR
 
 from sysquant.fitting_dates import fitDates
 from sysquant.estimators.generic_estimator import (
@@ -33,6 +36,23 @@ class stdevEstimates(dict, Estimate):
     def list_of_keys(self) -> list:
         return list(self.keys())
 
+class seriesOfStdevEstimates(pd.DataFrame):
+    def get_stdev_on_date(self, relevant_date: datetime.datetime) -> stdevEstimates:
+        stdev_as_dict = get_row_of_df_aligned_to_weights_as_dict(df=self,
+                                                 relevant_date=relevant_date)
+        return stdevEstimates(stdev_as_dict)
+
+    def shocked(self, shock_quantile = .99, roll_years = 10, bfill=True):
+        min_periods = int(np.ceil(2 / shock_quantile))
+        roll_bus_days = int(roll_years * BUSINESS_DAYS_IN_YEAR)
+        align_daily = self.resample("1B").ffill()
+        shocked = align_daily.rolling(roll_bus_days,
+                                      min_periods=min_periods).quantile(shock_quantile)
+        if bfill:
+            shocked = shocked.bfill()
+        align_shocked = shocked.reindex(self.index).ffill()
+
+        return seriesOfStdevEstimates(align_shocked)
 
 class exponentialStdev(exponentialEstimator):
     def __init__(

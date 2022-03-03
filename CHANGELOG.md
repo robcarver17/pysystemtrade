@@ -1,5 +1,15 @@
 # Release notes
 
+## Version 1.20
+
+- Skipped a few versions to tag it, why not
+- Added back risk overlay code
+- Added code to get margin
+- Post processing takes holding costs into account
+- Add buffering into sub systems
+- Deal with zero prices and volumes
+
+
 ## Version 1.13
 
 - Better documentation of instrument handling

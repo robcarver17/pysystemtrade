@@ -21,6 +21,7 @@ def risk_report(data: dataBlob = arg_not_supplied):
         "body_text_abs_total_all_risk_annualised",
         "body_text_net_total_all_risk_annualised",
         "table_of_correlations",
+        "table_of_risk_all_instruments"
     ]
 
     for func_name in list_of_func_names:

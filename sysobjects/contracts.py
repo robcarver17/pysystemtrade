@@ -200,8 +200,8 @@ class futuresContract(object):
         return self.contract_date.expiry_date
 
     def expired(self):
-        days_until_expiry = self.days_since_expiry()
-        if days_until_expiry<=0:
+        days_since_expiry = self.days_since_expiry()
+        if days_since_expiry > 0:
             return True
         else:
             return False

@@ -70,13 +70,10 @@ from private.systems.carrytrend.forecastScaleCap import volAttenForecastScaleCap
 from private.systems.carrytrend.rawdata import myFuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
-from systems.provided.dynamic_small_system_optimise.portfolio_weights_stage import (
-    portfolioWeightsStage,
-)
 from systems.provided.dynamic_small_system_optimise.optimised_positions_stage import (
     optimisedPositions,
 )
-from systems.provided.dynamic_small_system_optimise.risk import Risk
+from systems.risk import Risk
 from systems.provided.dynamic_small_system_optimise.accounts_stage import (
     accountForOptimisedStage,
 )
@@ -89,7 +86,6 @@ def futures_system(data, config):
             Risk(),
             accountForOptimisedStage(),
             optimisedPositions(),
-            portfolioWeightsStage(),
             Portfolios(),
             PositionSizing(),
             myFuturesRawData(),

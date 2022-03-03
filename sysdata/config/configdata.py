@@ -12,7 +12,10 @@ trading_rules - a specification of the trading rules for a system
 
 """
 
+from pathlib import Path
+
 import yaml
+
 from syscore.fileutils import get_filename_for_package
 from syscore.objects import missing_data, arg_not_supplied
 from sysdata.config.defaults import get_system_defaults_dict
@@ -113,7 +116,7 @@ class Config(object):
             # its a dict
             self._create_config_from_dict(config_item)
 
-        elif isinstance(config_item, str):
+        elif isinstance(config_item, str) or isinstance(config_item, Path):
             # must be a file YAML'able, from which we load the
             filename = get_filename_for_package(config_item)
             with open(filename) as file_to_parse:
