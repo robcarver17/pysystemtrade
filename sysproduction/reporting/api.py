@@ -333,6 +333,27 @@ class reportingApi(object):
 
         return table_strategy_risk
 
+    def table_of_risk_all_instruments(self):
+        instrument_risk_all = self.instrument_risk_data_all_instruments()
+        instrument_risk_sorted = instrument_risk_all.sort_values('annual_perc_stdev')
+        instrument_risk_sorted = instrument_risk_sorted[['daily_price_stdev',
+                    'annual_price_stdev', 'price', 'daily_perc_stdev',
+       'annual_perc_stdev', 'point_size_base', 'contract_exposure',
+       'annual_risk_per_contract']]
+        instrument_risk_sorted = \
+            instrument_risk_sorted.round({'daily_price_stdev': 4,
+                                            'annual_price_stdev': 3,
+                                          'price': 4,
+                                          'daily_perc_stdev': 3,
+                                          'annual_perc_stdev': 1,
+                                          'point_size_base': 3,
+                                          'contract_exposure': 0,
+                                          'annual_risk_per_contract': 0})
+        instrument_risk_sorted_table = table("Risk of all instruments",
+                                             instrument_risk_sorted)
+
+        return instrument_risk_sorted_table
+
     def body_text_portfolio_risk_total(self):
         portfolio_risk_total = get_portfolio_risk_for_all_strategies(self.data)
         portfolio_risk_total = portfolio_risk_total * 100.0
@@ -391,16 +412,16 @@ class reportingApi(object):
         )
         if instrument_risk_all is missing_data:
             instrument_risk_all = (
-                self._get_instrument_risk_all_instruments
+                self._instrument_risk_all_instruments
             ) = self._get_instrument_risk_all_instruments()
 
         return instrument_risk_all
 
     def _get_instrument_risk_all_instruments(self):
-        instrument_risk_data = get_instrument_risk_table(
+        instrument_risk_all = get_instrument_risk_table(
             self.data, only_held_instruments=False
         )
-        return instrument_risk_data
+        return instrument_risk_all
 
     ##### RECONCILE #####
     def table_of_optimal_positions(self):
@@ -714,3 +735,5 @@ def get_liquidity_report_data(data: dataBlob) -> pd.DataFrame:
     all_liquidity_df = annonate_df_index_with_positions_held(data, all_liquidity_df)
 
     return all_liquidity_df
+
+

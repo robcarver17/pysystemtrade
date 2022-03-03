@@ -1,18 +1,34 @@
 import pandas as pd
+import datetime
 from copy import copy
 
+from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.pdutils import (
     fix_weights_vs_position_or_forecast,
     from_dict_of_values_to_df,
     from_scalar_values_to_ts,
+    get_row_of_df_aligned_to_weights_as_dict
 )
 from syscore.objects import resolve_function, missing_data, arg_not_supplied
 from syscore.genutils import str2Bool
 
 from sysdata.config.configdata import Config
 
+from sysquant.estimators.stdev_estimator import stdevEstimates, seriesOfStdevEstimates
+from sysquant.estimators.correlations import (
+    correlationEstimate,
+    create_boring_corr_matrix,
+    CorrelationList,
+)
+from sysquant.estimators.covariance import (
+    covarianceEstimate,
+    covariance_from_stdev_and_correlation,
+)
 from sysquant.estimators.turnover import turnoverDataAcrossSubsystems
+from sysquant.portfolio_risk import calc_portfolio_risk_series, calc_sum_annualised_risk_given_portfolio_weights
 from sysquant.optimisation.pre_processing import returnsPreProcessor
+from sysquant.optimisation.weights import portfolioWeights, seriesOfPortfolioWeights
+
 from sysquant.returns import (
     dictOfReturnsForOptimisationWithCosts,
     returnsForOptimisationWithCosts,
@@ -23,6 +39,7 @@ from systems.stage import SystemStage
 from systems.system_cache import input, dont_cache, diagnostic, output
 from systems.positionsizing import PositionSizing
 from systems.accounts.curves.account_curve_group import accountCurveGroup
+from systems.risk_overlay import get_risk_multiplier
 
 """
 Stage for portfolios
@@ -69,7 +86,7 @@ class Portfolios(SystemStage):
         return actual_position
 
     @output()
-    def get_actual_buffers_for_position(self, instrument_code: str) -> pd.Series:
+    def get_actual_buffers_for_position(self, instrument_code: str) -> pd.DataFrame:
         """
         Gets the actual buffers for a position, accounting for cap multiplier
         :param instrument_code: instrument to get values for
@@ -177,6 +194,27 @@ class Portfolios(SystemStage):
         )
 
         # same frequency as subsystem / forecasts
+        notional_position_without_risk_scalar = self.get_notional_position_before_risk_scaling(
+            instrument_code
+        )
+
+        risk_scalar = self.get_risk_scalar()
+        if type(risk_scalar) is pd.Series:
+            risk_scalar_reindex = risk_scalar.reindex(notional_position_without_risk_scalar.index)
+            notional_position = notional_position_without_risk_scalar * risk_scalar_reindex.ffill()
+        else:
+            notional_position = notional_position_without_risk_scalar
+
+        return notional_position
+
+
+    ## notional position
+    @diagnostic()
+    def get_notional_position_before_risk_scaling(self, instrument_code: str) -> pd.Series:
+        """
+        """
+
+        # same frequency as subsystem / forecasts
         notional_position_without_idm = self.get_notional_position_without_idm(
             instrument_code
         )
@@ -189,6 +227,8 @@ class Portfolios(SystemStage):
 
         # same frequency as subsystem / forecasts
         return notional_position
+
+
 
     @diagnostic()
     def get_notional_position_without_idm(self, instrument_code: str) -> pd.Series:
@@ -529,6 +569,7 @@ class Portfolios(SystemStage):
 
         return copy_df
 
+    ## INPUT
     @diagnostic()
     def _get_all_subsystem_positions(self) -> pd.DataFrame:
         """
@@ -652,26 +693,6 @@ class Portfolios(SystemStage):
         padded_instrument_weights = pd.concat([instrument_weights, new_pd], axis=1)
 
         return padded_instrument_weights
-
-    def get_instrument_list(
-        self, for_instrument_weights=False, auto_remove_bad_instruments=False
-    ) -> list:
-
-        instrument_list = self.parent.get_instrument_list()
-        if for_instrument_weights:
-            instrument_list = copy(instrument_list)
-            allocate_zero_instrument_weights_to_these_instruments = (
-                self.allocate_zero_instrument_weights_to_these_instruments(
-                    auto_remove_bad_instruments
-                )
-            )
-
-            for (
-                instrument_code_to_remove
-            ) in allocate_zero_instrument_weights_to_these_instruments:
-                instrument_list.remove(instrument_code_to_remove)
-
-        return instrument_list
 
     @diagnostic()
     def allocate_zero_instrument_weights_to_these_instruments(
@@ -834,6 +855,370 @@ class Portfolios(SystemStage):
         else:
             return accounts_stage.capital_multiplier()
 
+    ## RISK
+    @diagnostic()
+    def get_risk_scalar(self) -> pd.Series:
+
+        risk_overlay_config = self.config.get_element_or_arg_not_supplied('risk_overlay')
+        if risk_overlay_config is arg_not_supplied:
+            self.log.msg("No risk overlay in config: won't apply risk scaling")
+            return 1.0
+
+        normal_risk = self.get_portfolio_risk_for_original_positions()
+        shocked_vol_risk = self.get_portfolio_risk_for_original_positions_with_shocked_vol()
+        sum_abs_risk = self.get_sum_annualised_risk_for_original_positions()
+        leverage = self.get_leverage_for_original_position()
+        percentage_vol_target = self.get_percentage_vol_target()
+
+        risk_scalar = get_risk_multiplier(risk_overlay_config = risk_overlay_config,
+                                     normal_risk=normal_risk,
+                                          shocked_vol_risk=shocked_vol_risk,
+                                          sum_abs_risk = sum_abs_risk,
+                                          leverage = leverage,
+                                          percentage_vol_target=percentage_vol_target)
+
+        return risk_scalar
+
+    @diagnostic()
+    def get_leverage_for_original_position(self) -> pd.Series:
+        portfolio_weights = self.get_original_portfolio_weight_df()
+        leverage = portfolio_weights.get_sum_leverage()
+
+        return leverage
+
+
+    @diagnostic()
+    def get_sum_annualised_risk_for_original_positions(
+            self,
+            ) -> pd.Series:
+        portfolio_weights = self.get_original_portfolio_weight_df()
+        return \
+            self.get_sum_annualised_risk_given_portfolio_weights(
+            portfolio_weights)
+
+    def get_sum_annualised_risk_given_portfolio_weights(
+        self,
+            portfolio_weights: seriesOfPortfolioWeights,
+        ) -> pd.Series:
+
+        pd_of_stdev = self.get_stdev_df()
+        risk_series = calc_sum_annualised_risk_given_portfolio_weights(portfolio_weights=portfolio_weights,
+                                                 pd_of_stdev = pd_of_stdev)
+
+        return risk_series
+
+
+    @diagnostic()
+    def get_portfolio_risk_for_original_positions(self) -> pd.Series:
+        weights = self.get_original_portfolio_weight_df()
+        return self.get_portfolio_risk_given_weights(weights)
+
+    @diagnostic()
+    def get_portfolio_risk_for_original_positions_with_shocked_vol(self) -> pd.Series:
+        weights = self.get_original_portfolio_weight_df()
+        return self.get_portfolio_risk_given_weights(weights, use_shocked_vol=True)
+
+    def get_portfolio_risk_given_weights(
+        self, portfolio_weights: seriesOfPortfolioWeights,
+            use_shocked_vol = False
+    ) -> pd.Series:
+
+        list_of_correlations = self.get_list_of_instrument_returns_correlations()
+        pd_of_stdev = self.get_stdev_df(shocked=use_shocked_vol)
+        risk_series = calc_portfolio_risk_series(portfolio_weights=portfolio_weights,
+                                                 list_of_correlations=list_of_correlations,
+                                                 pd_of_stdev = pd_of_stdev)
+
+        return risk_series
+
+    def get_stdev_df(
+        self,
+            shocked: bool = False
+    ) -> seriesOfStdevEstimates:
+        if shocked:
+            return self.get_shocked_df_of_perc_vol()
+        else:
+            return self.get_df_of_perc_vol()
+
+    @diagnostic()
+    def get_shocked_df_of_perc_vol(
+        self
+    ) -> seriesOfStdevEstimates:
+
+        df_of_vol = self.get_df_of_perc_vol()
+        shocked_df_of_vol = df_of_vol.shocked()
+
+        return shocked_df_of_vol
+
+
+    ## PORTFOLIO WEIGHTS
+    def get_position_contracts_for_relevant_date(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> portfolioWeights:
+
+        position_contracts_as_df = self.get_position_contracts_as_df()
+        position_contracts_at_date = get_row_of_df_aligned_to_weights_as_dict(
+            position_contracts_as_df, relevant_date
+        )
+
+        position_contracts = portfolioWeights(position_contracts_at_date)
+
+        return position_contracts
+
+    def get_covariance_matrix(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> covarianceEstimate:
+
+        correlation_estimate = self.get_correlation_matrix(relevant_date=relevant_date)
+        stdev_estimate = self.get_stdev_estimate(relevant_date=relevant_date)
+
+        covariance = covariance_from_stdev_and_correlation(
+            correlation_estimate, stdev_estimate
+        )
+
+        return covariance
+
+    def get_correlation_matrix(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> correlationEstimate:
+        list_of_correlations = self.get_list_of_instrument_returns_correlations()
+        try:
+            correlation_matrix = (
+                list_of_correlations.most_recent_correlation_before_date(relevant_date)
+            )
+        except:
+            instrument_list = self.get_instrument_list()
+            correlation_matrix = create_boring_corr_matrix(
+                len(instrument_list), columns=instrument_list, offdiag=0.0
+            )
+
+        return correlation_matrix
+
+    @diagnostic(not_pickable=True)
+    def get_list_of_instrument_returns_correlations(self) -> CorrelationList:
+        config = self.config
+
+        # Get some useful stuff from the config
+        corr_params = copy(config.instrument_returns_correlation)
+
+        # which function to use for calculation
+        corr_func = resolve_function(corr_params.pop("func"))
+
+        returns_as_pd = self.returns_across_instruments_as_df()
+
+        return corr_func(returns_as_pd, **corr_params)
+
+    @diagnostic()
+    def returns_across_instruments_as_df(self) -> pd.DataFrame:
+        instrument_list = self.get_instrument_list()
+        returns_as_dict = dict(
+            [
+                (
+                    instrument_code,
+                    self.percentage_return_for_instrument(instrument_code),
+                )
+                for instrument_code in instrument_list
+            ]
+        )
+
+        returns_as_pd = pd.DataFrame(returns_as_dict)
+
+        return returns_as_pd
+
+    def percentage_return_for_instrument(self, instrument_code) -> pd.Series:
+        return self.rawdata.get_daily_percentage_returns(instrument_code)
+
+    def get_per_contract_value(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> portfolioWeights:
+        df_of_values = self.get_per_contract_value_as_proportion_of_capital_df()
+        values_at_date = get_row_of_df_aligned_to_weights_as_dict(
+            df_of_values, relevant_date
+        )
+        contract_values = portfolioWeights(values_at_date)
+
+        return contract_values
+
+    def get_stdev_estimate(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> stdevEstimates:
+        df_of_vol = self.get_df_of_perc_vol()
+
+        return df_of_vol.get_stdev_on_date(relevant_date)
+
+    @diagnostic()
+    def get_df_of_perc_vol(self) -> seriesOfStdevEstimates:
+        instrument_list = self.get_instrument_list()
+        vol_as_dict = dict(
+            [
+                (instrument_code, self.annualised_percentage_vol(instrument_code))
+                for instrument_code in instrument_list
+            ]
+        )
+
+        vol_as_pd = pd.DataFrame(vol_as_dict)
+        vol_as_pd = vol_as_pd.ffill()
+
+        return seriesOfStdevEstimates(vol_as_pd)
+
+    @diagnostic()
+    def common_index(self):
+        portfolio_weights = self.get_original_portfolio_weight_df()
+        common_index = portfolio_weights.index
+
+        return common_index
+
+    @diagnostic()
+    def get_original_portfolio_weight_df(self) -> seriesOfPortfolioWeights:
+        instrument_list = self.get_instrument_list()
+        weights_as_dict = dict(
+            [
+                (
+                    instrument_code,
+                    self.get_portfolio_weight_series_from_contract_positions(
+                        instrument_code
+                    ),
+                )
+                for instrument_code in instrument_list
+            ]
+        )
+
+        weights_as_pd = pd.DataFrame(weights_as_dict)
+        weights_as_pd = weights_as_pd.ffill()
+
+        return seriesOfPortfolioWeights(weights_as_pd)
+
+    @diagnostic()
+    def get_per_contract_value_as_proportion_of_capital_df(self) -> pd.DataFrame:
+        instrument_list = self.get_instrument_list()
+        values_as_dict = dict(
+            [
+                (
+                    instrument_code,
+                    self.get_per_contract_value_as_proportion_of_capital(
+                        instrument_code
+                    ),
+                )
+                for instrument_code in instrument_list
+            ]
+        )
+
+        values_as_pd = pd.DataFrame(values_as_dict)
+        common_index = self.common_index()
+
+        values_as_pd = values_as_pd.reindex(common_index)
+        values_as_pd = values_as_pd.ffill()
+
+        ## slight cheating
+        values_as_pd = values_as_pd.bfill()
+
+        return values_as_pd
+
+    def get_position_contracts_as_df(self) -> pd.DataFrame:
+        instrument_list = self.get_instrument_list()
+        values_as_dict = dict(
+            [
+                (instrument_code, self.get_notional_position_before_risk_scaling(instrument_code))
+                for instrument_code in instrument_list
+            ]
+        )
+
+        values_as_pd = pd.DataFrame(values_as_dict)
+        common_index = self.common_index()
+
+        values_as_pd = values_as_pd.reindex(common_index)
+        values_as_pd = values_as_pd.ffill()
+
+        return values_as_pd
+
+    @diagnostic()
+    def get_portfolio_weight_series_from_contract_positions(
+        self, instrument_code: str
+    ) -> pd.Series:
+        contract_positions = self.get_notional_position_before_risk_scaling(instrument_code)
+        per_contract_value_as_proportion_of_capital = (
+            self.get_per_contract_value_as_proportion_of_capital(instrument_code)
+        )
+
+        weights_as_proportion_of_capital = get_portfolio_weights_from_contract_positions(
+            contract_positions=contract_positions,
+            per_contract_value_as_proportion_of_capital=per_contract_value_as_proportion_of_capital,
+        )
+        return weights_as_proportion_of_capital
+
+    def get_per_contract_value_as_proportion_of_capital(
+        self, instrument_code: str
+    ) -> pd.Series:
+        trading_capital = self.get_trading_capital()
+        contract_values = self.get_baseccy_value_per_contract(instrument_code)
+
+        per_contract_value_as_proportion_of_capital = contract_values / trading_capital
+
+        return per_contract_value_as_proportion_of_capital
+
+    def get_baseccy_value_per_contract(self, instrument_code: str) -> pd.Series:
+        contract_prices = self.get_contract_prices(instrument_code)
+        contract_multiplier = self.get_contract_multiplier(instrument_code)
+        fx_rate = self.get_fx_for_contract(instrument_code)
+
+        fx_rate_aligned = fx_rate.reindex(contract_prices.index, method="ffill")
+
+        return fx_rate_aligned * contract_prices * contract_multiplier
+
+    def annualised_percentage_vol(self, instrument_code: str) -> pd.Series:
+        daily_vol = self.daily_percentage_vol100scale(instrument_code)
+        return ROOT_BDAYS_INYEAR * daily_vol / 100.0
+
+    ## INPUT
+    def get_instrument_list(
+        self, for_instrument_weights=False, auto_remove_bad_instruments=False
+    ) -> list:
+
+        instrument_list = self.parent.get_instrument_list()
+        if for_instrument_weights:
+            instrument_list = copy(instrument_list)
+            allocate_zero_instrument_weights_to_these_instruments = (
+                self.allocate_zero_instrument_weights_to_these_instruments(
+                    auto_remove_bad_instruments
+                )
+            )
+
+            for (
+                instrument_code_to_remove
+            ) in allocate_zero_instrument_weights_to_these_instruments:
+                instrument_list.remove(instrument_code_to_remove)
+
+        return instrument_list
+
+    ## INPUTS
+    def daily_percentage_vol100scale(self, instrument_code: str) -> pd.Series:
+        return self.rawdata.get_daily_percentage_volatility(instrument_code)
+
+    def get_percentage_vol_target(self) -> float:
+        return self.position_size_stage.get_percentage_vol_target()
+
+    def get_trading_capital(self) -> float:
+        return self.position_size_stage.get_notional_trading_capital()
+
+    def get_contract_prices(self, instrument_code: str) -> pd.Series:
+        return self.position_size_stage.get_underlying_price(instrument_code)
+
+    def get_contract_multiplier(self, instrument_code: str) -> float:
+        return float(self.data.get_value_of_block_price_move(instrument_code))
+
+    def get_fx_for_contract(self, instrument_code: str) -> pd.Series:
+        return self.position_size_stage.get_fx_rate(instrument_code)
+
+    ## stages
+    @property
+    def rawdata(self):
+        return self.parent.rawdata
+
+    @property
+    def data(self):
+        return self.parent.data
+
+
     @property
     def accounts_stage(self):
         accounts_stage = getattr(self.parent, "accounts", missing_data)
@@ -848,6 +1233,18 @@ class Portfolios(SystemStage):
     def position_size_stage(self) -> PositionSizing:
         return self.parent.positionSize
 
+
+def get_portfolio_weights_from_contract_positions(
+    contract_positions: pd.Series,
+    per_contract_value_as_proportion_of_capital: pd.Series,
+) -> pd.Series:
+
+    aligned_values = per_contract_value_as_proportion_of_capital.reindex(
+        contract_positions.index, method="ffill"
+    )
+    weights_as_proportion_of_capital = contract_positions * aligned_values
+
+    return weights_as_proportion_of_capital
 
 if __name__ == "__main__":
     import doctest

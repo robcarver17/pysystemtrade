@@ -39,7 +39,10 @@ class volAttenForecastScaleCap(ForecastScaleCap):
         raw_forecast_before_atten = self.get_raw_forecast_before_attenuation(
             instrument_code, rule_variation_name
         )
-        use_attenuation = self.config.use_attenuation
+        use_attenuation = self.config.get_element_or_missing_data('use_attenuation')
+        if use_attenuation is missing_data:
+            use_attenuation = []
+
         if rule_variation_name not in use_attenuation:
             return raw_forecast_before_atten
         else:
