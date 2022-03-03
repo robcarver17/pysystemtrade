@@ -459,14 +459,14 @@ rsync -av ~/pysystemtrade/private/ ~/private --exclude .git
 # git add/commit/push cycle on the main pysystemtrade directory
 #
 cd ~/pysystemtrade/
-git add *
+git add -A
 git commit -m "$1"
 git push
 #
 # git add/commit/push cycle on the copied private directory
 #
 cd ~/private/
-git add *
+git add -A
 git commit -m "$1"
 git push
 ```
