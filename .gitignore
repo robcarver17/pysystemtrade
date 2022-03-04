@@ -24,10 +24,6 @@ restats
 
 # venv
 env/
-.venv/
 
 # libreoffice
 .~lock.*
-
-# VSCode
-settings.json
