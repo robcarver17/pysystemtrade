@@ -448,7 +448,7 @@ I then use a bash script which I run in lieu of a normal git add/ commit / push 
 ```
 # pass commit quote as an argument
 # For example:
-# . commit "this is a commit description string"
+# mygitpush "this is a commit description string"
 #
 # copy the contents of the private directory to another, git controlled, directory
 #
@@ -459,14 +459,14 @@ rsync -av ~/pysystemtrade/private/ ~/private --exclude .git
 # git add/commit/push cycle on the main pysystemtrade directory
 #
 cd ~/pysystemtrade/
-git add *
+git add -A
 git commit -m "$1"
 git push
 #
 # git add/commit/push cycle on the copied private directory
 #
 cd ~/private/
-git add *
+git add -A
 git commit -m "$1"
 git push
 ```
