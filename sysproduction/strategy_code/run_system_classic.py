@@ -78,7 +78,7 @@ class runSystemClassic(object):
         currency_data = dataCurrency(data)
         base_currency = currency_data.get_base_currency()
 
-        self.data.log("Using capital of %s %.2f" % (base_currency, notional_trading_capital))
+        self.data.log.msg("Using capital of %s %.2f" % (base_currency, notional_trading_capital))
 
         return base_currency, notional_trading_capital
 
