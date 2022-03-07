@@ -239,7 +239,7 @@ buffer_trade_to_edge: False
 use_SR_costs: False
 vol_normalise_currency_costs: True
 #
-# risk overlay - make thi
+# risk overlay - make these numbers smaller to use
 risk_overlay:
   max_risk_fraction_normal_risk: 99999
   max_risk_fraction_stdev_risk: 99999

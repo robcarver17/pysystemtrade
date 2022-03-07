@@ -368,11 +368,11 @@ class RawData(SystemStage):
 
         # Align for an easy life
         # As usual forward fill at last moment
-        normalised_price_for_asset_class = normalised_price_for_asset_class.reindex(
+        normalised_price_for_asset_class_aligned = normalised_price_for_asset_class.reindex(
             normalised_price_this_instrument.index
         ).ffill()
 
-        return normalised_price_for_asset_class
+        return normalised_price_for_asset_class_aligned
 
     def rolls_per_year(self, instrument_code: str) -> int:
         return self.parent.data.get_rolls_per_year(instrument_code)

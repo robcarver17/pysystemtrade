@@ -563,6 +563,7 @@ if __name__ == "__main__":
     doctest.testmod()
 
 
+
 def get_row_of_df_aligned_to_weights_as_dict(
     df: pd.DataFrame, relevant_date: datetime.datetime = arg_not_supplied
 ) -> dict:

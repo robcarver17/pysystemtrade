@@ -465,12 +465,12 @@ class PositionSizing(SystemStage):
 
         return annual_cash_vol_target
 
-    @input
+    @diagnostic()
     def get_notional_trading_capital(self) -> float:
         notional_trading_capital = float(self.config.notional_trading_capital)
         return notional_trading_capital
 
-    @input
+    @diagnostic()
     def get_percentage_vol_target(self):
         return float(self.config.percentage_vol_target)
 

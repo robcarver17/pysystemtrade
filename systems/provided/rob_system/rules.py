@@ -142,6 +142,7 @@ def relative_momentum(
         normalised_price_this_instrument.ffill()
         - normalised_price_for_asset_class.ffill()
     )
+    outperformance[outperformance == 0] = np.nan
     relative_return = outperformance.diff()
     outperformance_over_horizon = relative_return.rolling(horizon).mean()
 
