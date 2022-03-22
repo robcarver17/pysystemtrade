@@ -29,8 +29,9 @@ DAILY_RISK_CALC_LOOKBACK = int(BUSINESS_DAYS_IN_YEAR * 2)
 def get_margin_usage(data) -> float:
     capital = get_current_capital(data)
     margin = get_current_margin(data)
+    margin_usage = margin / capital
 
-    return margin / capital
+    return margin_usage
 
 def get_current_capital(data) -> float:
     data_capital = dataCapital(data)
