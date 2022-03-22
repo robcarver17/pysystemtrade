@@ -36,8 +36,8 @@ class runReport(object):
         self.config = config
 
         # run process expects a method with same name as log name
-        setattr(self, report_function, self.email_trades_report)
+        setattr(self, report_function, self.run_generic_report)
 
-    def email_trades_report(self):
-
+    def run_generic_report(self):
+        ## Will be renamed
         run_report(self.config, data=self.data)

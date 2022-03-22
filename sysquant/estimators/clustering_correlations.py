@@ -1,7 +1,14 @@
 import numpy as np
 from scipy.cluster import hierarchy as sch
 
+from syscore.genutils import flatten_list
 from sysquant.estimators.correlations import correlationEstimate
+
+def assets_in_cluster_order(corr_matrix: correlationEstimate,
+                               cluster_size: int = 2):
+    clusters_as_names = cluster_correlation_matrix(corr_matrix, cluster_size=cluster_size)
+
+    return flatten_list(clusters_as_names)
 
 def cluster_correlation_matrix(corr_matrix: correlationEstimate,
                                cluster_size: int = 2):
