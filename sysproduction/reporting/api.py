@@ -313,7 +313,8 @@ class reportingApi(object):
     #### RISK REPORT ####
     def body_text_margin_usage(self) -> body_text:
         margin_usage = self.get_margin_usage()
-        body_text_margin_usage = body_text("Percentage of capital used for margin %.1f%%" % margin_usage*100.0)
+        perc_margin_usage = margin_usage * 100.0
+        body_text_margin_usage = body_text("Percentage of capital used for margin %.1f%%" % perc_margin_usage)
 
         return body_text_margin_usage
 
