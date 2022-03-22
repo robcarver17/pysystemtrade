@@ -60,6 +60,7 @@ from sysproduction.reporting.data.status import (
 )
 from sysproduction.reporting.data.volume import get_liquidity_data_df
 
+REPORT_DATETIME_FORMAT = "%m/%d/%Y, %H:%M"
 
 class reportingApi(object):
     def __init__(
@@ -82,9 +83,9 @@ class reportingApi(object):
             "%s report produced on %s from %s to %s"
             % (
                 report_name,
-                str(datetime.datetime.now()),
-                str(start_date),
-                str(end_date),
+                datetime.datetime.now().strftime(REPORT_DATETIME_FORMAT),
+                start_date.strftime(REPORT_DATETIME_FORMAT),
+                end_date.strftime(REPORT_DATETIME_FORMAT)
             )
         )
 
@@ -329,8 +330,8 @@ class reportingApi(object):
 
     def table_of_instrument_risk(self):
         instrument_risk_data = self.instrument_risk_data()
-        instrument_risk_data_rounded = instrument_risk_data.round(2)
-        table_instrument_risk = table("Instrument risk", instrument_risk_data_rounded)
+        instrument_risk_data = nice_format_instrument_risk_table(instrument_risk_data)
+        table_instrument_risk = table("Instrument risk", instrument_risk_data)
         return table_instrument_risk
 
     def table_of_strategy_risk(self):
@@ -589,6 +590,7 @@ class reportingApi(object):
             return body_text("No trades")
 
         vol_slippage = create_vol_norm_slippage_df(raw_slippage, self.data)
+        vol_slippage = vol_slippage.round(2)
         table_of_vol_slippage = table(
             "Slippage (normalised by annual vol, BP of annual SR)", vol_slippage
         )
@@ -619,6 +621,7 @@ class reportingApi(object):
 
     def table_of_cash_slippage(self):
         cash_slippage = self.cash_slippage
+        cash_slippage = cash_slippage.round(2)
         if len(cash_slippage) == 0:
             return body_text("No trades")
 
@@ -750,3 +753,19 @@ def get_liquidity_report_data(data: dataBlob) -> pd.DataFrame:
     return all_liquidity_df
 
 
+def nice_format_instrument_risk_table(instrument_risk_data):
+    instrument_risk_data.daily_price_stdev = instrument_risk_data.daily_price_stdev.round(3)
+    instrument_risk_data.annual_price_stdev = instrument_risk_data.annual_price_stdev.round(3)
+    instrument_risk_data.price = instrument_risk_data.price.round(2)
+    instrument_risk_data.daily_perc_stdev = instrument_risk_data.daily_perc_stdev.round(2)
+    instrument_risk_data.annual_perc_stdev = instrument_risk_data.annual_perc_stdev.round(1)
+    instrument_risk_data.point_size_base = instrument_risk_data.point_size_base.round(1)
+    instrument_risk_data.contract_exposure = instrument_risk_data.contract_exposure.round(0)
+    instrument_risk_data.daily_risk_per_contract = instrument_risk_data.daily_risk_per_contract.round(0)
+    instrument_risk_data.annual_risk_per_contract = instrument_risk_data.annual_risk_per_contract.round(0)
+    instrument_risk_data.position = instrument_risk_data.position.round(0)
+    instrument_risk_data.capital = instrument_risk_data.capital.round(0)
+    instrument_risk_data.exposure_held_perc_capital = instrument_risk_data.exposure_held_perc_capital.round(1)
+    instrument_risk_data.annual_risk_perc_capital = instrument_risk_data.annual_risk_perc_capital.round(1)
+
+    return instrument_risk_data
