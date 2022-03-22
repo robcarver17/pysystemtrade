@@ -36,6 +36,7 @@ from sysproduction.reporting.data.positions import (
 )
 from sysproduction.reporting.data.risk import (
     get_correlation_matrix_all_instruments,
+    cluster_correlation_matrix,
     get_instrument_risk_table,
     get_portfolio_risk_for_all_strategies,
     get_portfolio_risk_across_strategies,
@@ -320,6 +321,7 @@ class reportingApi(object):
 
     def table_of_correlations(self) -> table:
         corr_data = get_correlation_matrix_all_instruments(self.data)
+        corr_data = cluster_correlation_matrix(corr_data)
         corr_data = corr_data.as_pd().round(2)
         table_corr = table("Correlations", corr_data)
 
