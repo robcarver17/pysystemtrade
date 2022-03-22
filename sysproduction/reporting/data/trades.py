@@ -10,7 +10,7 @@ from syscore.pdutils import make_df_from_list_of_named_tuple
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.orders import dataOrders
-from sysproduction.reporting.data.risk_metrics import (
+from sysproduction.reporting.data.risk import (
     get_current_annualised_stdev_for_instrument,
 )
 

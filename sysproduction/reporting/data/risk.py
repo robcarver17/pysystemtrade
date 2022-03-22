@@ -19,13 +19,29 @@ from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights
 from sysquant.fitting_dates import IN_SAMPLE
 
-from sysproduction.data.capital import dataCapital
+from sysproduction.data.capital import dataCapital, dataMargin
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.prices import diagPrices, get_list_of_instruments
 
 DAILY_RISK_CALC_LOOKBACK = int(BUSINESS_DAYS_IN_YEAR * 2)
 
+def get_margin_usage(data) -> float:
+    capital = get_current_capital(data)
+    margin = get_current_margin(data)
+
+    return margin / capital
+
+def get_current_capital(data) -> float:
+    data_capital = dataCapital(data)
+    capital = data_capital.get_current_total_capital()
+    return capital
+
+def get_current_margin(data) -> float:
+    data_margin = dataMargin(data)
+    margin = data_margin.get_current_total_margin()
+
+    return margin
 
 def get_instrument_risk_table(data, only_held_instruments=True):
     ## INSTRUMENT RISK (daily %, annual %, return space daily and annual, base currency per contract daily and annual, positions)

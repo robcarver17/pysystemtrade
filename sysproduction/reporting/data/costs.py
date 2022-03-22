@@ -12,7 +12,7 @@ from sysproduction.reporting.data.trades import (
     get_recent_broker_orders,
     create_raw_slippage_df,
 )
-from sysproduction.reporting.data.risk_metrics import (
+from sysproduction.reporting.data.risk import (
     get_current_annualised_perc_stdev_for_instrument,
 )
 

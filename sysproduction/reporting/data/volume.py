@@ -6,7 +6,7 @@ from syscore.genutils import progressBar
 from sysdata.data_blob import dataBlob
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices
-from sysproduction.reporting.data.risk_metrics import get_risk_data_for_instrument
+from sysproduction.reporting.data.risk import get_risk_data_for_instrument
 
 
 def get_liquidity_data_df(data: dataBlob):

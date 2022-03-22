@@ -34,11 +34,12 @@ from sysproduction.reporting.data.positions import (
     get_broker_positions,
     get_position_breaks,
 )
-from sysproduction.reporting.data.risk_metrics import (
+from sysproduction.reporting.data.risk import (
     get_correlation_matrix_all_instruments,
     get_instrument_risk_table,
     get_portfolio_risk_for_all_strategies,
     get_portfolio_risk_across_strategies,
+    get_margin_usage
 )
 from sysproduction.reporting.data.rolls import (
     get_roll_data_for_instrument,
@@ -310,7 +311,13 @@ class reportingApi(object):
         return list_of_instruments
 
     #### RISK REPORT ####
-    def table_of_correlations(self):
+    def body_text_margin_usage(self) -> body_text:
+        margin_usage = self.get_margin_usage()
+        body_text_margin_usage = body_text("Percentage of capital used for margin %.1f%%" % margin_usage*100.0)
+
+        return body_text_margin_usage
+
+    def table_of_correlations(self) -> table:
         corr_data = get_correlation_matrix_all_instruments(self.data)
         corr_data = corr_data.as_pd().round(2)
         table_corr = table("Correlations", corr_data)
@@ -394,6 +401,9 @@ class reportingApi(object):
             "Net sum of annualised risk %% capital %.1f "
             % net_total_all_risk_annualised
         )
+
+    def get_margin_usage(self) -> float:
+        return get_margin_usage(self.data)
 
     def instrument_risk_data(self):
         instrument_risk = getattr(self, "_instrument_risk", missing_data)

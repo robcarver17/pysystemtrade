@@ -36,7 +36,7 @@ from sysproduction.data.prices import (
 )
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.instruments import dataInstruments
-from sysproduction.reporting.data.risk_metrics import get_risk_data_for_instrument
+from sysproduction.reporting.data.risk import get_risk_data_for_instrument
 
 
 from sysproduction.reporting.api import reportingApi
