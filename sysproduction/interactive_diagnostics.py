@@ -231,7 +231,7 @@ def liquidity_report(data):
 
 def email_or_print_or_file(report_config):
     ans = get_and_convert(
-        "1: Print or 2: email or 3: file?",
+        "1: Print or 2: email or 3: file or 4: email and file?",
         type_expected=int,
         allow_default=True,
         default_str="Print",
@@ -241,8 +241,10 @@ def email_or_print_or_file(report_config):
         report_config = report_config.new_config_with_modified_output("console")
     elif ans == 2:
         report_config = report_config.new_config_with_modified_output("email")
-    else:
+    elif ans ==3:
         report_config = report_config.new_config_with_modified_output("file")
+    else:
+        report_config = report_config.new_config_with_modified_output("emailfile")
 
     return report_config
 

@@ -12,7 +12,8 @@ from syslogdiag.email_via_db_interface import send_production_mail_msg
 from sysproduction.reporting.report_configs import reportConfig
 
 
-def run_report(report_config: reportConfig, data: dataBlob = arg_not_supplied):
+def run_report(report_config:
+reportConfig, data: dataBlob = arg_not_supplied):
     """
 
     :param report_config:
@@ -40,20 +41,38 @@ def run_report_with_data_blob(report_config: reportConfig, data: dataBlob):
     parsed_report = parse_report_results(report_results)
     output = report_config.output
 
-    # We either print or email
+    # We either print or email or send to file or ...
     if output == "console":
         print(parsed_report)
     elif output == "email":
-        send_production_mail_msg(
-            data, parsed_report, subject=report_config.title, email_is_report=True
-        )
+        email_report(parsed_report,
+                     report_config=report_config, data=data)
     elif output == "file":
-        filename_with_spaces = report_config.title
-        filename = filename_with_spaces.replace(" ", "_")
-        write_report_to_file(data, parsed_report, filename=filename)
+        file_report(parsed_report,
+                     report_config=report_config, data=data)
+    elif output == "emailfile":
+        email_report(parsed_report,
+                     report_config=report_config, data=data)
+        file_report(parsed_report,
+                     report_config=report_config, data=data)
     else:
         raise Exception("Report config %s not recognised!" % output)
 
+def email_report(parsed_report,
+                 report_config,
+                 data):
+    send_production_mail_msg(
+        data, parsed_report,
+        subject=report_config.title,
+        email_is_report=True
+    )
+
+def file_report(parsed_report,
+                 report_config,
+                 data):
+    filename_with_spaces = report_config.title
+    filename = filename_with_spaces.replace(" ", "_")
+    write_report_to_file(data, parsed_report, filename=filename)
 
 def parse_report_results(report_results: list):
     """
