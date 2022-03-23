@@ -53,32 +53,6 @@ def report_system_classic_no_header_or_footer(
     risk_scaling_str = risk_scaling_string(backtest)
     format_output.append(body_text(risk_scaling_str))
 
-    unweighted_forecasts_df = get_forecast_matrix(
-        backtest, stage_name="forecastScaleCap", method_name="get_capped_forecast"
-    )
-    unweighted_forecasts_df_rounded = unweighted_forecasts_df.round(1)
-    unweighted_forecasts_table = table(
-        "Unweighted forecasts", unweighted_forecasts_df_rounded
-    )
-    format_output.append(unweighted_forecasts_table)
-
-    # Forecast weights
-    forecast_weights_df = get_forecast_matrix_over_code(
-        backtest, stage_name="combForecast", method_name="get_forecast_weights"
-    )
-    forecast_weights_df_as_perc = forecast_weights_df * 100
-    forecast_weights_df_as_perc_rounded = forecast_weights_df_as_perc.round(1)
-    forecast_weights_table = table(
-        "Forecast weights", forecast_weights_df_as_perc_rounded
-    )
-    format_output.append(forecast_weights_table)
-
-    # Weighted forecast
-    weighted_forecasts_df = forecast_weights_df * unweighted_forecasts_df
-    weighted_forecast_rounded = weighted_forecasts_df.round(1)
-    weighted_forecast_table = table("Weighted forecasts", weighted_forecast_rounded)
-    format_output.append(weighted_forecast_table)
-
     # Cash target
     cash_target_dict = backtest.system.positionSize.get_vol_target_dict()
     cash_target_text = body_text("\nVol target calculation %s\n" % cash_target_dict)
@@ -170,6 +144,32 @@ def report_system_classic_no_header_or_footer(
     )
 
     format_output.append(versus_buffers_and_positions_table)
+
+    # Forecast weights
+    forecast_weights_df = get_forecast_matrix_over_code(
+        backtest, stage_name="combForecast", method_name="get_forecast_weights"
+    )
+    forecast_weights_df_as_perc = forecast_weights_df * 100
+    forecast_weights_df_as_perc_rounded = forecast_weights_df_as_perc.round(1)
+    forecast_weights_table = table(
+        "Forecast weights", forecast_weights_df_as_perc_rounded
+    )
+    format_output.append(forecast_weights_table)
+
+    # Weighted forecast
+    weighted_forecasts_df = forecast_weights_df * unweighted_forecasts_df
+    weighted_forecast_rounded = weighted_forecasts_df.round(1)
+    weighted_forecast_table = table("Weighted forecasts", weighted_forecast_rounded)
+    format_output.append(weighted_forecast_table)
+
+    unweighted_forecasts_df = get_forecast_matrix(
+        backtest, stage_name="forecastScaleCap", method_name="get_capped_forecast"
+    )
+    unweighted_forecasts_df_rounded = unweighted_forecasts_df.round(1)
+    unweighted_forecasts_table = table(
+        "Unweighted forecasts", unweighted_forecasts_df_rounded
+    )
+    format_output.append(unweighted_forecasts_table)
 
     return format_output
 
@@ -495,9 +495,9 @@ def calc_position_diags(portfolio_positions_df, subystem_positions_df):
 
 def risk_scaling_string(backtest) -> str:
     backtest_system_portfolio_stage = backtest.system.portfolio
-    normal_risk_final = backtest_system_portfolio_stage.get_portfolio_risk_for_original_positions().iloc[-1]
-    shocked_vol_risk_final = backtest_system_portfolio_stage.get_portfolio_risk_for_original_positions_with_shocked_vol().iloc[-1]
-    sum_abs_risk_final = backtest_system_portfolio_stage.get_sum_annualised_risk_for_original_positions().iloc[-1]
+    normal_risk_final = backtest_system_portfolio_stage.get_portfolio_risk_for_original_positions().iloc[-1]*100.0
+    shocked_vol_risk_final = backtest_system_portfolio_stage.get_portfolio_risk_for_original_positions_with_shocked_vol().iloc[-1]*100.0
+    sum_abs_risk_final = backtest_system_portfolio_stage.get_sum_annualised_risk_for_original_positions().iloc[-1]*100.0
     leverage_final = backtest_system_portfolio_stage.get_leverage_for_original_position().iloc[-1]
     percentage_vol_target = backtest_system_portfolio_stage.get_percentage_vol_target()
     risk_scalar_final = backtest_system_portfolio_stage.get_risk_scalar().iloc[-1]
