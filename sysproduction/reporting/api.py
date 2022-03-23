@@ -2,7 +2,7 @@ import datetime
 
 import pandas as pd
 
-from syscore.dateutils import n_days_ago
+from syscore.dateutils import n_days_ago, SECONDS_PER_DAY
 from syscore.objects import arg_not_supplied, missing_data, body_text
 from sysdata.data_blob import dataBlob
 
@@ -61,7 +61,7 @@ from sysproduction.reporting.data.status import (
 )
 from sysproduction.reporting.data.volume import get_liquidity_data_df
 
-REPORT_DATETIME_FORMAT = "%m/%d/%Y, %H:%M"
+REPORT_DATETIME_FORMAT = "%d/%m/%Y %H:%M"
 
 class reportingApi(object):
     def __init__(
@@ -207,6 +207,15 @@ class reportingApi(object):
         process_table = table("Config for process control", process)
 
         return process_table
+
+    def table_of_delayed_methods(self):
+        method_status = get_control_data_list_for_all_methods_as_df(self.data)
+        delay_methods_table = filter_data_for_delays_and_return_table(method_status,
+                                                                      datetime_colum='last_start',
+                                                                      max_delay_in_days=3,
+                                                                      table_header='Delayed methods')
+
+        return delay_methods_table
 
     def table_of_control_status_list_for_all_processes(self):
         process2 = get_control_status_list_for_all_processes_as_df(self.data)
@@ -726,3 +735,27 @@ def get_liquidity_report_data(data: dataBlob) -> pd.DataFrame:
     return all_liquidity_df
 
 
+def filter_data_for_delays_and_return_table(data_with_datetime,
+                           datetime_colum='last_start',
+                        table_header = "Only delayed data",
+                max_delay_in_days = 3):
+
+    filtered_data = filter_data_for_delays(data_with_datetime,
+                                           datetime_colum=datetime_colum,
+                                           max_delay_in_days=max_delay_in_days)
+    if len(filtered_data)==0:
+        return body_text("%s: No delays" % table_header)
+    else:
+        return table(table_header,
+                     filtered_data)
+
+def filter_data_for_delays(data_with_datetime,
+                           datetime_colum='last_start',
+                max_delay_in_days = 3) -> pd.DataFrame:
+
+    max_delay_in_seconds = max_delay_in_days * SECONDS_PER_DAY
+    time_delays = datetime.datetime.now() -data_with_datetime[datetime_colum]
+    delayed = [time_difference.total_seconds() > max_delay_in_seconds
+               for time_difference in time_delays]
+
+    return data_with_datetime[delayed]

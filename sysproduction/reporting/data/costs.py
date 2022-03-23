@@ -141,9 +141,9 @@ def get_combined_df_of_costs(
         configured_costs=configured_costs,
     )
 
-    perc_difference = (
+    perc_difference = 100.0* ((
         estimate_with_data.estimate - configured_costs
-    ) / configured_costs
+    ) / configured_costs)
 
     all_together = pd.concat(
         [combined, estimate_with_data, configured_costs, perc_difference], axis=1

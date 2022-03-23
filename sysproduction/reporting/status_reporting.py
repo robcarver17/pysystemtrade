@@ -27,16 +27,24 @@ def system_status(data: dataBlob = arg_not_supplied):
     formatted_output = []
     formatted_output.append(reporting_api.terse_header("Status report"))
     list_of_func_names = [
-        "table_of_control_config_list_for_all_processes",
-        "table_of_control_status_list_for_all_processes",
-        "table_of_process_status_list_for_all_processes",
-        "table_of_control_data_list_for_all_methods",
+
+        "table_of_delayed_methods",
+        #"table_of_delayed_prices",
+        #"table_of_delayed_optimal",
+        #"table_of_limited_trades",
+        #"table_of_used_position_limits",
+        #"table_of_db_overrides",
+        "body_text_of_position_locks",
+
         "table_of_last_price_updates",
         "table_of_last_optimal_position_updates",
         "table_of_trade_limits",
         "table_of_position_limits",
         "table_of_overrides",
-        "body_text_of_position_locks",
+        "table_of_process_status_list_for_all_processes",
+        "table_of_control_status_list_for_all_processes",
+        "table_of_control_data_list_for_all_methods",
+        "table_of_control_config_list_for_all_processes",
     ]
 
     for func_name in list_of_func_names:
