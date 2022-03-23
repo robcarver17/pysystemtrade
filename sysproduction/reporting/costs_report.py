@@ -6,7 +6,7 @@ from syscore.objects import header, table, arg_not_supplied, body_text
 from sysproduction.reporting.api import reportingApi
 
 COSTS_REPORT_TEXT = body_text(
-    "Cost calculations: Costs shown are in SR units and are calculated as follows:"
+    "Cost calculations: Costs shown are in SR units and are calculated as follows: percentage_cost /  avg_annual_vol_perc "
 )
 
 def costs_report(
