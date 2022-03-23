@@ -8,6 +8,7 @@ from sysdata.data_blob import dataBlob
 
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import annonate_df_index_with_positions_held
+from sysproduction.reporting.formatting import nice_format_instrument_risk_table, nice_format_liquidity_table
 from sysproduction.reporting.reporting_functions import header, table
 
 from sysproduction.reporting.data.costs import (
@@ -501,10 +502,11 @@ class reportingApi(object):
         if liquidity is missing_data:
             liquidity = self._liquidity_data = self._get_liquidity_data()
 
+        liquidity = nice_format_liquidity_table(liquidity)
         return liquidity
 
     def _get_liquidity_data(self) -> pd.DataFrame:
-        return get_liquidity_data_df(self.data)
+        return get_liquidity_report_data(self.data)
 
     ##### COSTS ######
     def table_of_sr_costs(self):
@@ -753,19 +755,3 @@ def get_liquidity_report_data(data: dataBlob) -> pd.DataFrame:
     return all_liquidity_df
 
 
-def nice_format_instrument_risk_table(instrument_risk_data):
-    instrument_risk_data.daily_price_stdev = instrument_risk_data.daily_price_stdev.round(3)
-    instrument_risk_data.annual_price_stdev = instrument_risk_data.annual_price_stdev.round(3)
-    instrument_risk_data.price = instrument_risk_data.price.round(2)
-    instrument_risk_data.daily_perc_stdev = instrument_risk_data.daily_perc_stdev.round(2)
-    instrument_risk_data.annual_perc_stdev = instrument_risk_data.annual_perc_stdev.round(1)
-    instrument_risk_data.point_size_base = instrument_risk_data.point_size_base.round(1)
-    instrument_risk_data.contract_exposure = instrument_risk_data.contract_exposure.astype(int)
-    instrument_risk_data.daily_risk_per_contract = instrument_risk_data.daily_risk_per_contract.astype(int)
-    instrument_risk_data.annual_risk_per_contract = instrument_risk_data.annual_risk_per_contract.astype(int)
-    instrument_risk_data.position = instrument_risk_data.position.astype(int)
-    instrument_risk_data.capital = instrument_risk_data.capital.astype(int)
-    instrument_risk_data.exposure_held_perc_capital = instrument_risk_data.exposure_held_perc_capital.round(1)
-    instrument_risk_data.annual_risk_perc_capital = instrument_risk_data.annual_risk_perc_capital.round(1)
-
-    return instrument_risk_data
