@@ -28,12 +28,12 @@ def reconcile_info(data=arg_not_supplied):
     formatted_output = []
     formatted_output.append(reporting_api.terse_header("Reconcile report"))
     list_of_func_names = [
-        "table_of_optimal_positions",
+        "body_text_position_breaks",
         "table_of_my_positions",
         "table_of_ib_positions",
-        "body_text_position_breaks",
         "table_of_my_recent_trades_from_db",
         "table_of_recent_ib_trades",
+        "table_of_optimal_positions"
     ]
 
     for func_name in list_of_func_names:
