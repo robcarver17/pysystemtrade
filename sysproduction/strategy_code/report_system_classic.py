@@ -156,15 +156,16 @@ def report_system_classic_no_header_or_footer(
     )
     format_output.append(forecast_weights_table)
 
+    unweighted_forecasts_df = get_forecast_matrix(
+        backtest, stage_name="forecastScaleCap", method_name="get_capped_forecast"
+    )
+
     # Weighted forecast
     weighted_forecasts_df = forecast_weights_df * unweighted_forecasts_df
     weighted_forecast_rounded = weighted_forecasts_df.round(1)
     weighted_forecast_table = table("Weighted forecasts", weighted_forecast_rounded)
     format_output.append(weighted_forecast_table)
 
-    unweighted_forecasts_df = get_forecast_matrix(
-        backtest, stage_name="forecastScaleCap", method_name="get_capped_forecast"
-    )
     unweighted_forecasts_df_rounded = unweighted_forecasts_df.round(1)
     unweighted_forecasts_table = table(
         "Unweighted forecasts", unweighted_forecasts_df_rounded
