@@ -1,5 +1,10 @@
 import pandas as pd
 
+def nice_format_roll_table(roll_table: pd.DataFrame) -> pd.DataFrame:
+    roll_table.volume_priced = roll_table.volume_priced.round(3)
+    roll_table.volume_fwd = roll_table.volume_fwd.round(3)
+    return roll_table
+
 def nice_format_slippage_table(slippage_table: pd.DataFrame) -> pd.DataFrame:
     slippage_table.Difference = slippage_table.Difference.round(1)
     slippage_table.bid_ask_trades = slippage_table.bid_ask_trades.round(4)
