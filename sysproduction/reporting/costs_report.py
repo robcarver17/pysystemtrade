@@ -10,7 +10,9 @@ COSTS_REPORT_TEXT = body_text(
 )
 
 def costs_report(
-    data: dataBlob = arg_not_supplied
+    data: dataBlob = arg_not_supplied,
+        
+
 ):
 
     if data is arg_not_supplied:

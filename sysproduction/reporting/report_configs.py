@@ -83,8 +83,7 @@ liquidity_report_config = reportConfig(
 
 costs_report_config = reportConfig(
     title="Costs report",
-    function="sysproduction.reporting.costs_report.costs_report",
-    calendar_days_back=250,
+    function="sysproduction.reporting.costs_report.costs_report"
 )
 
 slippage_report_config = reportConfig(
