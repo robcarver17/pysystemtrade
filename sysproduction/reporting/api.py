@@ -9,7 +9,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
 
 from sysproduction.data.positions import annonate_df_index_with_positions_held
-from sysproduction.reporting.formatting import nice_format_instrument_risk_table, nice_format_liquidity_table, nice_format_slippage_table, nice_format_roll_table
+from sysproduction.reporting.formatting import nice_format_instrument_risk_table, nice_format_liquidity_table, nice_format_slippage_table
 from sysproduction.reporting.reporting_functions import header, table
 
 from sysproduction.reporting.data.costs import (
@@ -319,7 +319,7 @@ class reportingApi(object):
     #### ROLL REPORT ####
     def table_of_roll_data(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):
         result_pd = self._roll_data_as_pd(instrument_code)
-        result_pd = nice_format_roll_table(result_pd)
+
         table_result = table("Status and time to roll in days", result_pd)
 
         return table_result
