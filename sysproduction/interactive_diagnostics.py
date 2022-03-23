@@ -49,7 +49,13 @@ from sysproduction.reporting.report_configs import (
     risk_report_config,
     liquidity_report_config,
     costs_report_config,
-slippage_report_config
+    slippage_report_config,
+    instrument_risk_report_config,
+    min_capital_report_config,
+    duplicate_market_report_config,
+    position_limit_report_config,
+    remove_markets_report_config
+
 )
 
 
@@ -126,6 +132,11 @@ nested_menu_of_options = {
         67: "Costs report",
         68: "Slippage report",
         69: "Liquidity report",
+        70: "All instrument risk",
+        71: "Minimum capital required",
+        72: "Duplicate and remove markets",
+        73: "Remove markets",
+        74: "Position limits"
     }
 
 }
@@ -235,6 +246,28 @@ def slippage_report(data):
 def liquidity_report(data):
     report_config = email_or_print_or_file(liquidity_report_config)
     run_report(report_config, data=data)
+
+def instrument_risk_report(data):
+    report_config = email_or_print_or_file(instrument_risk_report_config)
+    run_report(report_config, data=data)
+
+
+def min_capital_report(data):
+    report_config = email_or_print_or_file(min_capital_report_config)
+    run_report(report_config, data=data)
+
+def duplicate_market_report(data):
+    report_config = email_or_print_or_file(duplicate_market_report_config)
+    run_report(report_config, data=data)
+
+def remove_markets_report(data):
+    report_config = email_or_print_or_file(remove_markets_report_config)
+    run_report(report_config, data=data)
+
+def position_limit_report(data):
+    report_config = email_or_print_or_file(position_limit_report_config)
+    run_report(report_config, data=data)
+
 
 
 def email_or_print_or_file(report_config):
@@ -743,6 +776,11 @@ dict_of_functions = {
     67: cost_report,
     68: slippage_report,
     69: liquidity_report,
+    70: instrument_risk_report,
+    71: min_capital_report,
+    72: duplicate_market_report,
+    73: remove_markets_report,
+    74: position_limit_report,
 
 }
 

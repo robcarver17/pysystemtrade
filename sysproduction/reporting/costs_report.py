@@ -1,5 +1,3 @@
-## Generate expected spread from actual trades, and sampled spreads
-import datetime
 from sysdata.data_blob import dataBlob
 
 from syscore.objects import header, table, arg_not_supplied, body_text
