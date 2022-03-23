@@ -2,6 +2,7 @@ import pandas as pd
 
 
 def nice_format_liquidity_table(liquidity_table: pd.DataFrame) -> pd.DataFrame:
+    liquidity_table = liquidity_table.dropna()
     liquidity_table.contracts = liquidity_table.contracts.astype(int)
     liquidity_table.risk = liquidity_table.risk.round(2)
     return liquidity_table
