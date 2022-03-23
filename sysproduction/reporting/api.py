@@ -8,7 +8,7 @@ from sysdata.data_blob import dataBlob
 
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import annonate_df_index_with_positions_held
-from sysproduction.reporting.formatting import nice_format_instrument_risk_table, nice_format_liquidity_table
+from sysproduction.reporting.formatting import nice_format_instrument_risk_table, nice_format_liquidity_table, nice_format_slippage_table
 from sysproduction.reporting.reporting_functions import header, table
 
 from sysproduction.reporting.data.costs import (
@@ -526,7 +526,7 @@ class reportingApi(object):
 
     def table_of_slippage_comparison(self):
         combined_df_costs = self.combined_df_costs()
-        combined_df_costs = combined_df_costs.round(6)
+        combined_df_costs = nice_format_slippage_table(combined_df_costs)
         combined_df_costs = annonate_df_index_with_positions_held(
             self.data, pd_df=combined_df_costs
         )
@@ -717,35 +717,6 @@ class reportingApi(object):
         return end_date
 
 
-def get_combined_df_of_costs_as_table(
-    data: dataBlob, start_date: datetime.datetime, end_date: datetime.datetime
-):
-
-    combined_df_costs = get_combined_df_of_costs(
-        data, start_date=start_date, end_date=end_date
-    )
-    combined_df_costs = combined_df_costs.round(6)
-    combined_df_costs = annonate_df_index_with_positions_held(
-        data=data, pd_df=combined_df_costs
-    )
-
-    combined_df_costs_as_formatted_table = table("Check of slippage", combined_df_costs)
-
-    return combined_df_costs_as_formatted_table
-
-
-def get_table_of_SR_costs_as_formatted_table(data):
-    table_of_SR_costs = get_table_of_SR_costs(data)
-    table_of_SR_costs = table_of_SR_costs.round(5)
-    table_of_SR_costs = annonate_df_index_with_positions_held(
-        data=data, pd_df=table_of_SR_costs
-    )
-    formatted_table = table(
-        "SR costs (using stored slippage): more than 0.01 means panic",
-        table_of_SR_costs,
-    )
-
-    return formatted_table
 
 
 def get_liquidity_report_data(data: dataBlob) -> pd.DataFrame:
