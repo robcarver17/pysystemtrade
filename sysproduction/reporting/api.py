@@ -281,6 +281,7 @@ class reportingApi(object):
 
     def table_of_last_price_updates(self):
         price = get_last_price_updates_as_df(self.data)
+        price = annonate_df_index_with_positions_held(price,data=self.data)
         price_table = table("Status of adjusted price / FX price collection", price)
 
         return price_table
