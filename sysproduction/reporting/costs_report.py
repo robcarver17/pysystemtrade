@@ -10,20 +10,14 @@ COSTS_REPORT_TEXT = body_text(
 )
 
 def costs_report(
-    data: dataBlob = arg_not_supplied,
-    calendar_days_back: int = 250,
-    end_date: datetime.datetime = arg_not_supplied,
-    start_date: datetime.datetime = arg_not_supplied,
+    data: dataBlob = arg_not_supplied
 ):
 
     if data is arg_not_supplied:
         data = dataBlob()
 
     reporting_api = reportingApi(
-        data,
-        start_date=start_date,
-        end_date=end_date,
-        calendar_days_back=calendar_days_back,
+        data
     )
 
     formatted_output = []

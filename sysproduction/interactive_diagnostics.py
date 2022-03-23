@@ -49,6 +49,7 @@ from sysproduction.reporting.report_configs import (
     risk_report_config,
     liquidity_report_config,
     costs_report_config,
+slippage_report_config
 )
 
 
@@ -96,7 +97,8 @@ nested_menu_of_options = {
         15: "Strategy report",
         16: "Risk report",
         17: "Costs report",
-        18: "Liquidity report",
+        18: "Slippage report",
+        19: "Liquidity report",
     },
     2: {20: "View stored emails", 21: "View errors", 22: "View logs"},
     3: {
@@ -216,8 +218,12 @@ def risk_report(data):
 
 
 def cost_report(data):
-    start_date, end_date, calendar_days = get_report_dates(data)
     report_config = email_or_print_or_file(costs_report_config)
+    run_report(report_config, data=data)
+
+def slippage_report(data):
+    start_date, end_date, calendar_days = get_report_dates(data)
+    report_config = email_or_print_or_file(slippage_report_config)
     report_config.modify_kwargs(
         calendar_days_back=calendar_days, start_date=start_date, end_date=end_date
     )
@@ -710,7 +716,8 @@ dict_of_functions = {
     15: strategy_report,
     16: risk_report,
     17: cost_report,
-    18: liquidity_report,
+    18: slippage_report,
+    19: liquidity_report,
     20: retrieve_emails,
     21: view_errors,
     22: view_logs,
