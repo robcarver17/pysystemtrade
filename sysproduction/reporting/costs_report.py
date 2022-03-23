@@ -11,7 +11,7 @@ COSTS_REPORT_TEXT = body_text(
 
 def costs_report(
     data: dataBlob = arg_not_supplied,
-        
+
 
 ):
 

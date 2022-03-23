@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.dateutils import n_days_ago
+from syscore.genutils import progressBar
 from sysdata.data_blob import dataBlob
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.instruments import diagInstruments
@@ -38,15 +39,16 @@ def get_configured_spread_cost_for_instrument(data, instrument_code):
     return meta_data.Slippage
 
 
-def get_SR_cost_for_instrument(data: dataBlob, instrument_code: str):
-    print("Costs for %s" % instrument_code)
+def get_SR_cost_calculation_for_instrument(data: dataBlob, instrument_code: str):
     percentage_cost = get_percentage_cost_for_instrument(data, instrument_code)
     avg_annual_vol_perc = get_percentage_ann_stdev(data, instrument_code)
 
     # cost per round trip
     SR_cost = 2.0 * percentage_cost / avg_annual_vol_perc
 
-    return SR_cost
+    return dict(percentage_cost = percentage_cost,
+                avg_annual_vol_perc = avg_annual_vol_perc,
+        SR_cost=SR_cost)
 
 
 def get_percentage_cost_for_instrument(data: dataBlob, instrument_code: str):
@@ -295,14 +297,17 @@ def get_average_half_spread_by_instrument_from_raw_slippage(
 def get_table_of_SR_costs(data):
     diag_prices = diagPrices(data)
     list_of_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
-    SR_costs = dict(
-        [
-            (instrument_code, get_SR_cost_for_instrument(data, instrument_code))
-            for instrument_code in list_of_instruments
-        ]
-    )
-    SR_costs = pd.Series(SR_costs)
-    SR_costs = SR_costs.to_frame("SR_cost")
+
+    print("Getting SR costs")
+    p = progressBar(len(list_of_instruments))
+    SR_costs = {}
+    for instrument_code in list_of_instruments:
+        SR_costs[instrument_code] = get_SR_cost_calculation_for_instrument(data, instrument_code)
+        p.iterate()
+
+    p.finished()
+    SR_costs = pd.DataFrame(SR_costs)
+    SR_costs = SR_costs.transpose()
     SR_costs = SR_costs.sort_values("SR_cost", ascending=False)
 
     return SR_costs
