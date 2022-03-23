@@ -87,8 +87,17 @@ costs_report_config = reportConfig(
     calendar_days_back=250,
 )
 
+slippage_report_config = reportConfig(
+    title="Slippage report",
+    function="sysproduction.reporting.slippage_report.slippage_report",
+    calendar_days_back=250,
+)
+
+
 ## The reports will be run in this order
 all_configs = dict(
+    slippage_report_config = slippage_report_config,
+    costs_report=costs_report_config,
     roll_report=roll_report_config,
     daily_pandl_report=daily_pandl_report_config,
     reconcile_report=reconcile_report_config,
@@ -97,5 +106,4 @@ all_configs = dict(
     risk_report=risk_report_config,
     status_report=status_report_config,
     liquidity_report=liquidity_report_config,
-    costs_report=costs_report_config,
 )
