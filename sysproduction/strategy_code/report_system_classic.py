@@ -500,7 +500,7 @@ def risk_scaling_string(backtest) -> str:
     sum_abs_risk_final = backtest_system_portfolio_stage.get_sum_annualised_risk_for_original_positions().iloc[-1]
     leverage_final = backtest_system_portfolio_stage.get_leverage_for_original_position().iloc[-1]
     percentage_vol_target = backtest_system_portfolio_stage.get_percentage_vol_target()
-    risk_scalar_final = backtest_system_portfolio_stage.get_risk_scalar()
+    risk_scalar_final = backtest_system_portfolio_stage.get_risk_scalar().iloc[-1]
     risk_overlay_config = backtest_system_portfolio_stage.config.get_element_or_arg_not_supplied('risk_overlay')
 
     scaling_str = "Risk overlay \n Config %s \n Percentage vol target %.1f \n Normal risk %.1f Shocked risk %.1f \n Sum abs risk %.1f Leverage %.2f \n Risk scalar %.2f" % \
@@ -513,3 +513,4 @@ def risk_scaling_string(backtest) -> str:
                      risk_scalar_final)
 
     return scaling_str
+
