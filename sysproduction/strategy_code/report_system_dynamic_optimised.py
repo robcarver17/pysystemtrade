@@ -29,12 +29,9 @@ def report_system_dynamic(data: dataBlob, backtest: interactiveBacktest):
     optimal_positions_table = table("Optimal positions", optimal_positions_df)
     format_output.append(optimal_positions_table)
 
-
-    format_output_classic = report_system_classic_no_header_or_footer(
+    format_output = report_system_classic_no_header_or_footer(
         data, backtest=backtest, format_output=format_output
     )
-
-    format_output = format_output + format_output_classic
 
     format_output.append(body_text("End of report for %s" % strategy_name))
 
@@ -58,9 +55,6 @@ def get_optimal_positions_table_as_df(
         [
             "dont_trade",
             "reduce_only",
-            "optimal_position",
-            "position_limit_contracts",
-            "previous_position",
             "weight_per_contract",
             "position_limit_weight",
             "optimum_weight",
@@ -69,6 +63,9 @@ def get_optimal_positions_table_as_df(
             "minimum_weight",
             "previous_weight",
             "optimised_weight",
+            "optimal_position",
+            "position_limit_contracts",
+            "previous_position",
             "optimised_position",
         ]
     ]
