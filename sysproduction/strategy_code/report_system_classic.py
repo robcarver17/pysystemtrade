@@ -50,6 +50,8 @@ def report_system_classic_no_header_or_footer(
     :param backtest: dataBacktest object populated with a specific backtest
     :return: list of report format type objects
     """
+    risk_scaling_str = risk_scaling_string(backtest)
+    format_output.append(body_text(risk_scaling_str))
 
     unweighted_forecasts_df = get_forecast_matrix(
         backtest, stage_name="forecastScaleCap", method_name="get_capped_forecast"
@@ -490,3 +492,24 @@ def calc_position_diags(portfolio_positions_df, subystem_positions_df):
     average_position = idm * instr_weight * vol_scalar
 
     return average_position
+
+def risk_scaling_string(backtest) -> str:
+    backtest_system_portfolio_stage = backtest.system.portfolio
+    normal_risk_final = backtest_system_portfolio_stage.get_portfolio_risk_for_original_positions().iloc[-1]
+    shocked_vol_risk_final = backtest_system_portfolio_stage.get_portfolio_risk_for_original_positions_with_shocked_vol().iloc[-1]
+    sum_abs_risk_final = backtest_system_portfolio_stage.get_sum_annualised_risk_for_original_positions().iloc[-1]
+    leverage_final = backtest_system_portfolio_stage.get_leverage_for_original_position().iloc[-1]
+    percentage_vol_target = backtest_system_portfolio_stage.get_percentage_vol_target()
+    risk_scalar_final = backtest_system_portfolio_stage.get_risk_scalar()
+    risk_overlay_config = backtest_system_portfolio_stage.config.get_element_or_arg_not_supplied('risk_overlay')
+
+    scaling_str = "Risk overlay \n Config %s \n Percentage vol target %.1f \n Normal risk %.1f Shocked risk %.1f \n Sum abs risk %.1f Leverage %.2f \n Risk scalar %.2f" % \
+                    (str(risk_overlay_config),
+                    percentage_vol_target,
+                     normal_risk_final,
+                     shocked_vol_risk_final,
+                     sum_abs_risk_final,
+                     leverage_final,
+                     risk_scalar_final)
+
+    return scaling_str
