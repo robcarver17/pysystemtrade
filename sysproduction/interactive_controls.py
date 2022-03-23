@@ -502,7 +502,7 @@ def get_max_rounded_position_for_instrument(
 
 def view_overrides(data):
     diag_overrides = diagOverrides(data)
-    all_overrides = diag_overrides.get_dict_of_all_overrides()
+    all_overrides = diag_overrides.get_dict_of_all_overrides_with_reasons()
     print("All overrides:\n")
     list_of_keys = list(all_overrides.keys())
     list_of_keys.sort()

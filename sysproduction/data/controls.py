@@ -176,6 +176,7 @@ class dataTradeLimits(productionDataLayerGeneric):
             instrument_strategy, period_days
         )
 
+OVERRIDE_REASON_IN_DATABASE = "in database"
 
 class diagOverrides(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
@@ -186,18 +187,24 @@ class diagOverrides(productionDataLayerGeneric):
     def db_override_data(self) -> overrideData:
         return self.data.db_override
 
-    def get_dict_of_all_overrides(self) -> dict:
-        all_overrides_in_db = self.db_override_data.get_dict_of_all_overrides()
-        all_overrides_in_db_with_reason = dict(
-            [
-                (key, OverrideWithReason(override, "in database"))
-                for key, override in all_overrides_in_db.items()
-            ]
-        )
+    def get_dict_of_all_overrides_with_reasons(self) -> dict:
+        all_overrides_in_db_with_reason = self.get_dict_of_all_overrides_in_db_with_reasons()
         all_overrides_in_config = self.get_dict_of_all_overrides_in_config()
         all_overrides = {**all_overrides_in_db_with_reason, **all_overrides_in_config}
 
         return all_overrides
+
+    def get_dict_of_all_overrides_in_db_with_reasons(self) -> dict:
+        all_overrides_in_db = self.db_override_data.get_dict_of_all_overrides()
+        all_overrides_in_db_with_reason = dict(
+            [
+                (key, OverrideWithReason(override, OVERRIDE_REASON_IN_DATABASE))
+                for key, override in all_overrides_in_db.items()
+            ]
+        )
+
+        return all_overrides_in_db_with_reason
+
 
     def get_cumulative_override_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy

@@ -29,11 +29,11 @@ def system_status(data: dataBlob = arg_not_supplied):
     list_of_func_names = [
 
         "table_of_delayed_methods",
-        #"table_of_delayed_prices",
-        #"table_of_delayed_optimal",
-        #"table_of_limited_trades",
-        #"table_of_used_position_limits",
-        #"table_of_db_overrides",
+        "table_of_delayed_prices",
+        "table_of_delayed_optimal",
+        "table_of_limited_trades",
+        "table_of_used_position_limits",
+        "table_of_db_overrides",
         "body_text_of_position_locks",
 
         "table_of_last_price_updates",

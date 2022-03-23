@@ -7,6 +7,7 @@ from syscore.objects import arg_not_supplied, missing_data, body_text
 from sysdata.data_blob import dataBlob
 
 from sysproduction.data.prices import diagPrices
+
 from sysproduction.data.positions import annonate_df_index_with_positions_held
 from sysproduction.reporting.formatting import nice_format_instrument_risk_table, nice_format_liquidity_table, nice_format_slippage_table
 from sysproduction.reporting.reporting_functions import header, table
@@ -48,7 +49,8 @@ from sysproduction.reporting.data.rolls import (
     ALL_ROLL_INSTRUMENTS,
 )
 from sysproduction.reporting.data.status import (
-    get_overrides_as_df,
+    get_all_overrides_as_df,
+    get_overrides_in_db_as_df,
     get_trade_limits_as_df,
     get_process_status_list_for_all_processes_as_df,
     get_control_config_list_for_all_processes_as_df,
@@ -217,6 +219,48 @@ class reportingApi(object):
 
         return delay_methods_table
 
+    def table_of_delayed_prices(self):
+        price = get_last_price_updates_as_df(self.data)
+        price_delays = filter_data_for_delays_and_return_table(price,
+                                                        datetime_colum='last_update',
+                                                        max_delay_in_days=3,
+                                                        table_header = "Delayed adjusted / FX prices")
+
+        return price_delays
+
+    def table_of_delayed_optimal(self):
+        position = get_last_optimal_position_updates_as_df(self.data)
+        position_delays = filter_data_for_delays_and_return_table(position,
+                                                        datetime_colum='last_update',
+                                                        max_delay_in_days=3,
+                                                        table_header = "Delayed optimal positions")
+
+        return position_delays
+
+    def table_of_limited_trades(self):
+        limits = get_trade_limits_as_df(self.data)
+        at_limit = filter_data_for_max_value_and_return_table(limits,
+                                                   field_column='trade_capacity_remaining',
+                                                   max_value=0,
+                                                   table_header="Instruments at trade limit")
+
+        return at_limit
+
+    def table_of_used_position_limits(self):
+        position_limits = get_position_limits_as_df(self.data)
+        at_limit = filter_data_for_max_value_and_return_table(position_limits,
+                                                   field_column='spare',
+                                                   max_value=0,
+                                                   table_header="Instruments at position limit")
+
+        return at_limit
+
+    def table_of_db_overrides(self):
+        overrides = get_overrides_in_db_as_df(self.data)
+        overrides_table = table("Overrides in database consider deleting", overrides)
+
+        return overrides_table
+
     def table_of_control_status_list_for_all_processes(self):
         process2 = get_control_status_list_for_all_processes_as_df(self.data)
         process2_table = table("Status of process control", process2)
@@ -260,7 +304,7 @@ class reportingApi(object):
         return position_limits_table
 
     def table_of_overrides(self):
-        overrides = get_overrides_as_df(self.data)
+        overrides = get_all_overrides_as_df(self.data)
         overrides_table = table("Status of overrides", overrides)
 
         return overrides_table
@@ -759,3 +803,29 @@ def filter_data_for_delays(data_with_datetime,
                for time_difference in time_delays]
 
     return data_with_datetime[delayed]
+
+
+def filter_data_for_max_value_and_return_table(data_with_field,
+                           field_column = 'field',
+                        max_value = 0,
+                        table_header = ""):
+
+    filtered_data = filter_data_for_max_value(data_with_field,
+                                              field_column=field_column,
+                                              max_value=max_value)
+    if len(filtered_data)==0:
+        return body_text("%s: No constraints" % table_header)
+    else:
+        return table(table_header,
+                     filtered_data)
+
+
+def filter_data_for_max_value(data_with_field,
+                           field_column = 'field',
+                max_value = 0) -> pd.DataFrame:
+
+    field_values = data_with_field[field_column]
+    filtered = [value<=max_value
+                for value in field_values]
+
+    return data_with_field[filtered]
