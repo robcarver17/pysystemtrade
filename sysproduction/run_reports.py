@@ -1,8 +1,8 @@
 from syscontrol.run_process import processToRun
-from sysproduction.reporting.report_configs import all_configs
 
 from sysdata.data_blob import dataBlob
 
+from sysproduction.data.reports import dataReports
 
 # JUST A COPY AND PASTE JOB RIGHT NOW
 
@@ -10,17 +10,19 @@ from sysdata.data_blob import dataBlob
 def run_reports():
     process_name = "run_reports"
     data = dataBlob(log_name=process_name)
-    list_of_timer_names_and_functions = get_list_of_timer_functions_for_reports()
+    list_of_timer_names_and_functions = get_list_of_timer_functions_for_reports(data)
     price_process = processToRun(process_name, data, list_of_timer_names_and_functions)
     price_process.run_process()
 
 
-def get_list_of_timer_functions_for_reports():
+def get_list_of_timer_functions_for_reports(data):
     list_of_timer_names_and_functions = []
+    data_reports = dataReports(data)
+    all_configs = data_reports.get_report_configs_to_run()
+
     for report_name, report_config in all_configs.items():
         data_for_report = dataBlob(log_name=report_name)
-        email_report_config = report_config.new_config_with_modified_output("emailfile")
-        report_object = runReport(data_for_report, email_report_config, report_name)
+        report_object = runReport(data_for_report, report_config, report_name)
         report_tuple = (report_name, report_object)
         list_of_timer_names_and_functions.append(report_tuple)
 
