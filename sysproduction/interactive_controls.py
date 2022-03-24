@@ -371,15 +371,18 @@ def get_standardised_position_for_risk(risk_data: dict,
     instr_weight = auto_parameters.notional_instrument_weight
     risk_target = auto_parameters.notional_risk_target
 
-    standard_position = max_forecast_ratio *             \
+    standard_position = abs(max_forecast_ratio *             \
                         capital * idm      *             \
                         instr_weight * risk_target /     \
-                        (annual_risk_per_contract)
+                        (annual_risk_per_contract))
 
-    print("Standard position = (Max / Average forecast) * Capital * IDM * instrument weight * risk target / Annual cash risk per contract ")
-    print("                  = (%.1f) * %.0f * %.2f * %.3f * %.3f / %.2f")
+    print("Standard position = %.2f = (Max / Average forecast) * Capital * IDM * instrument weight * risk target / Annual cash risk per contract "  % (
+      standard_position
+    ))
+    print("                  = (%.1f) * %.0f * %.2f * %.3f * %.3f / %.2f" %
+          (max_forecast_ratio, capital, idm, instr_weight, risk_target, annual_risk_per_contract))
 
-    return abs(standard_position)
+    return standard_position
 
 
 def get_maximum_position_given_leverage_limit(
@@ -392,9 +395,10 @@ def get_maximum_position_given_leverage_limit(
     max_exposure = capital * max_leverage
 
     max_position = abs(max_exposure / notional_exposure_per_contract)
+    round_max_position = int(np.floor(max_position))
 
-    print("Max position with leverage = Max exposure / Notional per contract = %0.f / %1.f" %
-          (max_exposure, notional_exposure_per_contract))
+    print("Max position with leverage = %.2f (%d) = Max exposure / Notional per contract = %0.f / %1.f" %
+          (max_position, round_max_position, max_exposure, notional_exposure_per_contract))
 
     print("(Max exposure = Capital * Maximum leverage = %.0f * %.2f" % (
         capital, max_leverage
@@ -416,16 +420,17 @@ def get_maximum_position_given_risk_concentration_limit(
 
     risk_budget_this_contract = dollar_risk_capital * max_proportion_risk_one_contract
 
-    position_limit = risk_budget_this_contract / ccy_risk_per_contract
+    position_limit = abs(risk_budget_this_contract / ccy_risk_per_contract)
+    round_position_limit = int(np.floor(position_limit))
 
-    print("Max position exposure limit = %.2f = Risk budget / CCy risk per contract = %.1f / %.1f"
-          % (position_limit, risk_budget_this_contract, ccy_risk_per_contract))
+    print("Max position exposure limit = %.2f (%d) = Risk budget / CCy risk per contract = %.1f / %.1f"
+          % (position_limit, round_position_limit, risk_budget_this_contract, ccy_risk_per_contract))
     print("(Risk budget = Dollar risk capital * max proportion of risk = %.0f * %.3f)" %
           (dollar_risk_capital, max_proportion_risk_one_contract))
     print("(Dollar risk capital = Capital * Risk target = %0.f * %.3f" %
           (capital, risk_target))
 
-    return position_limit
+    return round_position_limit
 
 def view_position_limit(data):
 
@@ -545,7 +550,7 @@ def get_max_rounded_position_for_instrument(
     if np.isnan(max_position):
         return np.nan
 
-    max_position_int = int(np.floor(abs(max_position)))
+    max_position_int = int(abs(max_position))
 
     return max_position_int
 
