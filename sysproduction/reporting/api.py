@@ -119,7 +119,7 @@ class reportingApi(object):
         min_capital_table = table("Minimum capital in base currency",
                                              min_capital)
 
-        return minimum_capital_table()
+        return min_capital_table
 
 
     #### PROFIT AND LOSS ####
