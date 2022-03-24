@@ -52,7 +52,7 @@ def get_current_margin(data) -> float:
     return margin
 
 def minimum_capital_table(data,
-                          only_held_instruments=True,
+                          only_held_instruments=False,
                           risk_target = RISK_TARGET_ASSUMED,
                           min_contracts_held = MIN_CONTRACTS_HELD,
                           idm = IDM_ASSUMED,
