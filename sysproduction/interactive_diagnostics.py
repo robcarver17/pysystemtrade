@@ -7,7 +7,7 @@ from syscore.interactive import (
 )
 from syscore.genutils import progressBar
 from syscore.pdutils import set_pd_print_options
-from syscore.objects import user_exit, arg_not_supplied, missing_contract
+from syscore.objects import user_exit, arg_not_supplied, missing_contract, ALL_ROLL_INSTRUMENTS
 from sysexecution.orders.list_of_orders import listOfOrders
 
 from sysdata.data_blob import dataBlob
@@ -37,7 +37,6 @@ from sysproduction.data.broker import dataBroker
 
 from syslogdiag.email_via_db_interface import retrieve_and_delete_stored_messages
 from sysproduction.reporting.reporting_functions import run_report
-from sysproduction.reporting.data.rolls import ALL_ROLL_INSTRUMENTS
 from sysproduction.reporting.strategies_report import ALL_STRATEGIES
 from sysproduction.reporting.report_configs import (
     roll_report_config,

@@ -1,7 +1,6 @@
 from copy import copy
 
 from syscore.objects import missing_data
-from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 

@@ -2,7 +2,6 @@ from collections import namedtuple
 
 import pandas as pd
 
-from syscore.dateutils import last_run_or_heartbeat_from_date_or_none
 from syscore.genutils import transfer_object_attributes
 from syscore.objects import missing_data
 from syscore.pdutils import make_df_from_list_of_named_tuple

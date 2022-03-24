@@ -1,4 +1,3 @@
-import datetime
 from copy import copy
 
 import numpy as np
@@ -22,55 +21,6 @@ from sysproduction.data.contracts import dataContracts
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.prices import diagPrices, updatePrices
 from sysproduction.data.volumes import diagVolumes
-
-
-def get_roll_data_for_instrument_DEPRECATED(instrument_code, data):
-    """
-    Get roll data for an individual instrument
-
-    :param instrument_code: str
-    :param data: dataBlob
-    :return:
-    """
-    c_data = dataContracts(data)
-    relevant_contract_dict = c_data.get_labelled_dict_of_current_contracts(
-        instrument_code
-    )
-    list_of_relevant_contract_date_str = relevant_contract_dict["contracts"]
-    contract_labels = relevant_contract_dict["labels"]
-
-    v_data = diagVolumes(data)
-    volumes = v_data.get_normalised_smoothed_volumes_of_contract_list(
-        instrument_code, list_of_relevant_contract_date_str
-    )
-
-    # length to expiries / length to suggested roll
-
-    price_expiry_days = c_data.days_until_price_expiry(instrument_code)
-    carry_expiry_days = c_data.days_until_carry_expiry(instrument_code)
-    when_to_roll_days = c_data.days_until_roll(instrument_code)
-
-    # roll status
-    diag_positions = diagPositions(data)
-    roll_status = diag_positions.get_name_of_roll_state(instrument_code)
-
-    # Positions
-    positions = diag_positions.get_positions_for_instrument_and_contract_list(
-        instrument_code, list_of_relevant_contract_date_str
-    )
-
-    results_dict_code = dict(
-        code=instrument_code,
-        status=roll_status,
-        roll_expiry=when_to_roll_days,
-        price_expiry=price_expiry_days,
-        carry_expiry=carry_expiry_days,
-        contract_labels=contract_labels,
-        volumes=volumes,
-        positions=positions,
-    )
-
-    return results_dict_code
 
 
 def get_roll_data_for_instrument(instrument_code, data):
@@ -545,4 +495,3 @@ def rollback_adjustment(
     return success
 
 
-ALL_ROLL_INSTRUMENTS = "ALL"

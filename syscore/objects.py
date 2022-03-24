@@ -227,3 +227,4 @@ class existingData(Exception):
 
 missing_file = named_object("missing file")
 missing_data = named_object("missing data")
+ALL_ROLL_INSTRUMENTS = "ALL"
