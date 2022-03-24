@@ -1,5 +1,18 @@
 import pandas as pd
 
+def nice_format_min_capital_table(min_capital_pd: pd.DataFrame) -> pd.DataFrame:
+    min_capital_pd.point_size_base = min_capital_pd.point_size_base.round(1)
+    min_capital_pd.price = min_capital_pd.price.round(3)
+    min_capital_pd.annual_perc_stdev = min_capital_pd.annual_perc_stdev.round(1)
+    min_capital_pd.risk_target = min_capital_pd.risk_target.round(3)
+    min_capital_pd.minimum_capital_one_contract  = min_capital_pd.minimum_capital_one_contract.astype(int)
+    min_capital_pd.minimum_position_contracts = min_capital_pd.minimum_position_contracts.astype(int)
+    min_capital_pd.instrument_weight = min_capital_pd.instrument_weight.round(2)
+    min_capital_pd.IDM = min_capital_pd.IDM.round(2)
+    min_capital_pd.minimum_capital = min_capital_pd.minimum_capital.astype(int)
+
+    return min_capital_pd
+
 def nice_format_roll_table(roll_table: pd.DataFrame) -> pd.DataFrame:
     roll_table.volume_priced = roll_table.volume_priced.astype(float)
     roll_table.volume_priced = roll_table.volume_priced.round(3)

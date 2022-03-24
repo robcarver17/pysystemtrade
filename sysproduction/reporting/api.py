@@ -9,7 +9,12 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
 
 from sysproduction.data.positions import annonate_df_index_with_positions_held
-from sysproduction.reporting.formatting import nice_format_instrument_risk_table, nice_format_liquidity_table, nice_format_slippage_table, nice_format_roll_table
+from sysproduction.reporting.formatting import (
+    nice_format_instrument_risk_table,
+    nice_format_liquidity_table,
+    nice_format_slippage_table,
+    nice_format_roll_table,
+    nice_format_min_capital_table)
 from sysproduction.reporting.reporting_functions import header, table
 
 from sysproduction.reporting.data.costs import (
@@ -42,7 +47,8 @@ from sysproduction.reporting.data.risk import (
     get_instrument_risk_table,
     get_portfolio_risk_for_all_strategies,
     get_portfolio_risk_across_strategies,
-    get_margin_usage
+    get_margin_usage,
+    minimum_capital_table
 )
 from sysproduction.reporting.data.rolls import (
     get_roll_data_for_instrument,
@@ -103,6 +109,18 @@ class reportingApi(object):
 
     def footer(self):
         return header("END OF REPORT")
+
+    ### MINIMUM CAPITAL
+    def table_of_minimum_capital(self) -> table:
+        min_capital = minimum_capital_table(self.data)
+        min_capital = min_capital.sort_values('minimum_capital')
+
+        min_capital = nice_format_min_capital_table(min_capital)
+        min_capital_table = table("Minimum capital in base currency",
+                                             min_capital)
+
+        return minimum_capital_table()
+
 
     #### PROFIT AND LOSS ####
     def body_text_total_capital_pandl(self):
