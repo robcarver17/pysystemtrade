@@ -7,9 +7,17 @@ from syscore.objects import missing_data, named_object
 from sysdata.config.instruments import generate_matching_duplicate_dict
 from sysdata.config.production_config import get_production_config
 from sysdata.data_blob import dataBlob
-from sysproduction.reporting.api import reportingApi
 
 from sysproduction.reporting.reporting_functions import table
+
+from sysproduction.reporting.data.costs import (
+    get_table_of_SR_costs,
+)
+from sysproduction.reporting.data.volume import get_liquidity_data_df
+from sysproduction.reporting.data.risk import (
+    get_instrument_risk_table)
+
+
 
 MAX_SR_COST = 0.01
 MIN_CONTRACTS_PER_DAY = 100
@@ -92,12 +100,12 @@ def from_auto_parameters_to_min_ann_perc_std(auto_parameters: parametersForAutoP
             auto_parameters.raw_max_leverage
 
 
+
 def get_data_for_markets(data):
-    api = reportingApi(data)
-    SR_costs = api.SR_costs()
+    SR_costs = get_table_of_SR_costs(data)
     SR_costs = SR_costs.dropna()
-    liquidity_data = api.liquidity_data()
-    risk_data = api.instrument_risk_data_all_instruments()
+    liquidity_data = get_liquidity_data_df(data)
+    risk_data = get_instrument_risk_table(data, only_held_instruments=False)
 
     return SR_costs, liquidity_data, risk_data
 
