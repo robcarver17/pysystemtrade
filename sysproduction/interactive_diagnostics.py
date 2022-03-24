@@ -52,7 +52,6 @@ from sysproduction.reporting.report_configs import (
     instrument_risk_report_config,
     min_capital_report_config,
     duplicate_market_report_config,
-    position_limit_report_config,
     remove_markets_report_config
 
 )
@@ -135,7 +134,6 @@ nested_menu_of_options = {
         71: "Minimum capital required",
         72: "Duplicate markets",
         73: "Remove markets",
-        74: "Position limits"
     }
 
 }
@@ -262,11 +260,6 @@ def duplicate_market_report(data):
 def remove_markets_report(data):
     report_config = email_or_print_or_file(remove_markets_report_config)
     run_report(report_config, data=data)
-
-def position_limit_report(data):
-    report_config = email_or_print_or_file(position_limit_report_config)
-    run_report(report_config, data=data)
-
 
 
 def email_or_print_or_file(report_config):
@@ -779,7 +772,6 @@ dict_of_functions = {
     71: min_capital_report,
     72: duplicate_market_report,
     73: remove_markets_report,
-    74: position_limit_report,
 
 }
 

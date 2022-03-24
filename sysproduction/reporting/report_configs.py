@@ -124,12 +124,6 @@ duplicate_market_report_config = reportConfig(title="Duplicate markets report",
                                               output="email"
                                               )
 
-position_limit_report_config = reportConfig(title="Position limit report",
-    function=
-    "sysproduction.reporting.position_limits_report.position_limits_report",
-                                            output="email"
-                                            )
-
 remove_markets_report_config = reportConfig(title="Remove markets report",
     function = "sysproduction.reporting.remove_markets_report.remove_markets_report",
                                             output="email"
@@ -150,6 +144,5 @@ report_config_defaults = dict(
     instrument_risk_report = instrument_risk_report_config,
     min_capital = min_capital_report_config,
     duplicate_market =duplicate_market_report_config,
-    position_limit_report = position_limit_report_config,
     remove_markets_report = remove_markets_report_config
 )

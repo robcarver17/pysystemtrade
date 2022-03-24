@@ -39,7 +39,7 @@ from sysproduction.reporting.data.risk import get_risk_data_for_instrument
 from sysproduction.reporting.api import reportingApi
 
 # could get from config, but might be different by system
-MAX_VS_AVERAGE_FORECAST = 2.0
+from sysproduction.reporting.data.constants import MAX_VS_AVERAGE_FORECAST
 
 
 @dataclass()
@@ -272,7 +272,7 @@ def calc_trade_limit_for_instrument(
     auto_parameters: parametersForAutoPopulation
 
 ):
-    standard_position = get_standardised_position_at_max_forecast(
+    standard_position = get_maximum_position_at_max_forecast(
         data,
         instrument_code=instrument_code,
         auto_parameters = auto_parameters
@@ -314,7 +314,7 @@ def get_auto_population_parameters() -> parametersForAutoPopulation:
     return auto_parameters
 
 
-def get_standardised_position_at_max_forecast(
+def get_maximum_position_at_max_forecast(
     data: dataBlob,
     instrument_code: str,
     auto_parameters: parametersForAutoPopulation
@@ -328,15 +328,21 @@ def get_standardised_position_at_max_forecast(
                         auto_parameters = auto_parameters
                         )
 
-    standard_position = min(position_for_risk, position_with_leverage)
+    position_for_concentration = get_maximum_position_given_risk_concentration_limit(
+        risk_data,
+        auto_parameters=auto_parameters
+    )
+
+    standard_position = min(position_for_risk, position_with_leverage, position_for_concentration)
 
     print(
-        "Standardised position for %s is %f, minimum of %f (risk) and %f (leverage)"
+        "Standardised position for %s is %.1f, minimum of %.1f (risk), %.1f (leverage), and %.1f (concentration)"
         % (
             instrument_code,
             standard_position,
             position_for_risk,
             position_with_leverage,
+            position_for_concentration
         )
     )
 
@@ -373,6 +379,12 @@ def get_maximum_position_given_leverage_limit(
 
     return abs(max_exposure / notional_exposure_per_contract)
 
+def get_maximum_position_given_risk_concentration_limit(
+    risk_data: dict,
+        auto_parameters: parametersForAutoPopulation
+) -> float:
+
+    ccy_risk_per_contract = risk_data['']
 
 def view_position_limit(data):
 
@@ -484,7 +496,7 @@ def get_max_rounded_position_for_instrument(
         auto_parameters: parametersForAutoPopulation
 ):
 
-    max_position = get_standardised_position_at_max_forecast(
+    max_position = get_maximum_position_at_max_forecast(
         data,
         instrument_code=instrument_code,
         auto_parameters = auto_parameters
@@ -492,7 +504,7 @@ def get_max_rounded_position_for_instrument(
     if np.isnan(max_position):
         return np.nan
 
-    max_position_int = max(1, int(np.ceil(abs(max_position))))
+    max_position_int = int(np.floor(abs(max_position)))
 
     return max_position_int
 
