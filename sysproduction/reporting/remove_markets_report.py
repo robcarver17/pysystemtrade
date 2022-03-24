@@ -29,6 +29,7 @@ def remove_markets_report(
         "body_text_markets_without_enough_volume_risk",
         "body_text_markets_without_enough_volume_contracts",
         "body_text_too_safe_markets",
+        "body_text_explain_safety"
 
     ]
 

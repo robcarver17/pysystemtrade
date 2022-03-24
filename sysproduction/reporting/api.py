@@ -148,6 +148,11 @@ class reportingApi(object):
 
         return body_text(remove_market_data.str_too_safe_markets)
 
+    def body_text_explain_safety(self) -> body_text:
+        remove_market_data = self.remove_market_data()
+
+        return body_text(remove_market_data.str_explain_safety)
+
     def remove_market_data(self) -> RemoveMarketData:
         remove_market_data = getattr(self,
                                      "_remove_market_data",

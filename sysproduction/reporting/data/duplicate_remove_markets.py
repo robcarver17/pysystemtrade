@@ -19,6 +19,14 @@ from sysproduction.reporting.data.risk import (
 CHANGE_FLAG = "** CHANGE ** "
 
 @dataclass()
+class parametersForAutoPopulation:
+    raw_max_leverage: float
+    max_vs_average_forecast: float
+    notional_risk_target: float
+    approx_IDM: float
+    notional_instrument_weight: float
+
+@dataclass()
 class RemoveMarketData:
     SR_costs: pd.DataFrame
     risk_data: pd.DataFrame
@@ -27,7 +35,8 @@ class RemoveMarketData:
     min_volume_risk: float
     min_volume_contracts: int
     max_cost: float
-    min_ann_perc_std: float
+
+    auto_parameters: parametersForAutoPopulation
 
     existing_bad_markets: list
 
@@ -145,6 +154,24 @@ class RemoveMarketData:
 
         return too_safe
 
+    @property
+    def str_explain_safety(self)-> str:
+        auto_parameters = self.auto_parameters
+        str1="(Minimum standard deviation %.3f calculated as follows: " % self.min_ann_perc_std
+        str2="= max_vs_average_forecast * approx_IDM * notional_instrument_weight * notional_risk_target /  raw_max_leverage"
+        str3="= %.1f * %.2f * %.3f * %.3f / %2f" %\
+        (auto_parameters.max_vs_average_forecast,
+               auto_parameters.approx_IDM,
+               auto_parameters.notional_instrument_weight,
+               auto_parameters.notional_risk_target,
+               auto_parameters.raw_max_leverage)
+
+        return  str1+str2+str3
+
+    @property
+    def min_ann_perc_std(self) -> float:
+        min_ann_perc_std = from_auto_parameters_to_min_ann_perc_std(self.auto_parameters)
+        return min_ann_perc_std
 
 def get_remove_market_data(data) -> RemoveMarketData:
     existing_bad_markets = get_existing_bad_markets()
@@ -153,7 +180,6 @@ def get_remove_market_data(data) -> RemoveMarketData:
              = get_bad_market_filter_parameters()
 
     auto_parameters = get_auto_population_parameters()
-    min_ann_perc_std = from_auto_parameters_to_min_ann_perc_std(auto_parameters)
     SR_costs, liquidity_data, risk_data = get_data_for_markets(data)
 
 
@@ -165,7 +191,8 @@ def get_remove_market_data(data) -> RemoveMarketData:
         max_cost = max_cost,
         min_volume_risk=min_volume_risk,
         min_volume_contracts=min_volume_contracts,
-        existing_bad_markets=existing_bad_markets
+        existing_bad_markets=existing_bad_markets,
+        auto_parameters=auto_parameters
 
 
 
@@ -197,13 +224,6 @@ def text_suggest_changes_to_duplicate_markets(list_of_duplicate_market_tables: l
     return suggest_changes
 
 
-@dataclass()
-class parametersForAutoPopulation:
-    raw_max_leverage: float
-    max_vs_average_forecast: float
-    notional_risk_target: float
-    approx_IDM: float
-    notional_instrument_weight: float
 
 from sysproduction.reporting.data.constants import RISK_TARGET_ASSUMED, IDM_ASSUMED, MAX_VS_AVERAGE_FORECAST, INSTRUMENT_WEIGHT_ASSUMED, RAW_MAX_LEVERAGE
 
