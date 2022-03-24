@@ -187,7 +187,6 @@ def get_remove_market_data(data) -> RemoveMarketData:
         SR_costs = SR_costs,
         liquidity_data = liquidity_data,
         risk_data = risk_data,
-        min_ann_perc_std = min_ann_perc_std,
         max_cost = max_cost,
         min_volume_risk=min_volume_risk,
         min_volume_contracts=min_volume_contracts,
