@@ -519,6 +519,7 @@ def set_position_limit_for_instrument(
 ):
 
     data_position_limits = dataPositionLimits(data)
+    existing_position_limit = data_position_limits._get_position_limit_object_for_instrument(instrument_code)
     max_position_int = get_max_rounded_position_for_instrument(
         data,
         instrument_code=instrument_code,
@@ -531,7 +532,10 @@ def set_position_limit_for_instrument(
             % instrument_code
         )
     else:
-        print("Update limit for %s with %d" % (instrument_code, max_position_int))
+        print("Update limit for %s from %s to %d" %
+              (instrument_code,
+               str(existing_position_limit.position_limit),
+               max_position_int))
         data_position_limits.set_abs_position_limit_for_instrument(
             instrument_code, max_position_int
         )
