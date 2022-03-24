@@ -158,7 +158,7 @@ class reportingApi(object):
 
         return remove_market_data
 
-    def _get_remove_market_data(self) -> RemoveMarketData():
+    def _get_remove_market_data(self) -> RemoveMarketData:
         return get_remove_market_data(self.data)
 
     ## DUPLICATE MARKETS
