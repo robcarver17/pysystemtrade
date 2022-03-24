@@ -8,6 +8,8 @@ from syscore.objects import missing_data, resolve_function
 from syscore.pdutils import prices_to_daily_prices
 
 from sysobjects.production.tradeable_object import instrumentStrategy
+from sysproduction.reporting.data.constants import RISK_TARGET_ASSUMED, INSTRUMENT_WEIGHT_ASSUMED, IDM_ASSUMED, \
+    MIN_CONTRACTS_HELD
 
 from sysquant.estimators.covariance import (
     covarianceEstimate,
@@ -28,10 +30,6 @@ from sysproduction.data.prices import diagPrices, get_list_of_instruments
 DAILY_RISK_CALC_LOOKBACK = int(BUSINESS_DAYS_IN_YEAR * 2)
 
 ## only used for reporting purposes
-RISK_TARGET_ASSUMED = 20 ## 20 = 20%
-INSTRUMENT_WEIGHT_ASSUMED = 0.10
-IDM_ASSUMED = 2.5
-MIN_CONTRACTS_HELD = 4.0
 
 def get_margin_usage(data) -> float:
     capital = get_current_capital(data)
@@ -53,10 +51,10 @@ def get_current_margin(data) -> float:
 
 def minimum_capital_table(data,
                           only_held_instruments=False,
-                          risk_target = RISK_TARGET_ASSUMED,
-                          min_contracts_held = MIN_CONTRACTS_HELD,
-                          idm = IDM_ASSUMED,
-                          instrument_weight = INSTRUMENT_WEIGHT_ASSUMED
+                          risk_target =RISK_TARGET_ASSUMED,
+                          min_contracts_held =MIN_CONTRACTS_HELD,
+                          idm =IDM_ASSUMED,
+                          instrument_weight =INSTRUMENT_WEIGHT_ASSUMED
                           ) -> pd.DataFrame:
 
     instrument_risk_table = get_instrument_risk_table(data,
@@ -71,7 +69,7 @@ def minimum_capital_table(data,
     return min_capital_pd
 
 def from_risk_table_to_min_capital(instrument_risk_table: pd.DataFrame,
-                                   risk_target = RISK_TARGET_ASSUMED,
+                                   risk_target =RISK_TARGET_ASSUMED,
                                    min_contracts_held=MIN_CONTRACTS_HELD,
                                    idm=IDM_ASSUMED,
                                    instrument_weight=INSTRUMENT_WEIGHT_ASSUMED
