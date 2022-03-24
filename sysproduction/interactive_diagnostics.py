@@ -134,7 +134,7 @@ nested_menu_of_options = {
         69: "Liquidity report",
         70: "All instrument risk",
         71: "Minimum capital required",
-        72: "Duplicate and remove markets",
+        72: "Duplicate markets",
         73: "Remove markets",
         74: "Position limits"
     }

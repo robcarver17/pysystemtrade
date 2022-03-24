@@ -416,7 +416,7 @@ class reportingApi(object):
                                           'point_size_base': 3,
                                           'contract_exposure': 0,
                                           'annual_risk_per_contract': 0})
-        instrument_risk_sorted_table = table("Risk of all instruments",
+        instrument_risk_sorted_table = table("Risk of all instruments with data",
                                              instrument_risk_sorted)
 
         return instrument_risk_sorted_table
