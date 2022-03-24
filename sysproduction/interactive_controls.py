@@ -49,6 +49,7 @@ class parametersForAutoPopulation:
     notional_risk_target: float
     approx_IDM: float
     notional_instrument_weight: float
+    max_proportion_risk_one_contract: float
 
 
 def interactive_controls():
@@ -289,7 +290,7 @@ def calc_trade_limit_for_instrument(
 def get_auto_population_parameters() -> parametersForAutoPopulation:
     print("Enter parameters to estimate typical position sizes")
     notional_risk_target = get_and_convert(
-        "Notional risk target (% per year)", type_expected=float, default_value=0.25
+        "Notional risk target (% per year, 0.25 = 25%%)", type_expected=float, default_value=0.25
     )
     approx_IDM = get_and_convert(
         "Approximate IDM", type_expected=float, default_value=2.5
@@ -304,11 +305,19 @@ def get_auto_population_parameters() -> parametersForAutoPopulation:
         type_expected=float,
         default_value=1.0,
     )
+
+    max_proportion_risk_one_contract = get_and_convert(
+        "Maximum proportion of risk in a single instrument (0.1 = 10%%)",
+        type_expected=float,
+        default_value=0.15
+    )
+
     # because we multiply by eg 2, need to half this
     auto_parameters = parametersForAutoPopulation(raw_max_leverage = raw_max_leverage,
                    max_vs_average_forecast = MAX_VS_AVERAGE_FORECAST,
                    notional_risk_target =notional_risk_target,
                    approx_IDM = approx_IDM,
+                    max_proportion_risk_one_contract=max_proportion_risk_one_contract,
                    notional_instrument_weight = notional_instrument_weight)
 
     return auto_parameters
@@ -367,6 +376,9 @@ def get_standardised_position_for_risk(risk_data: dict,
                         instr_weight * risk_target /     \
                         (annual_risk_per_contract)
 
+    print("Standard position = (Max / Average forecast) * Capital * IDM * instrument weight * risk target / Annual cash risk per contract ")
+    print("                  = (%.1f) * %.0f * %.2f * %.3f * %.3f / %.2f")
+
     return abs(standard_position)
 
 
@@ -375,16 +387,45 @@ def get_maximum_position_given_leverage_limit(
         auto_parameters: parametersForAutoPopulation
 ) -> float:
     notional_exposure_per_contract = risk_data["contract_exposure"]
-    max_exposure = risk_data["capital"] * auto_parameters.raw_max_leverage
+    capital = risk_data["capital"]
+    max_leverage = auto_parameters.raw_max_leverage
+    max_exposure = capital * max_leverage
 
-    return abs(max_exposure / notional_exposure_per_contract)
+    max_position = abs(max_exposure / notional_exposure_per_contract)
+
+    print("Max position with leverage = Max exposure / Notional per contract = %0.f / %1.f" %
+          (max_exposure, notional_exposure_per_contract))
+
+    print("(Max exposure = Capital * Maximum leverage = %.0f * %.2f" % (
+        capital, max_leverage
+    ))
+
+    return max_position
 
 def get_maximum_position_given_risk_concentration_limit(
     risk_data: dict,
         auto_parameters: parametersForAutoPopulation
 ) -> float:
 
-    ccy_risk_per_contract = risk_data['']
+    ccy_risk_per_contract = abs(risk_data['annual_risk_per_contract'])
+    capital = risk_data['capital']
+    risk_target = auto_parameters.notional_risk_target
+    dollar_risk_capital = capital * risk_target
+
+    max_proportion_risk_one_contract = auto_parameters.max_proportion_risk_one_contract
+
+    risk_budget_this_contract = dollar_risk_capital * max_proportion_risk_one_contract
+
+    position_limit = risk_budget_this_contract / ccy_risk_per_contract
+
+    print("Max position exposure limit = %.2f = Risk budget / CCy risk per contract = %.1f / %.1f"
+          % (position_limit, risk_budget_this_contract, ccy_risk_per_contract))
+    print("(Risk budget = Dollar risk capital * max proportion of risk = %.0f * %.3f)" %
+          (dollar_risk_capital, max_proportion_risk_one_contract))
+    print("(Dollar risk capital = Capital * Risk target = %0.f * %.3f" %
+          (capital, risk_target))
+
+    return position_limit
 
 def view_position_limit(data):
 

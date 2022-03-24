@@ -35,6 +35,7 @@ def remove_markets_report(
     for func_name in list_of_func_names:
         func = getattr(reporting_api, func_name)
         formatted_output.append(func())
+        formatted_output.append(body_text("\n\n"))
 
 
     formatted_output.append(reporting_api.footer())

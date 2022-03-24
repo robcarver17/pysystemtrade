@@ -45,7 +45,7 @@ class RemoveMarketData:
 
     @property
     def str_removed_markets_addback(self) -> str:
-        return "Following should be removed (add to config.bad_markets): %s" % str(self.removed_markets_addback())
+        return "Following should be added (delete from config.bad_markets): %s" % str(self.removed_markets_addback())
 
     def removed_markets_addback(self) -> list:
         existing_bad_markets = self.existing_bad_markets
@@ -84,6 +84,8 @@ class RemoveMarketData:
         max_cost = self.max_cost
         expensive = list(SR_costs[SR_costs.SR_cost > max_cost].index)
 
+        expensive.sort()
+
         return expensive
 
     @property
@@ -101,6 +103,7 @@ class RemoveMarketData:
         min_volume_risk = self.min_volume_risk
         liquidity_data = self.liquidity_data
         not_enough_trading_risk = list(liquidity_data[liquidity_data.risk < min_volume_risk].index)
+        not_enough_trading_risk.sort()
 
         return not_enough_trading_risk
 
@@ -120,6 +123,7 @@ class RemoveMarketData:
         not_enough_trading_contracts = list(
             liquidity_data[liquidity_data.contracts < min_contracts].index
         )
+        not_enough_trading_contracts.sort()
 
         return not_enough_trading_contracts
 
@@ -137,6 +141,7 @@ class RemoveMarketData:
         risk_data = self.risk_data
         min_ann_perc_std = self.min_ann_perc_std
         too_safe = list(risk_data[risk_data.annual_perc_stdev < min_ann_perc_std].index)
+        too_safe.sort()
 
         return too_safe
 
