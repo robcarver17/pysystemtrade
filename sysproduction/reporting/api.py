@@ -33,7 +33,7 @@ from sysproduction.reporting.data.trades import (
 )
 
 from sysproduction.reporting.data.duplicate_remove_markets import (
-    get_list_of_duplicate_markets,
+    get_list_of_duplicate_market_tables,
     text_suggest_changes_to_duplicate_markets)
 
 from sysproduction.reporting.data.pandl import (
@@ -115,36 +115,29 @@ class reportingApi(object):
         return header("END OF REPORT")
 
     ## DUPLICATE MARKETS
-    def list_of_duplicate_market_tables(self) -> list:
-        list_of_duplicate_markets = self.list_of_duplicate_markets()
-        list_of_duplicate_market_tables = [
-            table(Heading='', Body=dup_df)
-            for dup_df in list_of_duplicate_markets
-        ]
-
-        return list_of_duplicate_market_tables
 
     def body_text_suggest_changes_to_duplicate_markets(self) -> body_text:
-        list_of_duplicate_markets = self.list_of_duplicate_markets()
-        output_text = text_suggest_changes_to_duplicate_markets(list_of_duplicate_markets,
-                                                  data = self.data)
+        list_of_duplicate_markets = self.list_of_duplicate_market_tables()
+        output_text = text_suggest_changes_to_duplicate_markets(list_of_duplicate_markets)
         output_body_text = body_text(output_text)
 
         return output_body_text
 
 
-    def list_of_duplicate_markets(self) -> list:
-        list_of_duplicate_markets = getattr(self,
-                                            "_list_of_duplicate_markets",
-                                            missing_data)
-        if list_of_duplicate_markets is missing_data:
-            list_of_duplicate_markets = self._get_list_of_duplicate_markets()
-            self._list_of_duplicate_markets = list_of_duplicate_markets
+    def list_of_duplicate_market_tables(self) -> list:
+        list_of_duplicate_market_tables = getattr(self,
+                                "_list_of_duplicate_market_tables",
+                                missing_data)
+        if list_of_duplicate_market_tables is missing_data:
+            list_of_duplicate_market_tables = \
+                self._get_list_of_duplicate_market_tables()
+            self._list_of_duplicate_market_tables = \
+                list_of_duplicate_market_tables
 
-        return list_of_duplicate_markets
+        return list_of_duplicate_market_tables
 
-    def _get_list_of_duplicate_markets(self) -> list:
-        return get_list_of_duplicate_markets(self.data)
+    def _get_list_of_duplicate_market_tables(self) -> list:
+        return get_list_of_duplicate_market_tables(self.data)
 
     ### MINIMUM CAPITAL
     def table_of_minimum_capital(self) -> table:
