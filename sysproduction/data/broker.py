@@ -39,6 +39,7 @@ from sysexecution.order_stacks.broker_order_stack import orderWithControls
 
 from sysobjects.contract_dates_and_expiries import expiryDate
 from sysobjects.contracts import futuresContract
+from sysobjects.instruments import futuresInstrumentWithMetaData
 from sysobjects.production.positions import contractPosition, listOfContractPositions
 from sysobjects.spot_fx_prices import fxPrices
 from sysobjects.futures_per_contract_prices import futuresContractPrices
@@ -156,6 +157,9 @@ class dataBroker(productionDataLayerGeneric):
         return self.broker_futures_instrument_data.get_brokers_instrument_code(
             instrument_code
         )
+
+    def get_brokers_instrument_with_metadata(self, instrument_code: str) -> futuresInstrumentWithMetaData:
+        return self.broker_futures_instrument_data.get_instrument_data(instrument_code)
 
     def less_than_N_hours_of_trading_left_for_contract(
         self, contract: futuresContract, N_hours: float = 1.0

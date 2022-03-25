@@ -613,8 +613,10 @@ def view_instrument_config(data):
     diag_instruments = diagInstruments(data)
     meta_data = diag_instruments.get_meta_data(instrument_code)
     print(meta_data)
+    data_broker = dataBroker(data)
+    instrument_broker_data = data_broker.get_brokers_instrument_with_metadata(instrument_code)
+    print(instrument_broker_data)
 
-    return None
 
 
 def view_contract_config(data):

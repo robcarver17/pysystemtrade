@@ -404,7 +404,7 @@ def get_maximum_position_given_leverage_limit(
         capital, max_leverage
     ))
 
-    return max_position
+    return round_max_position
 
 def get_maximum_position_given_risk_concentration_limit(
     risk_data: dict,
@@ -414,20 +414,20 @@ def get_maximum_position_given_risk_concentration_limit(
     ccy_risk_per_contract = abs(risk_data['annual_risk_per_contract'])
     capital = risk_data['capital']
     risk_target = auto_parameters.notional_risk_target
-    dollar_risk_capital = capital * risk_target
+    cash_risk_capital = capital * risk_target
 
     max_proportion_risk_one_contract = auto_parameters.max_proportion_risk_one_contract
 
-    risk_budget_this_contract = dollar_risk_capital * max_proportion_risk_one_contract
+    risk_budget_this_contract = cash_risk_capital * max_proportion_risk_one_contract
 
     position_limit = abs(risk_budget_this_contract / ccy_risk_per_contract)
     round_position_limit = int(np.floor(position_limit))
 
     print("Max position exposure limit = %.2f (%d) = Risk budget / CCy risk per contract = %.1f / %.1f"
           % (position_limit, round_position_limit, risk_budget_this_contract, ccy_risk_per_contract))
-    print("(Risk budget = Dollar risk capital * max proportion of risk = %.0f * %.3f)" %
-          (dollar_risk_capital, max_proportion_risk_one_contract))
-    print("(Dollar risk capital = Capital * Risk target = %0.f * %.3f" %
+    print("(Risk budget = Cash risk capital * max proportion of risk = %.0f * %.3f)" %
+          (cash_risk_capital, max_proportion_risk_one_contract))
+    print("(Cash risk capital = Capital * Risk target = %0.f * %.3f" %
           (capital, risk_target))
 
     return round_position_limit
