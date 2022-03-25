@@ -23,7 +23,7 @@ class ibInstrumentConfigData:
 
     @property
     def effective_multiplier(self):
-        return self.ib_data.ibMultiplier / self.ib_data.priceMagnifier
+        return self.ibMultiplier / self.priceMagnifier
 
     def __repr__(self):
         print("symbol='%s', exchange='%s', currency='%s', ibMultiplier='%s', priceMagnifier=%.2f, ignoreWeekly='%s, effective_multiplier=%.2f' " %
