@@ -21,6 +21,19 @@ class ibInstrumentConfigData:
     priceMagnifier: float = 1.0
     ignoreWeekly: bool = False
 
+    @property
+    def effective_multiplier(self):
+        return self.ib_data.ibMultiplier / self.ib_data.priceMagnifier
+
+    def __repr__(self):
+        print("symbol='%s', exchange='%s', currency='%s', ibMultiplier='%s', priceMagnifier=%.2f, ignoreWeekly='%s, effective_multiplier=%.2f' " %
+              (self.symbol,
+               self.exchange,
+               self.currency,
+               self.ibMultiplier,
+               self.priceMagnifier,
+               self.ignoreWeekly,
+               self.effective_multiplier))
 
 
 @dataclass
@@ -36,9 +49,6 @@ class futuresInstrumentWithIBConfigData(object):
     def broker_symbol(self):
         return self.ib_data.symbol
 
-    @property
-    def effective_multiplier(self):
-        return self.ib_data.ibMultiplier / self.ib_data.priceMagnifier
 
 def ib_futures_instrument(
     futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
