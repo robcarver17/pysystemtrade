@@ -43,6 +43,7 @@ class controlProcessData(baseData):
         control = self._control_store.get(process_name, missing_data)
         return control
 
+
     def _update_control_for_process_name(self, process_name, new_control_object):
         existing_control = self._get_control_for_process_name_without_default(
             process_name
@@ -61,6 +62,9 @@ class controlProcessData(baseData):
         self, process_name, new_control_object
     ):
         self._control_store[process_name] = new_control_object
+
+    def delete_control_for_process_name(self, process_name):
+        raise NotImplementedError
 
     def check_if_okay_to_start_process(self, process_name: str) -> named_object:
         """

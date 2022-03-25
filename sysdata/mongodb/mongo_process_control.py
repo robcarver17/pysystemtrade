@@ -58,3 +58,6 @@ class mongoControlProcessData(controlProcessData):
         self.mongo_data.add_data(
             process_name, new_control_object.as_dict(), allow_overwrite=False
         )
+
+    def delete_control_for_process_name(self, process_name):
+        self.mongo_data.delete_data_without_any_warning(process_name)
