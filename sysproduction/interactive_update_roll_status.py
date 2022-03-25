@@ -21,12 +21,14 @@ from sysobjects.production.roll_state import (
     allowable_roll_state_from_current_and_position,
     RollState,
     no_roll_state,
+    roll_close_state
 )
 
 from sysproduction.reporting.report_configs import roll_report_config
 from sysproduction.reporting.reporting_functions import run_report_with_data_blob
 
 from sysproduction.data.positions import diagPositions, updatePositions
+from sysproduction.data.controls import dataPositionLimits
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices, get_valid_instrument_code_from_user
 
@@ -267,7 +269,7 @@ def get_auto_roll_parameters() -> autoRollParameters:
     return auto_parameters
 
 
-STATE_OPTIONS = [RollState.Passive, RollState.Force, RollState.Force_Outright]
+STATE_OPTIONS = [RollState.Passive, RollState.Force, RollState.Force_Outright, RollState.Close]
 STATE_OPTIONS_AS_STR = [str(state) for state in STATE_OPTIONS]
 
 
@@ -470,6 +472,10 @@ def modify_roll_state(
         return
 
     update_positions = updatePositions(data)
+
+    if original_roll_state is roll_close_state:
+        roll_state_was_closed_now_something_else(data, instrument_code)
+
     update_positions.set_roll_state(instrument_code, roll_state_required)
     if roll_state_required is roll_adj_state:
         state_change_to_roll_adjusted_prices(
@@ -479,6 +485,18 @@ def modify_roll_state(
             confirm_adjusted_price_change=confirm_adjusted_price_change,
         )
 
+    if roll_state_required is roll_close_state:
+        roll_state_is_now_closing(data, instrument_code)
+
+def roll_state_was_closed_now_something_else(data: dataBlob, instrument_code: str):
+    print("Roll state is no longer closed, so removing temporary position limit of zero")
+    data_position_limits = dataPositionLimits(data)
+    data_position_limits.reset_position_limit_for_instrument_to_original_value(instrument_code)
+
+def roll_state_is_now_closing(data: dataBlob, instrument_code: str):
+    print("Roll state is Close, so setting temporary position limit of zero")
+    data_position_limits = dataPositionLimits(data)
+    data_position_limits.temporarily_set_position_limit_to_zero_and_store_original_limit(instrument_code)
 
 def state_change_to_roll_adjusted_prices(
     data: dataBlob,

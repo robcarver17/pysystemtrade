@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from sysobjects.production.position_limits import positionLimitAndPosition
 
-from sysdata.config.production_config import get_production_config
+from syscore.objects import missing_data
+
 from sysdata.config.instruments import (
     get_list_of_bad_instruments_in_config,
     get_duplicate_list_of_instruments_to_remove_from_config,
@@ -13,11 +13,13 @@ from sysdata.mongodb.mongo_position_limits import mongoPositionLimitData
 from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
 from sysdata.mongodb.mongo_override import mongoOverrideData
 from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
+from sysdata.mongodb.mongo_temporary_close import mongoTemporaryCloseData
 
 from sysdata.production.broker_client_id import brokerClientIdData
 from sysdata.production.locks import lockData
 from sysdata.production.trade_limits import tradeLimitData
 from sysdata.production.override import overrideData
+from sysdata.production.temporary_close import temporaryCloseData
 from sysdata.production.position_limits import (
     positionLimitData,
     positionLimitForInstrument,
@@ -36,17 +38,18 @@ from sysobjects.production.tradeable_object import (
     instrumentStrategy,
 )
 from sysobjects.production.override import Override
-
-
-from sysproduction.data.positions import diagPositions
-from sysproduction.data.generic_production_data import productionDataLayerGeneric
-
+from sysobjects.production.position_limits import positionLimitAndPosition
 from sysobjects.production.override import (
     NO_TRADE_OVERRIDE,
     REDUCE_ONLY_OVERRIDE,
     DEFAULT_OVERRIDE,
 )
 
+from sysproduction.data.positions import diagPositions
+from sysproduction.data.generic_production_data import productionDataLayerGeneric
+
+OVERRIDE_FOR_BAD = REDUCE_ONLY_OVERRIDE
+OVERRIDE_FOR_BAD = REDUCE_ONLY_OVERRIDE
 OVERRIDE_FOR_BAD = REDUCE_ONLY_OVERRIDE
 OVERRIDE_FOR_UNTRADEABLE = NO_TRADE_OVERRIDE
 OVERRIDE_FOR_IGNORED = REDUCE_ONLY_OVERRIDE
@@ -406,13 +409,18 @@ class updateOverrides(productionDataLayerGeneric):
 
 
 class dataPositionLimits(productionDataLayerGeneric):
-    def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(mongoPositionLimitData)
+    def _add_required_classes_to_data(self, data: dataBlob) -> dataBlob:
+        data.add_class_list([mongoPositionLimitData,
+                              mongoTemporaryCloseData])
         return data
 
     @property
     def db_position_limit_data(self) -> positionLimitData:
         return self.data.db_position_limit
+
+    @property
+    def db_temporary_close_data(self) -> temporaryCloseData:
+        return self.data.db_temporary_close
 
     def cut_down_proposed_instrument_trade_for_position_limits(
         self, order: instrumentOrder
@@ -639,6 +647,27 @@ class dataPositionLimits(productionDataLayerGeneric):
         )
 
         return strategy_instrument_list_limits
+
+    ## Temporary limits used by roll code
+
+    def temporarily_set_position_limit_to_zero_and_store_original_limit(self, instrument_code):
+        original_limit = self._get_position_limit_object_for_instrument(instrument_code)
+        self.db_temporary_close_data.add_stored_position_limit(original_limit)
+        self.set_abs_position_limit_for_instrument(instrument_code, 0)
+
+        self.log.msg("Temporarily setting position limit, was %s, now zero" % (str(original_limit)))
+
+    def reset_position_limit_for_instrument_to_original_value(self, instrument_code):
+        original_limit= self.db_temporary_close_data.get_stored_position_limit_for_instrument(instrument_code)
+        if original_limit is missing_data:
+            self.log.warn("No temporary position limit stored")
+            return None
+
+        self.set_abs_position_limit_for_instrument(instrument_code,
+                                                   original_limit.position_limit)
+
+        self.db_temporary_close_data.clear_stored_position_limit_for_instrument(instrument_code)
+        self.log.msg("Reset position limit from temporary zero limit, now %s" % str(original_limit))
 
     ## set limits
 
