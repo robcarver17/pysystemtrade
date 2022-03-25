@@ -1,4 +1,4 @@
-Instrument,IBSymbol,IBExchange,IBCurrency,IBMultiplier,MyMultiplier,IgnoreWeekly
+Instrument,IBSymbol,IBExchange,IBCurrency,IBMultiplier,priceMagnifier,IgnoreWeekly
 AEX,EOE,FTA,EUR,200,1,FALSE
 AUD,AUD,GLOBEX,NA,100000,1,FALSE
 BITCOIN,MBT,CMECRYPTO,USD,0.1,1,FALSE

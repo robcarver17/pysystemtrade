@@ -356,8 +356,6 @@ exclude_instrument_lists:
   #
   # REVIEW REGULARLY AND CHECK THESE INSTRUMENTS AREN'T BETTER ELSEWHERE...
   ignore_instruments:
-    - 'EURIBOR'
-    - 'SGX'
     - 'BRENT'
     - 'CLP'
   #

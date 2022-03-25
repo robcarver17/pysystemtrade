@@ -18,10 +18,9 @@ class ibInstrumentConfigData:
     exchange: str
     currency: str = NOT_REQUIRED_FOR_IB
     ibMultiplier: float = NOT_REQUIRED_FOR_IB
-    myMultiplier: float = 1.0
+    priceMagnifier: float = 1.0
     ignoreWeekly: bool = False
 
-    # NOTE: is myMultiplier actually used?
 
 
 @dataclass
@@ -37,6 +36,9 @@ class futuresInstrumentWithIBConfigData(object):
     def broker_symbol(self):
         return self.ib_data.symbol
 
+    @property
+    def effective_multiplier(self):
+        return self.ib_data.ibMultiplier / self.ib_data.priceMagnifier
 
 def ib_futures_instrument(
     futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,

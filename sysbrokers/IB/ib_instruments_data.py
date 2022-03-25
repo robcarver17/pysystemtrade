@@ -175,7 +175,7 @@ def get_instrument_object_from_config(
     ib_multiplier = value_or_npnan(
         config_row.IBMultiplier.values[0], NOT_REQUIRED_FOR_IB
     )
-    my_multiplier = value_or_npnan(config_row.MyMultiplier.values[0], 1.0)
+    price_magnifier = value_or_npnan(config_row.priceMagnifier.values[0], 1.0)
     ignore_weekly = config_row.IgnoreWeekly.values[0]
 
     # We use the flexibility of futuresInstrument to add additional arguments
@@ -185,7 +185,7 @@ def get_instrument_object_from_config(
         exchange,
         currency=currency,
         ibMultiplier=ib_multiplier,
-        myMultiplier=my_multiplier,
+        priceMagnifier=price_magnifier,
         ignoreWeekly=ignore_weekly,
     )
 
