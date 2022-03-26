@@ -566,48 +566,6 @@ forecast_weights:
     skewabs365: 0.0
     skewrv180: 0.0
     skewrv365: 0.0
-  BEL20:
-    accel16: 0.0
-    accel32: 0.0
-    accel64: 0.0
-    assettrend16: 0.0
-    assettrend2: 0.0
-    assettrend32: 0.0
-    assettrend4: 0.0
-    assettrend64: 0.176
-    assettrend8: 0.0
-    breakout10: 0.0
-    breakout160: 0.0
-    breakout20: 0.0
-    breakout320: 0.176
-    breakout40: 0.0
-    breakout80: 0.0
-    carry10: 0.0
-    carry125: 0.294
-    carry30: 0.0
-    carry60: 0.0
-    momentum16: 0.0
-    momentum32: 0.0
-    momentum4: 0.0
-    momentum64: 0.176
-    momentum8: 0.0
-    mrinasset160: 0.0
-    mrwrings4: 0.0
-    normmom16: 0.0
-    normmom2: 0.0
-    normmom32: 0.0
-    normmom4: 0.0
-    normmom64: 0.176
-    normmom8: 0.0
-    relcarry: 0.0
-    relmomentum10: 0.0
-    relmomentum20: 0.0
-    relmomentum40: 0.0
-    relmomentum80: 0.0
-    skewabs180: 0.0
-    skewabs365: 0.0
-    skewrv180: 0.0
-    skewrv365: 0.0
   BITCOIN:
     accel16: 0.0
     accel32: 0.0
@@ -3968,48 +3926,6 @@ forecast_weights:
     skewabs365: 0.0
     skewrv180: 0.0
     skewrv365: 0.0
-  MID-DAX:
-    accel16: 0.0
-    accel32: 0.0
-    accel64: 0.0
-    assettrend16: 0.0
-    assettrend2: 0.0
-    assettrend32: 0.0
-    assettrend4: 0.0
-    assettrend64: 0.176
-    assettrend8: 0.0
-    breakout10: 0.0
-    breakout160: 0.0
-    breakout20: 0.0
-    breakout320: 0.176
-    breakout40: 0.0
-    breakout80: 0.0
-    carry10: 0.0
-    carry125: 0.294
-    carry30: 0.0
-    carry60: 0.0
-    momentum16: 0.0
-    momentum32: 0.0
-    momentum4: 0.0
-    momentum64: 0.176
-    momentum8: 0.0
-    mrinasset160: 0.0
-    mrwrings4: 0.0
-    normmom16: 0.0
-    normmom2: 0.0
-    normmom32: 0.0
-    normmom4: 0.0
-    normmom64: 0.176
-    normmom8: 0.0
-    relcarry: 0.0
-    relmomentum10: 0.0
-    relmomentum20: 0.0
-    relmomentum40: 0.0
-    relmomentum80: 0.0
-    skewabs180: 0.0
-    skewabs365: 0.0
-    skewrv180: 0.0
-    skewrv365: 0.0
   MILK:
     accel16: 0.0
     accel32: 0.0
@@ -6578,7 +6494,6 @@ forecast_div_multiplier:
   ALUMINIUM: 1.3153539368408498
   AUD: 1.8418190876094975
   BBCOMM: 1.2883264918331379
-  BEL20: 1.2883264918331379
   BITCOIN: 1.7442966838647695
   BOBL: 1.7615324345523744
   BONO: 1.2883267050110614
@@ -6659,7 +6574,6 @@ forecast_div_multiplier:
   LEANHOG: 1.7996614238919566
   LIVECOW: 1.756855059776872
   LUMBER: 1.2749888013868327
-  MID-DAX: 1.2749888013868327
   MILK: 1.2749888013868327
   MILKDRY: 1.274988801529651
   MILKWET: 1.2749888013868327
@@ -6726,7 +6640,6 @@ instrument_weights:
   ALUMINIUM: 0.0173
   AUD: 0.0052
   BBCOMM: 0.0225
-  BEL20: 0.0044
   BITCOIN: 0.013
   BOBL: 0.01188
   BONO: 0.0133
