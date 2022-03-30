@@ -499,7 +499,7 @@ class reportingApi(object):
 
         return table_strategy_risk
 
-    def table_of_risk_all_instruments(self):
+    def table_of_risk_all_instruments(self, sort_by = 'annual_perc_stdev'):
         instrument_risk_all = self.instrument_risk_data_all_instruments()
         instrument_risk_sorted = instrument_risk_all.sort_values('annual_perc_stdev')
         instrument_risk_sorted = instrument_risk_sorted[['daily_price_stdev',

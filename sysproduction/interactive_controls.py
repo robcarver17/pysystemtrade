@@ -39,7 +39,7 @@ from sysproduction.reporting.data.risk import get_risk_data_for_instrument
 from sysproduction.reporting.api import reportingApi
 
 # could get from config, but might be different by system
-from sysproduction.reporting.data.constants import MAX_VS_AVERAGE_FORECAST
+from sysproduction.reporting.data.constants import MAX_VS_AVERAGE_FORECAST, RISK_TARGET_ASSUMED
 
 
 @dataclass()
@@ -210,6 +210,7 @@ def reset_limit_for_instrument_strategy(data):
             instrument_strategy=instrument_strategy, period_days=period_days
         )
 
+from sysproduction.reporting.data.constants import MAX_POSITION_TRADED_DAILY
 
 def auto_populate_limits(data: dataBlob):
     instrument_list = get_list_of_instruments(data)
@@ -218,7 +219,7 @@ def auto_populate_limits(data: dataBlob):
     trade_multiplier = get_and_convert(
         "Higgest proportion of standard position expected to trade daily?",
         type_expected=float,
-        default_value=0.33,
+        default_value=MAX_POSITION_TRADED_DAILY,
     )
     period_days = get_and_convert(
         "What period in days to set limit for?", type_expected=int, default_value=1
@@ -287,32 +288,34 @@ def calc_trade_limit_for_instrument(
 
     return standard_trade_int
 
+
+from sysproduction.reporting.data.constants import IDM_ASSUMED, INSTRUMENT_WEIGHT_ASSUMED, RAW_MAX_LEVERAGE, MAX_RISK_EXPOSURE_ONE_INSTRUMENT
+
 def get_auto_population_parameters() -> parametersForAutoPopulation:
     print("Enter parameters to estimate typical position sizes")
     notional_risk_target = get_and_convert(
-        "Notional risk target (% per year, 0.25 = 25%%)", type_expected=float, default_value=0.25
+        "Notional risk target (% per year, 0.25 = 25%%)", type_expected=float, default_value=RISK_TARGET_ASSUMED/100.0
     )
     approx_IDM = get_and_convert(
-        "Approximate IDM", type_expected=float, default_value=2.5
+        "Approximate IDM", type_expected=float, default_value=IDM_ASSUMED
     )
     notional_instrument_weight = get_and_convert(
         "Notional instrument weight (go large for safety!)",
         type_expected=float,
-        default_value=0.1,
+        default_value=INSTRUMENT_WEIGHT_ASSUMED,
     )
     raw_max_leverage = get_and_convert(
         "Maximum Leverage per instrument (notional exposure*# contracts / capital)",
         type_expected=float,
-        default_value=1.0,
+        default_value=RAW_MAX_LEVERAGE,
     )
 
     max_proportion_risk_one_contract = get_and_convert(
         "Maximum proportion of risk in a single instrument (0.1 = 10%%)",
         type_expected=float,
-        default_value=0.15
+        default_value=MAX_RISK_EXPOSURE_ONE_INSTRUMENT
     )
 
-    # because we multiply by eg 2, need to half this
     auto_parameters = parametersForAutoPopulation(raw_max_leverage = raw_max_leverage,
                    max_vs_average_forecast = MAX_VS_AVERAGE_FORECAST,
                    notional_risk_target =notional_risk_target,
