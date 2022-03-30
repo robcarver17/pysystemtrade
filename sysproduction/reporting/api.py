@@ -499,9 +499,12 @@ class reportingApi(object):
 
         return table_strategy_risk
 
-    def table_of_risk_all_instruments(self, sort_by = 'annual_perc_stdev'):
+    def table_of_risk_all_instruments(self,
+                                      table_header =
+                                      "Risk of all instruments with data - sorted by annualised % standard deviation",
+                                      sort_by = 'annual_perc_stdev'):
         instrument_risk_all = self.instrument_risk_data_all_instruments()
-        instrument_risk_sorted = instrument_risk_all.sort_values('annual_perc_stdev')
+        instrument_risk_sorted = instrument_risk_all.sort_values(sort_by)
         instrument_risk_sorted = instrument_risk_sorted[['daily_price_stdev',
                     'annual_price_stdev', 'price', 'daily_perc_stdev',
        'annual_perc_stdev', 'point_size_base', 'contract_exposure',
@@ -515,7 +518,7 @@ class reportingApi(object):
                                           'point_size_base': 3,
                                           'contract_exposure': 0,
                                           'annual_risk_per_contract': 0})
-        instrument_risk_sorted_table = table("Risk of all instruments with data",
+        instrument_risk_sorted_table = table(table_header,
                                              instrument_risk_sorted)
 
         return instrument_risk_sorted_table

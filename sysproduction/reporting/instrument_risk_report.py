@@ -30,12 +30,15 @@ def instrument_risk_report(
     formatted_output.append(
         reporting_api.terse_header("Instrument risk report"))
     formatted_output.append(HEADER_TEXT)
-    formatted_output.append("Sort by annual percentage standard deviation")
-    formatted_output.append(reporting_api.table_of_risk_all_instruments(sort_by='annual_perc_stdev'))
-    formatted_output.append("Sort by annual currency risk per contract")
-    formatted_output.append(reporting_api.table_of_risk_all_instruments(sort_by='annual_risk_per_contract'))
-    formatted_output.append("Sort by notional value base currency")
-    formatted_output.append(reporting_api.table_of_risk_all_instruments(sort_by='contract_exposure'))
+
+    formatted_output.append(reporting_api.table_of_risk_all_instruments(sort_by='annual_perc_stdev',
+                            table_header="Risk of all instruments with data - sorted by annualised % standard deviation"))
+
+    formatted_output.append(reporting_api.table_of_risk_all_instruments(sort_by='annual_risk_per_contract',
+                            table_header ="Risk of all instruments with data - sorted by annualised currency risk per contract"))
+
+    formatted_output.append(reporting_api.table_of_risk_all_instruments(sort_by='contract_exposure',
+                            table_header ="Risk of all instruments with data - sorted by notional exposure per contract"))
 
     formatted_output.append(reporting_api.footer())
 
