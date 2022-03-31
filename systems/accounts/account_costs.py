@@ -29,6 +29,7 @@ class accountCosts(accountInputs):
 
         KEY OUTPUT
         """
+        ## Calculate holding and transaction seperately, as the former could be pooled
         transaction_cost = self.get_SR_transaction_cost_for_instrument_forecast(
             instrument_code = instrument_code,
             rule_variation_name = rule_variation_name
@@ -60,29 +61,29 @@ class accountCosts(accountInputs):
         )
 
         if use_pooled_costs:
-            SR_cost = self._get_SR_cost_for_rule_with_pooled_costs(
+            SR_cost = self._get_SR_transaction_costs_for_rule_with_pooled_costs(
                 instrument_code, rule_variation_name
             )
 
         else:
-            SR_cost = self._get_SR_cost_of_rule_for_individual_instrument(
+            SR_cost = self._get_SR_transaction_cost_of_rule_for_individual_instrument(
                 instrument_code, rule_variation_name
             )
         return SR_cost
 
     @input
-    def _get_SR_cost_for_rule_with_pooled_costs(
+    def _get_SR_transaction_costs_for_rule_with_pooled_costs(
         self, instrument_code: str, rule_variation_name: str
     ) -> float:
         instrument_code_list = self.has_same_rules_as_code(instrument_code)
-        SR_cost = self._get_SR_cost_instr_forecast_for_list(
+        SR_cost = self._get_SR_transaction_cost_instr_forecast_for_list(
             instrument_code_list, rule_variation_name
         )
 
         return SR_cost
 
     @diagnostic()
-    def _get_SR_cost_instr_forecast_for_list(
+    def _get_SR_transaction_cost_instr_forecast_for_list(
         self, instrument_code_list: list, rule_variation_name: str
     ) -> float:
         """
@@ -100,7 +101,7 @@ class accountCosts(accountInputs):
         """
 
         list_of_SR_cost = [
-            self._get_SR_cost_of_rule_for_individual_instrument(
+            self._get_SR_transaction_cost_of_rule_for_individual_instrument(
                 instrument_code, rule_variation_name
             )
             for instrument_code in instrument_code_list
@@ -147,7 +148,7 @@ class accountCosts(accountInputs):
         return len(forecast)
 
     @diagnostic()
-    def _get_SR_cost_of_rule_for_individual_instrument(
+    def _get_SR_transaction_cost_of_rule_for_individual_instrument(
         self, instrument_code: str, rule_variation_name: str
     ) -> float:
 
