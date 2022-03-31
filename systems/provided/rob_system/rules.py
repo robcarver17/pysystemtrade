@@ -143,10 +143,9 @@ def relative_momentum(
         - normalised_price_for_asset_class.ffill()
     )
     outperformance[outperformance == 0] = np.nan
-    relative_return = outperformance.diff()
-    outperformance_over_horizon = relative_return.rolling(horizon).mean()
+    average_outperformance_over_horizon = (outperformance - outperformance.shift(horizon))/horizon
 
-    forecast = outperformance_over_horizon.ewm(span=ewma_span).mean()
+    forecast = average_outperformance_over_horizon.ewm(span=ewma_span).mean()
 
     return forecast
 

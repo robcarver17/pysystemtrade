@@ -154,9 +154,12 @@ class accountCosts(accountInputs):
         # note the turnover may still be pooled..
         turnover = self.forecast_turnover(instrument_code, rule_variation_name)
 
-        SR_cost = self.get_SR_cost_given_turnover(instrument_code, turnover)
+        # holding costs calculated elsewhere
+        SR_cost_trading = self.get_SR_trading_cost_only_given_turnover(
+            instrument_code, turnover
+        )
 
-        return SR_cost
+        return SR_cost_trading
 
     @diagnostic()
     def get_SR_cost_given_turnover(
