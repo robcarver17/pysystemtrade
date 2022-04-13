@@ -24,7 +24,12 @@ class logtoscreen(logger):
         """
         log_level = self.logging_level
 
-        log_entry = logEntry(text, msglevel=msglevel, attributes=attributes, log_id=log_id)
+        log_entry = logEntry(
+            text,
+            msglevel=msglevel,
+            attributes=attributes,
+            log_id=log_id
+        )
 
         if msglevel == 0:
             if log_level == "on":
