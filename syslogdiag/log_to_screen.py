@@ -1,4 +1,5 @@
 from syslogdiag.logger import logger
+from syslogdiag.log_entry import logEntry
 
 
 class logtoscreen(logger):
@@ -23,24 +24,31 @@ class logtoscreen(logger):
         """
         log_level = self.logging_level
 
+        log_entry = logEntry(
+            text,
+            msglevel=msglevel,
+            attributes=attributes,
+            log_id=log_id
+        )
+
         if msglevel == 0:
             if log_level == "on":
-                print(text)
+                print(log_entry)
                 # otherwise do nothing - either terse or off
 
         elif msglevel == 1:
             if log_level in ["on", "terse"]:
-                print(text)
+                print(log_entry)
                 # otherwise do nothing - either terse or off
 
         elif msglevel == 2:
-            print(text)
+            print(log_entry)
 
         elif msglevel == 3:
-            print(text)
+            print(log_entry)
 
         elif msglevel == 4:
-            raise Exception(text)
+            raise Exception(log_entry)
 
     def get_next_log_id(self) -> int:
         last_id = self.get_last_used_log_id()
