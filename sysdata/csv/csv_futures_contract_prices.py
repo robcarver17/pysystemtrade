@@ -17,6 +17,7 @@ class ConfigCsvFuturesPrices:
     input_skiprows: int = 0
     input_skipfooter: int = 0
     apply_multiplier: float = 1.0
+    apply_inverse: bool = False
 
 
 class csvFuturesContractPriceData(futuresContractPriceData):
@@ -123,6 +124,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         skiprows = config.input_skiprows
         skipfooter = config.input_skipfooter
         multiplier = config.apply_multiplier
+        inverse = config.apply_inverse
 
         try:
             instrpricedata = pd_readcsv(
@@ -139,7 +141,12 @@ class csvFuturesContractPriceData(futuresContractPriceData):
             return futuresContractPrices.create_empty()
 
         instrpricedata = instrpricedata.groupby(level=0).last()
-        instrpricedata = instrpricedata * multiplier
+        for col_name in ["OPEN", "HIGH", "LOW", "FINAL"]:
+            column_series = instrpricedata[col_name]
+            if inverse:
+                column_series = 1 / column_series
+            column_series *= multiplier
+            instrpricedata[col_name] = column_series.round(2)
 
         instrpricedata = futuresContractPrices(instrpricedata)
 
