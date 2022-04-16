@@ -4,7 +4,7 @@ import pandas as pd
 
 from syscore.genutils import transfer_object_attributes
 from syscore.objects import missing_data
-from syscore.pdutils import make_df_from_list_of_named_tuple
+from syscore.pdutils import make_df_from_list_of_named_tuple, sort_df_ignoring_missing
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
 from sysproduction.data.controls import (
@@ -139,21 +139,21 @@ def get_control_status_list_for_all_processes_as_df(data):
 def get_control_data_list_for_all_methods_as_df(data):
     cd_list = get_control_data_list_for_all_methods(data)
     pdf = make_df_from_list_of_named_tuple(dataForMethod, cd_list)
-    pdf = pdf.sort_values("last_start")
+    pdf = sort_df_ignoring_missing(pdf, "last_start")
     return pdf
 
 
 def get_control_status_list_for_all_methods_as_df(data):
     cd_list = get_control_data_list_for_all_methods(data)
     pdf = make_df_from_list_of_named_tuple(dataForMethod, cd_list)
-    pdf = pdf.sort_values("last_start")
+    pdf = sort_df_ignoring_missing(pdf, "last_start")
     return pdf
 
 
 def get_last_price_updates_as_df(data):
     cd_list = get_list_of_last_price_updates(data)
     pdf = make_df_from_list_of_named_tuple(genericUpdate, cd_list)
-    pdf = pdf.sort_values("last_update")
+    pdf = sort_df_ignoring_missing(pdf, "last_update")
 
     return pdf
 
@@ -161,7 +161,7 @@ def get_last_price_updates_as_df(data):
 def get_last_optimal_position_updates_as_df(data):
     cd_list = get_list_of_last_position_updates(data)
     pdf = make_df_from_list_of_named_tuple(genericUpdate, cd_list)
-    pdf = pdf.sort_values("last_update")
+    pdf = sort_df_ignoring_missing(pdf, "last_update")
 
     return pdf
 

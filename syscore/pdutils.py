@@ -20,7 +20,7 @@ from syscore.dateutils import (
     WEEKS_IN_YEAR,
     MONTHS_IN_YEAR,
 )
-from syscore.objects import arg_not_supplied
+from syscore.objects import arg_not_supplied, missing_data
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -635,3 +635,11 @@ def quantile_of_points_in_data_series(data_series):
 
     results_series = pd.Series(results, index=data_series.index)
     return results_series
+
+
+def sort_df_ignoring_missing(df, column):
+    # sorts df by column, with rows containing missing_data coming at the end
+    missing = df[df[column] == missing_data]
+    valid = df[df[column] != missing_data]
+    valid_sorted = valid.sort_values(column)
+    return pd.concat([valid_sorted, missing])

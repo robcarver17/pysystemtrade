@@ -902,7 +902,9 @@ def filter_data_for_delays(data_with_datetime,
                 max_delay_in_days = 3) -> pd.DataFrame:
 
     max_delay_in_seconds = max_delay_in_days * SECONDS_PER_DAY
-    time_delays = datetime.datetime.now() -data_with_datetime[datetime_colum]
+    # ignore missing data
+    data_with_datetime = data_with_datetime[data_with_datetime[datetime_colum] != missing_data]
+    time_delays = datetime.datetime.now() - data_with_datetime[datetime_colum]
     delayed = [time_difference.total_seconds() > max_delay_in_seconds
                for time_difference in time_delays]
 
