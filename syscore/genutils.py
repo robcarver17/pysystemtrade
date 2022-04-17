@@ -311,7 +311,7 @@ class progressBar(object):
             time_str = ""
 
         bar = "=" * self.how_many_blocks_had() + "-" * self.how_many_blocks_left()
-        progress_string = "\0\r [%s] %s%s %s %s\n" % (
+        progress_string = "\0\r [%s] %s%s %s %s" % (
             bar,
             percents,
             "%",
