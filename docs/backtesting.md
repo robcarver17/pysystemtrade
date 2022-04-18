@@ -537,7 +537,7 @@ You need to set the start_date in the .yaml backtest configuration file:
 
 ```
 ## Note you must use this format
-start_date: 2000-01-19
+start_date: '2000-01-19'
 ```
 
 
