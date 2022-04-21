@@ -104,15 +104,4 @@ setup(
     extras_require=dict(),
     test_suite="nose.collector",
     include_package_data=True,
-    entry_points={
-        "console_scripts": [
-            "interactive_controls = sysproduction.interactive_controls:interactive_controls",
-            "interactive_diagnostics = sysproduction.interactive_diagnostics:interactive_diagnostics",
-            "interactive_manual_check_fx_prices = sysproduction.interactive_manual_check_fx_prices:interactive_manual_check_fx_prices",
-            "interactive_manual_check_historical_prices = sysproduction.interactive_manual_check_historical_prices:interactive_manual_check_historical_prices",
-            "interactive_order_stack = sysproduction.interactive_order_stack:interactive_order_stack",
-            "interactive_update_capital_manual = sysproduction.interactive_update_capital_manual:interactive_update_capital_manual",
-            "interactive_update_roll_status = sysproduction.interactive_update_roll_status:interactive_update_roll_status",
-        ],
-    },
 )
