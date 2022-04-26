@@ -185,6 +185,7 @@ Table of Contents
       * [Backup state files](#backup-state-files)
       * [Backup mongo dump](#backup-mongo-dump)
       * [Start up script](#start-up-script)
+   * [Scripts under other (non\-linux) operating systems](#scripts-under-other-non-linux-operating-systems)
 * [Scheduling](#scheduling)
    * [Issues to consider when constructing the schedule](#issues-to-consider-when-constructing-the-schedule)
    * [Choice of scheduling systems](#choice-of-scheduling-systems)
@@ -1393,7 +1394,9 @@ Script are then called by [schedulers](#scheduling), or on an ad-hoc basis from 
 
 ## Script calling
 
-I've created scripts that run under Linux, however these all just call simple python functions so it ought to be easy to create your own scripts in another OS.
+I've created scripts that run under Linux, however these all just call simple python functions so it ought to be easy to 
+create your own scripts in another OS. See [here](#scripts-under-other-non-linux-operating-systems) for notes about a 
+method to create cross-platform executable scripts.
 
 So, for example, here is the [run reports script](/sysproduction/linux/scripts/run_reports):
 
@@ -1474,8 +1477,8 @@ This ensures that we are currently sampling active contracts, and updates contra
 
 Python:
 ```python
-from sysproduction.update_sampled_contracts import updated_sampled_contracts
-update_sampled_prices()
+from sysproduction.update_sampled_contracts import update_sampled_contracts
+update_sampled_contracts()
 ```
 
 Linux script:
@@ -2369,6 +2372,42 @@ There is some housekeeping to do when a machine starts up, primarily in case it 
 - Clear IB client IDs: Do this when the machine restarts and IB is definitely not running (or we'll eventually run out of IDs)
 - Mark all running processes as finished
 
+## Scripts under other (non-linux) operating systems
+
+There is a built-in Python mechanism for creating command line executables; it may make sense for those who want to
+have a production instance of pysystemtrade on MacOS or Windows. Or for Linux users who would prefer to use the standard 
+method than the supplied scripts. The mechanism is provided by the packaging tools, and configured in setup.py. See the 
+[docs here](https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point). 
+
+You add a new *entry_points* section to `setup.py` file like:
+
+```
+...
+test_suite="nose.collector",
+include_package_data=True,
+entry_points={
+    "console_scripts": [
+        "interactive_controls = sysproduction.interactive_controls:interactive_controls",
+        "interactive_diagnostics = sysproduction.interactive_diagnostics:interactive_diagnostics",
+        "interactive_manual_check_fx_prices = sysproduction.interactive_manual_check_fx_prices:interactive_manual_check_fx_prices",
+        "interactive_manual_check_historical_prices = sysproduction.interactive_manual_check_historical_prices:interactive_manual_check_historical_prices",
+        "interactive_order_stack = sysproduction.interactive_order_stack:interactive_order_stack",
+        "interactive_update_capital_manual = sysproduction.interactive_update_capital_manual:interactive_update_capital_manual",
+        "interactive_update_roll_status = sysproduction.interactive_update_roll_status:interactive_update_roll_status",
+    ],
+},
+...
+```
+
+When `setup.py install` is executed, the above config would generate executable *shims* for all the interactive scripts
+into the current python path, which when run, would execute the configured function. There are several advantages to 
+this method:
+- no need for additional code or scripts
+- cross-platform compatibility
+- standard Python
+- no need to manipulate PATH or other env variables
+- name completion
+- works with any virtualenv flavour
 
 
 # Scheduling
