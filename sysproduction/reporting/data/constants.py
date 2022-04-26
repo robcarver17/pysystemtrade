@@ -1,7 +1,7 @@
 ### These are only used for reporting purposes and are not what is in the backtest!
 
 RISK_TARGET_ASSUMED = 25 ## 20 = 20%
-INSTRUMENT_WEIGHT_ASSUMED = 0.01
+INSTRUMENT_WEIGHT_ASSUMED = 0.04
 IDM_ASSUMED = 2.5
 MIN_CONTRACTS_HELD = 4.0
 MAX_SR_COST = 0.01
