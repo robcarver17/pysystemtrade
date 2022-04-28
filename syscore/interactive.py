@@ -135,3 +135,20 @@ def print_menu_and_get_response(menu_of_options, default_option=None, default_st
             break
 
     return ans
+
+
+def true_if_answer_is_yes(prompt="",
+                          allow_empty_to_return_none=False) -> bool:
+    invalid = True
+    while invalid:
+        x = input(prompt)
+        if allow_empty_to_return_none:
+            if x=="":
+                return None
+
+        x = x.lower()
+        if x[0] == "y":
+            return True
+        elif x[0] == "n":
+            return False
+        print("Need one of yes/no, Yes/No, y/n, Y/N")

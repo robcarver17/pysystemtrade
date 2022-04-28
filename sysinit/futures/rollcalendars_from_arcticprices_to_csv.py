@@ -1,4 +1,4 @@
-from syscore.genutils import true_if_answer_is_yes
+from syscore.interactive import true_if_answer_is_yes
 from syscore.objects import arg_not_supplied
 
 from sysdata.arctic.arctic_futures_per_contract_prices import (

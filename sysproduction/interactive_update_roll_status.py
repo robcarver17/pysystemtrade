@@ -7,7 +7,7 @@ NOTE: this does not update the roll calendar .csv files stored elsewhere. Under 
 from dataclasses import dataclass
 import numpy as np
 
-from syscore.interactive import print_menu_of_values_and_get_response, get_and_convert
+from syscore.interactive import print_menu_of_values_and_get_response, get_and_convert, true_if_answer_is_yes
 from syscore.objects import success, failure, status, named_object
 from syscore.text import landing_strip, print_with_landing_strips_around
 
@@ -247,13 +247,9 @@ def get_auto_roll_parameters() -> autoRollParameters:
         default_value=0.1,
     )
 
-    manual_prompt_for_position_str = input(
-        "Manually prompt for state if have position? (n / *anything for yes*)"
+    manual_prompt_for_position = true_if_answer_is_yes(
+        "Manually prompt for state if have position? (y/n)"
     )
-    if manual_prompt_for_position_str == "n":
-        manual_prompt_for_position = False
-    else:
-        manual_prompt_for_position = True
 
     if manual_prompt_for_position:
         state_when_position_held = no_change_required
@@ -394,23 +390,22 @@ def get_roll_state_required(roll_data: RollDataWithStateReporting) -> RollState:
         if roll_state_required_as_str != roll_data.original_roll_status_as_string:
             # check if changing
             print("")
-            check = input(
+            okay_to_change = true_if_answer_is_yes(
                 "Changing roll state for %s from %s to %s, are you sure y/n to try again/<RETURN> to exit: "
                 % (
                     roll_data.instrument_code,
                     roll_data.original_roll_status_as_string,
                     roll_state_required_as_str,
-                )
+                ),
+                allow_empty_to_return_none=True
             )
             print("")
-            if check == "y":
-                # happy
-                return RollState[roll_state_required_as_str]
-
-            elif check == "":
-                print("Okay, we're done")
+            if okay_to_change is None:
                 return no_change_required
 
+            if okay_to_change:
+                # happy
+                return RollState[roll_state_required_as_str]
             else:
                 print("OK. Choose again.")
                 # back to top of loop
@@ -555,13 +550,15 @@ def roll_adjusted_and_multiple_prices(
         rolling_adj_and_mult_object.compare_old_and_new_prices()
     except Exception as e:
         print("Error %s when trying to calculate roll prices" % str(e))
+
+
         return failure
 
     if confirm_adjusted_price_change:
-        confirm_roll = input(
+        confirm_roll = true_if_answer_is_yes(
             "Confirm roll adjusted prices for %s are you sure y/n:" % instrument_code
         )
-        if confirm_roll != "y":
+        if not confirm_roll:
             print(
                 "\nUSER DID NOT WANT TO ROLL: Setting roll status back to previous state"
             )
