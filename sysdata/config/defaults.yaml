@@ -297,7 +297,7 @@ duplicate_instruments:
     gold: 'GOLD_micro'
     heatoil: 'HEATOIL'
     inr: 'INR'
-    jgb: 'JGB'
+    jgb: 'JGB-SGX-mini'
     jpy: 'JPY'
     kospi: 'KOSPI'
     krwusd: 'KRWUSD'
@@ -332,7 +332,7 @@ duplicate_instruments:
     gold: 'GOLD'
     heatoil: 'HEATOIL_mini'
     inr: ['INR-mini','INR-SGX']
-    jgb: ['JGB_mini', 'JGB-SGX-mini']
+    jgb: ['JGB_mini', 'JGB']
     jpy: ['JPY_micro','JPY-SGX-TITAN', 'JPY-SGX']
     kospi: 'KOSPI_mini'
     krwusd: 'KRWUSD_mini'
