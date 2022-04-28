@@ -357,7 +357,6 @@ exclude_instrument_lists:
   # REVIEW REGULARLY AND CHECK THESE INSTRUMENTS AREN'T BETTER ELSEWHERE...
   ignore_instruments:
     - 'BRENT'
-    - 'CLP'
   #
   # Here we put stuff we can't trade, but for which we still want to bring in prices in sim
   # For the dynamically optimised strategy this list will be used in sim as 'don't trade'
@@ -386,19 +385,19 @@ exclude_instrument_lists:
   bad_markets:
     - ALUMINIUM
     - BBCOMM
-    - BEL20
     - BOVESPA
+    - BTP3
     - BUTTER
     - CH10
     - CHEESE
+    - CLP
     - CNH-onshore
     - COPPER-mini
+    - COTTON
     - CZK
-    - DJSTX-SMALL
     - EDOLLAR
     - ETHANOL
     - ETHER-micro
-    - ETHEREUM
     - EU-BANKS
     - EU-CHEM
     - EU-CONSTRUCTION
@@ -408,18 +407,16 @@ exclude_instrument_lists:
     - EU-DJ-UTIL
     - EU-FOOD
     - EU-HOUSE
-    - EU-INSURE
     - EU-MEDIA
     - EU-MID
     - EU-REALESTATE
     - EU-RETAIL
-    - EU-UTILS
-    - EURCHF
     - EURIBOR
     - EUROSTX-LARGE
     - EUROSTX-SMALL
     - EUROSTX200-LARGE
     - FTSEINDO
+    - INR
     - IRS
     - JGB
     - JGB-SGX-mini
@@ -436,11 +433,13 @@ exclude_instrument_lists:
     - OMX
     - R1000
     - RICE
+    - RUR
     - SEK
-    - SGX
+    - SGD
     - SHATZ
     - SMI-MID
     - US2
+    - US3
     - US-DISCRETE
     - US-ENERGY
     - US-FINANCE

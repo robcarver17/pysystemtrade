@@ -541,24 +541,21 @@ def roll_adjusted_and_multiple_prices(
     print("")
     print("Rolling adjusted prices!")
     print("")
-    try:
-        rolling_adj_and_mult_object = rollingAdjustedAndMultiplePrices(
-            data, instrument_code
-        )
+    rolling_adj_and_mult_object = get_roll_adjusted_multiple_prices_object(
+        data = data, instrument_code = instrument_code
+    )
 
-        # this will also do the roll calculations
-        rolling_adj_and_mult_object.compare_old_and_new_prices()
-    except Exception as e:
+    if rolling_adj_and_mult_object is failure:
         print("Error %s when trying to calculate roll prices" % str(e))
-
-
         return failure
 
+    rolling_adj_and_mult_object.compare_old_and_new_prices()
+
     if confirm_adjusted_price_change:
-        confirm_roll = true_if_answer_is_yes(
+        is_okay_to_roll = true_if_answer_is_yes(
             "Confirm roll adjusted prices for %s are you sure y/n:" % instrument_code
         )
-        if not confirm_roll:
+        if not is_okay_to_roll:
             print(
                 "\nUSER DID NOT WANT TO ROLL: Setting roll status back to previous state"
             )
@@ -577,3 +574,43 @@ def roll_adjusted_and_multiple_prices(
         return failure
 
     return success
+
+def get_roll_adjusted_multiple_prices_object(data: dataBlob,
+                                             instrument_code: str)\
+                                -> rollingAdjustedAndMultiplePrices:
+
+    ## returns failure if goes wrong
+    try:
+        rolling_adj_and_mult_object = rollingAdjustedAndMultiplePrices(
+            data, instrument_code
+        )
+
+    except Exception as e:
+        print("Error %s when trying to calculate roll prices" % str(e))
+        ## Possibly forward fill
+        rolling_adj_and_mult_object = \
+            _get_roll_adjusted_multiple_prices_object_ffill_option(data, instrument_code)
+
+    return rolling_adj_and_mult_object
+
+def _get_roll_adjusted_multiple_prices_object_ffill_option(data: dataBlob,
+                                                 instrument_code: str) \
+            -> rollingAdjustedAndMultiplePrices:
+
+    ## returns failure if goes wrong
+    try_forward_fill = \
+        true_if_answer_is_yes("Do you want to try forward filling prices first (less accurate, but guarantees roll)? [y/n]")
+
+    if not try_forward_fill:
+        print("OK, nothing I can do")
+        return failure
+
+    try:
+        rolling_adj_and_mult_object = rollingAdjustedAndMultiplePrices(
+            data, instrument_code, allow_forward_fill=True
+        )
+    except:
+        print("Error %s when trying to calculate roll prices, even when forward filling" % str(e))
+        return failure
+
+    return rolling_adj_and_mult_object

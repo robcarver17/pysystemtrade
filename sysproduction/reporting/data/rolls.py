@@ -94,9 +94,11 @@ def relative_volume_in_forward_contract_and_price(
 
 
 class rollingAdjustedAndMultiplePrices(object):
-    def __init__(self, data: dataBlob, instrument_code: str):
+    def __init__(self, data: dataBlob, instrument_code: str,
+                 allow_forward_fill: bool = False):
         self.data = data
         self.instrument_code = instrument_code
+        self.allow_forward_fill = allow_forward_fill
 
     def compare_old_and_new_prices(self):
         # We want user input before we do anything
@@ -145,7 +147,8 @@ class rollingAdjustedAndMultiplePrices(object):
             updated_multiple_prices = (
                 self._updated_multiple_prices
             ) = update_multiple_prices_on_roll(
-                self.data, self.current_multiple_prices, self.instrument_code
+                self.data, self.current_multiple_prices, self.instrument_code,
+                allow_forward_fill = self.allow_forward_fill
             )
 
         return updated_multiple_prices
@@ -191,7 +194,11 @@ def compare_old_and_new_prices(price_list, price_list_names):
 
 
 def update_multiple_prices_on_roll(
-    data: dataBlob, current_multiple_prices: futuresMultiplePrices, instrument_code: str
+    data: dataBlob,
+        current_multiple_prices: futuresMultiplePrices,
+        instrument_code: str,
+    allow_forward_fill: bool = False
+
 ) -> futuresMultiplePrices:
     """
     Roll multiple prices
@@ -223,6 +230,9 @@ def update_multiple_prices_on_roll(
 
     new_multiple_prices = futuresMultiplePrices(copy(current_multiple_prices))
 
+    if allow_forward_fill:
+        new_multiple_prices = new_multiple_prices.ffill()
+
     # If the last row is all Nans, we can't do this
     new_multiple_prices = new_multiple_prices.sort_index()
     new_multiple_prices = new_multiple_prices.drop_trailing_nan()
@@ -236,6 +246,7 @@ def update_multiple_prices_on_roll(
     old_priced_contract_last_price, price_inferred = get_or_infer_latest_price(
         new_multiple_prices, price_col=price_column
     )
+
     old_forward_contract_last_price, forward_inferred = get_or_infer_latest_price(
         new_multiple_prices, price_col=fwd_column
     )
@@ -325,7 +336,8 @@ preferred_columns = dict(
 )
 
 
-def get_or_infer_latest_price(new_multiple_prices, price_col="PRICE"):
+def get_or_infer_latest_price(new_multiple_prices,
+                              price_col: str="PRICE"):
     """
     Get the last price in a given column
 
@@ -357,7 +369,9 @@ def get_or_infer_latest_price(new_multiple_prices, price_col="PRICE"):
     raise Exception("Couldn't infer price of %s column - can't roll" % price_col)
 
 
-def infer_latest_price(new_multiple_prices, price_col, col_to_use):
+def infer_latest_price(new_multiple_prices,
+                       price_col: str,
+                       col_to_use: str):
     """
     Infer the last price in price_col from col_to_use
 
