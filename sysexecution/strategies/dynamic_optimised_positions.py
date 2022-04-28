@@ -20,6 +20,7 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 from sysobjects.production.optimal_positions import (
     optimalPositionWithDynamicCalculations,
 )
+from sysobjects.production.position_limits import NO_LIMIT
 from sysobjects.production.override import (
     Override,
     CLOSE_OVERRIDE,
@@ -50,6 +51,7 @@ from systems.provided.dynamic_small_system_optimise.buffering import (
     speedControlForDynamicOpt,
 )
 
+ARBITRARILY_LARGE_CONTRACT_LIMIT = 999999999
 
 class orderGeneratorForDynamicPositions(orderGeneratorForStrategy):
     def get_required_orders(self) -> listOfOrders:
@@ -292,8 +294,7 @@ def get_maximum_position_contracts(
                     data,
                     instrument_strategy=instrumentStrategy(
                         strategy_name=strategy_name, instrument_code=instrument_code
-                    ),
-                    previous_position=previous_positions.get(instrument_code, 0),
+                    )
                 ),
             )
             for instrument_code in list_of_instruments
@@ -304,7 +305,7 @@ def get_maximum_position_contracts(
 
 
 def get_maximum_position_contracts_for_instrument_strategy(
-    data: dataBlob, instrument_strategy: instrumentStrategy, previous_position: int = 0
+    data: dataBlob, instrument_strategy: instrumentStrategy
 ) -> int:
 
     override = get_override_for_instrument_strategy(data, instrument_strategy)
@@ -312,11 +313,10 @@ def get_maximum_position_contracts_for_instrument_strategy(
         return 0
 
     position_limit_data = dataPositionLimits(data)
-    spare = int(
-        position_limit_data.get_spare_checking_all_position_limits(instrument_strategy)
-    )
+    maximum = position_limit_data.get_maximum_position_contracts_for_instrument_strategy(instrument_strategy)
 
-    maximum = int(spare) + abs(previous_position)
+    if maximum is NO_LIMIT:
+        return ARBITRARILY_LARGE_CONTRACT_LIMIT
 
     return maximum
 

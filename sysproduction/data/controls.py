@@ -24,6 +24,7 @@ from sysdata.production.position_limits import (
     positionLimitData,
     positionLimitForInstrument,
     positionLimitForStrategyInstrument,
+
 )
 
 
@@ -38,7 +39,7 @@ from sysobjects.production.tradeable_object import (
     instrumentStrategy,
 )
 from sysobjects.production.override import Override
-from sysobjects.production.position_limits import positionLimitAndPosition
+from sysobjects.production.position_limits import positionLimitAndPosition, NO_LIMIT
 from sysobjects.production.override import (
     NO_TRADE_OVERRIDE,
     REDUCE_ONLY_OVERRIDE,
@@ -465,26 +466,20 @@ class dataPositionLimits(productionDataLayerGeneric):
         # Ignore warning instrumentOrder inherits from Order
         return max_order_ok_against_instrument_strategy
 
-    def get_spare_checking_all_position_limits(
+    def get_maximum_position_contracts_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
-    ) -> float:
-        spare_for_instrument = self.get_spare_for_instrument(
-            instrument_strategy.instrument_code
-        )
-        spare_for_instrument_strategy = self.get_spare_for_instrument_strategy(
-            instrument_strategy
-        )
+    ) -> int:
 
-        return min([abs(spare_for_instrument), abs(spare_for_instrument_strategy)])
+        limit_for_instrument = \
+            self._get_position_limit_object_for_instrument(instrument_strategy.instrument_code)
 
-    def get_spare_for_instrument_strategy(
-        self, instrument_strategy: instrumentStrategy
-    ) -> float:
-        position_and_limit = self._get_limit_and_position_for_instrument_strategy(
-            instrument_strategy
-        )
+        limit_for_instrument_strategy = \
+            self._get_position_limit_object_for_instrument_strategy(instrument_strategy)
 
-        return position_and_limit.spare
+        minimum_limit_contracts = limit_for_instrument.minimum_position_limit(limit_for_instrument_strategy)
+
+        return minimum_limit_contracts
+
 
     def _get_limit_and_position_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
@@ -532,12 +527,6 @@ class dataPositionLimits(productionDataLayerGeneric):
         # Ignore warning instrumentOrder inherits from Order
         return max_order_ok_against_instrument
 
-    def get_spare_for_instrument(self, instrument_code: str) -> float:
-        position_and_limit = self._get_limit_and_position_for_instrument(
-            instrument_code
-        )
-
-        return position_and_limit.spare
 
     def _get_limit_and_position_for_instrument(
         self, instrument_code: str
