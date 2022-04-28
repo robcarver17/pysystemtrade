@@ -530,7 +530,8 @@ def state_change_to_roll_adjusted_prices(
 
 
 def roll_adjusted_and_multiple_prices(
-    data: dataBlob, instrument_code: str, confirm_adjusted_price_change: bool = True
+    data: dataBlob, instrument_code: str,
+        confirm_adjusted_price_change: bool = True
 ) -> status:
     """
     Roll multiple and adjusted prices

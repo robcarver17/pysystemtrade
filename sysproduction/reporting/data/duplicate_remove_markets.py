@@ -76,7 +76,7 @@ class RemoveMarketData:
                                                       apply_higher_threshold = apply_higher_threshold)
 
         expensive = self.expensive_markets(threshold_factor = threshold_factor)
-        not_enough_trading_risk = self.markets_without_enough_volume_contracts(threshold_factor = threshold_factor)
+        not_enough_trading_risk = self.markets_without_enough_volume_risk(threshold_factor = threshold_factor)
         not_enough_trading_contracts = self.markets_without_enough_volume_contracts(threshold_factor = threshold_factor)
         too_safe = self.too_safe_markets(threshold_factor = threshold_factor)
 
@@ -302,12 +302,13 @@ def get_data_for_markets(data):
 def get_existing_bad_markets():
     production_config = get_production_config()
 
-    config = production_config.get_element_or_missing_data("exclude_instrument_lists")
-    if config is missing_data:
+    excluded_markets_config_element = production_config.get_element_or_missing_data("exclude_instrument_lists")
+    if excluded_markets_config_element is missing_data:
         print("NO BAD MARKETS IN CONFIG!")
         existing_bad_markets = []
     else:
-        existing_bad_markets = config['bad_markets']
+        existing_bad_markets = \
+            excluded_markets_config_element.get('bad_markets', [])
 
     return existing_bad_markets
 
