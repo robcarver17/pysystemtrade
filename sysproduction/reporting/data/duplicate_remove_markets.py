@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from syscore.objects import missing_data, named_object
 from sysdata.config.instruments import generate_matching_duplicate_dict
 from sysdata.config.production_config import get_production_config
-from sysproduction.reporting.data.constants import MAX_SR_COST, MIN_VOLUME_CONTRACTS_DAILY, MIN_VOLUME_RISK_DAILY
+from sysproduction.reporting.data.constants import MAX_SR_COST, MIN_VOLUME_CONTRACTS_DAILY, MIN_VOLUME_RISK_DAILY, BAD_THRESHOLD
 
 from sysproduction.reporting.reporting_functions import table
 
@@ -42,11 +42,13 @@ class RemoveMarketData:
 
     @property
     def str_existing_markets_to_remove(self) -> str:
-        return "Following should be removed (add to config.bad_markets): %s" % str(self.existing_markets_to_remove())
+        return "Following should be removed from trading (add to config.bad_markets) [%f threshold]: %s " % (BAD_THRESHOLD, str(self.existing_markets_to_remove()))
 
     def existing_markets_to_remove(self) -> list:
         existing_bad_markets = self.existing_bad_markets
-        bad_markets = self.bad_markets()
+
+        ## To be stopped from trading an existing market must be well below the threshold for not being a bad market
+        bad_markets = self.bad_markets(apply_lower_threshold=True)
 
         new_bad_markets = list(set(bad_markets).difference(set(existing_bad_markets)))
 
@@ -54,21 +56,29 @@ class RemoveMarketData:
 
     @property
     def str_removed_markets_addback(self) -> str:
-        return "Following should be added (delete from config.bad_markets): %s" % str(self.removed_markets_addback())
+        return "Following should be allowed to trade (delete from config.bad_markets) [%f threshold]: %s" % (BAD_THRESHOLD, str(self.removed_markets_addback()))
 
     def removed_markets_addback(self) -> list:
         existing_bad_markets = self.existing_bad_markets
-        bad_markets = self.bad_markets()
+
+        ## To be allowed to trade an existing bad market must be well above the threshold for not being a bad market
+        bad_markets = self.bad_markets(apply_higher_threshold=True)
 
         removed_bad_markets = list(set(existing_bad_markets).difference(set(bad_markets)))
 
         return removed_bad_markets
 
-    def bad_markets(self) -> list:
-        expensive = self.expensive_markets()
-        not_enough_trading_risk = self.markets_without_enough_volume_contracts()
-        not_enough_trading_contracts = self.markets_without_enough_volume_contracts()
-        too_safe = self.too_safe_markets()
+    def bad_markets(self,
+                    apply_higher_threshold = False,
+                    apply_lower_threshold = False) -> list:
+
+        threshold_factor = calculate_threshold_factor(apply_lower_threshold = apply_lower_threshold,
+                                                      apply_higher_threshold = apply_higher_threshold)
+
+        expensive = self.expensive_markets(threshold_factor = threshold_factor)
+        not_enough_trading_risk = self.markets_without_enough_volume_contracts(threshold_factor = threshold_factor)
+        not_enough_trading_contracts = self.markets_without_enough_volume_contracts(threshold_factor = threshold_factor)
+        too_safe = self.too_safe_markets(threshold_factor = threshold_factor)
 
         bad_markets = list(set(expensive
                                + not_enough_trading_risk
@@ -88,9 +98,15 @@ class RemoveMarketData:
     def reason_expensive_markets(self) -> str:
         return "SR cost per trade > %.3f" % self.max_cost
 
-    def expensive_markets(self) -> list:
+    def expensive_markets(self, threshold_factor: float = 1.0) -> list:
+        ## Threshold
+        ## If larger than 1, applied higher threshold: it will be easier to be a bad market, harder not to be
+        ## If less than 1, applied lower threshold: it will be harder to be a bad market, easier not to be
+
+        ## Lower maximum cost means easier to be a bad market
+
         SR_costs = self.SR_costs
-        max_cost = self.max_cost
+        max_cost = self.max_cost / threshold_factor
         expensive = list(SR_costs[SR_costs.SR_cost > max_cost].index)
 
         expensive.sort()
@@ -108,8 +124,14 @@ class RemoveMarketData:
     def reason_markets_without_enough_volume_risk(self) -> str:
         return "Volume in $m ann. risk per day < %.2f" % self.min_volume_risk
 
-    def markets_without_enough_volume_risk(self) -> list:
-        min_volume_risk = self.min_volume_risk
+    def markets_without_enough_volume_risk(self, threshold_factor: float = 1.0) -> list:
+        ## Threshold
+        ## If larger than 1, applied higher threshold: it will be easier to be a bad market, harder not to be
+        ## If less than 1, applied lower threshold: it will be harder to be a bad market, easier not to be
+
+        ## Higher min_volume_risk means it is easier to be a bad market
+
+        min_volume_risk = self.min_volume_risk * threshold_factor
         liquidity_data = self.liquidity_data
         not_enough_trading_risk = list(liquidity_data[liquidity_data.risk < min_volume_risk].index)
         not_enough_trading_risk.sort()
@@ -126,9 +148,16 @@ class RemoveMarketData:
     def reason_markets_without_enough_volume_contracts(self) -> str:
         return "Volume in contracts per day < %d" % int(self.min_volume_contracts)
 
-    def markets_without_enough_volume_contracts(self) -> list:
+    def markets_without_enough_volume_contracts(self, threshold_factor: float = 1.0) -> list:
+        ## Threshold
+        ## If larger than 1, applied higher threshold: it will be easier to be a bad market, harder not to be
+        ## If less than 1, applied lower threshold: it will be harder to be a bad market, easier not to be
+
+        ## Higher min_contracts means it is easier to be a bad market
+
+
         liquidity_data = self.liquidity_data
-        min_contracts = self.min_volume_contracts
+        min_contracts = self.min_volume_contracts * threshold_factor
         not_enough_trading_contracts = list(
             liquidity_data[liquidity_data.contracts < min_contracts].index
         )
@@ -146,9 +175,15 @@ class RemoveMarketData:
     def reason_too_safe_markets(self) -> str:
         return "Annual %% std. dev < %.1f" % self.min_ann_perc_std
 
-    def too_safe_markets(self) -> list:
+    def too_safe_markets(self, threshold_factor: float = 1.0) -> list:
+        ## Threshold
+        ## If larger than 1, applied higher threshold: it will be easier to be a bad market, harder not to be
+        ## If less than 1, applied lower threshold: it will be harder to be a bad market, easier not to be
+
+        ## Higher min_ann_perc_std means it is easier to be a bad market
+
         risk_data = self.risk_data
-        min_ann_perc_std = self.min_ann_perc_std
+        min_ann_perc_std = self.min_ann_perc_std * threshold_factor
         too_safe = list(risk_data[risk_data.annual_perc_stdev < min_ann_perc_std].index)
         too_safe.sort()
 
@@ -368,3 +403,29 @@ def get_bad_market_filter_parameters():
     min_risk = MIN_VOLUME_RISK_DAILY
 
     return max_cost, min_contracts, min_risk
+
+def calculate_threshold_factor(apply_lower_threshold: bool = False,
+                                apply_higher_threshold: bool = False) -> float:
+
+    ## The threshold factor is a number we apply
+    ## To be stopped from trading an existing market must be well below the threshold for not being a bad market
+    ## To be added to trading an existing bad market must be well above the threshold for not being a bad market
+
+    ## We return a number
+    ## If larger than 1, applied higher threshold: it will be easier to be a bad market, harder not to be
+    ## If less than 1, applied lower threshold: it will be harder to be a bad market, easier not to be
+
+    if apply_higher_threshold:
+        if apply_lower_threshold:
+            raise Exception("Can't apply both thresholds together")
+        else:
+            return 1+BAD_THRESHOLD
+
+    if apply_lower_threshold:
+        if apply_higher_threshold:
+            raise Exception("Can't apply both thresholds together")
+        else:
+            return 1-BAD_THRESHOLD
+
+    return 1.0
+
