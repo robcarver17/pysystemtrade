@@ -240,8 +240,7 @@ def get_data_for_objective_instance(
     maximum_position_contracts = get_maximum_position_contracts(
         data,
         strategy_name=strategy_name,
-        previous_positions=previous_positions_as_weights_object,
-        list_of_instruments=list_of_instruments,
+        list_of_instruments=list_of_instruments
     )
 
     data.log.msg("Getting covariance matrix")
@@ -283,7 +282,7 @@ def get_data_for_objective_instance(
 
 
 def get_maximum_position_contracts(
-    data, strategy_name: str, previous_positions: dict, list_of_instruments: list
+    data, strategy_name: str, list_of_instruments: list
 ) -> portfolioWeights:
 
     maximum_position_contracts = dict(
