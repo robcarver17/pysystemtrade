@@ -3,7 +3,7 @@ import datetime
 
 from syscore.objects import get_methods, missing_data
 from syscore.dateutils import ARBITRARY_START
-from syscore.pdutils import prices_to_daily_prices
+from syscore.pdutils import prices_to_daily_prices, intraday_date_rows_in_pd_object
 from sysdata.base_data import baseData
 
 from sysobjects.spot_fx_prices import fxPrices
@@ -106,6 +106,17 @@ class simData(baseData):
         dailyprice = prices_to_daily_prices(instrprice)
 
         return dailyprice
+
+    def hourly_prices(self, instrument_code: str) -> pd.Series:
+        instrprice = self.get_raw_price(instrument_code)
+        if len(instrprice) == 0:
+            raise Exception("No adjusted hourly prices for %s" % instrument_code)
+
+        intraday_only_prices = intraday_date_rows_in_pd_object(instrprice)
+        hourly_prices = intraday_only_prices.resample("H").last()
+        hourly_prices = hourly_prices.dropna()
+
+        return hourly_prices
 
     def get_fx_for_instrument(
         self, instrument_code: str, base_currency: str

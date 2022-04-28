@@ -470,6 +470,8 @@ class dataPositionLimits(productionDataLayerGeneric):
         self, instrument_strategy: instrumentStrategy
     ) -> int:
 
+        ## FIXME: THIS WON'T WORK IF THERE ARE MULTIPLE STRATEGIES TRADING AN INSTRUMENT
+
         limit_for_instrument = \
             self._get_position_limit_object_for_instrument(instrument_strategy.instrument_code)
 
