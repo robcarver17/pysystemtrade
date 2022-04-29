@@ -31,27 +31,31 @@ def clone_data_for_instrument(
     clone_adjusted_prices(instrument_from, instrument_to, write_to_csv=write_to_csv)
 
 
-def clone_prices_per_contract(instrument_from: str, instrument_to: str):
+def clone_prices_per_contract(instrument_from: str, instrument_to: str,
+                              list_of_contract_dates = None,
+                              ignore_duplication = False):
 
-    list_of_contract_dates = (
-        db_data_individual_prices.contract_dates_with_price_data_for_instrument_code(
-            instrument_from
+    if list_of_contract_dates is None:
+        list_of_contract_dates = (
+            db_data_individual_prices.contract_dates_with_price_data_for_instrument_code(
+                instrument_from
+            )
         )
-    )
 
     _ = [
-        clone_single_contract(instrument_from, instrument_to, contract_date)
+        clone_single_contract(instrument_from, instrument_to, contract_date, ignore_duplication = ignore_duplication)
         for contract_date in list_of_contract_dates
     ]
 
 
-def clone_single_contract(instrument_from: str, instrument_to: str, contract_date: str):
+def clone_single_contract(instrument_from: str, instrument_to: str, contract_date: str, ignore_duplication = False):
 
     data_in = db_data_individual_prices.get_prices_for_contract_object(
         futuresContract(instrument_from, contract_date)
     )
     db_data_individual_prices.write_prices_for_contract_object(
-        futuresContract(instrument_to, contract_date), futures_price_data=data_in
+        futuresContract(instrument_to, contract_date), futures_price_data=data_in,
+        ignore_duplication=ignore_duplication
     )
 
 
@@ -62,12 +66,12 @@ def clone_roll_calendar(instrument_from: str, instrument_to: str):
 
 
 def clone_multiple_prices(
-    instrument_from: str, instrument_to: str, write_to_csv: bool = True
+    instrument_from: str, instrument_to: str, write_to_csv: bool = True, ignore_duplication = False
 ):
 
     prices = db_data_multiple_prices.get_multiple_prices(instrument_from)
     db_data_multiple_prices.add_multiple_prices(
-        instrument_to, multiple_price_data=prices
+        instrument_to, multiple_price_data=prices, ignore_duplication=ignore_duplication
     )
 
     if write_to_csv:
@@ -75,12 +79,14 @@ def clone_multiple_prices(
 
 
 def clone_adjusted_prices(
-    instrument_from: str, instrument_to: str, write_to_csv: bool = True
+    instrument_from: str, instrument_to: str, write_to_csv: bool = True,
+        ignore_duplication = False
 ):
 
     prices = db_data_adjusted_prices.get_adjusted_prices(instrument_from)
     db_data_adjusted_prices.add_adjusted_prices(
-        instrument_to, adjusted_price_data=prices
+        instrument_to, adjusted_price_data=prices,
+        ignore_duplication=ignore_duplication
     )
     if write_to_csv:
         csv_adjusted.add_adjusted_prices(instrument_to, adjusted_price_data=prices)

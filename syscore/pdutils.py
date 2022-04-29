@@ -501,6 +501,13 @@ def intraday_date_rows_in_pd_object(pd_object):
         ]
     ]
 
+def get_intraday_df_at_frequency(df: pd.DataFrame, frequency="H"):
+    intraday_only_df = intraday_date_rows_in_pd_object(df)
+    intraday_df = intraday_only_df.resample(frequency).last()
+    intraday_df_clean = intraday_df.dropna()
+
+    return intraday_df_clean
+
 
 def sumup_business_days_over_pd_series_without_double_counting_of_closing_data(
     pd_series,
