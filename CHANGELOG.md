@@ -1,7 +1,12 @@
 # Release notes
 
-## Version 1.30
+## Version 1.31 (didn't seem to do any notes for 1.30)
 
+- Started introducing intraday strategy support
+- Roll code will now forward fill prices if requested instead of failing
+- Report to remove suggested instruments now 'buffers' to avoid too many changes
+- A lot of improvements to reporting; new reports, split up existing reports
+- Clearer exposition of IB vs my multipliers
 
 
 ## Version 1.20
