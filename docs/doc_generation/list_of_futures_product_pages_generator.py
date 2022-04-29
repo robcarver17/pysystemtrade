@@ -1,5 +1,5 @@
 from pathlib import Path
-from syscore.fileutils import get_resolved_pathname, get_filename_for_package
+from syscore.fileutils import get_filename_for_package
 from docs.doc_generation.symbol_product_page_map import symbol_product_page_map  
 
 #GET ABSOLUTE PATH TO THE DOCS MODULE
