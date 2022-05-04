@@ -85,9 +85,7 @@ class RawData(SystemStage):
 
     @input
     def get_hourly_prices(self, instrument_code: str) -> pd.Series:
-        raw_prices = self.get_natural_frequency_prices(instrument_code)
-
-        hourly_prices = raw_prices.resample("1H").last()
+        hourly_prices = self.data_stage.hourly_prices(instrument_code)
 
         return hourly_prices
 
