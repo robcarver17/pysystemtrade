@@ -11,7 +11,7 @@ from sysobjects.fills import listOfFills
 
 
 class pandlCalculationWithFills(pandlCalculation):
-    def __init__(self, *args, fills: pd.Series = arg_not_supplied, **kwargs):
+    def __init__(self, *args, fills: listOfFills = arg_not_supplied, **kwargs):
         # if fills aren't supplied, can be inferred from positions
         super().__init__(*args, **kwargs)
         self._fills = fills
