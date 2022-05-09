@@ -7,7 +7,7 @@ from systems.accounts.pandl_calculators.pandl_calculation import (
     apply_weighting,
 )
 
-from sysobjects.fills import listOfFills
+from sysobjects.fills import listOfFills, Fill
 
 
 class pandlCalculationWithFills(pandlCalculation):
@@ -15,6 +15,7 @@ class pandlCalculationWithFills(pandlCalculation):
         # if fills aren't supplied, can be inferred from positions
         super().__init__(*args, **kwargs)
         self._fills = fills
+        self._calculated_price = missing_data
 
     def weight(self, weight: pd.Series):
         ## we don't weight fills, instead will be inferred from positions
@@ -86,7 +87,21 @@ class pandlCalculationWithFills(pandlCalculation):
         if fills is arg_not_supplied:
             raise Exception("Need to pass fills or positions")
 
-        raise Exception("Haven't implemented inferring position from fills")
+        positions = infer_positions_from_fills(fills)
+
+        return positions
+
+
+    def _calculate_and_set_prices_from_fills_and_input_prices(self) -> pd.Series:
+
+        ## this will be set in the parent __init__
+        passed_prices = self._price
+        merged_price = merge_fill_prices_with_prices(passed_prices,
+                                                     self.fills)
+        self._calculated_price = merged_price
+
+        return merged_price
+
 
 
 def merge_fill_prices_with_prices(
@@ -98,11 +113,12 @@ def merge_fill_prices_with_prices(
     prices_to_use = pd.concat(
         [prices, unique_trades_as_pd_df.price], axis=1, join="outer"
     )
+    prices_to_use.columns = ['price', 'fill_price']
 
     # Where no fill price available, use price
     prices_to_use = prices_to_use.fillna(axis=1, method="ffill")
 
-    prices_to_use = prices_to_use.price
+    prices_to_use = prices_to_use.fill_price
 
     prices_to_use = prices_to_use.replace([np.inf, -np.inf], np.nan)
     prices_to_use = prices_to_use.dropna()
@@ -120,6 +136,16 @@ def unique_trades_df(trade_df: pd.DataFrame) -> pd.DataFrame:
     new_df = new_df.drop(labels="cash_flow", axis=1)
 
     return new_df
+
+
+def infer_positions_from_fills(fills: listOfFills) -> pd.Series:
+    date_index = [fill.date for fill in fills]
+    qty_trade = [fill.qty for fill in fills]
+    trade_series = pd.Series(qty_trade, index = date_index)
+    trade_series = trade_series.sort_index()
+    position_series = trade_series.cumsum()
+
+    return position_series
 
 
 """

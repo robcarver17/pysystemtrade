@@ -32,14 +32,14 @@ class listOfFills(list):
 
     @classmethod
     def from_position_series_and_prices(
-        listOfFills, positions: pd.Series, price: pd.Series
+        cls, positions: pd.Series, price: pd.Series
     ):
 
         list_of_fills = _list_of_fills_from_position_series_and_prices(
             positions=positions, price=price
         )
 
-        return list_of_fills
+        return cls(list_of_fills)
 
 
 def _list_of_fills_from_position_series_and_prices(
