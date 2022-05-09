@@ -3,7 +3,7 @@ from sysobjects.contracts import futuresContract
 import pandas as pd
 
 
-class contractComparison:
+class ContractComparison:
     '''Class for comparing futures contracts side by side on different dimensions'''
 
     def _create_comparison(self, instrument_code: str, price_date_str: str, forward_date_str: str,
