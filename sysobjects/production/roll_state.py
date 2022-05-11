@@ -29,7 +29,7 @@ def is_forced_roll_state(roll_state: RollState):
 
 
 def is_type_of_active_rolling_roll_state(roll_state: RollState):
-    if is_forced_roll_state(roll_state) or roll_state == RollState.Roll_Adjusted or roll_state == RollState.Close:
+    if is_forced_roll_state(roll_state) or roll_state == RollState.Roll_Adjusted:
         return True
     else:
         return False

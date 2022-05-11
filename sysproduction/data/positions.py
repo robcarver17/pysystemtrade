@@ -96,6 +96,13 @@ class diagPositions(productionDataLayerGeneric):
 
         return is_roll_state_force_outright
 
+    def is_roll_state_close(self, instrument_code: str) -> bool:
+        roll_state = self.get_roll_state(instrument_code)
+
+        is_roll_state_close = roll_state == RollState.Close
+
+        return is_roll_state_close
+
     def is_type_of_active_rolling_roll_state(self, instrument_code: str) -> bool:
         roll_state = self.get_roll_state(instrument_code)
         return is_type_of_active_rolling_roll_state(roll_state)

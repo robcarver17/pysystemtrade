@@ -222,6 +222,17 @@ def get_required_contract_trade_for_instrument(
         )
         return [contractIdAndTrade(current_contract, trade)]
 
+    elif diag_positions.is_roll_state_close(instrument_code):
+        diag_contracts = dataContracts(data)
+        current_contract = diag_contracts.get_priced_contract_id(instrument_code)
+
+        log.msg(
+            "Closing roll state, allocating entire order %s to current contract %s"
+            % (str(instrument_order), current_contract)
+        )
+        return [contractIdAndTrade(current_contract, trade)]
+
+
     elif diag_positions.is_roll_state_passive(instrument_code):
         # no log as function does it
         list_of_child_contract_dates_and_trades = passive_roll_child_order(
