@@ -224,8 +224,12 @@ class instrumentCosts(object):
         )
 
     def commission_only(self):
-        new_costs = copy(self)
-        new_costs.price_slippage = 0.0
+        new_costs = instrumentCosts(
+            price_slippage = 0.0,
+            value_of_block_commission= self.value_of_block_commission,
+            percentage_cost = self.percentage_cost,
+            value_of_pertrade_commission = self.value_of_pertrade_commission
+        )
 
         return new_costs
 

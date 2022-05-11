@@ -149,8 +149,7 @@ class ForecastCombine(SystemStage):
 
         smoothed_daily_forecast_weights = self.get_forecast_weights(instrument_code)
         smoothed_forecast_weights = smoothed_daily_forecast_weights.reindex(
-            forecasts.index
-        ).ffill()
+            forecasts.index, method="ffill")
 
         weighted_forecasts = smoothed_forecast_weights * forecasts
 
