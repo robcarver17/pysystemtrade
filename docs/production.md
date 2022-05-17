@@ -1452,7 +1452,7 @@ These control the core functionality of the system.
 
 Python:
 ```python
-from sysproduction.updateFxPrices import update_fx_prices
+from sysproduction.update_fx_prices import update_fx_prices
 
 update_fx_prices()
 ```
