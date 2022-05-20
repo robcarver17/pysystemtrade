@@ -1524,8 +1524,8 @@ It should be scheduled to run once the daily prices for individual contracts hav
 
 Python:
 ```python
-from sysproduction.update_multiple_adjusted_prices import update_multiple_adjusted_prices_daily
-update_multiple_adjusted_prices_daily()
+from sysproduction.update_multiple_adjusted_prices import update_multiple_adjusted_prices
+update_multiple_adjusted_prices()
 ```
 
 Linux script:
