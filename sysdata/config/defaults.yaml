@@ -33,6 +33,9 @@ ib_ipaddress: 127.0.0.1
 ib_port: 4001
 ib_idoffset: 100
 #
+# Broker class list resolution function
+broker_factory_func: 'sysbrokers.broker_factory.get_ib_class_list'
+#
 # Mongo DB
 mongo_host: 127.0.0.1
 mongo_db: 'production'
