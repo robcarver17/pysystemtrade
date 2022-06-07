@@ -10,7 +10,7 @@ process_configuration_start_time:
   run_reports: '20:25'
 process_configuration_stop_time:
   default: '23:50'
-  run_strategy_order_generator: '19:30'
+  run_strategy_order_generator: '23:50'
   run_stack_handler: '19:45'
   run_capital_update: '19:50'
   run_daily_prices_updates: '23:50'
