@@ -1163,7 +1163,7 @@ The broker order is then sent to the sysbroker orders code, via the production d
 
 The following is correct for IB, which in any case is the only broker we can currently use in pysystemtrade.
 
-Broker orders are passed to sysbrokers.IB.ib_orders_data.ibOrdersData.put_order_on_stack; after adding information needed to identify the contract to be traded accurately, it is subsequently sent to sysbrokers.IB.client.ib_orders_client.ibOrdersClient.
+Broker orders are passed to sysbrokers.IB.ib_orders.ibExecutionStackData.put_order_on_stack; after adding information needed to identify the contract to be traded accurately, it is subsequently sent to sysbrokers.IB.client.ib_orders_client.ibOrdersClient.
 
 That translates the order into IB terms, and places the order. It returns a tradeWithContract object, which contains an ibcontractWithLegs object (containing the IB representation of the contract traded, plus any legs for a spread order), and the order object returned by the ib_insync code. 
 
