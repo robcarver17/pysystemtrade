@@ -263,7 +263,9 @@ class instrumentCosts(object):
         return cost_in_percentage_terms
 
     def calculate_cost_instrument_currency(
-        self, blocks_traded: float, block_price_multiplier: float, price: float
+        self, blocks_traded: float,
+            block_price_multiplier:
+            float, price: float
     ) -> float:
 
         value_per_block = price * block_price_multiplier

@@ -37,7 +37,7 @@ class TestFuturesInit:
             "AUD",
             output_datapath=output_dir,
             input_prices=sample_prices,
-            input_config=csvRollParametersData(),
+            roll_parameters_data=csvRollParametersData(),
             check_before_writing=False,
         )
 

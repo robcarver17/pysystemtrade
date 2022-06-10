@@ -51,7 +51,7 @@ Frequency = Enum(
 )
 DAILY_PRICE_FREQ = Frequency.Day
 BUSINESS_DAY_FREQ = Frequency.BDay
-
+HOURLY_FREQ = Frequency.Hour
 
 def from_config_frequency_pandas_resample(freq: Frequency) -> str:
     LOOKUP_TABLE = {

@@ -77,13 +77,18 @@ def process_multiple_prices_all_instruments(
 
 def process_multiple_prices_single_instrument(
     instrument_code,
+    target_instrument_code = arg_not_supplied,
     adjust_calendar_to_prices=True,
     csv_multiple_data_path=arg_not_supplied,
     csv_roll_data_path=arg_not_supplied,
+    roll_parameters = arg_not_supplied,
+    roll_calendar = arg_not_supplied,
     ADD_TO_ARCTIC=True,
     ADD_TO_CSV=False,
 ):
 
+    if target_instrument_code is arg_not_supplied:
+        target_instrument_code = instrument_code
     (
         csv_roll_calendars,
         arctic_individual_futures_prices,
@@ -98,11 +103,14 @@ def process_multiple_prices_single_instrument(
         dict_of_futures_contract_prices.final_prices()
     )
 
-    roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
+    if roll_calendar is arg_not_supplied:
+        roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
 
     # Add first phantom row so that the last calendar entry won't be consumed by adjust_roll_calendar()
-    m = mongoRollParametersData()
-    roll_parameters = m.get_roll_parameters(instrument_code)
+    if roll_parameters is arg_not_supplied:
+        m = mongoRollParametersData()
+        roll_parameters = m.get_roll_parameters(instrument_code)
+
     roll_calendar = add_phantom_row(
         roll_calendar, dict_of_futures_contract_closing_prices, roll_parameters
     )
@@ -123,11 +131,11 @@ def process_multiple_prices_single_instrument(
 
     if ADD_TO_ARCTIC:
         arctic_multiple_prices.add_multiple_prices(
-            instrument_code, multiple_prices, ignore_duplication=True
+            target_instrument_code, multiple_prices, ignore_duplication=True
         )
     if ADD_TO_CSV:
         csv_multiple_prices.add_multiple_prices(
-            instrument_code, multiple_prices, ignore_duplication=True
+            target_instrument_code, multiple_prices, ignore_duplication=True
         )
 
     return multiple_prices
