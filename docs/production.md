@@ -1163,7 +1163,7 @@ The broker order is then sent to the sysbroker orders code, via the production d
 
 The following is correct for IB, which in any case is the only broker we can currently use in pysystemtrade.
 
-Broker orders are passed to sysbrokers.IB.ib_orders_data.ibOrdersData.put_order_on_stack; after adding information needed to identify the contract to be traded accurately, it is subsequently sent to sysbrokers.IB.client.ib_orders_client.ibOrdersClient.
+Broker orders are passed to sysbrokers.IB.ib_orders.ibExecutionStackData.put_order_on_stack; after adding information needed to identify the contract to be traded accurately, it is subsequently sent to sysbrokers.IB.client.ib_orders_client.ibOrdersClient.
 
 That translates the order into IB terms, and places the order. It returns a tradeWithContract object, which contains an ibcontractWithLegs object (containing the IB representation of the contract traded, plus any legs for a spread order), and the order object returned by the ib_insync code. 
 
@@ -1452,7 +1452,7 @@ These control the core functionality of the system.
 
 Python:
 ```python
-from sysproduction.updateFxPrices import update_fx_prices
+from sysproduction.update_fx_prices import update_fx_prices
 
 update_fx_prices()
 ```
@@ -1524,8 +1524,8 @@ It should be scheduled to run once the daily prices for individual contracts hav
 
 Python:
 ```python
-from sysproduction.update_multiple_adjusted_prices import update_multiple_adjusted_prices_daily
-update_multiple_adjusted_prices_daily()
+from sysproduction.update_multiple_adjusted_prices import update_multiple_adjusted_prices
+update_multiple_adjusted_prices()
 ```
 
 Linux script:
@@ -1558,12 +1558,12 @@ Linux script:
 Called by: `run_capital_update`
 
 
-If the brokers account value changes by more than 10% then capital will not be adjusted, and you will be sent an email. You will then need to run `modify_account_values`. This will repeat the poll of the brokerage account, and ask you to confirm if a large change is real. The next time `update_account_values` is run there will be no error, and all adjustments will go ahead as normal.
+If the brokers account value changes by more than 10% then capital will not be adjusted, and you will be sent an email. You will then need to run `modify_account_values`. This will repeat the poll of the brokerage account, and ask you to confirm if a large change is real. The next time `update_total_capital` is run there will be no error, and all adjustments will go ahead as normal.
 
 
 ### Allocate capital to strategies
 
-Allocates total capital to individual strategies. See [strategy capital](#strategy-capital) for more details. Will not work if `update_account_values` has not run at least once, or capital has been manually initialised by `update_capital_manual`.
+Allocates total capital to individual strategies. See [strategy capital](#strategy-capital) for more details. Will not work if `update_total_capital` has not run at least once, or capital has been manually initialised by `update_capital_manual`.
 
 Python:
 ```python
@@ -1764,7 +1764,7 @@ Linux script:
 See [capital](#capital) to understand how capital works.
 This function is used interactively to control total capital allocation in any of the following scenarios:
 
-- You want to initialise the total capital available in the account. If this isn't done, it will be done automatically when `update_account_values` runs with default values. The default values are brokerage account value = total capital available = maximum capital available (i.e. you start at HWM), with accumulated profits = 0. If you don't like any of these values then you can initialise them differently.
+- You want to initialise the total capital available in the account. If this isn't done, it will be done automatically when `update_total_capital` runs with default values. The default values are brokerage account value = total capital available = maximum capital available (i.e. you start at HWM), with accumulated profits = 0. If you don't like any of these values then you can initialise them differently.
 - You have made a withdrawal or deposit in your brokerage account, which would otherwise cause the apparent available capital available to drop, and needs to be ignored
 - There has been a large change in the value of your brokerage account. A filter has caught this as a possible error, and you need to manually confirm it is ok.
 - You want to delete capital entries for some recent period of time (perhaps because you missed a withdrawal and it screwed up your capital)
