@@ -546,10 +546,14 @@ def roll_adjusted_and_multiple_prices(
     )
 
     if rolling_adj_and_mult_object is failure:
-        print("Error %s when trying to calculate roll prices" % str(e))
+        print("Error when trying to calculate roll prices" )
         return failure
 
-    rolling_adj_and_mult_object.compare_old_and_new_prices()
+    try:
+        rolling_adj_and_mult_object.compare_old_and_new_prices()
+    except Exception as e:
+        print("Error %s when trying to compare roll prices" % str(e))
+        return failure
 
     if confirm_adjusted_price_change:
         is_okay_to_roll = true_if_answer_is_yes(
