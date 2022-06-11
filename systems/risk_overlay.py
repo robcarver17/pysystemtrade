@@ -29,10 +29,10 @@ def get_risk_multiplier(risk_overlay_config: dict,
         risk_limit=risk_limit_for_normal_risk
     )
 
-    risk_limit_for_normal_risk = risk_overlay_config['max_risk_fraction_stdev_risk'] * percentage_vol_target / 100.0
+    risk_limit_for_shocked_risk = risk_overlay_config['max_risk_fraction_stdev_risk'] * percentage_vol_target / 100.0
     risk_multiplier_for_shocked_stdev = multiplier_given_series_and_limit(
         risk_measure=shocked_vol_risk,
-        risk_limit=risk_limit_for_normal_risk
+        risk_limit=risk_limit_for_shocked_risk
     )
 
     risk_limit_for_sum_abs_risk = risk_overlay_config['max_risk_limit_sum_abs_risk'] * percentage_vol_target / 100.0
@@ -57,6 +57,7 @@ def get_risk_multiplier(risk_overlay_config: dict,
         ],
         axis=1,
     )
+    all_mult.columns = ['jump vol', 'normal', 'shock correlation', 'leverage']
     joint_mult = all_mult.min(axis=1)
 
     return joint_mult
