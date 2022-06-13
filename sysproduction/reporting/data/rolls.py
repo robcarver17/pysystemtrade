@@ -231,7 +231,7 @@ def update_multiple_prices_on_roll(
     new_multiple_prices = futuresMultiplePrices(copy(current_multiple_prices))
 
     if allow_forward_fill:
-        new_multiple_prices = new_multiple_prices.ffill()
+        new_multiple_prices = futuresMultiplePrices(new_multiple_prices.ffill())
 
     # If the last row is all Nans, we can't do this
     new_multiple_prices = new_multiple_prices.sort_index()
