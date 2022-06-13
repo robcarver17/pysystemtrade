@@ -544,16 +544,12 @@ def roll_adjusted_and_multiple_prices(
     rolling_adj_and_mult_object = get_roll_adjusted_multiple_prices_object(
         data = data, instrument_code = instrument_code
     )
-
     if rolling_adj_and_mult_object is failure:
-        print("Error when trying to calculate roll prices" )
+        print("Error when trying to calculate roll prices")
         return failure
 
-    try:
-        rolling_adj_and_mult_object.compare_old_and_new_prices()
-    except Exception as e:
-        print("Error %s when trying to compare roll prices" % str(e))
-        return failure
+    ## prints to screen
+    rolling_adj_and_mult_object.compare_old_and_new_prices()
 
     if confirm_adjusted_price_change:
         is_okay_to_roll = true_if_answer_is_yes(
@@ -588,6 +584,9 @@ def get_roll_adjusted_multiple_prices_object(data: dataBlob,
         rolling_adj_and_mult_object = rollingAdjustedAndMultiplePrices(
             data, instrument_code
         )
+        ## We do this as getting the object doesn't guarantee it works
+        _unused_ = rolling_adj_and_mult_object.updated_multiple_prices
+
 
     except Exception as e:
         print("Error %s when trying to calculate roll prices" % str(e))
@@ -613,7 +612,10 @@ def _get_roll_adjusted_multiple_prices_object_ffill_option(data: dataBlob,
         rolling_adj_and_mult_object = rollingAdjustedAndMultiplePrices(
             data, instrument_code, allow_forward_fill=True
         )
-    except:
+        ## We do this as getting the object doesn't guarantee it works
+        _unused_ = rolling_adj_and_mult_object.updated_multiple_prices
+
+    except Exception as e:
         print("Error %s when trying to calculate roll prices, even when forward filling" % str(e))
         return failure
 
