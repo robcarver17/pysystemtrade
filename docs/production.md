@@ -1509,7 +1509,16 @@ Called by: `run_daily_price_updates`
 
 This will get daily closes, plus intraday data at the frequency specified by the parameter `intraday_frequency` in the defaults.yaml file (or overwritten in the private .yaml config file). It defaults to 'H: hourly'.
 
-This will check for 'spikes', unusually large movements in price either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
+It will try and get intraday data first, but if it can't get any then it will not try and get daily data (this is the default behaviour. To change modify the .yaml configuration parameter `dont_sample_daily_if_intraday_fails` to False). Otherwise, there will possibly be gaps in the intraday data when we are finally able to get daily data.
+
+It performs the following cleaning on data that it receives, depending on the .yaml parameter values that are set (defaults are shown in brackets):
+
+- if `ignore_future_prices` is True (default: True) we ignore any prices with time stamps in the future (assumes all prices are sampled back to local time). This prevents us from early filling of Asian time zone closing prices.
+- if `ignore_prices_with_zero_volumes`  is True (default: True) we ignore any price in a bar with zero volume; this reduces the amount of bad data we get.
+- if `ignore_zero_prices` is True  (default: True) we ignore prices that are exactly zero. A zero price is usually erroneous.
+- if `ignore_negative_prices`  is True (default: False) we ignore negative prices. Because of the crude oil incident in March 2020 I prefer to allow negative prices, and if they are errors hope that the spike checker catches them.
+
+This will also check for 'spikes', unusually large movements in price either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
 .
 
 The threshold for spikes is set in the default.yaml file, or overidden in the private config .yaml file, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=8`, then a price change larger than 4 units will trigger a spike.
@@ -1719,7 +1728,10 @@ Linux script:
 . $SCRIPT_PATH/interactive_manual_check_historical_prices
 ```
 
-The script will pull in data from interactive brokers, and the existing data, and check for spikes. If any spikes are found, then the user is interactively asked if they wish to (a) accept the spiked price, (b) use the previous time periods price instead, or (c) type a number in manually. You should check another data source to see if the spike is 'real', if so accept it, otherwise type in the correct value. Using the previous time periods value is only advisable if you are fairly sure that the price change wasn't real and you don't have a source to check with.
+The script will pull in data from interactive brokers, and the existing data. It will behave in the same way as `update_historical_prices`, except you have the option to change the relevant configuration items before you begin.
+
+
+Next it will check for spikes. If any spikes are found, then the user is interactively asked if they wish to (a) accept the spiked price, (b) use the previous time periods price instead, or (c) type a number in manually. You should check another data source to see if the spike is 'real', if so accept it, otherwise type in the correct value. Using the previous time periods value is only advisable if you are fairly sure that the price change wasn't real and you don't have a source to check with.
 
 If a new price is typed in then that is also spike checked, to avoid fat finger errors. So you may be asked to accept a price you have have just typed in manually if that still results in a spike. Accepted or previous prices are not spike checked again.
 
@@ -1812,6 +1824,8 @@ The possible options are:
 - Roll adjusted. This is only possible if you have no positions in the current price contract. It will create a new adjusted and multiple price series, hence the current forward contract will become the new priced contract (and everything else will shift accordingly). Adjusted price changes are manually confirmed before writing to the database.
 
 Once you've updated the roll status you have the option of choosing another instrument, or aborting.
+
+NOTE: Adjusted price rolling will fail if the system can't find aligned prices for the current and forward contract. In this case you have the option of forward filling the prices - it will make the roll less accurate, but at least you can keep that instrument in your system.
 
 #### Cycle through instrument codes automatically, but manually decide when to roll
 
