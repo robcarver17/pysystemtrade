@@ -26,10 +26,7 @@ def apply_price_cleaning(data: dataBlob,
     cleaning_config = get_config_for_price_filtering(data =data,
                                                      cleaning_config=cleaning_config)
 
-    print("***** TYPE CHECK2 %s" % type(broker_prices_raw))
-
     broker_prices = copy(broker_prices_raw)
-    print("***** TYPE CHECK3 %s" % type(broker_prices))
 
     ## It's important that the data is in local time zone so that this works
     if cleaning_config.ignore_future_prices:
