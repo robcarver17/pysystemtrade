@@ -1,5 +1,7 @@
 # Release notes
 
+- Improved price cleaning (see [discussion](https://github.com/robcarver17/pysystemtrade/discussions/646))
+
 ## Version 1.31 (didn't seem to do any notes for 1.30)
 
 - Started introducing intraday strategy support

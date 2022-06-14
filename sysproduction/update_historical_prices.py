@@ -163,7 +163,9 @@ def get_and_add_prices_for_frequency(
                                                    check_for_spike=check_for_spike,
                                                    cleaning_config=cleaning_config
                                                    )
-
+    if error_or_rows_added is failure:
+        return failure
+    
     data.log.msg(
         "Added %d rows at frequency %s for %s"
         % (error_or_rows_added, frequency, str(contract_object))
