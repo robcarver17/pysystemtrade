@@ -51,6 +51,7 @@ max_price_spike: 8
 ignore_future_prices: True
 ignore_prices_with_zero_volumes: True
 ignore_zero_prices: True
+ignore_negative_prices: False
 #
 # Price frequency (we collect daily data, and separately this frequency
 intraday_frequency: H

@@ -544,5 +544,10 @@ class dataBroker(productionDataLayerGeneric):
         return total_account_value_in_base_currency
 
 
-production_config = get_production_config()
-production_config.get_element_or_missing_data('')
+def _get_config_for_price_filtering(data: dataBlob):
+    production_config = get_production_config()
+    ignore_future_prices = production_config.get_element_or_missing_data('ignore_future_prices')
+    ignore_prices_with_zero_volumes = production_config.get_element_or_missing_data('ignore_future_prices')
+    ignore_zero_prices = production_config.get_element_or_missing_data('ignore_zero_prices')
+
+    if (ignore_future_prices is arg_not_supplied) or \
