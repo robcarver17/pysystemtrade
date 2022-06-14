@@ -2,7 +2,7 @@
 Update historical data per contract from interactive brokers data, dump into mongodb
 """
 
-from syscore.objects import success, failure
+from syscore.objects import success, failure, arg_not_supplied
 from syscore.merge_data import spike_in_data
 
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
@@ -11,7 +11,7 @@ from sysobjects.contracts import futuresContract
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices, updatePrices
-from sysproduction.data.broker import dataBroker
+from sysproduction.data.broker import dataBroker, get_config_for_price_filtering, priceFilterConfig
 from sysproduction.data.contracts import dataContracts
 from syslogdiag.email_via_db_interface import send_production_mail_msg
 
@@ -38,14 +38,18 @@ class updateHistoricalPrices(object):
 
 
 def update_historical_prices_with_data(data: dataBlob):
+    cleaning_config = get_config_for_price_filtering(data)
     price_data = diagPrices(data)
     list_of_codes_all = price_data.get_list_of_instruments_in_multiple_prices()
     for instrument_code in list_of_codes_all:
         data.log.label(instrument_code=instrument_code)
-        update_historical_prices_for_instrument(instrument_code, data)
+        update_historical_prices_for_instrument(instrument_code, data,
+                                                cleaning_config = cleaning_config)
 
 
-def update_historical_prices_for_instrument(instrument_code: str, data: dataBlob):
+def update_historical_prices_for_instrument(instrument_code: str,
+                                            data: dataBlob,
+                                            cleaning_config: priceFilterConfig = arg_not_supplied):
     """
     Do a daily update for futures contract prices, using IB historical data
 
@@ -65,13 +69,14 @@ def update_historical_prices_for_instrument(instrument_code: str, data: dataBlob
 
     for contract_object in contract_list:
         data.log.label(contract_date=contract_object.date_str)
-        update_historical_prices_for_instrument_and_contract(contract_object, data)
+        update_historical_prices_for_instrument_and_contract(contract_object, data, cleaning_config = cleaning_config)
 
     return success
 
 
 def update_historical_prices_for_instrument_and_contract(
-    contract_object: futuresContract, data: dataBlob
+    contract_object: futuresContract, data: dataBlob,
+        cleaning_config: priceFilterConfig = arg_not_supplied
 ):
     """
     Do a daily update for futures contract prices, using IB historical data
@@ -100,22 +105,29 @@ def update_historical_prices_for_instrument_and_contract(
 
     # Get *intraday* data (defaults to hourly)
     result = get_and_add_prices_for_frequency(
-        data, contract_object, frequency=intraday_frequency
+        data,
+        contract_object,
+        frequency=intraday_frequency,
+        cleaning_config=cleaning_config
     )
     if result is failure:
         # Skip daily data if intraday not working
-
-        return None
+        if cleaning_config.dont_sample_daily_if_intraday_fails:
+            return failure
 
     # Get daily data
     # we don't care about the result flag for this
-    get_and_add_prices_for_frequency(data, contract_object, frequency=daily_frequency)
+    get_and_add_prices_for_frequency(data, contract_object,
+                                     frequency=daily_frequency,
+                                     cleaning_config=cleaning_config)
 
+    return success
 
 def get_and_add_prices_for_frequency(
     data: dataBlob,
     contract_object: futuresContract,
     frequency: Frequency = DAILY_PRICE_FREQ,
+    cleaning_config: priceFilterConfig = arg_not_supplied
 ):
     broker_data_source = dataBroker(data)
     db_futures_prices = updatePrices(data)
@@ -130,7 +142,8 @@ def get_and_add_prices_for_frequency(
         return failure
 
     error_or_rows_added = db_futures_prices.update_prices_for_contract(
-        contract_object, broker_prices, check_for_spike=True
+        contract_object, broker_prices, check_for_spike=True,
+        max_price_spike = cleaning_config.max_price_spike
     )
 
     if error_or_rows_added is spike_in_data:

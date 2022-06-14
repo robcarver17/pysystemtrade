@@ -56,7 +56,7 @@ ignore_negative_prices: False
 # Price frequency (we collect daily data, and separately this frequency
 intraday_frequency: H
 #
-dont_sample_daily_if_hourly_fails: True
+dont_sample_daily_if_intraday_fails: True
 #
 # Capital calculation
 production_capital_method: 'full'

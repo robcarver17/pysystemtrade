@@ -110,10 +110,14 @@ def update_historical_prices_with_checks_for_instrument_and_contract(
     intraday_frequency = diag_prices.get_intraday_frequency_for_historical_download()
     daily_frequency = DAILY_PRICE_FREQ
 
-    get_and_check_prices_for_frequency(
+    result = get_and_check_prices_for_frequency(
         data, contract_object, frequency=intraday_frequency,
         cleaning_config = cleaning_config
     )
+
+    if result is failure:
+        if cleaning_config.dont_sample_daily_if_intraday_fails:
+            return failure
 
     get_and_check_prices_for_frequency(data, contract_object,
                                        cleaning_config = cleaning_config,
@@ -139,6 +143,8 @@ def get_and_check_prices_for_frequency(
     broker_prices = broker_data.get_cleaned_prices_at_frequency_for_contract_object(
         contract_object, frequency, cleaning_config = cleaning_config
     )
+
+    # FIXME DISTINGUISH BETWEEN EMPTY DATA AND FAILURE MODE
     if len(broker_prices) == 0:
         print("No broker prices found for %s nothing to check" % str(contract_object))
         return failure
@@ -154,3 +160,5 @@ def get_and_check_prices_for_frequency(
     price_updater.update_prices_for_contract(
         contract_object, new_prices_checked, check_for_spike=False
     )
+
+    return success

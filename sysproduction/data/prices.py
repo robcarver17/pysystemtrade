@@ -39,6 +39,8 @@ from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
+## default for spike checking
+VERY_BIG_NUMBER = 999999.0
 
 class diagPrices(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
@@ -215,11 +217,14 @@ class updatePrices(productionDataLayerGeneric):
         contract_object: futuresContract,
         new_prices: futuresContractPrices,
         check_for_spike: bool = True,
+        max_price_spike: float = VERY_BIG_NUMBER
     ) -> int:
 
         error_or_rows_added = (
             self.db_futures_contract_price_data.update_prices_for_contract(
-                contract_object, new_prices, check_for_spike=check_for_spike
+                contract_object, new_prices,
+                check_for_spike=check_for_spike,
+                max_price_spike = max_price_spike
             )
         )
         return error_or_rows_added

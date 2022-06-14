@@ -11,6 +11,7 @@ PRICE_DATA_COLUMNS = sorted(["OPEN", "HIGH", "LOW", "FINAL", "VOLUME"])
 FINAL_COLUMN = "FINAL"
 VOLUME_COLUMN = "VOLUME"
 
+VERY_BIG_NUMBER = 999999.0
 
 class futuresContractPrices(pd.DataFrame):
     """
@@ -153,7 +154,8 @@ class futuresContractPrices(pd.DataFrame):
         return new_data
 
     def add_rows_to_existing_data(
-        self, new_futures_per_contract_prices, check_for_spike=True
+        self, new_futures_per_contract_prices, check_for_spike=True,
+            max_spike: float = VERY_BIG_NUMBER
     ):
         """
         Merges self with new data.
@@ -168,6 +170,7 @@ class futuresContractPrices(pd.DataFrame):
             pd.DataFrame(self),
             new_futures_per_contract_prices,
             check_for_spike=check_for_spike,
+            max_spike = max_spike,
             column_to_check=FINAL_COLUMN,
         )
 

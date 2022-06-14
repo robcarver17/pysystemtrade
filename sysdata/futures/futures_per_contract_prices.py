@@ -12,6 +12,7 @@ from syslogdiag.log_to_screen import logtoscreen
 
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"
 
+VERY_BIG_NUMBER = 999999.0
 
 class futuresContractPriceData(baseData):
     """
@@ -195,6 +196,7 @@ class futuresContractPriceData(baseData):
         contract_object: futuresContract,
         new_futures_per_contract_prices: futuresContractPrices,
         check_for_spike: bool = True,
+        max_price_spike: float = VERY_BIG_NUMBER
     ) -> int:
         """
         Reads existing data, merges with new_futures_prices, writes merged data
@@ -210,7 +212,8 @@ class futuresContractPriceData(baseData):
 
         old_prices = self.get_prices_for_contract_object(contract_object)
         merged_prices = old_prices.add_rows_to_existing_data(
-            new_futures_per_contract_prices, check_for_spike=check_for_spike
+            new_futures_per_contract_prices, check_for_spike=check_for_spike,
+            max_price_spike = max_price_spike
         )
 
         if merged_prices is spike_in_data:
