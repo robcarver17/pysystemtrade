@@ -16,6 +16,7 @@ from syscore.objects import (
     missing_order,
     missing_contract,
     missing_data,
+    failure
 )
 from syscore.dateutils import Frequency, listOfOpeningTimes, openingTimes
 
@@ -112,6 +113,28 @@ class dataBroker(productionDataLayerGeneric):
             self.log.warn(
                 "%s %s is not recognised by broker - try inverting" % (ccy1, ccy2)
             )
+
+    def get_cleaned_prices_at_frequency_for_contract_object(
+        self, contract_object: futuresContract, frequency: Frequency,
+            cleaning_control_args_override = arg_not_supplied
+    ) -> futuresContractPrices:
+
+        broker_prices_raw = \
+                self.get_prices_at_frequency_for_contract_object(contract_object=contract_object,
+                                                         frequency = frequency)
+
+        if broker_prices_raw is failure:
+            return failure
+
+        # FIXME NEEDS TO BE CONFIGURABLE AND INSIDE SOME FUNCTION
+        ## It's important that the data is in local time zone so that this works
+        broker_prices_no_future = broker_prices_raw.remove_future_data()
+
+        ## Ignore zeros if no volumes (if volume could be real price eg crude oil)
+        broker_prices = broker_prices_no_future.remove_zero_prices_if_zero_volumes()
+        # END FIXME
+
+        return broker_prices
 
     def get_prices_at_frequency_for_contract_object(
         self, contract_object: futuresContract, frequency: Frequency

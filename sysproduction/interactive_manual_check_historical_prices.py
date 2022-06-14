@@ -123,8 +123,9 @@ def get_and_check_prices_for_frequency(
 
     old_prices = price_data.get_prices_for_contract_object(contract_object)
 
-    broker_prices = broker_data.get_prices_at_frequency_for_contract_object(
-        contract_object, frequency
+    # FIXME add possibility of custom args for cleaning when running interactively
+    broker_prices = broker_data.get_cleaned_prices_at_frequency_for_contract_object(
+        contract_object, frequency, cleaning_control_args_override = dict()
     )
     if len(broker_prices) == 0:
         print("No broker prices found for %s nothing to check" % str(contract_object))
