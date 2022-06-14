@@ -42,7 +42,8 @@ class updateHistoricalPrices(object):
         update_historical_prices_with_data(data)
 
 
-def update_historical_prices_with_data(data: dataBlob,interactive_mode: bool = False):
+def update_historical_prices_with_data(data: dataBlob,
+                                       interactive_mode: bool = False):
     cleaning_config = get_config_for_price_filtering(data)
     price_data = diagPrices(data)
     list_of_codes_all = price_data.get_list_of_instruments_in_multiple_prices()
@@ -56,7 +57,7 @@ def update_historical_prices_with_data(data: dataBlob,interactive_mode: bool = F
 def update_historical_prices_for_instrument(instrument_code: str,
                                             data: dataBlob,
                                             cleaning_config: priceFilterConfig = arg_not_supplied,
-                                            interactive_mode = arg_not_supplied):
+                                            interactive_mode: bool = False):
     """
     Do a daily update for futures contract prices, using IB historical data
 

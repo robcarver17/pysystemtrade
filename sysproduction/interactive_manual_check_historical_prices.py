@@ -23,6 +23,7 @@ def interactive_manual_check_historical_prices():
     :return: Nothing
     """
     with dataBlob(log_name="Update-Historical-prices-manually") as data:
+
         cleaning_config = interactively_get_config_overrides_for_cleaning(data=data)
 
         do_another = True

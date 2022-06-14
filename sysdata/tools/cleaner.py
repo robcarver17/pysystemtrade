@@ -1,7 +1,7 @@
 from collections import namedtuple
 from copy import copy
 
-from syscore.interactive import get_field_names_for_named_tuple
+from syscore.interactive import get_field_names_for_named_tuple, true_if_answer_is_yes
 from syscore.objects import arg_not_supplied, failure
 from sysdata.config.production_config import get_production_config
 from sysdata.data_blob import dataBlob
@@ -26,7 +26,10 @@ def apply_price_cleaning(data: dataBlob,
     cleaning_config = get_config_for_price_filtering(data =data,
                                                      cleaning_config=cleaning_config)
 
+    print("***** TYPE CHECK2 %s" % type(broker_prices_raw))
+
     broker_prices = copy(broker_prices_raw)
+    print("***** TYPE CHECK3 %s" % type(broker_prices))
 
     ## It's important that the data is in local time zone so that this works
     if cleaning_config.ignore_future_prices:
@@ -83,7 +86,11 @@ def get_config_for_price_filtering(data: dataBlob,
 
 def interactively_get_config_overrides_for_cleaning(data) -> priceFilterConfig:
     default_config = get_config_for_price_filtering(data)
-    print("Data cleaning configuration: (press enter for defaults)")
-    new_config = get_field_names_for_named_tuple(default_config)
+    print("Current data cleaning configuration: %s" % str(default_config))
+    make_changes = true_if_answer_is_yes("Make changes?")
+    if make_changes:
+        new_config = get_field_names_for_named_tuple(default_config)
+    else:
+        return default_config
 
     return new_config
