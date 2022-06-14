@@ -87,7 +87,7 @@ def interactively_get_config_overrides_for_cleaning(data) -> priceFilterConfig:
     make_changes = true_if_answer_is_yes("Make changes?")
     if make_changes:
         new_config = get_field_names_for_named_tuple(default_config)
+        print("New config %s" % str(new_config))
+        return new_config
     else:
         return default_config
-
-    return new_config
