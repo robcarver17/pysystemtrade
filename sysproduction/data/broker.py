@@ -19,8 +19,8 @@ from syscore.objects import (
     missing_data,
     failure
 )
-from syscore.dateutils import Frequency, listOfOpeningTimes, openingTimes
-from syscore.genutils import override_tuple_fields
+from syscore.dateutils import Frequency, listOfOpeningTimes
+from syscore.interactive import get_field_names_for_named_tuple
 
 from sysdata.data_blob import dataBlob
 from sysdata.config.production_config import get_production_config
@@ -43,6 +43,15 @@ from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.control_process import diagControlProcess
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
+
+
+priceFilterConfig = namedtuple('priceFilterConfig',
+                               ['ignore_future_prices',
+                                'ignore_prices_with_zero_volumes',
+                                'ignore_zero_prices',
+                                'ignore_negative_prices',
+                                'max_price_spike',
+                                'dont_sample_daily_if_hourly_fails'])
 
 
 class dataBroker(productionDataLayerGeneric):
@@ -119,7 +128,7 @@ class dataBroker(productionDataLayerGeneric):
 
     def get_cleaned_prices_at_frequency_for_contract_object(
         self, contract_object: futuresContract, frequency: Frequency,
-            cleaning_control_args_override = arg_not_supplied
+            cleaning_config = arg_not_supplied
     ) -> futuresContractPrices:
 
         broker_prices_raw = \
@@ -128,7 +137,7 @@ class dataBroker(productionDataLayerGeneric):
 
         broker_prices = apply_price_cleaning(data = self.data,
                                               broker_prices_raw = broker_prices_raw,
-                                              cleaning_control_args_override = cleaning_control_args_override)
+                                              cleaning_config = cleaning_config)
 
         return broker_prices
 
@@ -568,18 +577,13 @@ def apply_price_cleaning(data: dataBlob,
 
     return broker_prices
 
-priceFilterConfig = namedtuple('priceFilterConfig',
-                               ['ignore_future_prices',
-                                'ignore_prices_with_zero_volumes',
-                                'ignore_zero_prices',
-                                'ignore_negative_prices'])
-
 def _get_config_for_price_filtering(data: dataBlob,
-                                    cleaning_control_args_override = arg_not_supplied)\
+                                    cleaning_config: priceFilterConfig  = arg_not_supplied)\
         -> priceFilterConfig:
 
-    if cleaning_control_args_override is arg_not_supplied:
-        cleaning_control_args_override = dict()
+    if cleaning_config is not arg_not_supplied:
+        ## override
+        return cleaning_config
 
     production_config = get_production_config()
     ignore_future_prices = production_config.get_element_or_missing_data('ignore_future_prices')
@@ -594,12 +598,16 @@ def _get_config_for_price_filtering(data: dataBlob,
         data.log.critical(error)
         raise Exception(error)
 
-    raw_config =  priceFilterConfig(ignore_zero_prices=ignore_zero_prices,
+    cleaning_config =  priceFilterConfig(ignore_zero_prices=ignore_zero_prices,
                              ignore_negative_prices=ignore_negative_prices,
                              ignore_future_prices=ignore_future_prices,
                              ignore_prices_with_zero_volumes=ignore_prices_with_zero_volumes)
 
-    config_with_overrides = override_tuple_fields(raw_config,
-                                                       cleaning_control_args_override)
+    return cleaning_config
 
-    return config_with_overrides
+def interactively_get_config_overrides_for_cleaning(data) -> priceFilterConfig:
+    default_config = _get_config_for_price_filtering(data)
+    print("Data cleaning configuration: (press enter for defaults)")
+    new_config = get_field_names_for_named_tuple(default_config)
+
+    return new_config

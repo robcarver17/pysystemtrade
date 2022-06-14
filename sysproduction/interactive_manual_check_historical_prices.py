@@ -4,7 +4,7 @@ Update historical data per contract from interactive brokers data, dump into mon
 Apply a check to each price series
 """
 
-from syscore.objects import success, failure
+from syscore.objects import success, failure, arg_not_supplied
 
 
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
@@ -14,7 +14,7 @@ from sysproduction.data.prices import (
     updatePrices,
     get_valid_instrument_code_from_user,
 )
-from sysproduction.data.broker import dataBroker
+from sysproduction.data.broker import dataBroker, interactively_get_config_overrides_for_cleaning, priceFilterConfig
 from sysproduction.data.contracts import dataContracts
 from sysdata.futures.manual_price_checker import manual_price_checker
 from sysobjects.futures_per_contract_prices import futuresContractPrices
@@ -30,6 +30,8 @@ def interactive_manual_check_historical_prices():
     :return: Nothing
     """
     with dataBlob(log_name="Update-Historical-prices-manually") as data:
+        cleaning_config = interactively_get_config_overrides_for_cleaning(data=data)
+
         do_another = True
         while do_another:
             EXIT_STR = "Finished: Exit"
@@ -42,7 +44,8 @@ def interactive_manual_check_historical_prices():
                 check_instrument_ok_for_broker(data, instrument_code)
                 data.log.label(instrument_code=instrument_code)
                 update_historical_prices_with_checks_for_instrument(
-                    instrument_code, data
+                    instrument_code, data,
+                    cleaning_config = cleaning_config
                 )
 
     return success
@@ -57,7 +60,8 @@ def check_instrument_ok_for_broker(data: dataBlob, instrument_code: str):
 
 
 def update_historical_prices_with_checks_for_instrument(
-    instrument_code: str, data: dataBlob
+    instrument_code: str, data: dataBlob,
+        cleaning_config: priceFilterConfig = arg_not_supplied
 ):
     """
     Do a daily update for futures contract prices, using IB historical data
@@ -81,14 +85,17 @@ def update_historical_prices_with_checks_for_instrument(
     for contract_object in contract_list:
         data.log.label(contract_date=contract_object.date_str)
         update_historical_prices_with_checks_for_instrument_and_contract(
-            contract_object, data
+            contract_object, data,
+            cleaning_config = cleaning_config
         )
 
     return success
 
 
 def update_historical_prices_with_checks_for_instrument_and_contract(
-    contract_object: futuresContract, data: dataBlob
+    contract_object: futuresContract, data: dataBlob,
+        cleaning_config: priceFilterConfig = arg_not_supplied
+
 ):
     """
     Do a daily update for futures contract prices, using IB historical data, with checking
@@ -104,9 +111,13 @@ def update_historical_prices_with_checks_for_instrument_and_contract(
     daily_frequency = DAILY_PRICE_FREQ
 
     get_and_check_prices_for_frequency(
-        data, contract_object, frequency=intraday_frequency
+        data, contract_object, frequency=intraday_frequency,
+        cleaning_config = cleaning_config
     )
-    get_and_check_prices_for_frequency(data, contract_object, frequency=daily_frequency)
+
+    get_and_check_prices_for_frequency(data, contract_object,
+                                       cleaning_config = cleaning_config,
+                                       frequency=daily_frequency)
 
     return success
 
@@ -115,6 +126,8 @@ def get_and_check_prices_for_frequency(
     data: dataBlob,
     contract_object: futuresContract,
     frequency: Frequency = DAILY_PRICE_FREQ,
+    cleaning_config: priceFilterConfig = arg_not_supplied
+
 ):
 
     broker_data = dataBroker(data)
@@ -123,9 +136,8 @@ def get_and_check_prices_for_frequency(
 
     old_prices = price_data.get_prices_for_contract_object(contract_object)
 
-    # FIXME add possibility of custom args for cleaning when running interactively
     broker_prices = broker_data.get_cleaned_prices_at_frequency_for_contract_object(
-        contract_object, frequency, cleaning_control_args_override = dict()
+        contract_object, frequency, cleaning_config = cleaning_config
     )
     if len(broker_prices) == 0:
         print("No broker prices found for %s nothing to check" % str(contract_object))
