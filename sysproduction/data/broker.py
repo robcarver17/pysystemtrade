@@ -20,6 +20,7 @@ from syscore.objects import (
     failure
 )
 from syscore.dateutils import Frequency, listOfOpeningTimes, openingTimes
+from syscore.genutils import override_tuple_fields
 
 from sysdata.data_blob import dataBlob
 from sysdata.config.production_config import get_production_config
@@ -541,16 +542,29 @@ class dataBroker(productionDataLayerGeneric):
 def apply_price_cleaning(data: dataBlob,
                           broker_prices_raw: futuresContractPrices,
                           cleaning_control_args_override = arg_not_supplied):
+
+    cleaning_config = _get_config_for_price_filtering(data =data,
+                                                      cleaning_control_args_override=cleaning_control_args_override)
+
     if broker_prices_raw is failure:
         return failure
 
-    # FIXME NEEDS TO BE CONFIGURABLE
-    ## It's important that the data is in local time zone so that this works
-    broker_prices_no_future = broker_prices_raw.remove_future_data()
+    broker_prices = copy(broker_prices_raw)
 
-    ## Ignore zeros if no volumes (if volume could be real price eg crude oil)
-    broker_prices = broker_prices_no_future.remove_zero_prices_if_zero_volumes()
-    # END FIXME
+    ## It's important that the data is in local time zone so that this works
+    if cleaning_config.ignore_future_prices:
+        broker_prices = broker_prices.remove_future_data()
+
+    if cleaning_config.ignore_prices_with_zero_volumes:
+        broker_prices = broker_prices.remove_zero_volumes()
+
+    if cleaning_config.ignore_zero_prices:
+        ## need to implement
+        broker_prices = broker_prices.remove_zero_prices()
+
+    if cleaning_config.ignore_negative_prices:
+        ## need to implement
+        broker_prices = broker_prices.remove_negative_prices()
 
     return broker_prices
 
@@ -560,7 +574,13 @@ priceFilterConfig = namedtuple('priceFilterConfig',
                                 'ignore_zero_prices',
                                 'ignore_negative_prices'])
 
-def _get_config_for_price_filtering(data: dataBlob):
+def _get_config_for_price_filtering(data: dataBlob,
+                                    cleaning_control_args_override = arg_not_supplied)\
+        -> priceFilterConfig:
+
+    if cleaning_control_args_override is arg_not_supplied:
+        cleaning_control_args_override = dict()
+
     production_config = get_production_config()
     ignore_future_prices = production_config.get_element_or_missing_data('ignore_future_prices')
     ignore_prices_with_zero_volumes = production_config.get_element_or_missing_data('ignore_future_prices')
@@ -574,7 +594,12 @@ def _get_config_for_price_filtering(data: dataBlob):
         data.log.critical(error)
         raise Exception(error)
 
-    return priceFilterConfig(ignore_zero_prices=ignore_zero_prices,
+    raw_config =  priceFilterConfig(ignore_zero_prices=ignore_zero_prices,
                              ignore_negative_prices=ignore_negative_prices,
                              ignore_future_prices=ignore_future_prices,
                              ignore_prices_with_zero_volumes=ignore_prices_with_zero_volumes)
+
+    config_with_overrides = override_tuple_fields(raw_config,
+                                                       cleaning_control_args_override)
+
+    return config_with_overrides

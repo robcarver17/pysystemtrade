@@ -132,11 +132,17 @@ class futuresContractPrices(pd.DataFrame):
         return futuresContractPrices(merged_data)
 
     def remove_zero_volumes(self):
-        new_data = self[self[VOLUME_COLUMN] > 0]
+        drop_it = self[VOLUME_COLUMN] == 0
+        new_data = self[~drop_it]
         return futuresContractPrices(new_data)
 
-    def remove_zero_prices_if_zero_volumes(self):
-        drop_it = (self[VOLUME_COLUMN] ==0) & (self[FINAL_COLUMN]==0.0)
+    def remove_zero_prices(self):
+        drop_it = self[FINAL_COLUMN]==0.0
+        new_data = self[~drop_it]
+        return futuresContractPrices(new_data)
+
+    def remove_negative_prices(self):
+        drop_it = self[FINAL_COLUMN]<0.0
         new_data = self[~drop_it]
         return futuresContractPrices(new_data)
 
