@@ -146,7 +146,8 @@ class dataBroker(productionDataLayerGeneric):
     ) -> futuresContractPrices:
 
         return self.broker_futures_contract_price_data.get_prices_at_frequency_for_contract_object(
-            contract_object, frequency
+            contract_object, frequency,
+            return_empty=False ##want to return a failure if no prices available
         )
 
     def get_recent_bid_ask_tick_data_for_contract_object(
@@ -552,11 +553,11 @@ def apply_price_cleaning(data: dataBlob,
                           broker_prices_raw: futuresContractPrices,
                           cleaning_config = arg_not_supplied):
 
-    cleaning_config = get_config_for_price_filtering(data =data,
-                                                     cleaning_config=cleaning_config)
-
     if broker_prices_raw is failure:
         return failure
+
+    cleaning_config = get_config_for_price_filtering(data =data,
+                                                     cleaning_config=cleaning_config)
 
     broker_prices = copy(broker_prices_raw)
 

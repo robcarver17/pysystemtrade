@@ -155,7 +155,7 @@ class futuresContractPrices(pd.DataFrame):
 
     def add_rows_to_existing_data(
         self, new_futures_per_contract_prices, check_for_spike=True,
-            max_spike: float = VERY_BIG_NUMBER
+            max_price_spike: float = VERY_BIG_NUMBER
     ):
         """
         Merges self with new data.
@@ -170,7 +170,7 @@ class futuresContractPrices(pd.DataFrame):
             pd.DataFrame(self),
             new_futures_per_contract_prices,
             check_for_spike=check_for_spike,
-            max_spike = max_spike,
+            max_spike = max_price_spike,
             column_to_check=FINAL_COLUMN,
         )
 
