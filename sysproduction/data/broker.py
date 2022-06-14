@@ -1,4 +1,3 @@
-from collections import namedtuple
 from copy import copy
 
 from sysbrokers.broker_factory import get_broker_class_list
@@ -16,14 +15,12 @@ from syscore.objects import (
     arg_not_supplied,
     missing_order,
     missing_contract,
-    missing_data,
-    failure
+    missing_data
 )
 from syscore.dateutils import Frequency, listOfOpeningTimes
-from syscore.interactive import get_field_names_for_named_tuple
 
 from sysdata.data_blob import dataBlob
-from sysdata.config.production_config import get_production_config
+from sysdata.tools.cleaner import apply_price_cleaning
 
 from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.orders.list_of_orders import listOfOrders
@@ -43,15 +40,6 @@ from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.control_process import diagControlProcess
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
-
-
-priceFilterConfig = namedtuple('priceFilterConfig',
-                               ['ignore_future_prices',
-                                'ignore_prices_with_zero_volumes',
-                                'ignore_zero_prices',
-                                'ignore_negative_prices',
-                                'max_price_spike',
-                                'dont_sample_daily_if_intraday_fails'])
 
 
 class dataBroker(productionDataLayerGeneric):
@@ -136,8 +124,8 @@ class dataBroker(productionDataLayerGeneric):
                                                          frequency = frequency)
 
         broker_prices = apply_price_cleaning(data = self.data,
-                                              broker_prices_raw = broker_prices_raw,
-                                              cleaning_config = cleaning_config)
+                                             broker_prices_raw = broker_prices_raw,
+                                             cleaning_config = cleaning_config)
 
         return broker_prices
 
@@ -549,72 +537,3 @@ class dataBroker(productionDataLayerGeneric):
         return total_account_value_in_base_currency
 
 
-def apply_price_cleaning(data: dataBlob,
-                          broker_prices_raw: futuresContractPrices,
-                          cleaning_config = arg_not_supplied):
-
-    if broker_prices_raw is failure:
-        return failure
-
-    cleaning_config = get_config_for_price_filtering(data =data,
-                                                     cleaning_config=cleaning_config)
-
-    broker_prices = copy(broker_prices_raw)
-
-    ## It's important that the data is in local time zone so that this works
-    if cleaning_config.ignore_future_prices:
-        broker_prices = broker_prices.remove_future_data()
-
-    if cleaning_config.ignore_prices_with_zero_volumes:
-        broker_prices = broker_prices.remove_zero_volumes()
-
-    if cleaning_config.ignore_zero_prices:
-        ## need to implement
-        broker_prices = broker_prices.remove_zero_prices()
-
-    if cleaning_config.ignore_negative_prices:
-        ## need to implement
-        broker_prices = broker_prices.remove_negative_prices()
-
-    return broker_prices
-
-def get_config_for_price_filtering(data: dataBlob,
-                                   cleaning_config: priceFilterConfig  = arg_not_supplied)\
-        -> priceFilterConfig:
-
-    if cleaning_config is not arg_not_supplied:
-        ## override
-        return cleaning_config
-
-    production_config = get_production_config()
-
-    ignore_future_prices = production_config.get_element_or_missing_data('ignore_future_prices')
-    ignore_prices_with_zero_volumes = production_config.get_element_or_missing_data('ignore_future_prices')
-    ignore_zero_prices = production_config.get_element_or_missing_data('ignore_zero_prices')
-    ignore_negative_prices = production_config.get_element_or_missing_data('ignore_negative_prices')
-    max_price_spike = production_config.get_element_or_missing_data('max_price_spike')
-    dont_sample_daily_if_intraday_fails = production_config.get_element_or_missing_data('dont_sample_daily_if_intraday_fails')
-
-    any_missing = any([x is arg_not_supplied for x in [ignore_future_prices, ignore_prices_with_zero_volumes, ignore_zero_prices, ignore_negative_prices,
-                                                       dont_sample_daily_if_intraday_fails, max_price_spike]])
-
-    if any_missing:
-        error = 'Missing config items for price filtering - have you deleted from defaults.yaml?'
-        data.log.critical(error)
-        raise Exception(error)
-
-    cleaning_config =  priceFilterConfig(ignore_zero_prices=ignore_zero_prices,
-                             ignore_negative_prices=ignore_negative_prices,
-                             ignore_future_prices=ignore_future_prices,
-                             ignore_prices_with_zero_volumes=ignore_prices_with_zero_volumes,
-                             max_price_spike=max_price_spike,
-                             dont_sample_daily_if_intraday_fails=dont_sample_daily_if_intraday_fails)
-
-    return cleaning_config
-
-def interactively_get_config_overrides_for_cleaning(data) -> priceFilterConfig:
-    default_config = get_config_for_price_filtering(data)
-    print("Data cleaning configuration: (press enter for defaults)")
-    new_config = get_field_names_for_named_tuple(default_config)
-
-    return new_config

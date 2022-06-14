@@ -7,7 +7,7 @@ from syscore.merge_data import spike_in_data
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
 
 from sysdata.data_blob import dataBlob
-from sysdata.futures.manual_price_checker import manual_price_checker
+from sysdata.tools.manual_price_checker import manual_price_checker
 
 from syslogdiag.email_via_db_interface import send_production_mail_msg
 
@@ -15,7 +15,8 @@ from sysobjects.contracts import futuresContract
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 
 from sysproduction.data.prices import diagPrices, updatePrices
-from sysproduction.data.broker import dataBroker, get_config_for_price_filtering, priceFilterConfig
+from sysproduction.data.broker import dataBroker
+from sysdata.tools.cleaner import priceFilterConfig, get_config_for_price_filtering
 from sysproduction.data.contracts import dataContracts
 
 

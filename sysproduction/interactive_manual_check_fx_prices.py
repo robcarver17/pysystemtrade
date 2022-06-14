@@ -7,7 +7,7 @@ Allow manual checking resolution of spikes
 
 from syscore.objects import success
 
-from sysdata.futures.manual_price_checker import manual_price_checker
+from sysdata.tools.manual_price_checker import manual_price_checker
 from sysobjects.spot_fx_prices import fxPrices
 
 from sysdata.data_blob import dataBlob
