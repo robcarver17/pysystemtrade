@@ -47,9 +47,15 @@ mongo_port: 27017
 echo_extension: '.txt'
 # Spike checker
 max_price_spike: 8
+# Behaviour of price filtering
+ignore_future_prices: True
+ignore_prices_with_zero_volumes: True
+ignore_zero_prices: True
 #
 # Price frequency (we collect daily data, and separately this frequency
 intraday_frequency: H
+#
+dont_sample_daily_if_hourly_fails: True
 #
 # Capital calculation
 production_capital_method: 'full'

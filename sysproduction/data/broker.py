@@ -21,6 +21,7 @@ from syscore.objects import (
 from syscore.dateutils import Frequency, listOfOpeningTimes, openingTimes
 
 from sysdata.data_blob import dataBlob
+from sysdata.config.production_config import get_production_config
 
 from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.orders.list_of_orders import listOfOrders
@@ -541,3 +542,7 @@ class dataBroker(productionDataLayerGeneric):
         )
 
         return total_account_value_in_base_currency
+
+
+production_config = get_production_config()
+production_config.get_element_or_missing_data('')
