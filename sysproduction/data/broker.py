@@ -1,3 +1,4 @@
+from collections import namedtuple
 from copy import copy
 
 from sysbrokers.broker_factory import get_broker_class_list
@@ -537,20 +538,6 @@ class dataBroker(productionDataLayerGeneric):
         return total_account_value_in_base_currency
 
 
-def _get_config_for_price_filtering(data: dataBlob):
-    production_config = get_production_config()
-    ignore_future_prices = production_config.get_element_or_missing_data('ignore_future_prices')
-    ignore_prices_with_zero_volumes = production_config.get_element_or_missing_data('ignore_future_prices')
-    ignore_zero_prices = production_config.get_element_or_missing_data('ignore_zero_prices')
-    ignore_negative_prices = production_config.get_element_or_missing_data('ignore_negative_prices')
-
-    any_missing = any([x is arg_not_supplied for x in [ignore_future_prices, ignore_prices_with_zero_volumes, ignore_zero_prices, ignore_negative_prices]])
-
-    if any_missing:
-        error = 'Missing config items for price filtering - have you deleted from defaults.yaml?'
-        data.log.critical(error)
-        raise Exception(error)
-
 def apply_price_cleaning(data: dataBlob,
                           broker_prices_raw: futuresContractPrices,
                           cleaning_control_args_override = arg_not_supplied):
@@ -566,3 +553,28 @@ def apply_price_cleaning(data: dataBlob,
     # END FIXME
 
     return broker_prices
+
+priceFilterConfig = namedtuple('priceFilterConfig',
+                               ['ignore_future_prices',
+                                'ignore_prices_with_zero_volumes',
+                                'ignore_zero_prices',
+                                'ignore_negative_prices'])
+
+def _get_config_for_price_filtering(data: dataBlob):
+    production_config = get_production_config()
+    ignore_future_prices = production_config.get_element_or_missing_data('ignore_future_prices')
+    ignore_prices_with_zero_volumes = production_config.get_element_or_missing_data('ignore_future_prices')
+    ignore_zero_prices = production_config.get_element_or_missing_data('ignore_zero_prices')
+    ignore_negative_prices = production_config.get_element_or_missing_data('ignore_negative_prices')
+
+    any_missing = any([x is arg_not_supplied for x in [ignore_future_prices, ignore_prices_with_zero_volumes, ignore_zero_prices, ignore_negative_prices]])
+
+    if any_missing:
+        error = 'Missing config items for price filtering - have you deleted from defaults.yaml?'
+        data.log.critical(error)
+        raise Exception(error)
+
+    return priceFilterConfig(ignore_zero_prices=ignore_zero_prices,
+                             ignore_negative_prices=ignore_negative_prices,
+                             ignore_future_prices=ignore_future_prices,
+                             ignore_prices_with_zero_volumes=ignore_prices_with_zero_volumes)
