@@ -1,5 +1,5 @@
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
-from syscore.objects import missing_contract, missing_data
+from syscore.objects import missing_contract, missing_data, failure
 
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
@@ -196,7 +196,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         )
         if contract_object_with_ib_broker_config is missing_contract:
             new_log.warn("Can't get data for %s" % str(contract_object))
-            return futuresContractPrices.create_empty()
+            return failure
 
         price_data = self._get_prices_at_frequency_for_ibcontract_object_no_checking(
             contract_object_with_ib_broker_config,
@@ -226,24 +226,16 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 "Something went wrong getting IB price data for %s"
                 % str(contract_object_with_ib_broker_config)
             )
-            price_data = futuresContractPrices.create_empty()
+            return failure
 
-        elif len(price_data) == 0:
+        if len(price_data) == 0:
             new_log.warn(
                 "No IB price data found for %s"
                 % str(contract_object_with_ib_broker_config)
             )
-            price_data = futuresContractPrices.create_empty()
-        else:
-            price_data = futuresContractPrices(price_data)
+            return futuresContractPrices.create_empty()
 
-        ## It's important that the data is in local time zone so that this works
-        price_data = price_data.remove_future_data()
-
-        ## Ignore zeros if no volumes (if volume could be real price eg crude oil)
-        price_data = price_data.remove_zero_prices_if_zero_volumes()
-
-        return price_data
+        return futuresContractPrices(price_data)
 
     def get_ticker_object_for_order(self, order: contractOrder) -> tickerObject:
         contract_object = order.futures_contract

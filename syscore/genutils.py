@@ -376,6 +376,21 @@ def get_unique_list(somelist):
 
 MISSING_STR = -1
 
+def override_tuple_fields(original_tuple_instance, dict_of_new_fields:dict):
+    original_tuple_instance_as_dict = named_tuple_as_dict(original_tuple_instance)
+    combined_dict = dict(original_tuple_instance_as_dict, **dict_of_new_fields)
+    original_tuple_class = original_tuple_instance.__class__
+    try:
+        new_named_tuple = original_tuple_class(**combined_dict)
+    except:
+        raise Exception("One or more of new fields %s don't belong in named tuple %s"
+                        % (str(dict_of_new_fields), str(original_tuple_instance)))
+    return new_named_tuple
+
+def named_tuple_as_dict(original_tuple_instance) -> dict:
+    return dict([
+        (field_name, getattr(original_tuple_instance, field_name))
+                for field_name in original_tuple_instance._fields])
 
 def transfer_object_attributes(named_tuple_object, original_object):
     kwargs = dict(

@@ -1,3 +1,4 @@
+from syscore.objects import failure
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 from syscore.merge_data import spike_in_data
 
@@ -12,6 +13,7 @@ from syslogdiag.log_to_screen import logtoscreen
 
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"
 
+VERY_BIG_NUMBER = 999999.0
 
 class futuresContractPriceData(baseData):
     """
@@ -129,7 +131,9 @@ class futuresContractPriceData(baseData):
 
         return dict_of_prices
 
-    def get_prices_for_contract_object(self, contract_object: futuresContract):
+    def get_prices_for_contract_object(self, contract_object: futuresContract,
+                                       return_empty: bool = True
+                                       ):
         """
         get all prices without worrying about frequency
 
@@ -140,12 +144,16 @@ class futuresContractPriceData(baseData):
         if self.has_data_for_contract(contract_object):
             prices = self._get_prices_for_contract_object_no_checking(contract_object)
         else:
-            prices = futuresContractPrices.create_empty()
+            if return_empty:
+                return futuresContractPrices.create_empty()
+            else:
+                return failure
 
         return prices
 
     def get_prices_at_frequency_for_contract_object(
-        self, contract_object: futuresContract, freq: Frequency = DAILY_PRICE_FREQ
+        self, contract_object: futuresContract, freq: Frequency = DAILY_PRICE_FREQ,
+            return_empty: bool = True
     ):
         """
         get some prices at a given frequency
@@ -160,7 +168,10 @@ class futuresContractPriceData(baseData):
                 contract_object, freq=freq
             )
         else:
-            return futuresContractPrices.create_empty()
+            if return_empty:
+                return futuresContractPrices.create_empty()
+            else:
+                return failure
 
     def write_prices_for_contract_object(
         self,
@@ -195,6 +206,7 @@ class futuresContractPriceData(baseData):
         contract_object: futuresContract,
         new_futures_per_contract_prices: futuresContractPrices,
         check_for_spike: bool = True,
+        max_price_spike: float = VERY_BIG_NUMBER
     ) -> int:
         """
         Reads existing data, merges with new_futures_prices, writes merged data
@@ -210,7 +222,8 @@ class futuresContractPriceData(baseData):
 
         old_prices = self.get_prices_for_contract_object(contract_object)
         merged_prices = old_prices.add_rows_to_existing_data(
-            new_futures_per_contract_prices, check_for_spike=check_for_spike
+            new_futures_per_contract_prices, check_for_spike=check_for_spike,
+            max_price_spike = max_price_spike
         )
 
         if merged_prices is spike_in_data:
@@ -223,7 +236,7 @@ class futuresContractPriceData(baseData):
 
         if rows_added < 0:
             new_log.critical("Can't remove prices something gone wrong!")
-            return 0
+            return failure
 
         elif rows_added == 0:
             if len(old_prices) == 0:
