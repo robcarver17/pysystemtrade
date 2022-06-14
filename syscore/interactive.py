@@ -1,5 +1,5 @@
 from copy import copy
-from syscore.genutils import named_tuple_as_dict, override_tuple_fields
+from syscore.genutils import named_tuple_as_dict, override_tuple_fields,str2Bool
 
 def get_field_names_for_named_tuple(named_tuple_instance):
     original_tuple_as_dict = named_tuple_as_dict(named_tuple_instance)
@@ -33,7 +33,10 @@ def get_and_convert(
         if ans == "" and allow_default:
             return default_value
         try:
-            result = type_expected(ans)
+            if type_expected is bool:
+                result = str2Bool(ans)
+            else:
+                result = type_expected(ans)
             return result
         except BaseException:
             print("%s is not of expected type %s" % (ans, type_expected.__name__))
