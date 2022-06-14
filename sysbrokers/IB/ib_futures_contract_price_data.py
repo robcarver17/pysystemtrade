@@ -237,12 +237,6 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         else:
             price_data = futuresContractPrices(price_data)
 
-        ## It's important that the data is in local time zone so that this works
-        price_data = price_data.remove_future_data()
-
-        ## Ignore zeros if no volumes (if volume could be real price eg crude oil)
-        price_data = price_data.remove_zero_prices_if_zero_volumes()
-
         return price_data
 
     def get_ticker_object_for_order(self, order: contractOrder) -> tickerObject:

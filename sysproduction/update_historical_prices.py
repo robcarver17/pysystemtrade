@@ -120,13 +120,22 @@ def get_and_add_prices_for_frequency(
     broker_data_source = dataBroker(data)
     db_futures_prices = updatePrices(data)
 
-    broker_prices = broker_data_source.get_prices_at_frequency_for_contract_object(
+    broker_prices_raw = broker_data_source.get_prices_at_frequency_for_contract_object(
         contract_object, frequency
     )
 
-    if len(broker_prices) == 0:
+    # FIXME NEED FAILURE MODE INSTEAD
+    if len(broker_prices_raw) == 0:
         data.log.msg("No prices from broker for %s" % str(contract_object))
         return failure
+
+    # FIXME NEEDS TO BE CONFIGURABLE AND INSIDE SOME FUNCTION
+    ## It's important that the data is in local time zone so that this works
+    broker_prices_no_future = broker_prices_raw.remove_future_data()
+
+    ## Ignore zeros if no volumes (if volume could be real price eg crude oil)
+    broker_prices = broker_prices_no_future.remove_zero_prices_if_zero_volumes()
+    # END FIXME
 
     error_or_rows_added = db_futures_prices.update_prices_for_contract(
         contract_object, broker_prices, check_for_spike=True
