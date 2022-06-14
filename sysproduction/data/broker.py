@@ -122,8 +122,6 @@ class dataBroker(productionDataLayerGeneric):
         broker_prices_raw = \
                 self.get_prices_at_frequency_for_contract_object(contract_object=contract_object,
                                                          frequency = frequency)
-        #FIXME DEBUG REMOVE
-        print("***** TYPE CHECK %s" % type(broker_prices_raw))
 
         broker_prices = apply_price_cleaning(data = self.data,
                                              broker_prices_raw = broker_prices_raw,
