@@ -29,8 +29,10 @@ class futuresContractPrices(pd.DataFrame):
         price_data_as_df.index.name = "index"  # for arctic compatibility
         super().__init__(price_data_as_df)
 
+        self._as_df = price_data_as_df
+
     def __copy__(self):
-        return futuresContractPrices(copy(self))
+        return futuresContractPrices(copy(self._as_df))
 
 
     @classmethod
