@@ -2,6 +2,7 @@
 Update historical data per contract from interactive brokers data, dump into mongodb
 """
 
+from copy import copy
 from syscore.objects import success, failure, arg_not_supplied
 from syscore.merge_data import spike_in_data
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
@@ -104,8 +105,10 @@ def update_historical_prices_for_instrument_and_contract(
     if result is failure:
         # Skip daily data if intraday not working
         if cleaning_config.dont_sample_daily_if_intraday_fails:
-            print("Had a problem samping intraday, skipping daily to avoid price gaps")
+            data.log.msg("Had a problem samping intraday, skipping daily to avoid price gaps")
             return failure
+        else:
+            data.log.warn("Had a problem samping intraday, but **NOT** skipping daily - may be price gaps")
 
     # Get daily data
     # we don't care about the result flag for this
@@ -125,7 +128,6 @@ def get_and_add_prices_for_frequency(
     interactive_mode: bool = False
 ):
     broker_data_source = dataBroker(data)
-    price_updater = updatePrices(data)
 
     broker_prices = broker_data_source.get_cleaned_prices_at_frequency_for_contract_object(
         contract_object, frequency, cleaning_config = cleaning_config
@@ -150,34 +152,17 @@ def get_and_add_prices_for_frequency(
             delta_columns=["OPEN", "HIGH", "LOW"],
             type_new_data=futuresContractPrices,
         )
-
-        error_or_rows_added = price_updater.update_prices_for_contract(
-            contract_object, new_prices_checked, check_for_spike=False
-        )
-
-        if error_or_rows_added is spike_in_data:
-            report_price_spike(data, contract_object)
-            return failure
-
-        if error_or_rows_added is failure:
-            data.log.warn("Something went wrong when adding rows")
-            return failure
-
-        return success
+        check_for_spike = False
     else:
+        new_prices_checked = copy(broker_prices)
+        check_for_spike = True
 
-        error_or_rows_added = price_updater.update_prices_for_contract(
-            contract_object, broker_prices, check_for_spike=True,
-            max_price_spike = cleaning_config.max_price_spike
-        )
-
-        if error_or_rows_added is spike_in_data:
-            report_price_spike(data, contract_object)
-            return failure
-
-        if error_or_rows_added is failure:
-            data.log.warn("Something went wrong when adding rows")
-            return failure
+    error_or_rows_added = price_updating_or_errors(data = data,
+                                                   contract_object=contract_object,
+                                                   new_prices_checked = new_prices_checked,
+                                                   check_for_spike=check_for_spike,
+                                                   cleaning_config=cleaning_config
+                                                   )
 
     data.log.msg(
         "Added %d rows at frequency %s for %s"
@@ -185,6 +170,29 @@ def get_and_add_prices_for_frequency(
     )
     return success
 
+def price_updating_or_errors(data: dataBlob,
+                             contract_object: futuresContract,
+                             new_prices_checked: futuresContractPrices,
+                             check_for_spike: bool = True,
+                             cleaning_config: priceFilterConfig = arg_not_supplied):
+
+    price_updater = updatePrices(data)
+
+    error_or_rows_added = price_updater.update_prices_for_contract(
+            contract_object, new_prices_checked, check_for_spike=check_for_spike,
+            max_price_spike = cleaning_config.max_price_spike
+        )
+
+    if error_or_rows_added is spike_in_data:
+        report_price_spike(data, contract_object)
+        return failure
+
+    if error_or_rows_added is failure:
+        data.log.warn("Something went wrong when adding rows")
+        return failure
+
+
+    return error_or_rows_added
 
 def report_price_spike(data: dataBlob, contract_object: futuresContract):
     # SPIKE

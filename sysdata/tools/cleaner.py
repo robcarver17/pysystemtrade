@@ -26,22 +26,35 @@ def apply_price_cleaning(data: dataBlob,
     cleaning_config = get_config_for_price_filtering(data =data,
                                                      cleaning_config=cleaning_config)
 
+    log = data.log
+
     broker_prices = copy(broker_prices_raw)
 
     ## It's important that the data is in local time zone so that this works
     if cleaning_config.ignore_future_prices:
+        log.msg("Ignoring prices with future timestamps")
         broker_prices = broker_prices.remove_future_data()
+    else:
+        log.warn("*** NOT IGNORING PRICES WITH FUTURE TIMESTAMP - may lead to price gaps ***")
 
     if cleaning_config.ignore_prices_with_zero_volumes:
+        log.msg("Ignoring prices with zero volumes")
         broker_prices = broker_prices.remove_zero_volumes()
+    else:
+        log.warn("**** NOT IGNORING PRICES WITH ZERO VOLUMES - data may be inaccurate")
 
     if cleaning_config.ignore_zero_prices:
-        ## need to implement
+
+        log.msg("Ignoring prices with zero prices")
         broker_prices = broker_prices.remove_zero_prices()
+    else:
+        log.warn(("***** NOT IGNORING ZERO PRICES - COULD BE BAD DATA"))
 
     if cleaning_config.ignore_negative_prices:
-        ## need to implement
+        log.warn("***** IGNORING NEGATIVE PRICES - might be really negative (think crude oil March 2020)")
         broker_prices = broker_prices.remove_negative_prices()
+    else:
+        log.msg("Keeping negative prices in data as could be real")
 
     return broker_prices
 
