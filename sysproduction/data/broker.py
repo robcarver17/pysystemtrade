@@ -124,7 +124,7 @@ class dataBroker(productionDataLayerGeneric):
                 self.get_prices_at_frequency_for_contract_object(contract_object=contract_object,
                                                          frequency = frequency)
 
-        broker_prices = apply_price_filtering(data = self.data,
+        broker_prices = apply_price_cleaning(data = self.data,
                                               broker_prices_raw = broker_prices_raw,
                                               cleaning_control_args_override = cleaning_control_args_override)
 
@@ -551,7 +551,7 @@ def _get_config_for_price_filtering(data: dataBlob):
         data.log.critical(error)
         raise Exception(error)
 
-def apply_price_filtering(data: dataBlob,
+def apply_price_cleaning(data: dataBlob,
                           broker_prices_raw: futuresContractPrices,
                           cleaning_control_args_override = arg_not_supplied):
     if broker_prices_raw is failure:
