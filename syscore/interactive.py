@@ -6,11 +6,11 @@ def get_field_names_for_named_tuple(named_tuple_instance):
     for key_name in original_tuple_as_dict.keys():
         original_tuple_entry = original_tuple_as_dict[key_name]
         original_tuple_entry_class = original_tuple_entry.__class__
-        input_str = ("%s? (default %s)" % (key_name, original_tuple_entry))
-        if input_str=="":
-            continue
-        input_as_type = original_tuple_entry_class(input_str)
-        original_tuple_as_dict[key_name] = input_as_type
+        input_result = get_and_convert(key_name,
+                                       default_value=original_tuple_entry,
+                                       type_expected=original_tuple_entry_class)
+
+        original_tuple_as_dict[key_name] = input_result
 
     new_tuple = override_tuple_fields(named_tuple_instance, original_tuple_as_dict)
 
