@@ -124,16 +124,9 @@ class dataBroker(productionDataLayerGeneric):
                 self.get_prices_at_frequency_for_contract_object(contract_object=contract_object,
                                                          frequency = frequency)
 
-        if broker_prices_raw is failure:
-            return failure
-
-        # FIXME NEEDS TO BE CONFIGURABLE AND INSIDE SOME FUNCTION
-        ## It's important that the data is in local time zone so that this works
-        broker_prices_no_future = broker_prices_raw.remove_future_data()
-
-        ## Ignore zeros if no volumes (if volume could be real price eg crude oil)
-        broker_prices = broker_prices_no_future.remove_zero_prices_if_zero_volumes()
-        # END FIXME
+        broker_prices = apply_price_filtering(data = self.data,
+                                              broker_prices_raw = broker_prices_raw,
+                                              cleaning_control_args_override = cleaning_control_args_override)
 
         return broker_prices
 
@@ -549,5 +542,27 @@ def _get_config_for_price_filtering(data: dataBlob):
     ignore_future_prices = production_config.get_element_or_missing_data('ignore_future_prices')
     ignore_prices_with_zero_volumes = production_config.get_element_or_missing_data('ignore_future_prices')
     ignore_zero_prices = production_config.get_element_or_missing_data('ignore_zero_prices')
+    ignore_negative_prices = production_config.get_element_or_missing_data('ignore_negative_prices')
 
-    if (ignore_future_prices is arg_not_supplied) or \
+    any_missing = any([x is arg_not_supplied for x in [ignore_future_prices, ignore_prices_with_zero_volumes, ignore_zero_prices, ignore_negative_prices]])
+
+    if any_missing:
+        error = 'Missing config items for price filtering - have you deleted from defaults.yaml?'
+        data.log.critical(error)
+        raise Exception(error)
+
+def apply_price_filtering(data: dataBlob,
+                          broker_prices_raw: futuresContractPrices,
+                          cleaning_control_args_override = arg_not_supplied):
+    if broker_prices_raw is failure:
+        return failure
+
+    # FIXME NEEDS TO BE CONFIGURABLE
+    ## It's important that the data is in local time zone so that this works
+    broker_prices_no_future = broker_prices_raw.remove_future_data()
+
+    ## Ignore zeros if no volumes (if volume could be real price eg crude oil)
+    broker_prices = broker_prices_no_future.remove_zero_prices_if_zero_volumes()
+    # END FIXME
+
+    return broker_prices
