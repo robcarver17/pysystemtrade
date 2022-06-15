@@ -273,7 +273,7 @@ instrument_returns_correlation:
   shrinkage_parameter: 0.5
 # small system optimisation
 small_system:
-  shadow_cost: 250
+  shadow_cost: 50
   cost_multiplier: 1.0
   tracking_error_buffer: 0.0125
 #
