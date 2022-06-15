@@ -165,7 +165,7 @@ def get_and_add_prices_for_frequency(
                                                    )
     if error_or_rows_added is failure:
         return failure
-    
+
     data.log.msg(
         "Added %d rows at frequency %s for %s"
         % (error_or_rows_added, frequency, str(contract_object))

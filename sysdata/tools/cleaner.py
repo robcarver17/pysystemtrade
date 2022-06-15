@@ -31,28 +31,42 @@ def apply_price_cleaning(data: dataBlob,
     broker_prices = copy(broker_prices_raw)
 
     ## It's important that the data is in local time zone so that this works
+    price_length = len(broker_prices)
     if cleaning_config.ignore_future_prices:
-        log.msg("Ignoring prices with future timestamps")
         broker_prices = broker_prices.remove_future_data()
+        new_price_length = len(broker_prices)
+        if new_price_length<price_length:
+            log.msg("Ignoring %d prices with future timestamps" % (price_length - new_price_length))
+            price_length = new_price_length
     else:
         log.warn("*** NOT IGNORING PRICES WITH FUTURE TIMESTAMP - may lead to price gaps ***")
 
     if cleaning_config.ignore_prices_with_zero_volumes:
-        log.msg("Ignoring prices with zero volumes")
         broker_prices = broker_prices.remove_zero_volumes()
+        new_price_length = len(broker_prices)
+        if new_price_length<price_length:
+            log.msg("Ignoring %d prices with zero volumes" % (price_length - new_price_length))
+            price_length = new_price_length
+
     else:
         log.warn("**** NOT IGNORING PRICES WITH ZERO VOLUMES - data may be inaccurate")
 
     if cleaning_config.ignore_zero_prices:
-
-        log.msg("Ignoring prices with zero prices")
         broker_prices = broker_prices.remove_zero_prices()
+        new_price_length = len(broker_prices)
+        if new_price_length<price_length:
+            log.msg("Ignoring %d prices with zero prices" % (price_length - new_price_length))
+            price_length = new_price_length
+
     else:
         log.warn(("***** NOT IGNORING ZERO PRICES - COULD BE BAD DATA"))
 
     if cleaning_config.ignore_negative_prices:
-        log.warn("***** IGNORING NEGATIVE PRICES - might be really negative (think crude oil March 2020)")
         broker_prices = broker_prices.remove_negative_prices()
+        new_price_length = len(broker_prices)
+        if new_price_length<price_length:
+            log.warn("Ignoring %d prices with negative prices ****COULD BE REAL PRICES****" % (price_length - new_price_length))
+            price_length = new_price_length ## not used again but for tidiness
     else:
         log.msg("Keeping negative prices in data as could be real")
 
