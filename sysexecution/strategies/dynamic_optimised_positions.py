@@ -384,10 +384,6 @@ def get_cost_per_notional_weight_as_proportion_of_capital(data: dataBlob,
                 capital = capital
     )
 
-    #FIXME DEBUG
-    data.log.msg("Cash cost of trading all of capital for %s is %f" % (instrument_code,
-                                                    cost_per_notional_weight_as_proportion_of_capital*capital))
-
     return cost_per_notional_weight_as_proportion_of_capital
 
 def get_constraints(data, strategy_name: str, list_of_instruments: list):
