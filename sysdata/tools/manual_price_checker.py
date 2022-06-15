@@ -7,15 +7,20 @@ from syscore.merge_data import (
     spike_check_merged_data,
 )
 
+from sysdata.tools.cleaner import priceFilterConfig, get_config_for_price_filtering
+
+NO_SPIKE_CHECKING = 9999999999.0
 
 def manual_price_checker(
     old_data_passed,
     new_data_passed,
+    max_price_spike: float = NO_SPIKE_CHECKING,
     column_to_check=arg_not_supplied,
     delta_columns=arg_not_supplied,
     type_new_data=pd.DataFrame,
     only_add_rows=True,
-    keep_older: bool = True,
+    keep_older: bool = True
+
 ):
     """
     Allows a user to manually merge old and new data, checking any usually large changes and overwriting
@@ -60,6 +65,7 @@ def manual_price_checker(
         merged_data_with_status = spike_check_merged_data(
             merged_data_with_status,
             column_to_check=column_to_check,
+            max_spike=max_price_spike
         )
         spike_present = merged_data_with_status.spike_present
 
