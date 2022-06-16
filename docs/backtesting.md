@@ -295,7 +295,8 @@ section](#standard_accounts_stage).
 The backtest looks for its configuration information in the following places:
 
 1. Elements in the configuration object
-2. If not found, in: Project defaults
+2. If not found, in: the private yaml config if it exists here `/private/private_config.yaml`
+3. If not found, in: Project defaults
 
 Configuration objects can be loaded from [yaml](https://pyyaml.org/) files, or
 created with a dictionary. This suggests that you can modify the systems
@@ -305,7 +306,8 @@ behaviour in any of the following ways:
    system
 2. Change a configuration object in memory, and create a new system with it.
 3. Change a configuration object within an existing system (advanced)
-4. Change the project defaults (definitely not recommended)
+4. Create a private config yaml `/private/private_config.yaml` (this useful if you want to make a global change that affects all your backtest)
+5. Change the project defaults (definitely not recommended)
 
 For a list of all possible configuration options, see [this
 table](#Configuration_options).
@@ -398,7 +400,12 @@ Because we don't create a new system and have to recalculate everything from
 scratch, this can be useful for testing isolated changes to the system **if**
 you know what you're doing.
 
-### Option 4: Change the project defaults (definitely not recommended)
+### Option 4: Create a `/private/private_config.yaml` file
+
+This makes sense if you want to make a global change to a particular parameter rather than constantly including certain things in your configuration files. Anything in this file will overwrite the system defaults, but will in turn be overwritten by the backtest configuration .yaml file. This file will also come in very handy when it comes to [using pysystemtrade as a production trading environment](/docs/production.md)
+
+
+### Option 5: Change the project defaults (definitely not recommended)
 
 I don't recommend changing the defaults - a lot of tests will fail for a
 start - but should you want to more information is given [here](#defaults).
@@ -1203,7 +1210,7 @@ These will create .yaml files which can then be pasted into your existing config
 
 <a name="defaults"> </a>
 
-### Project defaults
+### Project defaults and private configuration
 
 Many (but not all) configuration parameters have defaults which are used by the
 system if the parameters are not in the object. These can be found in the
@@ -1211,10 +1218,13 @@ system if the parameters are not in the object. These can be found in the
 [configuration options](#Configuration_options) explains what the defaults are,
 and where they are used.
 
-WARNING: The way that configuration and defaults are applied in a [production environment](/docs/production.md) is a bit complex, so be careful out there.
-
 I recommend that you do not change these defaults. It's better to use the
-settings you want in each system configuration file.
+settings you want in each system configuration file, or use a private configuration file if this is something you want to apply to all your backtests.
+
+If this file exists, `/private/private_config.yaml`, it will be used as a private configuration file.
+
+Basically, whenever a configuration object is added to a system, if there is a private config file then we add the elements from that. Then for any remaining missing elements we add the elements from the defaults.yaml.
+
 
 <a name="config_function_defaults"> </a>
 
@@ -1231,11 +1241,11 @@ new ones with different names, to avoid accidentally breaking the system.
 
 <a name="defaults_how"> </a>
 
-#### How the defaults work
+#### How the defaults and private configuration work
 
 
 When added to a system the config class fills in parameters that are missing
-from the original config object, but are present in the default .yaml file. For
+from the original config object, but are present in (i) the private .yaml file and (ii) the default .yaml file. For
 example if forecast_scalar is missing from the config, then the default value
 of 1.0 will be used. This works in a similar way for top level config items
 that are lists, str, int and float.
@@ -1370,7 +1380,7 @@ Once we're happy with our configuration we can use it in a system:
 from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system(config=my_config)
 ```
-Note it's only when a config is included in a system that the defaults are populated.
+Note it's only when a config is included in a system that the private configuration and defaults are populated.
 
 
 ### Including your own configuration options

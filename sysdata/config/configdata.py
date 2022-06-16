@@ -23,7 +23,9 @@ from sysdata.config.private_config import get_private_config_as_dict
 from syslogdiag.log_to_screen import logtoscreen
 from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
 
-RESERVED_NAMES = ["log", "_elements", "elements", "_default_filename", "_default_dict"]
+RESERVED_NAMES = ["log", "_elements", "elements",
+                  "_default_filename",
+                  "_private_filename"]
 
 
 class Config(object):

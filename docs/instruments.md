@@ -343,65 +343,7 @@ Operating in the production environment is a bit more complex, due to the intera
 
 ## A note about configuration
 
-When you're running in simulation things are relatively simple; configuration items are defined in defaults_yaml, but can be overriden in your own backtest.yaml file.
-
-As an example, let's add 'VIX' to the list of ignored markets in the basic example system, replacing the default EURIBOR:
-
-
-```python
-from systems.provided.futures_chapter15.basesystem import *
-system = futures_system()
-system.get_list_of_ignored_instruments_to_remove()
-['EURIBOR']
-```
-
-Now manually edit the [config file ](/systems/provided/futures_chapter15/futuresconfig.yaml), adding the following configuration element:
-
-```
-exclude_instrument_lists:
-  ignore_instruments:
-    - 'VIX'
-```
-
-```python
-system = futures_system()
-system.get_list_of_ignored_instruments_to_remove()
->Following instruments are marked as 'ignore_instruments': not included: ['VIX']
->['VIX']
-```
-
-In production things are a little more complicated. The order here is: defaults, overriden by `private_config.yaml`, overriden by the system backtest .yaml. So if you add the following to your private_config.yaml:
-
-```
-exclude_instrument_lists:
-  ignore_instruments:
-    - 'US10'
-```
-
-```
-from sysproduction.strategy_code.run_system_classic import *
-data = dataBlob()
-config_filename = 'systems/provided/futures_chapter15/futuresconfig.yaml'
-config = set_up_config(data, config_filename)
-system = futures_system(config=config)
-
-config.exclude_instrument_lists
->{'ignore_instruments': ['VIX'], 'bad_markets': ['ALUMINIUM', 'BBCOMM', ...., 'V2X'], 'trading_restrictions': ['US-DISCRETE', ...., 'US-UTILS']}
-```
-
-.... we're still using the backtest .yaml file list of ignored instruments, but the others are being pulled in from the defaults.yaml file. But if we now remove the added section from the backtest [config file ](/systems/provided/futures_chapter15/futuresconfig.yaml)
-
-```
-from sysproduction.strategy_code.run_system_classic import *
-data = dataBlob()
-config_filename = 'systems/provided/futures_chapter15/futuresconfig.yaml'
-config = set_up_config(data, config_filename)
-system = futures_system(config=config)
-
-config.exclude_instrument_lists
->{'ignore_instruments': ['US10'], 'bad_markets': ['ALUMINIUM', 'BBCOMM', ...., 'V2X'], 'trading_restrictions': ['US-DISCRETE', ...., 'US-UTILS']}
-
-```
+When you're running in simulation things are relatively simple; configuration items are defined in defaults_yaml, but can be overriden by your private_config.yaml, and then also by your own backtest.yaml file.
 
 Importantly, once we're out of the 'backtesting'' part of a production system, we can't see the backtest configuration (which after all is system specific, whereas generally in the production environment we're working with global parameters). So the priority order is `defaults.yaml`, overriden by `private_config.yaml`. The downstream code that produces strategy orders once the production backtest has generated optimal positions, and then trades those orders, will operate only on the configuration in `private_config.yaml` and `defaults.yaml`. 
 
