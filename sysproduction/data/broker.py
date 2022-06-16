@@ -48,7 +48,7 @@ class dataBroker(productionDataLayerGeneric):
         # Add a list of broker specific classes that will be aliased as self.data.broker_fx_prices,
         # self.data.broker_futures_contract_price ... and so on
 
-        broker_class_list = get_broker_class_list()
+        broker_class_list = get_broker_class_list(data)
         data.add_class_list(broker_class_list)
         return data
 

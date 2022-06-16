@@ -9,9 +9,9 @@ from sysbrokers.IB.ib_static_data import ibStaticData
 from sysbrokers.IB.ib_fx_handling import ibFxHandlingData
 from syscore.objects import missing_data, resolve_function
 from sysdata.config.production_config import get_production_config
+from sysdata.data_blob import dataBlob
 
-
-def get_broker_class_list():
+def get_broker_class_list(data: dataBlob):
     """
     Returns a list of classes that are specific to the broker being used.
     IB classes are returned by default. If you would like to use a different
@@ -19,7 +19,7 @@ def get_broker_class_list():
     directory and specify the function name in private_config.yaml under the
     field name: broker_factory_func
     """
-    config = get_production_config()
+    config = data.config
 
     broker_factory_func = config.get_element_or_missing_data('broker_factory_func')
 

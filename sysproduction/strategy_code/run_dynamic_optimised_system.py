@@ -1,5 +1,6 @@
 from syscore.objects import arg_not_supplied
 
+from sysdata.config.configdata import Config
 from sysdata.data_blob import dataBlob
 from sysobjects.production.optimal_positions import optimalPositionWithReference
 from sysobjects.production.tradeable_object import instrumentStrategy
@@ -7,7 +8,7 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 from sysproduction.data.sim_data import get_sim_data_object_for_production
 from sysproduction.strategy_code.run_system_classic import (
     runSystemClassic,
-    set_up_config,
+
 )
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.positions import (
@@ -68,7 +69,7 @@ def dynamic_system(
     log_level = "on"
 
     sim_data = get_sim_data_object_for_production(data)
-    config = set_up_config(data, config_filename)
+    config = Config(config_filename)
 
     # Overwrite capital and base currency
     if notional_trading_capital is not arg_not_supplied:

@@ -10,7 +10,7 @@ def get_control_config() -> Config:
         control_config = Config(
             PRIVATE_CONTROL_CONFIG_FILE, default_filename=DEFAULT_CONTROL_CONFIG_FILE
         )
-        control_config.fill_with_defaults()
+
     except ParserError as pe:
         raise Exception("YAML syntax problem: %s" % str(pe))
     except FileNotFoundError:

@@ -81,7 +81,7 @@ def get_config_for_price_filtering(data: dataBlob,
         ## override
         return cleaning_config
 
-    production_config = get_production_config()
+    production_config = data.config
 
     ignore_future_prices = production_config.get_element_or_missing_data('ignore_future_prices')
     ignore_prices_with_zero_volumes = production_config.get_element_or_missing_data('ignore_future_prices')

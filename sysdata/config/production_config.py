@@ -1,23 +1,8 @@
-from sysdata.config.configdata import Config
-from syscore.fileutils import does_file_exist
-
-PRIVATE_CONFIG_FILE = "private.private_config.yaml"
-
+from sysdata.config.configdata import default_config, Config
 
 def get_production_config() -> Config:
-    if private_config_file_exists():
-        config = Config(PRIVATE_CONFIG_FILE)
-    else:
-        print(
-            "Private configuration %s does not exist; no problem if running in sim mode"
-            % PRIVATE_CONFIG_FILE
-        )
-        config = Config({})
+    ## For use outside of backtesting part of code
+    ## Just returns a default config, which will include the private.yaml stuff
 
-    config.fill_with_defaults()
+    return default_config()
 
-    return config
-
-
-def private_config_file_exists() -> bool:
-    return does_file_exist(PRIVATE_CONFIG_FILE)

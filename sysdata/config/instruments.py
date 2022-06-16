@@ -1,5 +1,5 @@
 from syscore.objects import missing_data, arg_not_supplied
-from sysdata.config.configdata import Config
+from sysdata.config.configdata import default_config, Config
 
 
 def get_list_of_bad_instruments_in_config(config: Config) -> list:
@@ -47,8 +47,7 @@ def generate_matching_duplicate_dict(config: Config = arg_not_supplied):
         print(
             "Using defaults.yaml config - won't include any elements from private_config or backtest configs"
         )
-        config = Config()
-        config.fill_with_defaults()
+        config = default_config()
 
     duplicate_instruments_config = config.get_element_or_missing_data(
         "duplicate_instruments"
