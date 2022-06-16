@@ -247,6 +247,9 @@ class dataBlob(object):
     def _add_attr_to_list(self, new_attr: str):
         self._attr_list.append(new_attr)
 
+    def update_log(self, new_log:logger):
+        self._log = new_log
+
     """
     Following two methods implement context manager
     """

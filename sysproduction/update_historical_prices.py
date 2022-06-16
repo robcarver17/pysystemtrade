@@ -77,7 +77,7 @@ def update_historical_prices_for_instrument(instrument_code: str,
         return failure
 
     for contract_object in contract_list:
-        data.log.label(contract_date=contract_object.date_str)
+        data.update_log(contract_object.specific_log(data.log))
         update_historical_prices_for_instrument_and_contract(contract_object, data, cleaning_config = cleaning_config,
                                                              interactive_mode=interactive_mode)
 
