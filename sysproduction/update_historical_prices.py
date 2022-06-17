@@ -115,7 +115,7 @@ def update_historical_prices_for_instrument_and_contract(
     get_and_add_prices_for_frequency(data, contract_object,
                                      frequency=daily_frequency,
                                      cleaning_config=cleaning_config,
-                                     interactive_mode = interactive_mode)
+                                     interactive_mode = interactive_mode,)
 
     return success
 

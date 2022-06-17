@@ -24,6 +24,8 @@ from syscore.objects import arg_not_supplied, missing_data
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
+def top_and_tail(x: pd.DataFrame, rows=5):
+    return pd.concat([x[:rows], x[-rows:]], axis=0)
 
 def prices_to_daily_prices(x):
     return x.resample("1B").last()

@@ -8,6 +8,7 @@ import datetime
 import time
 import calendar
 import pandas as pd
+import numpy as np
 
 from syscore.objects import missing_data, arg_not_supplied
 
@@ -43,6 +44,73 @@ UNIXTIME_CONVERTER = 1e9
 UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
 
 MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
+
+def get_date_from_period_and_end_date(period: str,
+                                      end_date = arg_not_supplied) -> datetime.datetime:
+    if end_date is arg_not_supplied:
+        end_date = datetime.datetime.now()
+
+    if period=="YTD":
+        return calculate_starting_day_of_current_year(end_date)
+    elif period=="MTD":
+        return calculate_starting_day_of_current_month(end_date)
+    elif period=="QTD":
+        return calculate_starting_day_of_current_quarter(end_date)
+    elif period=="TAX":
+        return calculate_starting_day_of_current_uk_tax_year(end_date)
+
+    offset_date =  _get_previous_date_from_period_with_char_number(period, end_date)
+    return offset_date
+
+def _get_previous_date_from_period_with_char_number(period: str,
+                          end_date: datetime.datetime) -> datetime.datetime:
+
+    type_of_offset = period[-1]
+    try:
+        number_offset = int(period[:1])
+    except:
+        raise Exception("Offset %s not in pattern numberLetter eg 7D for 7 days")
+
+    if type_of_offset=="M":
+        offset_date = end_date+pd.DateOffset(months=-number_offset)
+    elif type_of_offset=="D":
+        offset_date = end_date+pd.DateOffset(days = -number_offset)
+    elif type_of_offset=="W":
+        offset_date = end_date + pd.DateOffset(days=-number_offset*7)
+    elif type_of_offset=="B":
+        offset_date = end_date+pd.tseries.offsets.BDay(-number_offset)
+    elif type_of_offset=="Y":
+        offset_date = end_date+pd.DateOffset(years = -number_offset)
+    else:
+        raise Exception("Type of offset %s not recognised must be one of BDMYW" % type_of_offset)
+
+    return offset_date
+
+def calculate_starting_day_of_current_year(end_date) -> datetime.datetime:
+    return datetime.datetime(year=end_date.year,
+                             month=1,
+                             day=1)
+
+def calculate_starting_day_of_current_uk_tax_year(end_date: datetime.datetime) -> datetime.datetime:
+    current_month = end_date.month
+    current_day = end_date.day
+    current_year = end_date.year
+    if current_month<5 and current_day<6:
+        return datetime.datetime(year=current_year-1, month=4, day=6)
+    else:
+        return datetime.datetime(year = current_year, month=4, day=6)
+
+def calculate_starting_day_of_current_month(end_date) -> datetime.datetime:
+    return datetime.datetime(year = end_date.year, month = end_date.month, day=1)
+
+def calculate_starting_day_of_current_quarter(end_date):
+    current_month = end_date.month
+    current_quarter = int(np.ceil(current_month/3))
+    start_month_of_quarter = ((current_quarter -1)*3)+1
+    return datetime.datetime(year = end_date.year,
+                             month = start_month_of_quarter,
+                             day=1)
+
 
 
 Frequency = Enum(
@@ -536,3 +604,15 @@ def generate_equal_dates_within_year(
     ]
 
     return all_dates
+
+
+def get_approx_vol_scalar_for_period(start_date:datetime.datetime,
+                              end_date = arg_not_supplied) -> float:
+    if end_date is arg_not_supplied:
+        end_date = datetime.datetime.now()
+    time_between = end_date - start_date
+    seconds_between= time_between.total_seconds()
+    days_between = seconds_between / SECONDS_PER_DAY
+
+    return days_between**.5
+

@@ -4,6 +4,8 @@ import pandas as pd
 
 from syscore.dateutils import n_days_ago, SECONDS_PER_DAY
 from syscore.objects import arg_not_supplied, missing_data, body_text, ALL_ROLL_INSTRUMENTS
+from syscore.pdutils import top_and_tail
+
 from sysdata.data_blob import dataBlob
 
 from sysproduction.data.prices import diagPrices
@@ -21,6 +23,9 @@ from sysproduction.reporting.data.costs import (
     get_table_of_SR_costs,
     get_combined_df_of_costs,
 )
+
+from sysproduction.reporting.data.pricechanges import get_market_moves_for_period
+
 from sysproduction.reporting.data.trades import (
     get_recent_broker_orders,
     create_raw_slippage_df,
@@ -116,6 +121,37 @@ class reportingApi(object):
 
     def footer(self):
         return header("END OF REPORT")
+
+    ## MARKET MOVES
+    def table_of_market_moves(self, period: str,
+                              sortby: str,
+                              truncate: bool = True) -> table:
+
+        # sort by one of ['name', 'change', 'vol_adjusted']
+        # period eg ['1B', '7D', '1M', '3M', '6M', 'YTD', '12M']
+        raw_df = self.market_moves_for_period(period)
+        sorted_df = raw_df.sort_values(sortby)
+
+        if truncate:
+            sorted_df = top_and_tail(sorted_df, rows=6)
+
+        return table("Market moves for period %s, sort by %s (%s/%s)"  %
+                     (period, sortby, period, sortby),
+                     sorted_df)
+
+    def market_moves_for_period(self, period: str) ->pd.DataFrame:
+        ## cache as will call multiple times with different sorts
+        period_storage_key = "_stored_moves_%s" % period
+        stored_market_moves = getattr(self, period_storage_key, missing_data)
+        if stored_market_moves is missing_data:
+            stored_market_moves = self._get_market_moves_for_period(period)
+            setattr(self, period_storage_key, stored_market_moves)
+
+        return stored_market_moves
+
+    def _get_market_moves_for_period(self, period: str) -> pd.DataFrame:
+        return get_market_moves_for_period(data = self.data,
+                                           period = period)
 
     ## MARKETS TO REMOVE
     def body_text_existing_markets_remove(self) -> body_text:

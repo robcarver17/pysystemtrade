@@ -124,6 +124,7 @@ class dataBroker(productionDataLayerGeneric):
                                                          frequency = frequency)
 
         broker_prices = apply_price_cleaning(data = self.data,
+                                             frequency = frequency,
                                              broker_prices_raw = broker_prices_raw,
                                              cleaning_config = cleaning_config)
 

@@ -7,7 +7,6 @@ from syscore.merge_data import (
     spike_check_merged_data,
 )
 
-from sysdata.tools.cleaner import priceFilterConfig, get_config_for_price_filtering
 
 NO_SPIKE_CHECKING = 9999999999.0
 

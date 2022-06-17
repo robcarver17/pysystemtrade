@@ -11,7 +11,7 @@ from sysproduction.data.prices import (
     diagPrices,
     get_valid_instrument_code_from_user,
 )
-from sysdata.tools.cleaner import priceFilterConfig, interactively_get_config_overrides_for_cleaning
+from sysdata.tools.cleaner import interactively_get_config_overrides_for_cleaning
 from sysproduction.update_historical_prices import update_historical_prices_for_instrument
 
 def interactive_manual_check_historical_prices():
