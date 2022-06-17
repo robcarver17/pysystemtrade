@@ -24,7 +24,7 @@ from sysproduction.reporting.data.costs import (
     get_combined_df_of_costs,
 )
 
-from sysproduction.reporting.data.pricechanges import get_market_moves_for_period
+from sysproduction.reporting.data.pricechanges import marketMovers
 
 from sysproduction.reporting.data.trades import (
     get_recent_broker_orders,
@@ -140,18 +140,17 @@ class reportingApi(object):
                      sorted_df)
 
     def market_moves_for_period(self, period: str) ->pd.DataFrame:
-        ## cache as will call multiple times with different sorts
-        period_storage_key = "_stored_moves_%s" % period
-        stored_market_moves = getattr(self, period_storage_key, missing_data)
+        market_moves = self.get_market_moves_object()
+        return market_moves.get_market_moves_for_period(period)
+
+    def get_market_moves_object(self) -> marketMovers:
+        key = '_market_moves'
+        stored_market_moves = getattr(self, key, missing_data)
         if stored_market_moves is missing_data:
-            stored_market_moves = self._get_market_moves_for_period(period)
-            setattr(self, period_storage_key, stored_market_moves)
+            stored_market_moves = marketMovers(self.data)
+            setattr(self, key, stored_market_moves)
 
         return stored_market_moves
-
-    def _get_market_moves_for_period(self, period: str) -> pd.DataFrame:
-        return get_market_moves_for_period(data = self.data,
-                                           period = period)
 
     ## MARKETS TO REMOVE
     def body_text_existing_markets_remove(self) -> body_text:

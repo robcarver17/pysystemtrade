@@ -72,6 +72,9 @@ def apply_price_cleaning(data: dataBlob,
     return broker_prices
 
 
+"""
+FIXME THIS IS HORRIBLE
+"""
 def get_config_for_price_filtering(data: dataBlob,
                                    cleaning_config: priceFilterConfig  = arg_not_supplied)\
         -> priceFilterConfig:

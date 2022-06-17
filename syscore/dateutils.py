@@ -607,9 +607,7 @@ def generate_equal_dates_within_year(
 
 
 def get_approx_vol_scalar_for_period(start_date:datetime.datetime,
-                              end_date = arg_not_supplied) -> float:
-    if end_date is arg_not_supplied:
-        end_date = datetime.datetime.now()
+                              end_date = datetime.datetime) -> float:
     time_between = end_date - start_date
     seconds_between= time_between.total_seconds()
     days_between = seconds_between / SECONDS_PER_DAY

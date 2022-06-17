@@ -129,6 +129,10 @@ remove_markets_report_config = reportConfig(title="Remove markets report",
                                             output="email"
                                             )
 
+market_monitor_report_config = reportConfig(title = "Market monitor report",
+        function = "sysproduction.reporting.market_monitor_report.market_monitor_report",
+                                            output="email")
+
 ## The reports will be run in this order
 report_config_defaults = dict(
     slippage_report = slippage_report_config,
@@ -144,5 +148,6 @@ report_config_defaults = dict(
     instrument_risk_report = instrument_risk_report_config,
     min_capital = min_capital_report_config,
     duplicate_market =duplicate_market_report_config,
-    remove_markets_report = remove_markets_report_config
+    remove_markets_report = remove_markets_report_config,
+    market_monitor_report = market_monitor_report_config
 )

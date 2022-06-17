@@ -27,12 +27,19 @@ def market_monitor_report(data: dataBlob = arg_not_supplied):
     formatted_output.append(reporting_api.terse_header("Market monitor report"))
     formatted_output.append(MARKET_REPORT)
     #eg 1 day, 7 days, 1 month, 3 months, 6 months, YTD and 1 year
-    for truncate in [True, False]:
-        for period in list_of_periods:
-            for sortby in ['name', 'change', 'vol_adjusted']:
-                formatted_output.append(
-                    reporting_api.table_of_market_moves(
-                        period=period, sortby=sortby, truncate=truncate))
+    truncate = True
+    for period in list_of_periods:
+        for sortby in [ 'change', 'vol_adjusted']:
+            formatted_output.append(
+                reporting_api.table_of_market_moves(
+                    period=period, sortby=sortby, truncate=truncate))
+
+    truncate = False
+    for period in list_of_periods:
+        for sortby in ['name', 'change', 'vol_adjusted']:
+            formatted_output.append(
+                reporting_api.table_of_market_moves(
+                    period=period, sortby=sortby, truncate=truncate))
 
     formatted_output.append(reporting_api.footer())
 
