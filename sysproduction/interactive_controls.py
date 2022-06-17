@@ -34,12 +34,12 @@ from sysproduction.data.prices import (
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.instruments import dataInstruments
 from sysproduction.reporting.data.risk import get_risk_data_for_instrument
-
+from sysproduction.reporting.data.volume import get_best_average_daily_volume_for_instrument
 
 from sysproduction.reporting.api import reportingApi
 
 # could get from config, but might be different by system
-from sysproduction.reporting.data.constants import MAX_VS_AVERAGE_FORECAST, RISK_TARGET_ASSUMED
+from sysproduction.reporting.data.constants import MAX_VS_AVERAGE_FORECAST, RISK_TARGET_ASSUMED, MAX_PROPORTION_OF_VOLUME
 
 
 @dataclass()
@@ -50,6 +50,7 @@ class parametersForAutoPopulation:
     approx_IDM: float
     notional_instrument_weight: float
     max_proportion_risk_one_contract: float
+    max_proportion_of_volume: float
 
 
 def interactive_controls():
@@ -316,12 +317,19 @@ def get_auto_population_parameters() -> parametersForAutoPopulation:
         default_value=MAX_RISK_EXPOSURE_ONE_INSTRUMENT
     )
 
+    max_proportion_of_volume = get_and_convert(
+        "Maximum proportion of volume for expiry with largest volume (0.1 = 10%)",
+        type_expected=float,
+        default_value=MAX_PROPORTION_OF_VOLUME
+    )
+
     auto_parameters = parametersForAutoPopulation(raw_max_leverage = raw_max_leverage,
                    max_vs_average_forecast = MAX_VS_AVERAGE_FORECAST,
                    notional_risk_target =notional_risk_target,
                    approx_IDM = approx_IDM,
                     max_proportion_risk_one_contract=max_proportion_risk_one_contract,
-                   notional_instrument_weight = notional_instrument_weight)
+                   notional_instrument_weight = notional_instrument_weight,
+                    max_proportion_of_volume = max_proportion_of_volume )
 
     return auto_parameters
 
@@ -345,16 +353,22 @@ def get_maximum_position_at_max_forecast(
         auto_parameters=auto_parameters
     )
 
-    standard_position = min(position_for_risk, position_with_leverage, position_for_concentration)
+    position_for_volume = get_max_position_give_volume_limit(data,
+                                                             instrument_code=instrument_code,
+                                                             auto_parameters=auto_parameters)
+
+    standard_position = min(position_for_risk, position_with_leverage, position_for_concentration, position_for_volume)
+
 
     print(
-        "Standardised position for %s is %.1f, minimum of %.1f (risk), %.1f (leverage), and %.1f (concentration)"
+        "Standardised maximum position for %s is %.1f, minimum of %.1f (risk), %.1f (leverage), %.1f (concentration), and %1.f (volume)"
         % (
             instrument_code,
             standard_position,
             position_for_risk,
             position_with_leverage,
-            position_for_concentration
+            position_for_concentration,
+            position_for_volume
         )
     )
 
@@ -365,7 +379,7 @@ def get_maximum_position_at_max_forecast(
 
 
 def get_standardised_position_for_risk(risk_data: dict,
-                                       auto_parameters: parametersForAutoPopulation) -> int:
+                        auto_parameters: parametersForAutoPopulation) -> float:
 
     capital = risk_data["capital"]
     annual_risk_per_contract = risk_data["annual_risk_per_contract"]
@@ -434,6 +448,22 @@ def get_maximum_position_given_risk_concentration_limit(
           (capital, risk_target))
 
     return round_position_limit
+
+def get_max_position_give_volume_limit(data: dataBlob,
+                                        instrument_code: str,
+                                       auto_parameters: parametersForAutoPopulation) -> float:
+
+    max_proportion_of_volume = auto_parameters.max_proportion_of_volume
+    volume_for_instrument = get_best_average_daily_volume_for_instrument(data, instrument_code)
+    if np.isnan(volume_for_instrument):
+        print("No volume data available!! Assuming no constraint on liquidity")
+        return 999999999
+
+    volume_limit = max_proportion_of_volume * volume_for_instrument
+    print("Volume is %d and we are happy to do %.1f of that, i.e. %f" % (volume_for_instrument,
+                                                                         max_proportion_of_volume*100,
+                                                                         volume_limit))
+    return volume_limit
 
 def view_position_limit(data):
 
