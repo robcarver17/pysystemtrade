@@ -50,7 +50,7 @@ max_price_spike: 8.0
 # Behaviour of price filtering
 ignore_future_prices: True
 ignore_prices_with_zero_volumes_intraday: True
-ignore_prices_with_zero_volumes_daily: True
+ignore_prices_with_zero_volumes_daily: False
 ignore_zero_prices: True
 ignore_negative_prices: False
 #
