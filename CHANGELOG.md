@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 1.40
+
+- "Market movers" report added
+- Nicer functionality to get dates into reports interactively
+- Added volume limits to auto fill position limits
 - Fixed cost calculation for dynamic optimisation (see [discussion](https://github.com/robcarver17/pysystemtrade/discussions/647))
 - Private config now always pulled in, even for backtests (see [discussion](https://github.com/robcarver17/pysystemtrade/discussions/633))
 - Improved price cleaning (see [discussion](https://github.com/robcarver17/pysystemtrade/discussions/646))
