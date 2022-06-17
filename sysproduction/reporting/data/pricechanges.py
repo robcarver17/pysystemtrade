@@ -94,9 +94,17 @@ class marketMovers(object):
         end_date = self.end_date
         vol_scalar = get_approx_vol_scalar_for_period(start_date, end_date)
 
-        stddev = get_current_daily_stdev_for_instrument(self.data, instrument_code)
+        stddev = self.get_stdev_at_start_date_for_instrument(start_date, instrument_code)
 
         return stddev * vol_scalar
+
+    def get_stdev_at_start_date_for_instrument(self, start_date: datetime.date,
+                                               instrument_code: str):
+        
+        stdev = get_stdev_at_start_date_for_instrument(start_date=start_date,
+                                                       price_series=self.get_prices_for_instrument(instrument_code))
+
+        return stdev
 
     def start_date_for_period(self, period: str) -> datetime.datetime:
         return get_date_from_period_and_end_date(period, end_date=self.end_date)
@@ -131,3 +139,12 @@ def get_percentage_change_from_series_for_period(price_series: pd.Series,
     if len(price_series_for_period) == 0:
         return np.nan
     return 100*(price_series_for_period[-1]/price_series_for_period[0]) -1
+
+def get_stdev_at_start_date_for_instrument(price_series: pd.Series,
+                                            start_date: datetime.date):
+    price_series_for_period = price_series[:start_date]
+    daily_price_series = price_series_for_period.resample("1B").ffill()
+    daily_returns = daily_price_series.diff()
+    vol_series = daily_returns.ewm(30).std()
+
+    return vol_series[-1]
