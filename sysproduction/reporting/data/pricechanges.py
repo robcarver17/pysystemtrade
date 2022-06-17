@@ -139,7 +139,7 @@ def get_percentage_change_from_series_for_period(price_series: pd.Series,
     price_series_for_period = price_series[start_date:end_date]
     if len(price_series_for_period) == 0:
         return np.nan
-    return 100*(price_series_for_period[-1]/price_series_for_period[0]) -1
+    return 100*((price_series_for_period[-1]/price_series_for_period[0]) -1)
 
 def get_stdev_at_start_date_for_instrument(price_series: pd.Series,
                                             start_date: datetime.date):
