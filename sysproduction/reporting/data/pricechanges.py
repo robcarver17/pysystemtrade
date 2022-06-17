@@ -28,6 +28,7 @@ class marketMovers(object):
                      for instrument_code in list_of_instruments]
 
         all_moves_as_df = pd.DataFrame(all_moves)
+        all_moves_as_df = all_moves_as_df.dropna()
 
         return all_moves_as_df
 
@@ -100,7 +101,7 @@ class marketMovers(object):
 
     def get_stdev_at_start_date_for_instrument(self, start_date: datetime.date,
                                                instrument_code: str):
-        
+
         stdev = get_stdev_at_start_date_for_instrument(start_date=start_date,
                                                        price_series=self.get_prices_for_instrument(instrument_code))
 
