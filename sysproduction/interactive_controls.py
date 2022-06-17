@@ -460,7 +460,7 @@ def get_max_position_give_volume_limit(data: dataBlob,
         return 999999999
 
     volume_limit = max_proportion_of_volume * volume_for_instrument
-    print("Volume is %d and we are happy to do %.1f of that, i.e. %f" % (volume_for_instrument,
+    print("Volume is %d and we are happy to do %.1f%% of that, i.e. %f" % (volume_for_instrument,
                                                                          max_proportion_of_volume*100,
                                                                          volume_limit))
     return volume_limit
