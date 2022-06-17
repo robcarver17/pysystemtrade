@@ -83,8 +83,8 @@ def get_config_for_price_filtering(data: dataBlob,
     production_config = data.config
 
     ignore_future_prices = production_config.get_element_or_missing_data('ignore_future_prices')
-    ignore_prices_with_zero_volumes_daily = production_config.get_element_or_missing_data('ignore_future_prices_daily')
-    ignore_prices_with_zero_volumes_intraday = production_config.get_element_or_missing_data('ignore_future_prices_intraday')
+    ignore_prices_with_zero_volumes_daily = production_config.get_element_or_missing_data('ignore_prices_with_zero_volumes_daily')
+    ignore_prices_with_zero_volumes_intraday = production_config.get_element_or_missing_data('ignore_prices_with_zero_volumes_intraday')
     ignore_zero_prices = production_config.get_element_or_missing_data('ignore_zero_prices')
     ignore_negative_prices = production_config.get_element_or_missing_data('ignore_negative_prices')
     max_price_spike = production_config.get_element_or_missing_data('max_price_spike')
