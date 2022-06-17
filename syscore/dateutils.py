@@ -359,42 +359,6 @@ def strip_timezone_fromdatetime(timestamp_with_tz_info) -> datetime.datetime:
     return new_timestamp
 
 
-def get_datetime_input(
-    prompt: str, allow_default: bool = True, allow_no_arg: bool = False
-):
-    invalid_input = True
-    input_str = (
-        prompt
-        + ": Enter date and time in format %Y-%m-%d eg '2020-05-30' OR '%Y-%m-%d %H:%M:%S' eg '2020-05-30 14:04:11'"
-    )
-    if allow_default:
-        input_str = input_str + " <RETURN for now>"
-    if allow_no_arg:
-        input_str = input_str + " <SPACE for no date>' "
-    while invalid_input:
-        ans = input(input_str)
-        if ans == "" and allow_default:
-            return datetime.datetime.now()
-        if ans == " " and allow_no_arg:
-            return None
-        try:
-            if len(ans) == 10:
-                return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d")
-            elif len(ans) == 19:
-                return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d %H:%M:%S")
-            else:
-                # problems formatting will also raise value error
-                raise ValueError
-            return return_datetime
-
-        except ValueError:
-            print("%s is not a valid datetime string" % ans)
-            continue
-
-
-
-
-
 SHORT_DATE_PATTERN = "%m/%d %H:%M:%S"
 MISSING_STRING_PATTERN = "     ???      "
 
@@ -613,4 +577,43 @@ def get_approx_vol_scalar_for_period(start_date:datetime.datetime,
     days_between = seconds_between / SECONDS_PER_DAY
 
     return days_between**.5
+
+
+def calculate_start_and_end_dates(
+        calendar_days_back = arg_not_supplied,
+        end_date: datetime.datetime = arg_not_supplied,
+        start_date: datetime.datetime = arg_not_supplied,
+        start_period: str = arg_not_supplied,
+        end_period: str = arg_not_supplied) -> tuple:
+
+    ## DO THE END DATE FIRST
+    ## First preference is to use period
+    if end_period is arg_not_supplied:
+        ## OK preference is to use passed date, if there was one
+        if end_date is arg_not_supplied:
+            end_date = datetime.datetime.now()
+        else:
+            # Use passed end date
+            pass
+    else:
+        end_date = get_date_from_period_and_end_date(end_period)
+
+    ## DO THE START DATE NEXT
+    ## First preference is to use period, then calendar days, then passed date
+    if start_period is arg_not_supplied:
+        if calendar_days_back is arg_not_supplied:
+            ## no period or calendar days, use passed date
+            if start_date is arg_not_supplied:
+                raise Exception("Have to specify one of calendar days back, start period or start date!")
+            else:
+                ## Use passed start date
+                pass
+        else:
+            ## Calendar days
+            start_date = n_days_ago(calendar_days_back, end_date)
+    else:
+        ## have a period
+        start_date = get_date_from_period_and_end_date(start_period, end_date)
+
+    return start_date, end_date
 

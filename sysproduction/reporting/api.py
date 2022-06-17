@@ -2,7 +2,8 @@ import datetime
 
 import pandas as pd
 
-from syscore.dateutils import n_days_ago, SECONDS_PER_DAY
+from syscore.cache import Cache
+from syscore.dateutils import SECONDS_PER_DAY, calculate_start_and_end_dates
 from syscore.objects import arg_not_supplied, missing_data, body_text, ALL_ROLL_INSTRUMENTS
 from syscore.pdutils import top_and_tail
 
@@ -87,15 +88,20 @@ class reportingApi(object):
     def __init__(
         self,
         data: dataBlob,
-        calendar_days_back: int = 250,
+        calendar_days_back: int = arg_not_supplied,
         end_date: datetime.datetime = arg_not_supplied,
         start_date: datetime.datetime = arg_not_supplied,
+        start_period: str = arg_not_supplied,
+        end_period: str = arg_not_supplied
     ):
 
         self._data = data
         self._calendar_days_back = calendar_days_back
         self._passed_start_date = start_date
         self._passed_end_date = end_date
+        self._end_period = end_period
+        self._start_period = start_period
+        self._cache = Cache(self)
 
     def std_header(self, report_name: str):
         start_date = self.start_date
@@ -123,25 +129,48 @@ class reportingApi(object):
         return header("END OF REPORT")
 
     ## MARKET MOVES
-    def table_of_market_moves(self, period: str,
-                              sortby: str,
-                              truncate: bool = True) -> table:
+    def table_of_market_moves_using_dates(self,
+                                           sortby: str,
+                                           truncate: bool = True) -> table:
+
+        # sort by one of ['name', 'change', 'vol_adjusted']
+        raw_df = self.market_moves_for_dates()
+        sorted_df = raw_df.sort_values(sortby)
+        rounded_df = sorted_df.round(2)
+
+        if truncate:
+            rounded_df = top_and_tail(rounded_df, rows=6)
+
+        return table("Market moves between %s and %s, sort by %s"  %
+                     (str(self.start_date), str(self.end_date), sortby),
+                     rounded_df)
+
+
+    def table_of_market_moves_given_period(self, period: str,
+                                           sortby: str,
+                                           truncate: bool = True) -> table:
 
         # sort by one of ['name', 'change', 'vol_adjusted']
         # period eg ['1B', '7D', '1M', '3M', '6M', 'YTD', '12M']
         raw_df = self.market_moves_for_period(period)
         sorted_df = raw_df.sort_values(sortby)
+        rounded_df = sorted_df.round(2)
 
         if truncate:
-            sorted_df = top_and_tail(sorted_df, rows=6)
+            rounded_df = top_and_tail(rounded_df, rows=6)
 
         return table("Market moves for period %s, sort by %s (%s/%s)"  %
                      (period, sortby, period, sortby),
-                     sorted_df)
+                     rounded_df)
 
     def market_moves_for_period(self, period: str) ->pd.DataFrame:
         market_moves = self.get_market_moves_object()
         return market_moves.get_market_moves_for_period(period)
+
+    def market_moves_for_dates(self) ->pd.DataFrame:
+        market_moves = self.get_market_moves_object()
+        return market_moves.get_market_moves_for_dates(self.start_date,
+                                                       self.end_date)
 
     def get_market_moves_object(self) -> marketMovers:
         key = '_market_moves'
@@ -878,38 +907,34 @@ class reportingApi(object):
 
     @property
     def start_date(self) -> datetime.datetime:
-        start_date = getattr(self, "_start_date", missing_data)
-        if start_date is missing_data:
-            start_date = self._start_date = self._calculate_start_date()
+        start_and_end_dates = self.start_and_end_dates
 
-        return start_date
-
-    def _calculate_start_date(self) -> datetime.datetime:
-        start_date = self._passed_start_date
-        if start_date is arg_not_supplied:
-            calendar_days_back = self._calendar_days_back
-            end_date = self.end_date
-            start_date = n_days_ago(calendar_days_back, date_ref=end_date)
-
-        return start_date
+        return start_and_end_dates[0]
 
     @property
     def end_date(self) -> datetime.datetime:
-        end_date = getattr(self, "_end_date", missing_data)
-        if end_date is missing_data:
-            end_date = self._end_date = self._calculate_end_date()
+        start_and_end_dates = self.start_and_end_dates
 
-        return end_date
+        return start_and_end_dates[1]
 
-    def _calculate_end_date(self) -> datetime.datetime:
-        end_date = self._passed_end_date
-        if end_date is arg_not_supplied:
-            end_date = datetime.datetime.now()
+    @property
+    def start_and_end_dates(self) -> tuple:
+        return self.cache.get(self._calculate_start_and_end_dates)
 
-        return end_date
+    def _calculate_start_and_end_dates(self) -> tuple:
+        start_date, end_date = calculate_start_and_end_dates(
+            calendar_days_back=self._calendar_days_back,
+            start_date = self._passed_start_date,
+            end_date = self._passed_end_date,
+            start_period = self._start_period,
+            end_period = self._end_period
+        )
 
+        return start_date, end_date
 
-
+    @property
+    def cache(self) -> Cache:
+        return self._cache
 
 def get_liquidity_report_data(data: dataBlob) -> pd.DataFrame:
     all_liquidity_df = get_liquidity_data_df(data)

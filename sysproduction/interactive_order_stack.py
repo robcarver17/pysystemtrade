@@ -8,11 +8,10 @@ Do standard things to the instrument, order and broker stack (normally automated
 """
 
 from syscore.objects import missing_order
-from syscore.dateutils import get_datetime_input
 from syscore.interactive import (
     get_and_convert,
     run_interactive_menu,
-    print_menu_of_values_and_get_response,
+    print_menu_of_values_and_get_response, get_datetime_input,
 )
 from syscore.pdutils import set_pd_print_options
 
