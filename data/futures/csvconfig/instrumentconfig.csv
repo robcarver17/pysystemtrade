@@ -131,7 +131,6 @@ GOLD_micro,10,0,0.25,0,Metals,USD,Gold micro,0.1
 HANG,50,,,,Equity,HKD,Hong Kong equity index Hang Seng,
 HEATOIL,42000,0,1.5,0,OilGas,USD,Heating oil,0.00045
 HEATOIL-mini,21000,0,0.85,0,OilGas,USD,NYMEX MINY Heating Oil Index,0.0325
-HEAT_S,42000,,,,OilGas,USD,Heating oil Summer,
 HIGHYIELD,1000,0,0.85,0,Bond,USD,iBoxx iShares $ High Yield Corporate Bond Index TR,0.02
 HOUSE-BO,250,0,0.85,0,Housing,USD,Boston Housing Index,3.4
 HOUSE-CG,250,0,0.85,0,Housing,USD,Chicago Housing Index,3
@@ -267,6 +266,5 @@ VIX_mini,100,0,0.5,0,Vol,USD,Vol US equity VIX mini,0.05
 VNKI,10000,0,400,0,Vol,JPY,Nikkei 225 Volatility Index,0.3
 WHEAT,50,0,2.9,0,Ags,USD,Wheat,0.25
 WHEAT_mini,10,0,2.9,0,Ags,USD,Wheat mini,0.25
-WTI_micro,100,0,0.7,0,OilGas,USD,micro WTI crude oil,0.01
-XINA,1,,,,Equity,USD,Chinese equity index,
+CRUDE_W_micro,100,0,0.7,0,OilGas,USD,micro WTI crude oil,0.01
 YENEUR,125000,0,1.5,0,FX,JPY,YENEUR currency,0.01

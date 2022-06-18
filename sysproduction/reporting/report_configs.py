@@ -94,7 +94,8 @@ liquidity_report_config = reportConfig(
 costs_report_config = reportConfig(
     title="Costs report",
     function="sysproduction.reporting.costs_report.costs_report",
-    output="email"
+    output="email",
+    calendar_days_back = 250
 
 )
 
