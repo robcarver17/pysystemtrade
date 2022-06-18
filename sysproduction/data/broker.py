@@ -17,7 +17,7 @@ from syscore.objects import (
     missing_contract,
     missing_data
 )
-from syscore.dateutils import Frequency, listOfOpeningTimes
+from syscore.dateutils import Frequency, DAILY_PRICE_FREQ, listOfOpeningTimes
 
 from sysdata.data_blob import dataBlob
 from sysdata.tools.cleaner import apply_price_cleaning
@@ -122,9 +122,10 @@ class dataBroker(productionDataLayerGeneric):
         broker_prices_raw = \
                 self.get_prices_at_frequency_for_contract_object(contract_object=contract_object,
                                                          frequency = frequency)
+        daily_data = frequency is DAILY_PRICE_FREQ
 
         broker_prices = apply_price_cleaning(data = self.data,
-                                             frequency = frequency,
+                                             daily_data=daily_data,
                                              broker_prices_raw = broker_prices_raw,
                                              cleaning_config = cleaning_config)
 

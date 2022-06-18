@@ -20,9 +20,10 @@ priceFilterConfig = namedtuple('priceFilterConfig',
 
 
 def apply_price_cleaning(data: dataBlob,
-                         frequency: Frequency,
                           broker_prices_raw: futuresContractPrices,
-                          cleaning_config = arg_not_supplied):
+                          cleaning_config = arg_not_supplied,
+                         daily_data: bool = True
+                         ):
 
     if broker_prices_raw is failure:
         return failure
@@ -43,10 +44,12 @@ def apply_price_cleaning(data: dataBlob,
             log.msg("Ignoring %d prices with future timestamps" % (price_length - new_price_length))
             price_length = new_price_length
 
-    if frequency == DAILY_PRICE_FREQ:
-        ignore_prices_with_zero_volumes = cleaning_config.ignore_prices_with_zero_volumes_daily
+    if daily_data:
+        ignore_prices_with_zero_volumes = \
+            cleaning_config.ignore_prices_with_zero_volumes_daily
     else:
-        ignore_prices_with_zero_volumes = cleaning_config.ignore_prices_with_zero_volumes_intraday
+        ignore_prices_with_zero_volumes = \
+            cleaning_config.ignore_prices_with_zero_volumes_intraday
 
     if ignore_prices_with_zero_volumes:
         broker_prices = broker_prices.remove_zero_volumes()
