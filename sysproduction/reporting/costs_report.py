@@ -9,6 +9,7 @@ COSTS_REPORT_TEXT = body_text(
 
 def costs_report(
     data: dataBlob = arg_not_supplied,
+        calendar_days_back = 250
 
 
 ):
@@ -17,7 +18,8 @@ def costs_report(
         data = dataBlob()
 
     reporting_api = reportingApi(
-        data
+        data,
+        calendar_days_back=calendar_days_back
     )
 
     formatted_output = []
