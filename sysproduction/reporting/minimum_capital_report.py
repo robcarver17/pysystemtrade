@@ -30,7 +30,7 @@ def minimum_capital_report(
     )
 
     formatted_output = []
-    formatted_output.append(reporting_api.std_header("Minimum capital report"))
+    formatted_output.append(reporting_api.terse_header("Minimum capital report"))
     formatted_output.append(HEADER_TEXT)
 
     formatted_output.append(reporting_api.table_of_minimum_capital())

@@ -116,7 +116,8 @@ instrument_risk_report_config = reportConfig(title="Instrument risk report",
 min_capital_report_config= reportConfig(title="Minimum capital report",
     function=
     "sysproduction.reporting.minimum_capital_report.minimum_capital_report",
-                                        output="email"
+                                        output="email",
+                                        calendar_days_back=250
                                         )
 
 duplicate_market_report_config = reportConfig(title="Duplicate markets report",

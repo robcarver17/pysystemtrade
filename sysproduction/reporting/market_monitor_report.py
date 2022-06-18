@@ -28,9 +28,6 @@ def market_monitor_report(data: dataBlob = arg_not_supplied,
     if data is arg_not_supplied:
         data = dataBlob()
 
-    if data is arg_not_supplied:
-        data = dataBlob()
-
     reporting_api = reportingApi(data, start_date=start_date, end_date=end_date)
 
     if (start_date is arg_not_supplied) and (end_date is arg_not_supplied):
