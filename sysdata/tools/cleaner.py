@@ -35,8 +35,6 @@ def apply_price_cleaning(data: dataBlob,
 
     broker_prices = copy(broker_prices_raw)
 
-    print("Pre cleaning")
-    print(broker_prices)
     ## It's important that the data is in local time zone so that this works
     price_length = len(broker_prices)
     if cleaning_config.ignore_future_prices:
@@ -74,8 +72,6 @@ def apply_price_cleaning(data: dataBlob,
             log.warn("Ignoring %d prices with negative prices ****COULD BE REAL PRICES****" % (price_length - new_price_length))
             price_length = new_price_length ## not used again but for tidiness
 
-    print("Post cleaning")
-    print(broker_prices)
 
 
     return broker_prices

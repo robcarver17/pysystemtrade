@@ -37,7 +37,7 @@ class ibPriceClient(ibContractsClient):
         self,
         contract_object_with_ib_broker_config: futuresContract,
         bar_freq: Frequency = DAILY_PRICE_FREQ,
-            whatToShow="MIDPOINT",
+            whatToShow="TRADES",
         allow_expired=False,
     ) -> pd.DataFrame:
         """
@@ -159,7 +159,7 @@ class ibPriceClient(ibContractsClient):
         ibcontract: ibContract,
         log: logger = None,
         bar_freq: Frequency = DAILY_PRICE_FREQ,
-        whatToShow: str = "MIDPOINT",
+        whatToShow: str = "TRADES",
     ) -> pd.DataFrame:
         """
         Get historical daily data
@@ -252,7 +252,7 @@ class ibPriceClient(ibContractsClient):
         ibcontract: ibContract,
         durationStr: str = "1 Y",
         barSizeSetting: str = "1 day",
-        whatToShow="MIDPOINT",
+        whatToShow="TRADES",
         log: logger = None,
     ) -> pd.DataFrame:
         """
