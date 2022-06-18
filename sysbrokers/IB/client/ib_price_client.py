@@ -158,7 +158,7 @@ class ibPriceClient(ibContractsClient):
         ibcontract: ibContract,
         log: logger = None,
         bar_freq: Frequency = DAILY_PRICE_FREQ,
-        whatToShow: str = "TRADES",
+        whatToShow: str = "MIDPOINT",
     ) -> pd.DataFrame:
         """
         Get historical daily data
