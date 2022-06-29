@@ -37,8 +37,8 @@ def account_test(
     """
 
     # Inner join on the cumulative returns
-    acc1_ = acc1.cumsum()
-    acc2_ = acc2.cumsum()
+    acc1_ = pd.DataFrame(acc1).cumsum()
+    acc2_ = pd.DataFrame(acc2).cumsum()
     cum = pd.merge(acc1_, acc2_, left_index=True, right_index=True)
     cum = cum.sort_index(ascending=True, inplace=False)
 
