@@ -1,41 +1,59 @@
 import pandas as pd
-import numpy as np
+from typing import Union, NamedTuple
 from scipy.stats import ttest_rel
 
+from systems.accounts.curves.account_curve import accountCurve
 
-def account_test(ac1, ac2):
+
+class AccountTestResult(NamedTuple):
+    """Structure to store the results of the t-test"""
+    diff: float
+    statistic: float
+    pvalue: float
+
+
+def account_test(
+    acc1: Union[accountCurve, pd.Series],
+    acc2: Union[accountCurve, pd.Series]
+) -> AccountTestResult:
     """
-    Given two Account like objects performs a two sided t test of normalised returns
+    Given two accountCurve-like objects, performs a two-sided t-test on normalised returns.
 
-    :param ac1: first set of returns
-    :type ac1: accountCurve or pd.DataFrame of returns
-
-    :param ac2: second set of returns
-    :type ac2: accountCurve or pd.DataFrame of returns
-
-    :returns: 2 tuple: difference in means, t-test results
+    Parameters
+    ----------
+    acc1 : accountCurve or pd.Series
+        first set of returns
+    acc2 : accountCurve or pd.Series
+        second set of returns
+        
+    Returns
+    -------
+    diff : float
+        difference in standardised means of returns
+    statistic : float
+        t-statistic for the t-test
+    pvalue : float
+        p-value for the t-test
     """
 
-    common_ts = sorted(set(list(ac1.index)) & set(list(ac2.index)))
+    # Inner join on the cumulative returns
+    acc1_ = acc1.cumsum()
+    acc2_ = acc2.cumsum()
+    cum = pd.merge(acc1_, acc2_, left_index=True, right_index=True)
+    cum = cum.sort_index(ascending=True, inplace=False)
 
-    ac1_common = ac1.cumsum().reindex(common_ts, method="ffill").diff().values
-    ac2_common = ac2.cumsum().reindex(common_ts, method="ffill").diff().values
+    # Get returns, standardise and compute means
+    returns = cum.diff(periods=1).dropna(how='any')
+    returns = returns / (returns.std(axis=0) + 1e-100)
+    means = returns.means(axis=0).values
+    returns = returns.values
 
-    missing_values = [
-        idx
-        for idx in range(len(common_ts))
-        if (np.isnan(ac1_common[idx]) or np.isnan(ac2_common[idx]))
-    ]
-    ac1_common = [
-        ac1_common[idx] for idx in range(len(common_ts)) if idx not in missing_values
-    ]
-    ac2_common = [
-        ac2_common[idx] for idx in range(len(common_ts)) if idx not in missing_values
-    ]
+    # Get the difference in (standardised) means
+    diff = means[0] - means[1]
 
-    ac1_common = ac1_common / np.nanstd(ac1_common)
-    ac2_common = ac2_common / np.nanstd(ac2_common)
+    # Perform the two-sided t-test
+    ttest = ttest_rel(returns[:,0], returns[:,1], nan_policy='omit')
+    t = ttest.statistic
+    pvalue = ttest.pvalue
 
-    diff = np.mean(ac1_common) - np.mean(ac2_common)
-
-    return (diff, ttest_rel(ac1_common, ac2_common))
+    return AccountTestResult(diff, t, pvalue)
