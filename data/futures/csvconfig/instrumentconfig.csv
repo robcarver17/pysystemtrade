@@ -4,7 +4,7 @@ ALUMINIUM,25,0,1.5,0,Metals,USD,NYMEX Aluminum Index,8.5
 ASX,25,,,,Equity,AUD,Australian equity index ASX200,
 AUD,100000,0,2.46,0,FX,USD,AUDUSD currency,3.22215919456375E-05
 AUD-SGX,25000,0,2.85,0,FX,USD,SGX Australian Dollar in US Dollar Futures,0.00015
-AUDJPY,25000,0,285,0,FX,JPY,SGX Australian Dollar in Japanese Yen Futures,0.015
+AUDJPY-SGX,25000,0,285,0,FX,JPY,SGX Australian Dollar in Japanese Yen Futures,0.015
 AUS10,9062,,,,Bond,AUD,Australian 10 year bond,
 AUS3,3011,,,,Bond,AUD,Australian 3 year bond,
 AUSSTIR,2414,,,,STIR,AUD,Australian STIR Bills,
@@ -102,7 +102,6 @@ EUROSTX-MID,50,0,2,0,Equity,EUR,Euro Stoxx Mid,1.2
 EUROSTX-PRICE,50,0,2,0,Equity,EUR,Dow Jones Euro STOXX Price Index,0.15
 EUROSTX-SMALL,50,0,2,0,Equity,EUR,Euro Stoxx Small,0.15
 EUROSTX200-LARGE,50,0,2,0,Sector,EUR,Dow Jones STOXX Large 200 Index,0.15
-Ethereum,50,0,10,0,FX,USD,CME CF Ether-Dollar Reference Rate,3.25
 FED,4167,0,0.85,0,Bond,USD,30 Day Fed Funds,0.00125
 FEEDCOW,500,0,1.5,0,Ags,USD,Feeder cattle,0.05
 FOX,10,,,,Equity,EUR,Finnish equity index,
