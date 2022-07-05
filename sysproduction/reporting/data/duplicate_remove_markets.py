@@ -234,7 +234,7 @@ def get_remove_market_data(data) -> RemoveMarketData:
 
 def get_list_of_duplicate_market_tables(data):
     filters = get_bad_market_filter_parameters()
-    duplicate_dict = generate_matching_duplicate_dict()
+    duplicate_dict = generate_matching_duplicate_dict(config=data.config)
     mkt_data = get_data_for_markets(data)
     duplicates = [
         table_of_duplicate_markets_for_dict_entry(mkt_data, dict_entry, filters)

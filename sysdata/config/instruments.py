@@ -33,7 +33,7 @@ def get_config_of_excluded_instruments(config: Config) -> dict:
     return exclude_instrument_lists
 
 
-def generate_matching_duplicate_dict(config: Config = arg_not_supplied):
+def generate_matching_duplicate_dict():
     """
     Returns a dict, each element is a named set of duplicated instruments
     Within each dict we have two elements: included, excluded
@@ -43,11 +43,6 @@ def generate_matching_duplicate_dict(config: Config = arg_not_supplied):
     dict(copper = dict(included = ["COPPER"], excluded = ["COPPER_mini"]
     """
 
-    if config is arg_not_supplied:
-        print(
-            "Using defaults.yaml config - won't include any elements from private_config or backtest configs"
-        )
-        config = default_config()
 
     duplicate_instruments_config = config.get_element_or_missing_data(
         "duplicate_instruments"
