@@ -51,6 +51,9 @@ def get_optimal_positions_table_as_df(
     )
     as_verbose_pd = list_of_positions.as_verbose_pd()
 
+    if len(as_verbose_pd) == 0:
+        return pd.DataFrame()
+
     subset_of_pd = as_verbose_pd[
         [
             "dont_trade",
