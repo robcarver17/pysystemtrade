@@ -168,7 +168,7 @@ def adjust_capital_for_delta(data: dataBlob):
         "What change have you made to brokerage account that will not change capital +ve deposit, -ve withdrawal",
         type_expected=float,
     )
-    old_capital = data_capital.get_current_total_capital()
+    old_capital = data_capital.get_series_of_broker_capital()[-1]
     new_capital = old_capital + capital_delta
     user_wants_adjustment = true_if_answer_is_yes(
         "New brokerage capital will be %f, are you sure? "

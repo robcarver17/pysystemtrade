@@ -133,7 +133,7 @@ class capitalData(listOfEntriesData):
             current_max_capital = self.get_current_maximum_account_value()
             self.update_maximum_capital(current_max_capital, date)
             current_pandl = self.get_current_pandl_account()
-            self.update_profit_and_loss_account(current_pandl)
+            self.update_profit_and_loss_account(current_pandl, date)
 
     def update_profit_and_loss_account(
         self, new_capital_value: float, date: datetime.datetime = arg_not_supplied
