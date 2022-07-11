@@ -15,5 +15,6 @@ class mongoContractPositionData(contractPositionData, mongoListOfEntriesData):
     def _collection_name(self):
         return POSITION_CONTRACT_COLLECTION
 
+    @property
     def _data_name(self):
         return "mongoContractPositionData"
