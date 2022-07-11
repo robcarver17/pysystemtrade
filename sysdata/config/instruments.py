@@ -33,7 +33,7 @@ def get_config_of_excluded_instruments(config: Config) -> dict:
     return exclude_instrument_lists
 
 
-def generate_matching_duplicate_dict():
+def generate_matching_duplicate_dict(config: Config):
     """
     Returns a dict, each element is a named set of duplicated instruments
     Within each dict we have two elements: included, excluded
