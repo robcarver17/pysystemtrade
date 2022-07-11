@@ -94,7 +94,7 @@ class totalCapitalUpdater(object):
 
         abs_perc_change = abs(profit_and_loss / prev_broker_account_value)
         if abs_perc_change > check_limit:
-            raise Exception(
+            raise LargeCapitalChange(
                 "New capital with new account value of %0.f profit of %.0f is more than %.1f%% away from original of %.0f, limit is %.1f%%"
                 % (
                     self.new_broker_account_value,
@@ -185,3 +185,6 @@ class totalCapitalUpdater(object):
 
         self._new_maximum_capital = new_maximum_capital
         self._new_total_capital = new_total_capital
+
+class LargeCapitalChange(ValueError):
+    pass

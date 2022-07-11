@@ -115,12 +115,25 @@ class capitalData(listOfEntriesData):
         return current_capital_entry
 
     def update_broker_account_value(
-        self, new_capital_value: float, date: datetime.datetime = arg_not_supplied
+        self, new_capital_value: float,
+            date: datetime.datetime = arg_not_supplied,
+            propagate_other_values: bool = True
     ):
+        ## Update account value but also propogate
+        if date is arg_not_supplied:
+            date = datetime.datetime.now()
 
         self.update_capital_value_for_strategy(
             BROKER_ACCOUNT_VALUE, new_capital_value, date=date
         )
+
+        if propagate_other_values:
+            current_total_capital = self.get_current_total_capital()
+            self.update_total_capital(current_total_capital, date)
+            current_max_capital = self.get_current_maximum_account_value()
+            self.update_maximum_capital(current_max_capital, date)
+            current_pandl = self.get_current_pandl_account()
+            self.update_profit_and_loss_account(current_pandl)
 
     def update_profit_and_loss_account(
         self, new_capital_value: float, date: datetime.datetime = arg_not_supplied
