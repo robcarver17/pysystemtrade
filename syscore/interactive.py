@@ -180,8 +180,8 @@ def true_if_answer_is_yes(prompt="",
 def get_report_dates():
 
     end_date= arg_not_supplied
-    start_date = arg_not_supplied,
-    start_period = arg_not_supplied,
+    start_date = arg_not_supplied
+    start_period = arg_not_supplied
     end_period = arg_not_supplied
 
     input_end_date = get_datetime_input("End date for report?\n",
@@ -209,7 +209,7 @@ def get_report_dates():
 
     if type(input_start_date) is int:
         ## calendar days
-        start_date = n_days_ago(input_start_date, datetime.datetime.now())
+        start_date = n_days_ago(input_start_date, end_date)
     elif type(input_start_date) is str:
         ## period
         start_period = input_start_date
@@ -217,8 +217,6 @@ def get_report_dates():
         start_date = input_start_date
     else:
         raise Exception("Don't recognise %s" % str(input_start_date))
-
-    print([start_date, end_date, start_period, end_period])
 
     start_date, end_date = calculate_start_and_end_dates(
         calendar_days_back = arg_not_supplied,
@@ -231,7 +229,7 @@ def get_report_dates():
 
 
 def get_datetime_input(
-    prompt: str, allow_default: bool = True, allow_no_arg: bool = False,
+    prompt: str, allow_default: bool = True,
     allow_calendar_days: bool = False,
     allow_period: bool = False
 ):
@@ -246,14 +244,12 @@ def get_datetime_input(
         input_str = input_str + "OR [Enter a string for period, eg 'YTD', '3M', '2B']"
     if allow_default:
         input_str = input_str + "OR <RETURN for now>"
-    if allow_no_arg:
-        input_str = input_str + " <SPACE for no date>' "
+
     while invalid_input:
         ans = input(input_str)
         if ans == "" and allow_default:
             return datetime.datetime.now()
-        if ans == " " and allow_no_arg:
-            return None
+
         if allow_period:
             try:
                 _NOT_USED = get_date_from_period_and_end_date(ans)
@@ -261,6 +257,7 @@ def get_datetime_input(
                 return ans
             except:
                 pass
+
         if allow_calendar_days:
             try:
                 attempt_as_int = int(ans)
@@ -269,15 +266,21 @@ def get_datetime_input(
                 pass
 
         try:
-            if len(ans) == 10:
-                return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d")
-            elif len(ans) == 19:
-                return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d %H:%M:%S")
-            else:
-                # problems formatting will also raise value error
-                raise ValueError
-            return return_datetime
+            ans = resolve_datetime_input_str(ans)
+            return ans
+        except:
+            print("%s is not any valid input string" % ans)
+            pass
 
-        except ValueError:
-            print("%s is not a valid datetime string" % ans)
-            continue
+
+
+def resolve_datetime_input_str(ans):
+        if len(ans) == 10:
+            return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d")
+        elif len(ans) == 19:
+            return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d %H:%M:%S")
+        else:
+            # problems formatting will also raise value error
+            raise ValueError
+        return return_datetime
+
