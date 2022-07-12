@@ -435,7 +435,7 @@ def create_variations_oneparameter(baseRule, list_of_args, argname, nameformat="
     :returns: dict of Tradingrule objects
 
     >>>
-    >>> rule=TradingRule(("systems.provided.example.rules.ewmac_forecast_with_defaults", [], {}))
+    >>> rule=TradingRule(("systems.provided.rules.ewmac.ewmac_forecast_with_defaults", [], {}))
     >>> variations=create_variations_oneparameter(rule, [4,10,100], "Lfast")
     >>> ans=list(variations.keys())
     >>> ans.sort()
@@ -478,7 +478,7 @@ def create_variations(
 
     :returns: dict of Tradingrule objects
 
-    >>> rule=TradingRule(("systems.provided.example.rules.ewmac_forecast_with_defaults", [], {}))
+    >>> rule=TradingRule(("systems.provided.rules.ewmac.ewmac_forecast_with_defaults", [], {}))
     >>> variations=create_variations(rule, [dict(Lfast=2, Lslow=8), dict(Lfast=4, Lslow=16)], "Lfast", nameformat="ewmac_%s_%s")
     >>> ans=list(variations.keys())
     >>> ans.sort()

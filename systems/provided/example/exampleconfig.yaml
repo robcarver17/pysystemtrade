@@ -7,7 +7,7 @@
 #
 trading_rules:
   ewmac8:
-     function: systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol
+     function: systems.provided.rules.ewmac.ewmac_forecast_with_defaults_no_vol
      data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -16,7 +16,7 @@ trading_rules:
          Lslow: 32
      forecast_scalar: 5.3
   ewmac16:
-     function: systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol
+     function: systems.provided.rules.ewmac.ewmac_forecast_with_defaults_no_vol
      data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"

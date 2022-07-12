@@ -10,7 +10,7 @@ use_instrument_weight_estimates: True
 #
 trading_rules:
   ewmac8:
-     function: systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol
+     function: systems.provided.rules.ewmac.ewmac_forecast_with_defaults_no_vol
      data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -18,7 +18,7 @@ trading_rules:
          Lfast: 8
          Lslow: 32
   ewmac16:
-     function: systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol
+     function: systems.provided.rules.ewmac.ewmac_forecast_with_defaults_no_vol
      data:
          - "rawdata.get_daily_prices"
          - "rawdata.daily_returns_volatility"
@@ -26,7 +26,7 @@ trading_rules:
          Lfast: 16
          Lslow: 64
   carry:
-     function: systems.provided.futures_chapter15.rules.carry2
+     function: systems.provided.rules.ewmac.carry2
      data:
          - "rawdata.daily_annualised_roll"
      other_args:

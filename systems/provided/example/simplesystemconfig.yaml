@@ -4,14 +4,14 @@ notional_trading_capital: 500000
 base_currency: "GBP"
 trading_rules:
   ewmac8:
-     function: systems.provided.example.rules.ewmac_forecast_with_defaults
+     function: systems.provided.rules.ewmac.ewmac_forecast_with_defaults
      data: data.daily_prices
      other_args: 
          Lfast: 8
          Lslow: 32
      forecast_scalar: 5.3
   ewmac32:
-     function: systems.provided.example.rules.ewmac_forecast_with_defaults
+     function: systems.provided.rules.ewmac.ewmac_forecast_with_defaults
      other_args: 
          Lfast: 32
          Lslow: 128

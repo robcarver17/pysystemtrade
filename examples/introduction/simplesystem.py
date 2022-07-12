@@ -7,7 +7,7 @@ from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 
 data = csvFuturesSimData()
 
-from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
+from systems.provided.rules.ewmac import ewmac_forecast_with_defaults as ewmac
 
 """
 Okay, I wonder how this would work for a number of instruments?

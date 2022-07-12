@@ -1,9 +1,80 @@
-"""
-Trading rules for futures system
-"""
-from syscore.dateutils import ROOT_BDAYS_INYEAR
-import pandas as pd
 from sysquant.estimators.vol import robust_vol_calc
+
+
+def ewmac_forecast_with_defaults(price, Lfast=32, Lslow=128):
+    """
+    ONLY USED FOR EXAMPLES
+
+    Calculate the ewmac trading rule forecast, given a price and EWMA speeds
+      Lfast, Lslow
+
+    Assumes that 'price' is daily data
+
+    This version recalculates the price volatility, and does not do capping or
+      scaling
+
+    :param price: The price or other series to use (assumed Tx1)
+    :type price: pd.Series
+
+    :param Lfast: Lookback for fast in days
+    :type Lfast: int
+
+    :param Lslow: Lookback for slow in days
+    :type Lslow: int
+
+    :returns: pd.Series -- unscaled, uncapped forecast
+
+
+    """
+    # price: This is the stitched price series
+    # We can't use the price of the contract we're trading, or the volatility
+    # will be jumpy
+    # And we'll miss out on the rolldown. See
+    # https://qoppac.blogspot.com/2015/05/systems-building-futures-rolling.html
+
+    # We don't need to calculate the decay parameter, just use the span
+    # directly
+
+    ans = ewmac_calc_vol(price, Lfast=Lfast, Lslow=Lslow)
+
+    return ans
+
+
+
+def ewmac_forecast_with_defaults_no_vol(price, vol, Lfast=16, Lslow=32):
+    """
+    ONLY USED FOR EXAMPLES
+
+    Calculate the ewmac trading rule forecast, given price, volatility and EWMA speeds
+      Lfast, Lslow
+
+    Assumes that 'price' is daily data and that the vol is on the same timestamp
+
+    :param price: The price or other series to use (assumed Tx1)
+    :type price: pd.Series
+
+    :param vol: The vol of the price
+    :type vol: pd.Series
+
+    :param Lfast: Lookback for fast in days
+    :type Lfast: int
+    :param Lslow: Lookback for slow in days
+    :type Lslow: int
+
+    :returns: pd.Series -- unscaled, uncapped forecast
+
+
+    """
+    # price: This is the stitched price series
+    # We can't use the price of the contract we're trading, or the volatility will be jumpy
+    # And we'll miss out on the rolldown. See
+    # https://qoppac.blogspot.com/2015/05/systems-building-futures-rolling.html
+
+    # We don't need to calculate the decay parameter, just use the span
+    # directly
+    ans = ewmac(price, vol, Lfast=Lfast, Lslow=Lslow)
+
+    return ans
 
 
 def ewmac(price, vol, Lfast, Lslow):
@@ -96,48 +167,7 @@ def ewmac_calc_vol(price, Lfast, Lslow, vol_days=35):
     # We don't need to calculate the decay parameter, just use the span
     # directly
 
-    fast_ewma = price.ewm(span=Lfast).mean()
-    slow_ewma = price.ewm(span=Lslow).mean()
-    raw_ewmac = fast_ewma - slow_ewma
-
     vol = robust_vol_calc(price, vol_days)
+    forecast = ewmac(price, vol, Lfast , Lslow)
 
-    return raw_ewmac / vol.ffill()
-
-
-def carry(daily_ann_roll, vol, smooth_days=90):
-    """
-    Old carry rule
-    """
-    raise Exception("DEPRECATED: USE carry2")
-
-
-def carry2(raw_carry, smooth_days=90):
-    """
-    Calculate carry forecast, given that there exists a raw_carry() in rawdata
-
-    Assumes that everything is daily data
-
-    :param raw_carry: The annualised sharpe ratio of rolldown
-    :type raw_carry: pd.DataFrame (assumed Tx1)
-
-    >>> from systems.tests.testdata import get_test_object_futures
-    >>> from systems.basesystem import System
-    >>> (rawdata, data, config)=get_test_object_futures()
-    >>> system=System( [rawdata], data, config)
-    >>>
-    >>> carry2(rawdata.raw_carry("EDOLLAR")).tail(2)
-    2015-12-10    0.411686
-    2015-12-11    0.411686
-    Freq: B, dtype: float64
-    """
-
-    smooth_carry = raw_carry.ewm(smooth_days).mean()
-
-    return smooth_carry
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
+    return forecast
