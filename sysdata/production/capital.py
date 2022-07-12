@@ -3,6 +3,7 @@ import datetime
 import pandas as pd
 
 from syscore.objects import arg_not_supplied, failure, missing_data
+from syscore.pdutils import uniquets
 from sysdata.production.timed_storage import (
     listOfEntriesData,
 )
@@ -328,16 +329,16 @@ class totalCapitalCalculationData(object):
         return self.capital_data.get_current_total_capital()
 
     def get_total_capital(self) -> pd.DataFrame:
-        return self.capital_data.get_total_capital_pd_df()
+        return uniquets(self.capital_data.get_total_capital_pd_df())
 
     def get_profit_and_loss_account(self) -> pd.DataFrame():
-        return self.capital_data.get_profit_and_loss_account_pd_df()
+        return uniquets(self.capital_data.get_profit_and_loss_account_pd_df())
 
     def get_broker_account(self) -> pd.DataFrame:
-        return self.capital_data.get_broker_account_value_pd_df()
+        return uniquets(self.capital_data.get_broker_account_value_pd_df())
 
     def get_maximum_account(self) -> pd.DataFrame:
-        return self.capital_data.get_maximum_account_value_pd_df()
+        return uniquets(self.capital_data.get_maximum_account_value_pd_df())
 
     def get_all_capital_calcs(self) -> pd.DataFrame:
         total_capital = self.get_total_capital()

@@ -241,7 +241,7 @@ def get_datetime_input(
         + ": Enter date and time in format %Y-%m-%d eg '2020-05-30' OR '%Y-%m-%d %H:%M:%S' eg '2020-05-30 14:04:11'"
     )
     if allow_calendar_days:
-        input_str = input_str + " [Enter a number to back N calendar days]"
+        input_str = input_str + "\n OR [Enter a number to back N calendar days]"
     if allow_period:
         input_str = input_str + " [Enter a string for period, eg 'YTD', '3M', '2B']"
     if allow_default:
