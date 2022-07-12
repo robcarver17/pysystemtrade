@@ -243,9 +243,9 @@ def get_datetime_input(
     if allow_calendar_days:
         input_str = input_str + "\n OR [Enter a number to back N calendar days]"
     if allow_period:
-        input_str = input_str + " [Enter a string for period, eg 'YTD', '3M', '2B']"
+        input_str = input_str + "OR [Enter a string for period, eg 'YTD', '3M', '2B']"
     if allow_default:
-        input_str = input_str + " <RETURN for now>"
+        input_str = input_str + "OR <RETURN for now>"
     if allow_no_arg:
         input_str = input_str + " <SPACE for no date>' "
     while invalid_input:
