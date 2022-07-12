@@ -248,10 +248,13 @@ class ForecastCombine(SystemStage):
         self, instrument_code, monthly_forecast_weights: pd.DataFrame
     ) -> pd.DataFrame:
 
+        original_rules = list(monthly_forecast_weights.columns)
         cheap_rules = self.cheap_trading_rules_post_processing(instrument_code)
 
+        cheap_rules_in_weights = list(set(original_rules).intersection(cheap_rules))
+
         monthly_forecast_weights_cheap_rules_only = monthly_forecast_weights[
-            cheap_rules
+            cheap_rules_in_weights
         ]
 
         return monthly_forecast_weights_cheap_rules_only
