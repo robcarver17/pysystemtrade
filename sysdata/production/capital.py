@@ -466,7 +466,7 @@ class totalCapitalCalculationData(object):
 
         # Update broker account value
         self.modify_account_values(broker_account_value = broker_account_value,
-                                   propagate=True)
+                                   propagate=True, are_you_sure=True)
 
 
 
