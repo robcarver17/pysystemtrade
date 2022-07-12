@@ -118,7 +118,7 @@ class capitalData(listOfEntriesData):
     def update_broker_account_value(
         self, new_capital_value: float,
             date: datetime.datetime = arg_not_supplied,
-            propagate_other_values: bool = False
+
     ):
         ## Update account value but also propogate
         if date is arg_not_supplied:
@@ -128,13 +128,6 @@ class capitalData(listOfEntriesData):
             BROKER_ACCOUNT_VALUE, new_capital_value, date=date
         )
 
-        if propagate_other_values:
-            current_total_capital = self.get_current_total_capital()
-            self.update_total_capital(current_total_capital, date)
-            current_max_capital = self.get_current_maximum_account_value()
-            self.update_maximum_capital(current_max_capital, date)
-            current_pandl = self.get_current_pandl_account()
-            self.update_profit_and_loss_account(current_pandl, date)
 
     def update_profit_and_loss_account(
         self, new_capital_value: float, date: datetime.datetime = arg_not_supplied
@@ -472,7 +465,10 @@ class totalCapitalCalculationData(object):
         broker_account_value = prev_broker_account_value + delta_value
 
         # Update broker account value
-        self.capital_data.update_broker_account_value(broker_account_value, propagate_other_values=True)
+        self.modify_account_values(broker_account_value = broker_account_value,
+                                   propagate=True)
+
+
 
     def modify_account_values(
         self,
@@ -482,6 +478,7 @@ class totalCapitalCalculationData(object):
         acc_pandl: float = arg_not_supplied,
         date: datetime.datetime = arg_not_supplied,
         are_you_sure: bool = False,
+        propagate: bool = True
     ):
         """
         Allow any account valuation to be modified
@@ -497,17 +494,43 @@ class totalCapitalCalculationData(object):
 
         if broker_account_value is not arg_not_supplied:
             self.capital_data.update_broker_account_value(
-                broker_account_value, date=date, propagate_other_values=False
+                broker_account_value, date=date
             )
+        elif propagate:
+            self.propagate_broker_account(date)
 
         if total_capital is not arg_not_supplied:
             self.capital_data.update_total_capital(total_capital, date=date)
+        elif propagate:
+            self.propagate_total_capital(date)
 
         if maximum_capital is not arg_not_supplied:
             self.capital_data.update_maximum_capital(maximum_capital, date=date)
+        elif propagate:
+            self.propagate_maximum_account_value(date)
 
         if acc_pandl is not arg_not_supplied:
             self.capital_data.update_profit_and_loss_account(acc_pandl, date=date)
+        elif propagate:
+            self.propagate_current_pandl(date)
+
+    def propagate_total_capital(self, date):
+        current_total_capital = self.get_current_total_capital()
+        self.capital_data.update_total_capital(current_total_capital, date)
+
+    def propagate_maximum_account_value(self, date):
+        current_max_capital = self.capital_data.get_current_maximum_account_value()
+        self.capital_data.update_maximum_capital(current_max_capital, date)
+
+    def propagate_current_pandl(self, date):
+        current_pandl = self.capital_data.get_current_pandl_account()
+        self.capital_data.update_profit_and_loss_account(current_pandl, date)
+
+    def propagate_broker_account(self, date):
+        broker_account_value = self.capital_data.get_broker_account_value()
+        self.capital_data.update_broker_account_value(
+            broker_account_value, date=date
+        )
 
     def create_initial_capital(
         self,

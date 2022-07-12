@@ -199,6 +199,7 @@ def modify_any_value(data: dataBlob):
             total_capital=total_capital,
             maximum_capital=maximum_capital,
             acc_pandl=acc_pandl,
+            propagate = True
         )
 
 
