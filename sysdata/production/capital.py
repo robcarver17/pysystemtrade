@@ -118,7 +118,7 @@ class capitalData(listOfEntriesData):
     def update_broker_account_value(
         self, new_capital_value: float,
             date: datetime.datetime = arg_not_supplied,
-            propagate_other_values: bool = True
+            propagate_other_values: bool = False
     ):
         ## Update account value but also propogate
         if date is arg_not_supplied:
@@ -443,7 +443,7 @@ class totalCapitalCalculationData(object):
             new_broker_account_value, date=date
         )
 
-        self._update_pandl(profit_and_loss, date)
+        self._update_pandl(profit_and_loss, date=date)
 
     def _update_pandl(self, profit_and_loss: float, date: datetime.datetime):
 
@@ -472,7 +472,7 @@ class totalCapitalCalculationData(object):
         broker_account_value = prev_broker_account_value + delta_value
 
         # Update broker account value
-        self.capital_data.update_broker_account_value(broker_account_value)
+        self.capital_data.update_broker_account_value(broker_account_value, propagate_other_values=True)
 
     def modify_account_values(
         self,
@@ -497,7 +497,7 @@ class totalCapitalCalculationData(object):
 
         if broker_account_value is not arg_not_supplied:
             self.capital_data.update_broker_account_value(
-                broker_account_value, date=date
+                broker_account_value, date=date, propagate_other_values=False
             )
 
         if total_capital is not arg_not_supplied:
