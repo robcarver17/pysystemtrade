@@ -3836,3 +3836,92 @@ ASX                       NaN           NaN              NaN        NaN         
 KOSPI                     NaN           NaN              NaN        NaN    0.025000           NaN   <--- slippage is configured, but no sampling or trading done
 ....
 ```
+
+## Customize report generation in the run_report process
+
+It is possible to setup a custom report configuration. Say for example that you would like to push reports to a git repo 
+[like this](https://github.com/robcarver17/reports). In that case you would need to change the default behaviour, sending reports
+via email, to saving the report a s a file. Customization is done in the private_config.yaml. Example would be; 
+
+```
+ reports:
+  slippage_report:
+    title: "Slippage report"
+    function: "sysproduction.reporting.slippage_report.slippage_report"
+    calendar_days_back: 250
+    output: "file"
+
+  costs_report:
+    title: "Costs report"
+    function: "sysproduction.reporting.costs_report.costs_report"
+    output: "file"
+    calendar_days_back: 250
+
+  roll_report:
+    title: "Roll report"
+    function: "sysproduction.reporting.roll_report.roll_info"
+    instrument_code: "ALL"
+    output: "file"
+
+  daily_pandl_report:
+    title: "P&L report"
+    function: "sysproduction.reporting.pandl_report.pandl_info"
+    calendar_days_back: 1
+    output: "file"
+
+  reconcile_report:
+    title: "Reconcile report"
+    function: "sysproduction.reporting.reconcile_report.reconcile_info"
+    output: "file"
+
+  trade_report:
+    title: "Trade report"
+    function: "sysproduction.reporting.trades_report.trades_info"
+    calendar_days_back: 1
+    output: "file"
+
+  strategy_report:
+    title: "Strategy report"
+    function: "sysproduction.reporting.strategies_report.strategy_report"
+    output: "file"
+
+  risk_report:
+    title: "Risk report"
+    function: "sysproduction.reporting.risk_report.risk_report"
+    output: "file"
+
+  status_report:
+    title: "Status report"
+    function: "sysproduction.reporting.status_reporting.system_status"
+    output: "file"
+
+  liquidity_report:
+    title: "Liquidity report"
+    function: "sysproduction.reporting.liquidity_report.liquidity_report"
+    output: "file"
+
+  instrument_risk_report:
+    title: "Instrument risk report"
+    function: "sysproduction.reporting.instrument_risk_report.instrument_risk_report"
+    output: "file"
+
+  min_capital:
+    title: "Minimum capital report"
+    function: "sysproduction.reporting.minimum_capital_report.minimum_capital_report"
+    output: "file"
+
+  duplicate_market:
+    title: "Duplicate markets report"
+    function: "sysproduction.reporting.duplicate_market_report.duplicate_market_report"
+    output: "file"
+
+  remove_markets_report:
+    title: "Remove markets report"
+    function: "sysproduction.reporting.remove_markets_report.remove_markets_report"
+    output: "file"
+
+  market_monitor_report:
+    title: "Market monitor report"
+    function: "sysproduction.reporting.market_monitor_report.market_monitor_report"
+    output: "file"
+```
