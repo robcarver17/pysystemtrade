@@ -53,7 +53,7 @@ user_exit = named_object("exit")
 table = namedtuple("table", "Heading Body")
 header = namedtuple("header", "Heading")
 body_text = namedtuple("bodytext", "Text")
-
+figure = namedtuple("figure", "pdf_filename")
 
 def get_methods(a_stage_object) -> list:
     dir_list = dir(a_stage_object)

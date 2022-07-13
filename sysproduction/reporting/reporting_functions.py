@@ -1,9 +1,13 @@
+import datetime
 import pandas as pd
 import os
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 
 from syscore.objects import resolve_function, arg_not_supplied, missing_data
-from syscore.objects import header, table, body_text
+from syscore.objects import header, table, body_text, figure
 from syscore.fileutils import get_resolved_pathname
+from syscore.dateutils import datetime_to_long
 from syscore.text import landing_strip_from_str, landing_strip, centralise_text
 from sysdata.data_blob import dataBlob
 
@@ -150,3 +154,33 @@ def get_directory_for_reporting(data):
         raise Exception("Need to specify reporting_directory in config file")
 
     return store_directory
+
+class PdfOutputWithTempFileName():
+    """
+    # generate some kind of plot, then call:
+    pdf_output = PdfOutputWithTempFileName(data)
+    figure_object = pdf_output.save_chart_close_and_return_figure()
+
+    """
+    def __init__(self, data: dataBlob):
+        self._temp_file_name = _generate_temp_pdf_filename(data)
+
+    def save_chart_close_and_return_figure(self) -> figure:
+        with PdfPages(self.temp_file_name) as export_pdf:
+            export_pdf.savefig()
+
+        plt.close()
+        return figure(pdf_filename=self.temp_file_name)
+
+    @property
+    def temp_file_name(self) -> str:
+        return self._temp_file_name
+
+TEMPFILE_PATTERN = "_tempfile"
+def _generate_temp_pdf_filename(data: dataBlob) -> str:
+    use_directory = get_directory_for_reporting(data)
+    use_directory_resolved = get_resolved_pathname(use_directory)
+    filename = "%s_%s.pdf" % (TEMPFILE_PATTERN, str(datetime_to_long(datetime.datetime.now())))
+    full_filename = os.path.join(use_directory_resolved, filename)
+
+    return full_filename
