@@ -99,6 +99,7 @@ setup(
         "Flask>=2.0.1",
         "Werkzeug>=2.0.1",
         "statsmodels==0.12.2",
+        "PyPDF2>2.5"
     ],
     tests_require=["nose", "flake8"],
     extras_require=dict(),

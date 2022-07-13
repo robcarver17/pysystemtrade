@@ -130,7 +130,7 @@ class reportingApi(object):
         return header("END OF REPORT")
 
     ## PANDL ACCOUNT CURVE
-    ## FIXME ADD ANNOTATION
+    ## FIXME ADD ANNOTATION USE COMMON CODE
     def figure_of_account_curve_using_dates(self) -> figure:
         pdf_output = PdfOutputWithTempFileName(self.data)
         daily_pandl = self.get_daily_perc_pandl()
