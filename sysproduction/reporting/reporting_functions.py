@@ -43,7 +43,7 @@ def run_report_with_data_blob(report_config: reportConfig, data: dataBlob):
     report_kwargs = report_config.kwargs
 
     report_results = report_function(data, **report_kwargs)
-    parsed_report = parse_report_results(report_results)
+    parsed_report = parse_report_results(data, report_results)
     output = report_config.output
 
     # We either print or email or send to file or ...
