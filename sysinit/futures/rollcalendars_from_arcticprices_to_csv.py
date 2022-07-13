@@ -119,7 +119,7 @@ def check_saved_roll_calendar(
 
 
 if __name__ == "__main__":
-    input("Will overwrite existing prices are you sure?! CTL-C to abort")
+    input("Will overwrite existing roll calendar are you sure?! CTL-C to abort")
     instrument_code = get_valid_instrument_code_from_user(source="single")
     ## MODIFY DATAPATH IF REQUIRED
     # build_and_write_roll_calendar(instrument_code, output_datapath=arg_not_supplied)
