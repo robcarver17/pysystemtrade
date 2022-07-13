@@ -42,7 +42,6 @@ def get_daily_perc_pandl(data):
     # This is for 'non compounding' p&l
     total_pandl_series = data_capital_object.get_series_of_accumulated_capital()
     daily_pandl_series = total_pandl_series.ffill().diff()
-    daily_pandl_series = df_to_series(daily_pandl_series)
 
     all_capital = get_total_capital_series(data)
 
