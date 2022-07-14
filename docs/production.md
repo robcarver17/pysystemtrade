@@ -3836,3 +3836,26 @@ ASX                       NaN           NaN              NaN        NaN         
 KOSPI                     NaN           NaN              NaN        NaN    0.025000           NaN   <--- slippage is configured, but no sampling or trading done
 ....
 ```
+
+## Customize report generation in the run_report process
+
+It is possible to setup a custom report configuration. Say for example that you would like to push reports to a git repo 
+[like this](https://github.com/robcarver17/reports). In that case you would need to change the default behaviour, sending reports
+via email, to saving the report as a file Files would be stored in according to what is declared in private_config.yaml
+`reporting_directory`. Customization is done in the private_config.yaml. Example of reporting customization is; 
+
+```
+ reports:
+  slippage_report:
+    title: "Slippage report"
+    function: "sysproduction.reporting.slippage_report.slippage_report"
+    calendar_days_back: 250
+    output: "file"
+
+  costs_report:
+    title: "Costs report"
+    function: "sysproduction.reporting.costs_report.costs_report"
+    output: "file"
+    calendar_days_back: 250
+
+```
