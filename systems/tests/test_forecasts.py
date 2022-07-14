@@ -4,7 +4,7 @@ Created on 30 Nov 2015
 @author: rob
 """
 import unittest
-from systems.provided.example.rules import ewmac_forecast_with_defaults
+from systems.provided.rules.ewmac import ewmac_forecast_with_defaults
 from systems.forecasting import (
     Rules,
     process_trading_rules,
@@ -12,7 +12,7 @@ from systems.forecasting import (
 from systems.trading_rules import TradingRule
 from systems.basesystem import System
 from systems.rawdata import RawData
-from systems.provided.futures_chapter15.rules import carry2
+from systems.provided.rules.carry import carry
 from sysdata.config.configdata import Config
 from systems.tests.testdata import get_test_object
 
@@ -21,11 +21,11 @@ class Test(unittest.TestCase):
     @unittest.SkipTest
     def testRules(self):
 
-        # config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
+        # config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.rules.ewmac.ewmac_forecast_with_defaults"))))
         NOTUSEDrawdata, data, NOTUSEDconfig = get_test_object()
 
         rules = Rules(
-            dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults")
+            dict(function="systems.provided.rules.ewmac.ewmac_forecast_with_defaults")
         )
         system = System([rules], data)
 
@@ -36,7 +36,7 @@ class Test(unittest.TestCase):
             dict(
                 trading_rules=dict(
                     ewmac=dict(
-                        function="systems.provided.example.rules.ewmac_forecast_with_defaults"
+                        function="systems.provided.rules.ewmac.ewmac_forecast_with_defaults"
                     )
                 )
             )
@@ -92,7 +92,7 @@ class Test(unittest.TestCase):
             pass
 
         rule7 = TradingRule(
-            "systems.provided.example.rules.ewmac_forecast_with_defaults",
+            "systems.provided.rules.ewmac.ewmac_forecast_with_defaults",
             [],
             dict(Lfast=50, Lslow=200),
         )
@@ -118,7 +118,7 @@ class Test(unittest.TestCase):
 
         rule11 = TradingRule(
             dict(
-                function="systems.provided.example.rules.ewmac_forecast_with_defaults",
+                function="systems.provided.rules.ewmac.ewmac_forecast_with_defaults",
                 other_args=dict(Lfast=50),
                 data=[],
             )
@@ -126,7 +126,7 @@ class Test(unittest.TestCase):
 
         rule12 = TradingRule(ewmac_forecast_with_defaults, other_args=dict(Lfast=30))
         rule13 = TradingRule(
-            "systems.provided.example.rules.ewmac_forecast_with_defaults",
+            "systems.provided.rules.ewmac.ewmac_forecast_with_defaults",
             data="data.get_pricedata",
         )
         assert rule13.data == ["data.get_pricedata"]
@@ -142,7 +142,7 @@ class Test(unittest.TestCase):
     @unittest.SkipTest
     def testCallingTradingRule(self):
 
-        # config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.example.rules.ewmac_forecast_with_defaults"))))
+        # config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.rules.ewmac..ewmac_forecast_with_defaults"))))
         NOTUSEDrawdata, data, NOTUSEDconfig = get_test_object()
 
         rawdata = RawData()
@@ -157,7 +157,7 @@ class Test(unittest.TestCase):
         # Change the data source
         rule = TradingRule(
             (
-                "systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
+                "systems.provided.rules.ewmac.ewmac_forecast_with_defaults_no_vol",
                 ["rawdata.get_daily_prices", "rawdata.daily_returns_volatility"],
                 dict(),
             )
@@ -168,7 +168,7 @@ class Test(unittest.TestCase):
 
         rule = TradingRule(
             dict(
-                function="systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
+                function="systems.provided.rules.ewmac.ewmac_forecast_with_defaults_no_vol",
                 data=["rawdata.get_daily_prices", "rawdata.daily_returns_volatility"],
                 other_args=dict(Lfast=50, Lslow=200),
             )
@@ -184,7 +184,7 @@ class Test(unittest.TestCase):
         rules = Rules()
         system = System([rawdata, rules], data)
         rule = TradingRule(
-            carry2,
+            carry,
             [
                 "rawdata.daily_annualised_roll",
             ],
@@ -198,7 +198,7 @@ class Test(unittest.TestCase):
         ruleA = TradingRule(ewmac_forecast_with_defaults)
         ruleB = TradingRule(
             dict(
-                function="systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
+                function="systems.provided.rules.ewmac.ewmac_forecast_with_defaults_no_vol",
                 data=["rawdata.daily_prices", "rawdata.daily_returns_volatility"],
                 other_args=dict(Lfast=50, Lslow=200),
             )
@@ -222,7 +222,7 @@ class Test(unittest.TestCase):
         ans = process_trading_rules(
             [
                 dict(
-                    function="systems.provided.example.rules.ewmac_forecast_with_defaults_no_vol",
+                    function="systems.provided.rules.ewmac.ewmac_forecast_with_defaults_no_vol",
                     data=["rawdata.daily_prices", "rawdata.daily_returns_volatility"],
                     other_args=dict(Lfast=50, Lslow=200),
                 )

@@ -1,7 +1,6 @@
-import pandas as pd
-import numpy as np
-from sysdata.config.defaults import system_defaults
 from copy import copy
+
+import numpy as np
 
 
 def breakout(price, lookback=10, smooth=None):

@@ -53,21 +53,22 @@ class capitalData(listOfEntriesData):
     def _data_class_name(self) -> str:
         return "sysdata.production.capital.capitalForStrategy"
 
-    def get_total_capital_pd_df(self) -> pd.DataFrame:
-        return self.get_capital_pd_df_for_strategy(GLOBAL_STRATEGY)
+    def get_total_capital_pd_series(self) -> pd.Series:
+        return self.get_capital_pd_series_for_strategy(GLOBAL_STRATEGY)
 
-    def get_broker_account_value_pd_df(self) -> pd.DataFrame:
-        return self.get_capital_pd_df_for_strategy(BROKER_ACCOUNT_VALUE)
+    def get_broker_account_value_pd_series(self) -> pd.Series:
+        return self.get_capital_pd_series_for_strategy(BROKER_ACCOUNT_VALUE)
 
-    def get_maximum_account_value_pd_df(self) -> pd.DataFrame:
-        return self.get_capital_pd_df_for_strategy(MAXIMUM_ACCOUNT_VALUE)
+    def get_maximum_account_value_pd_series(self) -> pd.Series:
+        return self.get_capital_pd_series_for_strategy(MAXIMUM_ACCOUNT_VALUE)
 
-    def get_profit_and_loss_account_pd_df(self) -> pd.DataFrame:
-        return self.get_capital_pd_df_for_strategy(ACC_PROFIT_VALUES)
+    def get_profit_and_loss_account_pd_series(self) -> pd.Series:
+        return self.get_capital_pd_series_for_strategy(ACC_PROFIT_VALUES)
 
-    def get_capital_pd_df_for_strategy(self, strategy_name: str) -> pd.DataFrame:
+    def get_capital_pd_series_for_strategy(self, strategy_name: str) -> pd.Series:
         capital_series = self.get_capital_series_for_strategy(strategy_name)
         pd_series = capital_series.as_pd_df()
+        pd_series = uniquets(pd_series).squeeze()
         return pd_series
 
     def get_capital_series_for_strategy(self, strategy_name: str) -> capitalForStrategy:
@@ -322,16 +323,17 @@ class totalCapitalCalculationData(object):
         return self.capital_data.get_current_total_capital()
 
     def get_total_capital(self) -> pd.Series:
-        return uniquets(self.capital_data.get_total_capital_pd_df()).squeeze()
+        return self.capital_data.get_total_capital_pd_series()
+
 
     def get_profit_and_loss_account(self) -> pd.Series():
-        return uniquets(self.capital_data.get_profit_and_loss_account_pd_df()).squeeze()
+        return self.capital_data.get_profit_and_loss_account_pd_series()
 
     def get_broker_account(self) -> pd.Series:
-        return uniquets(self.capital_data.get_broker_account_value_pd_df()).squeeze()
+        return self.capital_data.get_broker_account_value_pd_series()
 
     def get_maximum_account(self) -> pd.Series:
-        return uniquets(self.capital_data.get_maximum_account_value_pd_df()).squeeze()
+        return self.capital_data.get_maximum_account_value_pd_series()
 
     def get_all_capital_calcs(self) -> pd.DataFrame:
         total_capital = self.get_total_capital()

@@ -21,7 +21,7 @@ from systems.accounts.pandl_calculators.pandl_using_fills import (
 def get_total_capital_series(data):
     data_capital_object = dataCapital(data)
 
-    return df_to_series(data_capital_object.get_series_of_maximum_capital())
+    return data_capital_object.get_series_of_maximum_capital()
 
 
 def get_strategy_capital_series(data, strategy_name):
@@ -42,7 +42,6 @@ def get_daily_perc_pandl(data):
     # This is for 'non compounding' p&l
     total_pandl_series = data_capital_object.get_series_of_accumulated_capital()
     daily_pandl_series = total_pandl_series.ffill().diff()
-    daily_pandl_series = df_to_series(daily_pandl_series)
 
     all_capital = get_total_capital_series(data)
 

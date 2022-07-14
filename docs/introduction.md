@@ -207,7 +207,7 @@ For now let's start with the simplest possible system, one which contains only a
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 data=csvFuturesSimData()
 
-from systems.provided.example.rules import ewmac_forecast_with_defaults as ewmac
+from systems.provided.rules.ewmac import ewmac_forecast_with_defaults as ewmac
 ```
 
 This is a slightly different version of the rule we defined before, which has default values for `Lfast` and `Lslow`. Now there are many ways to create a set of trading rules; here is the simplest:
@@ -657,7 +657,7 @@ my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 
 (Notice we don't put filenames in; rather a python style reference within the project)
 
-If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.example.rules.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure.
+If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.rules.ewmac.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure.
 
 Similarly for the ewmac8 rule we've specified a data source `data.daily_prices` which points to `system.data.daily_prices()`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs. This means you can configure almost any trading rule quite easily through configuration changes.
 

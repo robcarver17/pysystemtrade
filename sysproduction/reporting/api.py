@@ -3,7 +3,7 @@ import datetime
 import pandas as pd
 
 from syscore.cache import Cache
-from syscore.dateutils import SECONDS_PER_DAY, calculate_start_and_end_dates
+from syscore.dateutils import SECONDS_PER_DAY, calculate_start_and_end_dates, get_date_from_period_and_end_date
 from syscore.objects import arg_not_supplied, missing_data, body_text, ALL_ROLL_INSTRUMENTS
 from syscore.pdutils import top_and_tail
 
@@ -18,7 +18,7 @@ from sysproduction.reporting.formatting import (
     nice_format_slippage_table,
     nice_format_roll_table,
     nice_format_min_capital_table)
-from sysproduction.reporting.reporting_functions import header, table
+from sysproduction.reporting.reporting_functions import header, table, PdfOutputWithTempFileName, figure
 
 from sysproduction.reporting.data.costs import (
     get_table_of_SR_costs,
@@ -48,6 +48,7 @@ from sysproduction.reporting.data.duplicate_remove_markets import (
 from sysproduction.reporting.data.pandl import (
     get_total_capital_pandl,
     pandlCalculateAndStore,
+    get_daily_perc_pandl
 )
 from sysproduction.reporting.data.positions import (
     get_optimal_positions,
@@ -127,6 +128,34 @@ class reportingApi(object):
 
     def footer(self):
         return header("END OF REPORT")
+
+    ## PANDL ACCOUNT CURVE
+    ## FIXME ADD ANNOTATION USE COMMON CODE
+    def figure_of_account_curve_using_dates(self) -> figure:
+        pdf_output = PdfOutputWithTempFileName(self.data)
+        daily_pandl = self.get_daily_perc_pandl()
+        daily_pandl = daily_pandl[self.start_date:self.end_date]
+        daily_pandl.cumsum().plot()
+        figure_object = pdf_output.save_chart_close_and_return_figure()
+
+        return figure_object
+
+    def figure_of_account_curves_given_period(self, period:str) -> figure:
+        pdf_output = PdfOutputWithTempFileName(self.data)
+        daily_pandl = self.get_daily_perc_pandl()
+        start_date = get_date_from_period_and_end_date(period)
+        daily_pandl = daily_pandl[start_date:]
+        daily_pandl.cumsum().plot()
+        figure_object = pdf_output.save_chart_close_and_return_figure()
+
+        return figure_object
+
+
+    def get_daily_perc_pandl(self) -> pd.Series:
+        return self.cache.get(self._get_daily_perc_pandl)
+
+    def _get_daily_perc_pandl(self) -> pd.Series:
+        return get_daily_perc_pandl(self.data)
 
     ## MARKET MOVES
     def table_of_market_moves_using_dates(self,

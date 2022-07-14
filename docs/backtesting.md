@@ -2725,7 +2725,7 @@ from systems.trading_rules import TradingRule, create_variations_oneparameter, c
 ## Let's create 3 variations of ewmac
 ## The default ewmac has Lslow=128
 ## Let's keep that fixed and vary Lfast
-rule = TradingRule("systems.provided.example.rules.ewmac_forecast_with_defaults")
+rule = TradingRule("systems.provided.rules.ewmac.ewmac_forecast_with_defaults")
 variations = create_variations_oneparameter(rule, [4, 10, 100], "ewmac_Lfast")
 
 variations.keys()
@@ -2738,7 +2738,7 @@ dict_keys(['ewmac_Lfast_4', 'ewmac_Lfast_10', 'ewmac_Lfast_100'])
 
 ```python
 ## Now let's vary both Lslow and Lfast
-rule=TradingRule("systems.provided.example.rules.ewmac_forecast_with_defaults")
+rule=TradingRule("systems.provided.rules.ewmac.ewmac_forecast_with_defaults")
 
 ## each separate rule is specified by a dict. We could use a lambda to produce these automatically
 variations=create_variations(rule, [dict(Lfast=2, Lslow=8), dict(Lfast=4, Lslow=16)], key_argname="Lfast")

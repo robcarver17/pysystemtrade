@@ -80,7 +80,7 @@ class dataCapital(productionDataLayerGeneric):
 
     ## STRATEGY CAPITAL
     def get_capital_pd_series_for_strategy(self, strategy_name: str) -> pd.DataFrame:
-        capital_series = self.db_capital_data.get_capital_pd_df_for_strategy(
+        capital_series = self.db_capital_data.get_capital_pd_series_for_strategy(
             strategy_name
         )
         return capital_series
