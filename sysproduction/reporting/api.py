@@ -17,7 +17,8 @@ from sysproduction.reporting.formatting import (
     nice_format_liquidity_table,
     nice_format_slippage_table,
     nice_format_roll_table,
-    nice_format_min_capital_table)
+    nice_format_min_capital_table,
+    make_account_curve_plot)
 from sysproduction.reporting.reporting_functions import header, table, PdfOutputWithTempFileName, figure
 
 from sysproduction.reporting.data.costs import (
@@ -130,12 +131,13 @@ class reportingApi(object):
         return header("END OF REPORT")
 
     ## PANDL ACCOUNT CURVE
-    ## FIXME ADD ANNOTATION USE COMMON CODE
     def figure_of_account_curve_using_dates(self) -> figure:
         pdf_output = PdfOutputWithTempFileName(self.data)
         daily_pandl = self.get_daily_perc_pandl()
-        daily_pandl = daily_pandl[self.start_date:self.end_date]
-        daily_pandl.cumsum().plot()
+        make_account_curve_plot(daily_pandl,
+                                start_of_title = "Total p&l",
+                                start_date = self.start_date,
+                                end_date = self.end_date)
         figure_object = pdf_output.save_chart_close_and_return_figure()
 
         return figure_object
@@ -144,8 +146,11 @@ class reportingApi(object):
         pdf_output = PdfOutputWithTempFileName(self.data)
         daily_pandl = self.get_daily_perc_pandl()
         start_date = get_date_from_period_and_end_date(period)
-        daily_pandl = daily_pandl[start_date:]
-        daily_pandl.cumsum().plot()
+
+        make_account_curve_plot(daily_pandl,
+                                start_of_title= "Total p&l",
+                                start_date = start_date)
+
         figure_object = pdf_output.save_chart_close_and_return_figure()
 
         return figure_object

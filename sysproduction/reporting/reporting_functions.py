@@ -13,7 +13,7 @@ from syscore.dateutils import datetime_to_long
 from syscore.text import landing_strip_from_str, landing_strip, centralise_text
 from sysdata.data_blob import dataBlob
 
-from syslogdiag.email_via_db_interface import send_production_mail_msg
+from syslogdiag.email_via_db_interface import send_production_mail_msg, send_production_mail_msg_attachment
 
 from sysproduction.reporting.report_configs import reportConfig
 
@@ -229,11 +229,9 @@ def email_report(parsed_report: ParsedReport,
                  data: dataBlob):
 
     if parsed_report.contains_pdf:
-        send_email_attachment(data = data,
-                              body="Report attached",
-                             subject = report_config.title,
-                             attach_filename = parsed_report.pdf_filename,
-                             email_is_report=True)
+        send_production_mail_msg_attachment(body = "Report attached",
+                                            subject = report_config.title,
+                                            filename= parsed_report.pdf_filename)
     else:
         send_production_mail_msg(
             data =data,
@@ -242,14 +240,6 @@ def email_report(parsed_report: ParsedReport,
             email_is_report=True
         )
 
-def send_email_attachment(data: dataBlob,
-                          body: str= "",
-                          subject: str = "",
-                            attach_filename: str = "",
-                          email_is_report: bool = True):
-
-    ## WRITE AND MOVE TO EMAIL FILE
-    raise NotImplementedError()
 
 
 def output_file_report(parsed_report: ParsedReport,

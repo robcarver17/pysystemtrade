@@ -45,7 +45,10 @@ def _account_curve_report_full(
     formatted_output = []
 
     for period in list_of_periods:
-        figure_object = reporting_api.figure_of_account_curves_given_period(period)
-        formatted_output.append(figure_object)
+        try:
+            figure_object = reporting_api.figure_of_account_curves_given_period(period)
+            formatted_output.append(figure_object)
+        except:
+            print("Couldn't do a figure (weird time period %s?)" % period)
 
     return formatted_output

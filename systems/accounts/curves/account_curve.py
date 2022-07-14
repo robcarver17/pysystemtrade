@@ -51,6 +51,7 @@ class accountCurve(pd.Series):
             + "\n %s account curve; use object.stats() to see methods" % weight_comment
         )
 
+
     def weight(self, weight: pd.Series):
         pandl_calculator = self.pandl_calculator_with_costs
         weighted_pandl_calculator = pandl_calculator.weight(weight)

@@ -155,5 +155,5 @@ report_config_defaults = dict(
     duplicate_market =duplicate_market_report_config,
     remove_markets_report = remove_markets_report_config,
     market_monitor_report = market_monitor_report_config,
-    account_curve_report_config = account_curve_report_config
+    account_curve_report = account_curve_report_config
 )

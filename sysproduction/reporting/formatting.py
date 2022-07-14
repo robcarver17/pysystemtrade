@@ -1,4 +1,35 @@
+from copy import copy
+from matplotlib.pyplot import title
+import datetime
+
 import pandas as pd
+
+from syscore.objects import arg_not_supplied
+from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
+
+def make_account_curve_plot(daily_pandl: pd.Series,
+                            start_of_title: str = "",
+                            start_date: datetime.datetime = arg_not_supplied,
+                            end_date: datetime.datetime = arg_not_supplied):
+
+    curve_to_plot = daily_pandl.resample("1B").sum()
+    if start_date is not arg_not_supplied:
+        curve_to_plot = curve_to_plot[start_date:]
+    if end_date is not arg_not_supplied:
+        curve_to_plot = curve_to_plot[:end_date]
+
+    # FIXME WOULD BE MUCH NICER IF THIS WAS AN ACCOUNT CURVE OBJECT
+    avg_return = curve_to_plot.mean()
+    std_return = curve_to_plot.std()
+    ann_return = BUSINESS_DAYS_IN_YEAR * avg_return
+    ann_std = ROOT_BDAYS_INYEAR * std_return
+    ann_sr = ann_return / ann_std
+
+    full_title = "%s ann. mean %.1f ann. std %1.f ann. SR %.2f" % \
+                 (start_of_title, ann_return, ann_std, ann_sr)
+    curve_to_plot.cumsum().plot()
+    title(full_title)
+
 
 def nice_format_min_capital_table(min_capital_pd: pd.DataFrame) -> pd.DataFrame:
     min_capital_pd.point_size_base = min_capital_pd.point_size_base.round(1)
