@@ -219,3 +219,7 @@ def report_price_spike(data: dataBlob, contract_object: futuresContract):
         data.log.warn(
             "Couldn't send email about price spike for %s" % str(contract_object)
         )
+
+
+if __name__ == '__main__':
+    update_historical_prices()

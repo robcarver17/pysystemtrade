@@ -27,3 +27,7 @@ class cleanTruncateBacktestStates:
         delete_old_files_with_extension_in_pathname(
             directory_to_use, days_old=30, extension=".yaml"
         )
+
+
+if __name__ == '__main__':
+    clean_truncate_backtest_states()

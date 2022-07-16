@@ -73,3 +73,7 @@ def report_fx_data_spike(data: dataBlob, fx_code: str):
         send_production_mail_msg(data, msg, "FX Price Spike %s" % str(fx_code))
     except BaseException:
         data.log.warn("Couldn't send email about price spike")
+
+
+if __name__ == '__main__':
+    update_fx_prices()

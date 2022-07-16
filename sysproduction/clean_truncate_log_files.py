@@ -17,3 +17,7 @@ class cleanTruncateLogFiles:
         mlog = diagLogs(self.data)
         self.data.log.msg("Deleting log items more than 30 days old")
         mlog.delete_log_items_from_before_n_days(days=30)
+
+
+if __name__ == '__main__':
+    clean_truncate_log_files()
