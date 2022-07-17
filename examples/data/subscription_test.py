@@ -11,7 +11,7 @@ from ib_insync import IB
 from sysbrokers.IB.ib_instruments_data import IBconfig
 from sysbrokers.IB.ib_instruments_data import read_ib_config_from_file
 
-HOSTNAME = "bertha.local"
+HOSTNAME = "localhost"
 
 
 async def subscription_test(ib_config: IBconfig) -> Dict[str, List[ContractDetails]]:
