@@ -48,7 +48,7 @@ class accountBufferingSubSystemLevel(accountCosts):
         optimal_position = self.get_subsystem_position(instrument_code)
 
         buffer_method = self.config.get_element_or_missing_data("buffer_method")
-        if buffer_method is missing_data or buffer_method is 'none':
+        if buffer_method is missing_data or buffer_method == 'none':
             if roundpositions:
                 return optimal_position.round()
             else:
