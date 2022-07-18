@@ -139,7 +139,7 @@ class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
 
     @property
     def _name_(self):
-        return "optimalPositionWithReference"
+        return "optimalPositionWithDynamicCalculations"
 
     def verbose_repr(self):
         ref_str = "Reference %s/%f@%s " % (

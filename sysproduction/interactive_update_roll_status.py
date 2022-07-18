@@ -294,6 +294,7 @@ def auto_selected_roll_state_instrument(
 
     if roll_data.relative_volume < auto_parameters.min_volume:
 
+        run_roll_report(data, roll_data.instrument_code)
         print_with_landing_strips_around(
             "For %s relative volume of %f is less than minimum of %s : NOT AUTO ROLLING"
             % (
@@ -307,6 +308,7 @@ def auto_selected_roll_state_instrument(
     no_position_held = roll_data.position_priced_contract == 0
 
     if no_position_held:
+        run_roll_report(data, roll_data.instrument_code)
         print_with_landing_strips_around(
             "No position held, auto rolling adjusted price for %s"
             % roll_data.instrument_code
