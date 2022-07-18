@@ -432,3 +432,8 @@ def check_and_update_sampling_status(
             "Contract %s %s so now stopped sampling" % (str(contract), reason),
             contract_date=contract.date_str,
         )
+
+
+
+if __name__ == '__main__':
+    update_sampled_contracts()

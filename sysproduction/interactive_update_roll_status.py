@@ -622,3 +622,8 @@ def _get_roll_adjusted_multiple_prices_object_ffill_option(data: dataBlob,
         return failure
 
     return rolling_adj_and_mult_object
+
+
+if __name__ == '__main__':
+    interactive_update_roll_status()
+

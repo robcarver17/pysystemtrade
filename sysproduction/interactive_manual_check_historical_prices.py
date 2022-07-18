@@ -53,3 +53,6 @@ def check_instrument_ok_for_broker(data: dataBlob, instrument_code: str):
         print("\n\n\ %s is not an instrument with price data \n\n" % instrument_code)
         raise Exception()
 
+
+if __name__ == '__main__':
+    interactive_manual_check_historical_prices()

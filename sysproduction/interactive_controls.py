@@ -921,3 +921,6 @@ dict_of_functions = {
     45: view_process_config,
     50: auto_update_spread_costs
 }
+
+if __name__ == '__main__':
+    interactive_controls()

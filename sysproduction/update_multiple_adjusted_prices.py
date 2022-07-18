@@ -215,3 +215,7 @@ def update_with_new_prices(
     update_prices.add_adjusted_prices(
         instrument_code, updated_adjusted_prices, ignore_duplication=True
     )
+
+
+if __name__ == '__main__':
+    update_multiple_adjusted_prices()
