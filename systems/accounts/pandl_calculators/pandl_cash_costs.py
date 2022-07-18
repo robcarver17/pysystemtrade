@@ -101,6 +101,10 @@ class pandlCalculationWithCashCostsAndFills(
 
     def _pseudo_fills_for_year(self, year: int) -> list:
         rolls_per_year = self.rolls_per_year
+
+        if rolls_per_year == 0:
+            return []
+
         date_list = generate_equal_dates_within_year(year, rolls_per_year)
         average_holding_by_period = self._average_holdings_within_year(
             year, rolls_per_year
