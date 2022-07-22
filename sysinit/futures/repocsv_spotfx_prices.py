@@ -12,7 +12,11 @@ if __name__ == "__main__":
     arctic_fx_prices = arcticFxPricesData()
     csv_fx_prices = csvFxPricesData()
 
-    list_of_ccy_codes = csv_fx_prices.get_list_of_fxcodes()
+    currency_code = input("Currency code? <return for ALL currencies> ")
+    if currency_code == "":
+        list_of_ccy_codes = csv_fx_prices.get_list_of_fxcodes()
+    else:
+        list_of_ccy_codes = [currency_code]
 
     for currency_code in list_of_ccy_codes:
         fx_prices = csv_fx_prices.get_fx_prices(currency_code)

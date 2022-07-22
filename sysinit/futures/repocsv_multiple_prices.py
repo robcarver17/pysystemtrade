@@ -11,7 +11,11 @@ if __name__ == "__main__":
     arctic_multiple_prices = arcticFuturesMultiplePricesData()
     csv_multiple_prices = csvFuturesMultiplePricesData()
 
-    instrument_list = csv_multiple_prices.get_list_of_instruments()
+    instrument_code = input("Instrument code? <return for ALL instruments> ")
+    if instrument_code == "":
+        instrument_list = csv_multiple_prices.get_list_of_instruments()
+    else:
+        instrument_list = [instrument_code]
 
     for instrument_code in instrument_list:
         print(instrument_code)
