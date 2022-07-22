@@ -47,6 +47,9 @@ mongo_port: 27017
 echo_extension: '.txt'
 # Spike checker
 max_price_spike: 8.0
+#GMT_offset_hours adjusts GMT to user time zone
+# adjusting market hours in sysbrokers.IB.ib_trading_hours.py
+GMT_offset_hours: 0
 # Behaviour of price filtering
 ignore_future_prices: True
 ignore_prices_with_zero_volumes_intraday: True

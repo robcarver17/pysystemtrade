@@ -3,6 +3,7 @@ from ib_insync import ContractDetails as ibContractDetails
 
 from syscore.dateutils import adjust_trading_hours_conservatively, openingTimesAnyDay, openingTimes, listOfOpeningTimes
 
+from sysdata.config.production_config import get_production_config
 
 def get_conservative_trading_hours(ib_contract_details: ibContractDetails) -> listOfOpeningTimes:
     time_zone_id = ib_contract_details.timeZoneId
@@ -163,7 +164,18 @@ def get_conservative_trading_time_for_time_zone(time_zone_id: str) -> openingTim
 
     return openingTimesAnyDay(conservative_start_time,
                               conservative_end_time)
-
+def get_GMT_offset_hours():
+    #
+    # GMT_offset_hours = 0 as Default in sysdata.config.defaults.yaml
+    # or set in  private_config.YAML
+    #example
+    # GMT_offset_hours = 6 # for US Central Time, no daylight savings
+    try:
+        production_config = get_production_config()
+        GMT_offset_hours = production_config.GMT_offset_hours
+    except:
+        raise Exception("Default is zero, have it in private_config")
+    return GMT_offset_hours
 
 def get_time_difference(time_zone_id: str) -> int:
     # Doesn't deal with DST. We will be conservative and only trade 1 hour
