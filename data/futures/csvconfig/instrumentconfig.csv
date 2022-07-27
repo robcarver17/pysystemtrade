@@ -59,7 +59,7 @@ COAL,1000,,,,OilGas,USD,ICE Rotterdam Coal,
 COAL-GEORDIE,1000,,,,OilGas,USD,ICE Coals to Newcastle,
 COCOA,10,0,3,0,Ags,USD,Cocoa NY,0.5
 COCOA_LDN,10,,,,Ags,GBP,Cocoa London,
-COFFEE,37500,0,3,0,Ags,USD,Coffee,0.001
+COFFEE,375,0,3,0,Ags,USD,Coffee,0.001
 COPPER,25000,0,2.31,0,Metals,USD,Copper,0.000423883318893
 COPPER_LME,25,,,,Metals,USD,Grade A Copper - LME,
 COPPER-micro,2500,,,,Metals,USD,Copper micro,
