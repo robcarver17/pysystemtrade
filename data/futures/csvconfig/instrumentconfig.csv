@@ -339,8 +339,8 @@ SPI200,25,0,5,0,Equity,AUD,ASX SPI200 Index,1
 STEEL,20,0,0.85,0,Metals,USD,Hot-Rolled Coil Steel Index,5.5
 STERLING3,1250,0,1.7,0,Bond,GBP,3 month Sterling interest rate,0.0025
 SUGAR_WHITE,50,,,,Ags,USD,White sugar,
-SUGAR11,112000,0,3,0,Ags,USD,Sugar #11,5E-05
-SUGAR16,112000,,,,Ags,USD,Sugar #16,
+SUGAR11,1120,0,3,0,Ags,USD,Sugar #11,5E-05
+SUGAR16,1120,,,,Ags,USD,Sugar #16,
 SWISSLEAD,10,,,,Equity,CHF,Swiss Leader Index (PREIS_INDEX),
 TECH60_small,100,,,,Equity,USD,Small Technology 60,
 TIN_LME,5,,,,Metals,USD,Tin – LME,
