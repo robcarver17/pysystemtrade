@@ -291,7 +291,7 @@ NOK,2000000,0,1.5,0,FX,USD,NOKUSD currency,3E-05
 NZD,100000,0,2.46,0,FX,USD,NZDUSD currency,5.8E-05
 OAT,1000,0,2,0,Bond,EUR,French 10 year bond OAT,0.005
 OATIES,50,0,1.5,0,Ags,USD,Oat Futures,1.5
-OJ,15000,0,3,0,Ags,USD,Orange Juice (FCOJ-A),0.01075
+OJ,150,0,3,0,Ags,USD,Orange Juice (FCOJ-A),0.01075
 OMX,10,0,2,0,Equity,EUR,OMX Helsinki 25 Index,11.75
 OMXESG,100,,,,Equity,EUR,OMXS30 ESG Responsible Index,
 PALLAD,100,0,2.31,0,Metals,USD,Palladium,2
