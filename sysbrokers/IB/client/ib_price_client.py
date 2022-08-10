@@ -25,7 +25,6 @@ from sysobjects.contracts import futuresContract
 from sysexecution.trade_qty import tradeQuantity
 
 
-
 class tickerWithBS(object):
     def __init__(self, ticker, BorS: str):
         self.ticker = ticker
