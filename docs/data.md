@@ -172,7 +172,6 @@ We could get this from anywhere, but I'm going to use Barchart. As you'll see, t
 
 (Don't get data from both Barchart and IB. If you get the IB data first, the Barchart code will overwrite it. If you get the Barchart data first, the IB data won't be written.)
 
-
 Once we have the data we can also store it, in principle, anywhere but I will be using the open source [Arctic library](https://github.com/manahl/arctic) which was released by my former employers [AHL](https://www.ahl.com). This sits on top of Mongo DB (so we don't need yet another database) but provides straightforward and fast storage of pandas DataFrames. Once we have the data we can also copy it to .csv files.
 
 By the way I can't just pull down this data myself and put it on github to save you time. Storing large amounts of data in github isn't a good idea regardless of whether it is in .csv or Mongo files, and there would also be licensing issues with me basically just copying and pasting raw data that belongs to someone else. You have to get, and then store, this stuff yourself. And of course at some point in a live system you would be updating this yourself.
