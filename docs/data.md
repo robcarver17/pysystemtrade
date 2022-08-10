@@ -244,8 +244,8 @@ def transfer_barchart_prices_to_arctic(datapath):
 transfer_barchart_prices_to_arctic(BARCHART_DATA_DOWNLOAD_DIRECTORY)
 ```
 
-Alternatively, if you are very patient, you can manually download the data from the Barchart historical data pages, such as this one 
-for [Cotton #2](https://www.barchart.com/futures/quotes/KG*0/historical-download). 
+Alternatively, if you are very patient, you can manually download the data from the Barchart historical data pages, such as [this one 
+for Cotton #2](https://www.barchart.com/futures/quotes/KG*0/historical-download). 
 Then, to read the data, you can use [this script](/sysinit/futures/barchart_futures_contract_prices.py), which in turn calls this [other more general script](/sysinit/futures/contract_prices_from_csv_to_arctic.py). Although it's very specific to Barchart, with some work you should be able to adapt it. You will need to call it with the directory where your Barchart .csv files are stored.
 
 The script does two things:
