@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
+
 from syscore.interactive import (
     get_and_convert,
     run_interactive_menu,
@@ -383,6 +384,9 @@ def get_standardised_position_for_risk(risk_data: dict,
 
     capital = risk_data["capital"]
     annual_risk_per_contract = risk_data["annual_risk_per_contract"]
+    if np.isnan(annual_risk_per_contract):
+        print("Calculated annual risk per contract is NaN! Setting to 999999999 instead.")
+        annual_risk_per_contract = 999999999
     max_forecast_ratio = auto_parameters.max_vs_average_forecast
     idm = auto_parameters.approx_IDM
     instr_weight = auto_parameters.notional_instrument_weight
@@ -429,6 +433,9 @@ def get_maximum_position_given_risk_concentration_limit(
 ) -> float:
 
     ccy_risk_per_contract = abs(risk_data['annual_risk_per_contract'])
+    if np.isnan(ccy_risk_per_contract):
+        print("Calculated annual risk per contract is NaN! Setting to 999999999 instead.")
+        ccy_risk_per_contract = 999999999
     capital = risk_data['capital']
     risk_target = auto_parameters.notional_risk_target
     cash_risk_capital = capital * risk_target
