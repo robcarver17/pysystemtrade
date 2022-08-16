@@ -159,6 +159,12 @@ def get_conservative_trading_time_for_time_zone(time_zone_id: str) -> openingTim
         "Hongkong": 6,
     }
 
+    GMT_offset_hours = get_GMT_offset_hours()
+    for k, v in start_times.items():
+        start_times[k] = v + GMT_offset_hours
+    for k, v in end_times.items():
+        end_times[k] = v + GMT_offset_hours
+
     conservative_start_time = datetime.time(start_times[time_zone_id])
     conservative_end_time = datetime.time(end_times[time_zone_id])
 
@@ -194,7 +200,7 @@ def get_time_difference(time_zone_id: str) -> int:
         "Hongkong": -7,
         "": 0,
     }
-    GMT_offset_hours = GMT_offset_hours
+    GMT_offset_hours = get_GMT_offset_hours()
     for k, v in time_diff_dict.items():
         time_diff_dict[k] = v + GMT_offset_hours
     diff_hours = time_diff_dict.get(time_zone_id, None)
