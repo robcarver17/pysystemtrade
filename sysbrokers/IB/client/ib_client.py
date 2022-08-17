@@ -102,10 +102,3 @@ class ibClient(object):
 
     def refresh(self):
         self.ib.sleep(0.00001)
-
-    def get_broker_time_local_tz(self) -> datetime.datetime:
-        ib_time = self.ib.reqCurrentTime()
-        local_ib_time_with_tz = ib_time.astimezone(tz.tzlocal())
-        local_ib_time = strip_timezone_fromdatetime(local_ib_time_with_tz)
-
-        return local_ib_time

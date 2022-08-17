@@ -2,6 +2,8 @@ from ib_insync import Trade as ibTrade
 
 from copy import copy
 
+import datetime
+
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_translate_broker_order_objects import (
@@ -259,7 +261,7 @@ class ibExecutionStackData(brokerExecutionStackData):
         :return: ibOrderWithControls or missing_order
         """
         trade_with_contract_from_ib = self._send_broker_order_to_IB(broker_order)
-        order_time = self.ib_client.get_broker_time_local_tz()
+        order_time = datetime.datetime.now()
 
         if trade_with_contract_from_ib is missing_order:
             return missing_order
