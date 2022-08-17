@@ -194,7 +194,7 @@ def get_time_difference(time_zone_id: str) -> int:
         "Hongkong": -7,
         "": 0,
     }
-    GMT_offset_hours = GMT_offset_hours
+    GMT_offset_hours = get_GMT_offset_hours()
     for k, v in time_diff_dict.items():
         time_diff_dict[k] = v + GMT_offset_hours
     diff_hours = time_diff_dict.get(time_zone_id, None)
