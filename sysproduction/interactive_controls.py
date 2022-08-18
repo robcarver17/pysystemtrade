@@ -434,6 +434,10 @@ def get_maximum_position_given_risk_concentration_limit(
 ) -> float:
 
     ccy_risk_per_contract = abs(risk_data['annual_risk_per_contract'])
+    if np.isnan(ccy_risk_per_contract):
+        print("Can't get risk per contract, Max position exposure limit will be zero")
+        return 0
+
     capital = risk_data['capital']
     risk_target = auto_parameters.notional_risk_target
     cash_risk_capital = capital * risk_target
