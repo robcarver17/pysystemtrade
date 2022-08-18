@@ -34,23 +34,6 @@ SPECIAL_NAMES = [
 ]
 
 
-def capital_transfer_script():
-    print("One off utility to transform old total capital storage into new")
-    print("Strongly suggest you have backups and run this when nothing else is running!")
-    do_this = true_if_answer_is_yes("Are you sure?")
-    if not do_this:
-        return None
-
-    data = dataBlob()
-    data.add_class_object(mongoCapitalData)
-    old_data_capital = data.db_capital_data
-    cap_calculator = totalCapitalCalculationData(old_data_capital)
-
-    original_capital = cap_calculator.get_total_capital()
-    print(original_capital)
-
-if __name__ == "__main__":
-    capital_transfer_script()
 
 
 class capitalForStrategy(listOfEntries):
@@ -647,3 +630,21 @@ class totalCapitalCalculationData(object):
         self._capital_data.delete_all_special_capital_entries(
             are_you_really_sure=are_you_really_sure
         )
+        
+def capital_transfer_script():
+    print("One off utility to transform old total capital storage into new")
+    print("Strongly suggest you have backups and run this when nothing else is running!")
+    do_this = true_if_answer_is_yes("Are you sure?")
+    if not do_this:
+        return None
+
+    data = dataBlob()
+    data.add_class_object(mongoCapitalData)
+    old_data_capital = data.db_capital_data
+    cap_calculator = totalCapitalCalculationData(old_data_capital)
+
+    original_capital = cap_calculator.get_total_capital()
+    print(original_capital)
+
+if __name__ == "__main__":
+    capital_transfer_script()
