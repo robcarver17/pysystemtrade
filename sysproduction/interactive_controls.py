@@ -10,6 +10,7 @@ from syscore.interactive import (
 from syscore.algos import magnitude
 from syscore.pdutils import set_pd_print_options
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
+from syscore.objects import missing_data
 
 from sysdata.data_blob import dataBlob
 from sysobjects.production.override import override_dict, Override
@@ -383,6 +384,10 @@ def get_standardised_position_for_risk(risk_data: dict,
 
     capital = risk_data["capital"]
     annual_risk_per_contract = risk_data["annual_risk_per_contract"]
+    if np.isnan(annual_risk_per_contract):
+        print("No estimated risk for contract, can't calculate standard position - returning zero")
+        return 0
+
     max_forecast_ratio = auto_parameters.max_vs_average_forecast
     idm = auto_parameters.approx_IDM
     instr_weight = auto_parameters.notional_instrument_weight
