@@ -47,6 +47,8 @@ mongo_port: 27017
 echo_extension: '.txt'
 # Spike checker
 max_price_spike: 8.0
+# Default get_GMT_offset_hours
+GMT_offset_hours: 0
 # Behaviour of price filtering
 ignore_future_prices: True
 ignore_prices_with_zero_volumes_intraday: True
