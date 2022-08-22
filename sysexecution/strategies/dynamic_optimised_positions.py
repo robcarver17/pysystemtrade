@@ -7,6 +7,7 @@ These are 'virtual' orders, because they are per instrument. We translate that t
 
 Desired virtual orders have to be labelled with the desired type: limit, market,best-execution
 """
+from typing import List
 from dataclasses import dataclass
 
 from syscore.objects import missing_data
@@ -15,7 +16,6 @@ from sysdata.data_blob import dataBlob
 from sysexecution.orders.instrument_orders import instrumentOrder, best_order_type
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.strategies.strategy_order_handling import orderGeneratorForStrategy
-
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysobjects.production.optimal_positions import (
     optimalPositionWithDynamicCalculations,
@@ -514,7 +514,7 @@ def get_optimised_positions_data_dict_given_optimisation(
     optimised_position_weights = get_weights_given_positions(
         optimised_positions, per_contract_value=data_for_objective.per_contract_value
     )
-    instrument_list = list(optimised_position_weights.keys())
+    instrument_list: List[str] = objective_function.keys_with_valid_data
 
     minima_weights = portfolioWeights.from_weights_and_keys(
         list_of_keys=instrument_list,
