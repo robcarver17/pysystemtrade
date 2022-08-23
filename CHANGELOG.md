@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 1.45
+
+- Changed storage of capital IMPORTANT YOU MUST RUN sysdata/production/TEMP_capital_transfer.py from the command line to transfer your old capital
+
+
 ## Version 1.40
 
 - "Market movers" report added

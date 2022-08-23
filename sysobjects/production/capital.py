@@ -1,20 +1,4 @@
 from syscore.objects import missing_data
-from sysobjects.production.timed_storage import timedEntry
-
-
-class capitalEntry(timedEntry):
-    @property
-    def required_argument_names(self) -> list:
-        return ["capital_value"]  # compulsory args
-
-    @property
-    def _name_(self):
-        return "Capital"
-
-    @property
-    def containing_data_class_name(self):
-        return "sysdata.production.capital.capitalForStrategy"
-
 
 LIST_OF_COMPOUND_METHODS = ["full", "half", "fixed"]
 
@@ -30,6 +14,7 @@ class totalCapitalUpdater(object):
         prev_total_capital: float = missing_data,
         prev_maximum_capital: float = missing_data,
         prev_broker_account_value: float = missing_data,
+        prev_pandl_cum_acc: float = missing_data,
         calc_method: str = missing_data,
     ):
 
@@ -38,6 +23,7 @@ class totalCapitalUpdater(object):
         self._prev_broker_account_value = prev_broker_account_value
         self._prev_total_capital = prev_total_capital
         self._prev_maximum_capital = prev_maximum_capital
+        self._prev_pandl_cum_acc = prev_pandl_cum_acc
 
     @property
     def calc_method(self):
@@ -60,6 +46,10 @@ class totalCapitalUpdater(object):
         return self._prev_maximum_capital
 
     @property
+    def prev_pandl_cum_acc(self) -> float:
+        return self._prev_pandl_cum_acc
+
+    @property
     def new_total_capital(self) -> float:
         new_total_capital = getattr(self, "_new_total_capital", missing_data)
         if new_total_capital is missing_data:
@@ -78,6 +68,15 @@ class totalCapitalUpdater(object):
             )
 
         return new_max_capital
+
+    @property
+    def new_acc_pandl(self) -> float:
+        new_acc_pandl = getattr(self, "_new_acc_pandl", missing_data)
+        if new_acc_pandl is missing_data:
+            raise Exception(
+                "Need to run calculate_new_total_and_max_capital_given_pandl()"
+            )
+        return new_acc_pandl
 
     @property
     def profit_and_loss(self) -> float:
@@ -123,6 +122,10 @@ class totalCapitalUpdater(object):
             self._fixed_capital_calculation()
         else:
             raise Exception("Capital method should be one of full, half or fixed")
+
+        prev_acc_pandl = self.prev_pandl_cum_acc
+        new_acc_pandl = prev_acc_pandl + self.profit_and_loss
+        self._new_acc_pandl = new_acc_pandl
 
     def _full_capital_calculation(self):
         """

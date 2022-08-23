@@ -513,7 +513,7 @@ def get_perc_of_capital_position_size_for_instrument_across_strategies(
 
 def capital_for_strategy(data, strategy_name):
     data_capital = dataCapital(data)
-    capital = data_capital.get_capital_for_strategy(strategy_name)
+    capital = data_capital.get_current_capital_for_strategy(strategy_name)
     if capital is missing_data:
         return 0.00001
 

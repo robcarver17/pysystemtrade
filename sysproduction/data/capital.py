@@ -3,11 +3,10 @@ import pandas as pd
 
 from syscore.objects import arg_not_supplied, missing_data
 
-from sysdata.production.capital import totalCapitalCalculationData
-from sysdata.production.capital import capitalData
+from sysdata.production.new_capital import capitalData, totalCapitalCalculationData
 from sysdata.production.margin import marginData, seriesOfMargin
 
-from sysdata.mongodb.mongo_capital import mongoCapitalData
+from sysdata.arctic.arctic_capital import arcticCapitalData
 from sysdata.mongodb.mongo_margin import mongoMarginData
 from sysdata.data_blob import dataBlob
 
@@ -15,7 +14,7 @@ from sysproduction.data.generic_production_data import productionDataLayerGeneri
 
 class dataCapital(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(mongoCapitalData)
+        data.add_class_object(arcticCapitalData)
 
         return data
 
@@ -31,8 +30,18 @@ class dataCapital(productionDataLayerGeneric):
     def get_current_total_capital(self) -> float:
         return self.total_capital_calculator.get_current_total_capital()
 
+    def get_current_broker_account_value(self) -> float:
+        return self.total_capital_calculator.get_current_broker_account()
+
+    def get_current_maximum_capital(self) -> float:
+        return self.total_capital_calculator.get_current_maximum_capital()
+
+    def get_current_accumulated_pandl(self) -> float:
+        return self.total_capital_calculator.get_current_accumulated_pandl()
+
     def update_and_return_total_capital_with_new_broker_account_value(
-        self, total_account_value_in_base_currency: float, check_limit: float = 0.1
+        self, total_account_value_in_base_currency: float,
+            check_limit: float = 0.1
     ) -> float:
 
         result = self.total_capital_calculator.update_and_return_total_capital_with_new_broker_account_value(
@@ -42,7 +51,7 @@ class dataCapital(productionDataLayerGeneric):
         return result
 
     def get_series_of_all_global_capital(self) -> pd.DataFrame:
-        all_capital_data = self.total_capital_calculator.get_all_capital_calcs()
+        all_capital_data = self.total_capital_calculator.get_df_of_all_global_capital()
 
         return all_capital_data
 
@@ -52,8 +61,48 @@ class dataCapital(productionDataLayerGeneric):
     def get_series_of_accumulated_capital(self) -> pd.Series:
         return self.total_capital_calculator.get_profit_and_loss_account()
 
-    def get_series_of_broker_capital(self) -> pd.Series:
-        return self.total_capital_calculator.get_broker_account()
+    def create_initial_capital(self,
+                               broker_account_value: float,
+                               total_capital: float = arg_not_supplied,
+                               maximum_capital: float = arg_not_supplied,
+                               acc_pandl: float = arg_not_supplied,
+                               are_you_really_sure: bool = False
+        ):
+
+        self.total_capital_calculator.create_initial_capital(broker_account_value=broker_account_value,
+                                                             total_capital=total_capital,
+                                                             maximum_capital=maximum_capital,
+                                                             acc_pandl=acc_pandl,
+                                                             are_you_really_sure=are_you_really_sure)
+
+    def return_str_with_effect_of_delta_adjustment(self,
+                                           capital_delta: float):
+        old_capital = self.total_capital_calculator.capital_data.get_current_broker_account_value()
+        new_capital = old_capital + capital_delta
+        return "Old brokerage capital %f, adjustment %f, New capital %f" % (
+            old_capital,
+            capital_delta,
+            new_capital
+        )
+
+    def adjust_broker_account_for_delta(self, capital_delta: float):
+        self.total_capital_calculator.adjust_broker_account_for_delta(capital_delta)
+
+    def modify_account_values(self,
+                              broker_account_value: float = arg_not_supplied,
+                              total_capital: float = arg_not_supplied,
+                              maximum_capital: float = arg_not_supplied,
+                              acc_pandl: float = arg_not_supplied,
+                              date: datetime.datetime = arg_not_supplied,
+                              are_you_sure: bool = False
+                              ):
+        self.total_capital_calculator.modify_account_values(broker_account_value=broker_account_value,
+                                                            total_capital=total_capital,
+                                                            maximum_capital=maximum_capital,
+                                                            acc_pandl=acc_pandl,
+                                                            date=date,
+                                                            are_you_sure=are_you_sure
+                                                            )
 
     @property
     def total_capital_calculator(self) -> totalCapitalCalculationData:
@@ -79,17 +128,17 @@ class dataCapital(productionDataLayerGeneric):
         return config.production_capital_method
 
     ## STRATEGY CAPITAL
-    def get_capital_pd_series_for_strategy(self, strategy_name: str) -> pd.DataFrame:
-        capital_series = self.db_capital_data.get_capital_pd_series_for_strategy(
+    def get_capital_pd_series_for_strategy(self, strategy_name: str) -> pd.Series:
+        capital_series = self.db_capital_data.get_capital_pd_df_for_strategy(
             strategy_name
         )
-        return capital_series
+        return capital_series.squeeze()
 
     def get_list_of_strategies_with_capital(self) -> list:
         strat_list = self.db_capital_data.get_list_of_strategies_with_capital()
         return strat_list
 
-    def get_capital_for_strategy(self, strategy_name: str) -> float:
+    def get_current_capital_for_strategy(self, strategy_name: str) -> float:
         capital_value = self.db_capital_data.get_current_capital_for_strategy(
             strategy_name
         )
@@ -109,6 +158,13 @@ class dataCapital(productionDataLayerGeneric):
         self.db_capital_data.update_capital_value_for_strategy(
             strategy_name, new_capital_value, date=date
         )
+
+    def delete_recent_global_capital(self, last_date: datetime.datetime,
+                                     are_you_sure: bool = False):
+        self.total_capital_calculator.delete_recent_capital(last_date, are_you_sure=are_you_sure)
+
+    def delete_all_global_capital(self, are_you_really_sure: bool = False):
+        self.total_capital_calculator.delete_all_global_capital(are_you_really_sure=are_you_really_sure)
 
 class dataMargin(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:

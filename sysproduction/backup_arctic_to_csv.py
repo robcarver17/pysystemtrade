@@ -31,6 +31,7 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.arctic.arctic_spreads import arcticSpreadsForInstrumentData
+from sysdata.arctic.arctic_capital import arcticCapitalData
 
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData
@@ -40,7 +41,6 @@ from sysdata.mongodb.mongo_historic_orders import (
     mongoContractHistoricOrdersData,
     mongoStrategyHistoricOrdersData,
 )
-from sysdata.mongodb.mongo_capital import mongoCapitalData
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
@@ -146,12 +146,12 @@ def get_data_and_create_csv_directories(logname):
             arcticFuturesAdjustedPricesData,
             arcticFxPricesData,
             arcticSpreadsForInstrumentData,
+            arcticCapitalData,
             mongoContractPositionData,
             mongoStrategyPositionData,
             mongoBrokerHistoricOrdersData,
             mongoContractHistoricOrdersData,
             mongoStrategyHistoricOrdersData,
-            mongoCapitalData,
             mongoFuturesContractData,
             mongoFuturesInstrumentData,
             mongoOptimalPositionData,
@@ -411,36 +411,34 @@ def backup_historical_orders(data):
 
 
 def backup_capital(data):
+    strategy_capital_dict = get_dict_of_strategy_capital(data)
+    capital_data_df = add_total_capital_to_strategy_capital_dict_return_df(data, strategy_capital_dict)
+    capital_data_df = capital_data_df.ffill()
+
+    data.csv_capital.write_backup_df_of_all_capital(capital_data_df)
+
+
+def get_dict_of_strategy_capital(data: dataBlob) -> dict:
     strategy_list = get_list_of_strategies(data)
-    capital_data = dict()
+    strategy_capital_data = dict()
     for strategy_name in strategy_list:
-        capital_data[strategy_name] = data.mongo_capital.get_capital_pd_series_for_strategy(
+        strategy_capital_data[strategy_name] = data.arctic_capital.get_capital_pd_df_for_strategy(
             strategy_name
         )
 
-    if len(capital_data) > 0:
-        capital_data["TOTAL_total"] = data.mongo_capital.get_total_capital_pd_series()
-        capital_data[
-            "TOTAL_broker"
-        ] = data.mongo_capital.get_broker_account_value_pd_series()
-        capital_data["TOTAL_max"] = data.mongo_capital.get_maximum_account_value_pd_series()
-        capital_data[
-            "TOTAL_pandl"
-        ] = data.mongo_capital.get_profit_and_loss_account_pd_series()
+    return strategy_capital_data
 
-        capital_data = pd.concat(capital_data, axis=1)
-        capital_data.columns = strategy_list + [
-            "TOTAL_total",
-            "TOTAL_broker",
-            "TOTAL_max",
-            "TOTAL_pandl",
-        ]
-        capital_data = capital_data.ffill()
+def add_total_capital_to_strategy_capital_dict_return_df(data: dataBlob,
+                                          capital_data: dict) -> pd.DataFrame:
 
-        data.csv_capital.write_df_of_all_capital(capital_data)
+    strategy_capital_as_df = pd.concat(capital_data, axis=1)
+    total_capital = data.arctic_capital.get_df_of_all_global_capital()
+    capital_data = pd.concat([strategy_capital_as_df, total_capital],
+                                       axis=1)
 
-    data.log.msg("Backed up capital data")
+    capital_data = capital_data.ffill()
 
+    return  capital_data
 
 def backup_optimal_positions(data):
 
