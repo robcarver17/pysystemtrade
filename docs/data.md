@@ -614,7 +614,7 @@ Production only data storage objects:
 - `baseData`: Does basic logging. Has `__getitem__` and `keys()` methods so it looks sort of like a dictionary
     - `listOfEntriesData`: generic 'point in time' data used for capital and positions
         - `mongoListOfEntriesData`
-        - `capitalData`
+        - `strategyCapitalData`
             - `mongocapitalData`
         - `strategyPositionData`
             - `mongoStrategyPositionData`

@@ -90,7 +90,7 @@ def setup_initial_capital(data: dataBlob):
     )
     if user_agrees_to_do_this:
         data_capital = dataCapital(data)
-        data_capital.total_capital_calculator.create_initial_capital(
+        data_capital.create_initial_capital(
             broker_account_value,
             total_capital=total_capital,
             maximum_capital=maximum_capital,
@@ -168,14 +168,14 @@ def adjust_capital_for_delta(data: dataBlob):
         "What change have you made to brokerage account that will not change capital +ve deposit, -ve withdrawal",
         type_expected=float,
     )
-    old_capital = data_capital.get_series_of_broker_capital()[-1]
-    new_capital = old_capital + capital_delta
+    effect = data_capital.return_str_with_effect_of_delta_adjustment(capital_delta)
+
     user_wants_adjustment = true_if_answer_is_yes(
-        "New brokerage capital will be %f, are you sure? "
-        % new_capital
+        "%s, are you sure? "
+        % effect
     )
     if user_wants_adjustment:
-        data_capital.total_capital_calculator.adjust_broker_account_for_delta(
+        data_capital.adjust_broker_account_for_delta(
             capital_delta
         )
 
@@ -194,41 +194,40 @@ def modify_any_value(data: dataBlob):
         "Sure about this? May cause subtle weirdness in capital calculations?"
     )
     if ans_is_yes:
-        data_capital.total_capital_calculator.modify_account_values(
+        data_capital.modify_account_values(
             broker_account_value=broker_account_value,
             total_capital=total_capital,
             maximum_capital=maximum_capital,
             acc_pandl=acc_pandl,
-            propagate = True
+            are_you_sure=True
         )
 
 
 def get_values_from_user_to_modify(data: dataBlob):
     data_capital = dataCapital(data)
-    capital_calculator = data_capital.total_capital_calculator
 
-    current_broker_value = capital_calculator.get_broker_account()[-1]
+    current_broker_value = data_capital.get_current_broker_account_value()
     broker_account_value = get_and_convert(
         "Broker account value",
         type_expected=float,
         default_value=current_broker_value
     )
 
-    current_total_capital = capital_calculator.get_current_total_capital()
+    current_total_capital = data_capital.get_current_total_capital()
     total_capital = get_and_convert(
         "Total capital at risk",
         type_expected=float,
         default_value=current_total_capital
     )
 
-    current_maximum_capital = capital_calculator.get_maximum_account()[-1]
+    current_maximum_capital = data_capital.get_current_maximum_capital()
     maximum_capital = get_and_convert(
         "Max capital, only used for half compounding",
         type_expected=float,
         default_value=current_maximum_capital
     )
 
-    current_acc_profit = capital_calculator.get_profit_and_loss_account()[-1]
+    current_acc_profit = data_capital.get_current_accumulated_pandl()
     acc_pandl = get_and_convert(
         "Accumulated profit",
         type_expected=float,
@@ -241,11 +240,12 @@ def get_values_from_user_to_modify(data: dataBlob):
 def delete_capital_since_time(data: dataBlob):
     data_capital = dataCapital(data)
 
-    start_date = get_datetime_input("Delete capital from when?")
-    ans = input("Are you sure about this? Can't be undone Yes/<other for no>")
-    if ans == "Yes":
-        data_capital.total_capital_calculator.delete_recent_capital(
-            start_date, are_you_sure=True
+    last_date = get_datetime_input("Delete capital from when?")
+    ans_is_yes = true_if_answer_is_yes("Delete anything after %s. Are you sure about this? Can't be undone Yes/<other for no>" % str(last_date))
+    if ans_is_yes:
+        data_capital.delete_recent_global_capital(
+            last_date,
+            are_you_sure=True
         )
 
 
@@ -257,7 +257,7 @@ def delete_all_capital(data: dataBlob):
     )
     if ans == "YESyesYES":
         try:
-            data_capital.total_capital_calculator.delete_all_capital(
+            data_capital.delete_all_global_capital(
                 are_you_really_sure=True
             )
 

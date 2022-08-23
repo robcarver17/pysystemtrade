@@ -66,7 +66,7 @@ class runSystemClassic(object):
         strategy_name = self.strategy_name
 
         capital_data = dataCapital(data)
-        notional_trading_capital = capital_data.get_capital_for_strategy(strategy_name)
+        notional_trading_capital = capital_data.get_current_capital_for_strategy(strategy_name)
         if notional_trading_capital is missing_data:
             # critical log will send email
             error_msg = (
