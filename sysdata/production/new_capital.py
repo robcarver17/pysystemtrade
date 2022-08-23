@@ -337,7 +337,9 @@ class totalCapitalCalculationData(object):
         :return: current total capital
         """
         # Compare broker account value to previous
-
+        current_capital = self.get_current_total_capital()
+        if current_capital is missing_data:
+            raise Exception("No capital in database - can't update")
         capital_updater = self._init_capital_updater(broker_account_value)
         capital_updater.check_pandl_size(check_limit=check_limit)
 
