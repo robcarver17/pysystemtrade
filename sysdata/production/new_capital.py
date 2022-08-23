@@ -25,7 +25,11 @@ class capitalData(baseData):
     ## TOTAL CAPITAL
 
     def get_current_total_capital(self) -> float:
-        return self.get_total_capital_pd_series()[-1]
+        pd_series = self.get_total_capital_pd_series()
+        if pd_series is missing_data:
+            return missing_data
+
+        return pd_series[-1]
 
     def get_current_broker_account_value(self) -> float:
         pd_series =self.get_broker_account_value_pd_series()
@@ -35,23 +39,47 @@ class capitalData(baseData):
         return pd_series[-1]
 
     def get_current_maximum_capital_value(self) -> float:
-        return self.get_maximum_account_value_pd_series()[-1]
+        pd_series = self.get_maximum_account_value_pd_series()
+        if pd_series is missing_data:
+            return missing_data
+
+        return pd_series[-1]
 
     def get_current_pandl_account(self) -> float:
-        return self.get_profit_and_loss_account_pd_series()[-1]
+        pd_series = self.get_profit_and_loss_account_pd_series()
+        if pd_series is missing_data:
+                    return missing_data
+
+        return pd_series[-1]
 
 
     def get_total_capital_pd_series(self) -> pd.Series:
-        return self.get_df_of_all_global_capital()[CURRENT_CAPITAL_LABEL]
+        all_capital_series = self.get_df_of_all_global_capital()
+        if all_capital_series is missing_data:
+            return missing_data
+
+        return all_capital_series[CURRENT_CAPITAL_LABEL]
 
     def get_broker_account_value_pd_series(self) -> pd.Series:
-        return self.get_df_of_all_global_capital()[BROKER_CAPITAL_LABEL]
+        all_capital_series = self.get_df_of_all_global_capital()
+        if all_capital_series is missing_data:
+            return missing_data
+
+        return all_capital_series[BROKER_CAPITAL_LABEL]
 
     def get_maximum_account_value_pd_series(self) -> pd.Series:
-        return self.get_df_of_all_global_capital()[MAX_CAPITAL_LABEL]
+        all_capital_series = self.get_df_of_all_global_capital()
+        if all_capital_series is missing_data:
+            return missing_data
+
+        return all_capital_series[MAX_CAPITAL_LABEL]
 
     def get_profit_and_loss_account_pd_series(self) -> pd.Series:
-        return self.get_df_of_all_global_capital()[ACC_CAPITAL_LABEL]
+        all_capital_series = self.get_df_of_all_global_capital()
+        if all_capital_series is missing_data:
+            return missing_data
+
+        return all_capital_series[ACC_CAPITAL_LABEL]
 
 
     def add_global_capital_entries(self,
@@ -86,6 +114,9 @@ class capitalData(baseData):
         new_capital_row = pd.DataFrame(cap_entry_dict, index = [date])
 
         capital_df = self.get_df_of_all_global_capital()
+        if capital_df is missing_data:
+            raise Exception("Need to initialise capital first")
+
         updated_capital_df = pd.concat([capital_df, new_capital_row], axis=0)
         ffill_updated_capital_df = updated_capital_df.ffill()
 
@@ -268,7 +299,6 @@ class totalCapitalCalculationData(object):
 
     def get_df_of_all_global_capital(self) -> pd.DataFrame:
         return self.capital_data.get_df_of_all_global_capital()
-
 
     def update_and_return_total_capital_with_new_broker_account_value(
         self, broker_account_value: float, check_limit=0.1
