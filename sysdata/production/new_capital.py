@@ -122,6 +122,28 @@ class capitalData(baseData):
 
         self.update_df_of_all_global_capital(ffill_updated_capital_df)
 
+    def create_initial_capital(self,
+                                   total_current_capital: float,
+                                   broker_account_value: float,
+                                   maximum_capital: float,
+                                   acc_pandl: float =0,
+                                   date: datetime.datetime = arg_not_supplied
+                                   ):
+        if date is arg_not_supplied:
+            date = datetime.datetime.now()
+
+
+        cap_entry_dict = {}
+        cap_entry_dict[CURRENT_CAPITAL_LABEL] = total_current_capital
+        cap_entry_dict[ACC_CAPITAL_LABEL] = acc_pandl
+        cap_entry_dict[BROKER_CAPITAL_LABEL] = broker_account_value
+        cap_entry_dict[MAX_CAPITAL_LABEL] = maximum_capital
+
+        new_capital_row = pd.DataFrame(cap_entry_dict, index = [date])
+
+        self.update_df_of_all_global_capital(new_capital_row)
+
+
     def delete_recent_capital(
         self, last_date: datetime.datetime
     ):
@@ -138,9 +160,6 @@ class capitalData(baseData):
     def get_df_of_all_global_capital(self) -> pd.DataFrame:
         ## ignore warning- for global we pass a Frame not a Series
         capital_df =  self.get_capital_pd_df_for_strategy(GLOBAL_CAPITAL_DICT_KEY)
-
-        if capital_df is missing_data:
-            return pd.DataFrame(columns = [ALL_LABELS])
 
         return capital_df
 
@@ -471,7 +490,7 @@ class totalCapitalCalculationData(object):
 
         date = datetime.datetime.now()
 
-        self.capital_data.add_global_capital_entries(total_current_capital=total_capital,
+        self.capital_data.create_initial_capital(total_current_capital=total_capital,
                                                      maximum_capital=maximum_capital,
                                                      acc_pandl = acc_pandl,
                                                      broker_account_value=broker_account_value,
