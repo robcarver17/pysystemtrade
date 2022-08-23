@@ -340,9 +340,7 @@ class totalCapitalCalculationData(object):
         :return: current total capital
         """
         # Compare broker account value to previous
-        current_capital = self.get_current_total_capital()
-        if current_capital is missing_data:
-            raise Exception("No capital in database - can't update")
+
         capital_updater = self._init_capital_updater(broker_account_value)
         capital_updater.check_pandl_size(check_limit=check_limit)
 
@@ -358,12 +356,16 @@ class totalCapitalCalculationData(object):
 
         calc_method = self.calc_method
         prev_broker_account_value = (
-            self._get_prev_broker_account_value_create_if_no_data(
-                new_broker_account_value
+            self._get_prev_broker_account_value(
+
             )
         )
+        if prev_broker_account_value is missing_data:
+            raise Exception("No previous broker account value can't update capital")
+
         prev_maximum_capital = self.capital_data.get_current_maximum_capital_value()
         prev_total_capital = self.capital_data.get_current_total_capital()
+        prev_pandl_cum_acc = self.capital_data.get_current_pandl_account()
 
         capital_updater = totalCapitalUpdater(
             new_broker_account_value=new_broker_account_value,
@@ -371,20 +373,15 @@ class totalCapitalCalculationData(object):
             prev_maximum_capital=prev_maximum_capital,
             prev_broker_account_value=prev_broker_account_value,
             calc_method=calc_method,
+            prev_pandl_cum_acc=prev_pandl_cum_acc
         )
 
         return capital_updater
 
-    def _get_prev_broker_account_value_create_if_no_data(
-        self, new_broker_account_value: float
+    def _get_prev_broker_account_value(
+        self
     ) -> float:
         prev_broker_account_value = self.capital_data.get_current_broker_account_value()
-        if prev_broker_account_value is missing_data:
-            # No previous capital, need to set everything up
-            self.create_initial_capital(
-                new_broker_account_value, are_you_really_sure=True
-            )
-            prev_broker_account_value = copy(new_broker_account_value)
 
         return prev_broker_account_value
 
