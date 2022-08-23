@@ -74,9 +74,9 @@ class totalCapitalUpdate(object):
                 total_account_value_in_base_currency
             )
         except Exception as e:
-            # Problem, most likely spike
+            # Problem, most likely spike OR
             log.critical(
-                "Error %s whilst updating total capital; you may have to use update_capital_manual script or function"
+                "Error %s whilst updating total capital; you may have to use update_capital_manual script or function OR IF YOU HAVEN'T DONE SO ALREADY YOU MUST RUN sysdata/production/TEMP_capital_transfer.py from the command line to transfer your old capital"
                 % e
             )
             return failure
