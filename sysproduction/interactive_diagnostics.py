@@ -8,7 +8,7 @@ from syscore.interactive import (
 )
 from syscore.genutils import progressBar
 from syscore.pdutils import set_pd_print_options
-from syscore.objects import user_exit, arg_not_supplied, missing_contract, ALL_ROLL_INSTRUMENTS
+from syscore.objects import user_exit, arg_not_supplied, missing_contract, ALL_ROLL_INSTRUMENTS, missing_data
 from sysexecution.orders.list_of_orders import listOfOrders
 
 from sysdata.data_blob import dataBlob
@@ -444,6 +444,8 @@ def capital_strategy(data):
         strat_list, default_str=strat_list[0]
     )
     capital_series = data_capital.get_capital_pd_series_for_strategy(strategy_name)
+    if capital_series is missing_data:
+        print("No capital for strategy need to run update_strategy_capital")
     print(capital_series.tail(30))
     return None
 
