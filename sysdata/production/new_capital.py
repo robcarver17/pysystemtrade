@@ -210,7 +210,10 @@ class capitalData(baseData):
 
     def get_list_of_strategies_with_capital(self) -> list:
         list_of_strategies = self._get_list_of_strategies_with_capital_including_total()
-        list_of_strategies.remove(GLOBAL_CAPITAL_DICT_KEY)
+        try:
+            list_of_strategies.remove(GLOBAL_CAPITAL_DICT_KEY)
+        except:
+            pass
 
         return list_of_strategies
 
