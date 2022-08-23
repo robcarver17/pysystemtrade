@@ -176,15 +176,19 @@ class capitalData(baseData):
         return capital_series.values[-1]
 
     def update_capital_value_for_strategy(self,
-        strategy_name: str, new_capital_value: float,  date: datetime.datetime = arg_not_supplied
+        strategy_name: str,
+        new_capital_value: float,
+        date: datetime.datetime = arg_not_supplied
     ):
         assert strategy_name is not GLOBAL_CAPITAL_DICT_KEY
 
         if date is arg_not_supplied:
             date = datetime.datetime.now()
-        capital_series = self.get_capital_pd_df_for_strategy(strategy_name)
+
+        capital_df = self.get_capital_pd_df_for_strategy(strategy_name)
+        capital_series = capital_df.squeeze()
         new_capital_item = pd.Series([new_capital_value], [date])
-        updated_capital_series = pd.concat([capital_series, new_capital_item])
+        updated_capital_series = pd.concat([capital_series, new_capital_item], axis=0)
         updated_capital_df = updated_capital_series.to_frame()
 
         self.update_capital_pd_df_for_strategy(strategy_name, updated_capital_df)
