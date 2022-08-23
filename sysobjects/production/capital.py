@@ -10,12 +10,12 @@ class totalCapitalUpdater(object):
 
     def __init__(
         self,
-        new_broker_account_value: float = missing_data,
-        prev_total_capital: float = missing_data,
-        prev_maximum_capital: float = missing_data,
-        prev_broker_account_value: float = missing_data,
-        prev_pandl_cum_acc: float = missing_data,
-        calc_method: str = missing_data,
+        new_broker_account_value: float,
+        prev_total_capital: float,
+        prev_maximum_capital: float,
+        prev_broker_account_value: float,
+        prev_pandl_cum_acc: float,
+        calc_method: str
     ):
 
         self._new_broker_account_value = new_broker_account_value
