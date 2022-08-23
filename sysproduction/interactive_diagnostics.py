@@ -440,12 +440,15 @@ def spreads(data):
 def capital_strategy(data):
     data_capital = dataCapital(data)
     strat_list = data_capital.get_list_of_strategies_with_capital()
+    if len(strat_list)==0:
+        print("No strategies with capital need to run update_strategy_capital")
     strategy_name = print_menu_of_values_and_get_response(
         strat_list, default_str=strat_list[0]
     )
     capital_series = data_capital.get_capital_pd_series_for_strategy(strategy_name)
     if capital_series is missing_data:
         print("No capital for strategy need to run update_strategy_capital")
+        return None
     print(capital_series.tail(30))
     return None
 
