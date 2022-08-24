@@ -1,16 +1,18 @@
-import smtplib
-
-from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from enum import Enum
+import smtplib
+from typing import List
+
+import pandas as pd
 
 from sysdata.config.production_config import get_production_config
 
 
-def send_mail_file(textfile, subject):
+def send_mail_file(textfile: str, subject: str):
     """
     Sends an email of a particular text file with subject line
-
     """
 
     fp = open(textfile, "rb")
@@ -23,25 +25,37 @@ def send_mail_file(textfile, subject):
     _send_msg(msg)
 
 
-def send_mail_msg(body, subject):
-    """
-    Sends an email of particular text file with subject line
+class MailType(Enum):
+    plain = "plain"
+    html = "html"
 
-    """
+    def __str__(self):
+        return self.value
 
-    # Create a text/plain message
+
+def send_mail_msg(body: str, subject: str, mail_type: MailType = MailType.plain):
     msg = MIMEMultipart()
-
     msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain"))
-
+    msg.attach(MIMEText(body, mail_type))
     _send_msg(msg)
 
 
-def send_mail_pdfs(preamble, filelist, subject):
+def send_mail_dataframe(header: str, subject: str, df: pd.DataFrame):
+    df_html = df.to_html()
+    html = f"""\
+    <html>
+    <head>{header}</head>
+    <body>
+        {df_html}
+    </body>
+    </html>
+    """
+    send_mail_msg(html, subject, mail_type=MailType.html)
+
+
+def send_mail_pdfs(preamble: str, filelist: List[str], subject: str):
     """
     Sends an email of files with preamble and subject line
-
     """
 
     # Create a text/plain message
@@ -49,8 +63,8 @@ def send_mail_pdfs(preamble, filelist, subject):
     msg["Subject"] = subject
     msg.preamble = preamble
 
-    for file in filelist:
-        fp = open(file, "rb")
+    for _file in filelist:
+        fp = open(_file, "rb")
         attach = MIMEApplication(fp.read(), "pdf")
         fp.close()
         attach.add_header("Content-Disposition", "attachment", filename="file.pdf")
@@ -59,12 +73,10 @@ def send_mail_pdfs(preamble, filelist, subject):
     _send_msg(msg)
 
 
-def _send_msg(msg):
+def _send_msg(msg: MIMEMultipart):
     """
     Send a message composed by other things
-
     """
-
     email_server, email_address, email_pwd, email_to, email_port = get_email_details()
 
     me = email_address
