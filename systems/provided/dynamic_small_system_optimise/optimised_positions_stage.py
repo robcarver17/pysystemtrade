@@ -3,6 +3,16 @@ from copy import copy
 
 import pandas as pd
 
+from sysquant.estimators.stdev_estimator import stdevEstimates, seriesOfStdevEstimates
+from sysquant.estimators.correlations import (
+    correlationEstimate,
+    create_boring_corr_matrix,
+    CorrelationList,
+)
+from sysquant.estimators.covariance import (
+    covarianceEstimate,
+    covariance_from_stdev_and_correlation,
+)
 from syscore.genutils import progressBar
 from syscore.objects import arg_not_supplied, missing_data
 from syscore.pdutils import calculate_cost_deflator, get_row_of_series
@@ -220,6 +230,7 @@ class optimisedPositions(SystemStage):
         cost_multiplier = float(self.config.small_system["cost_multiplier"])
         return cost_multiplier
 
+
     def get_cost_per_contract_in_base_ccy(self, instrument_code: str) -> float:
         raw_cost_data = self.get_raw_cost_data(instrument_code)
         multiplier = self.get_contract_multiplier(instrument_code)
@@ -245,9 +256,42 @@ class optimisedPositions(SystemStage):
         self, relevant_date: datetime.datetime = arg_not_supplied
     ) -> covarianceEstimate:
 
-        return self.portfolio_stage.get_covariance_matrix(
+        correlation_estimate = self.get_correlation_matrix(relevant_date=relevant_date)
+
+        stdev_estimate = self.get_stdev_estimate(relevant_date=relevant_date)
+
+        covariance = covariance_from_stdev_and_correlation(
+            correlation_estimate, stdev_estimate
+        )
+
+        return covariance
+
+    def get_correlation_matrix(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> correlationEstimate:
+
+        corr_matrix = self.portfolio_stage.get_correlation_matrix(
             relevant_date=relevant_date
         )
+        corr_matrix = copy(corr_matrix.shrink_to_offdiag(shrinkage_corr=self.correlation_shrinkage,
+                                                         offdiag=0.0))
+
+        return corr_matrix
+
+    @property
+    def correlation_shrinkage(self) -> float:
+        correlation_shrinkage = float(self.config.small_system['shrink_instrument_returns_correlation'])
+        return correlation_shrinkage
+
+    def get_stdev_estimate(
+        self, relevant_date: datetime.datetime = arg_not_supplied
+    ) -> stdevEstimates:
+
+        return self.portfolio_stage.get_stdev_estimate(
+            relevant_date=relevant_date
+        )
+
+
 
     def get_per_contract_value(
         self, relevant_date: datetime.datetime = arg_not_supplied

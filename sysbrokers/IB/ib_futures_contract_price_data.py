@@ -104,7 +104,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
     def futures_instrument_data(self) -> ibFuturesInstrumentData:
         return ibFuturesInstrumentData(self.ibconnection, log=self.log)
 
-    def has_data_for_contract(self, futures_contract: futuresContract) -> bool:
+    def has_merged_price_data_for_contract(self, futures_contract: futuresContract) -> bool:
         """
         Does IB have data for a given contract?
 
@@ -122,13 +122,13 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         else:
             return True
 
-    def get_list_of_instrument_codes_with_price_data(self) -> list:
+    def get_list_of_instrument_codes_with_merged_price_data(self) -> list:
         # return list of instruments for which pricing is configured
         list_of_instruments = self.futures_instrument_data.get_list_of_instruments()
 
         return list_of_instruments
 
-    def contracts_with_price_data_for_instrument_code(
+    def contracts_with_merged_price_data_for_instrument_code(
         self, instrument_code: str, allow_expired=True
     ) -> listOfFuturesContracts:
 
@@ -149,7 +149,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
 
         return list_of_contracts
 
-    def get_contracts_with_price_data(self):
+    def get_contracts_with_merged_price_data(self):
         raise NotImplementedError("Do not use get_contracts_with_price_data with IB")
 
     def get_prices_at_frequency_for_potentially_expired_contract_object(
@@ -161,7 +161,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         )
         return price_data
 
-    def _get_prices_for_contract_object_no_checking(
+    def _get_merged_prices_for_contract_object_no_checking(
         self, contract_object: futuresContract
     ) -> futuresContractPrices:
         price_series = self._get_prices_at_frequency_for_contract_object_no_checking(

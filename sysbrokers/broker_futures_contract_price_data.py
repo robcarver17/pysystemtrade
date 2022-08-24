@@ -46,13 +46,13 @@ class brokerFuturesContractPriceData(futuresContractPriceData):
     ) -> dataFrameOfRecentTicks:
         raise NotImplementedError
 
-    def _write_prices_for_contract_object_no_checking(self, *args, **kwargs):
+    def _write_merged_prices_for_contract_object_no_checking(self, *args, **kwargs):
         raise NotImplementedError("Broker is a read only source of prices")
 
-    def delete_prices_for_contract_object(self, *args, **kwargs):
+    def delete_merged_prices_for_contract_object(self, *args, **kwargs):
         raise NotImplementedError("Broker is a read only source of prices")
 
-    def _delete_prices_for_contract_object_with_no_checks_be_careful(
+    def _delete_merged_prices_for_contract_object_with_no_checks_be_careful(
         self, futures_contract_object: futuresContract
     ):
         raise NotImplementedError("Broker is a read only source of prices")

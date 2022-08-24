@@ -37,7 +37,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     def arctic_connection(self):
         return self._arctic_connection
 
-    def _get_prices_for_contract_object_no_checking(
+    def _get_merged_prices_for_contract_object_no_checking(
         self, futures_contract_object: futuresContract
     ) -> futuresContractPrices:
         """
@@ -54,7 +54,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         return futuresContractPrices(data)
 
-    def _write_prices_for_contract_object_no_checking(
+    def _write_merged_prices_for_contract_object_no_checking(
         self,
         futures_contract_object: futuresContract,
         futures_price_data: futuresContractPrices,
@@ -79,7 +79,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
             % (len(futures_price_data), str(futures_contract_object.key), str(self))
         )
 
-    def get_contracts_with_price_data(self) -> listOfFuturesContracts:
+    def get_contracts_with_merged_price_data(self) -> listOfFuturesContracts:
         """
 
         :return: list of contracts
@@ -95,7 +95,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         return list_of_contracts
 
-    def has_data_for_contract(self, contract_object: futuresContract) -> bool:
+    def has_merged_price_data_for_contract(self, contract_object: futuresContract) -> bool:
         return self.arctic_connection.has_keyname(from_contract_to_key(contract_object))
 
     def _get_contract_tuples_with_price_data(self) -> list:
@@ -114,7 +114,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     def _all_keynames_in_library(self) -> list:
         return self.arctic_connection.get_keynames()
 
-    def _delete_prices_for_contract_object_with_no_checks_be_careful(
+    def _delete_merged_prices_for_contract_object_with_no_checks_be_careful(
         self, futures_contract_object: futuresContract
     ):
         """

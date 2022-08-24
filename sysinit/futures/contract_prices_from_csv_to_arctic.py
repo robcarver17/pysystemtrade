@@ -16,7 +16,7 @@ def init_arctic_with_csv_futures_contract_prices(
         % csv_prices.datapath
     )
 
-    instrument_codes = csv_prices.get_list_of_instrument_codes_with_price_data()
+    instrument_codes = csv_prices.get_list_of_instrument_codes_with_merged_price_data()
     instrument_codes.sort()
     for instrument_code in instrument_codes:
         init_arctic_with_csv_futures_contract_prices_for_code(
@@ -32,7 +32,7 @@ def init_arctic_with_csv_futures_contract_prices_for_code(
     arctic_prices = arcticFuturesContractPriceData()
 
     print("Getting .csv prices may take some time")
-    csv_price_dict = csv_prices.get_all_prices_for_instrument(instrument_code)
+    csv_price_dict = csv_prices.get_merged_prices_for_instrument(instrument_code)
 
     print("Have .csv prices for the following contracts:")
     print(str(csv_price_dict.keys()))
@@ -43,11 +43,11 @@ def init_arctic_with_csv_futures_contract_prices_for_code(
         contract = futuresContract(instrument_code, contract_date_str)
         print("Contract object is %s" % str(contract))
         print("Writing to arctic")
-        arctic_prices.write_prices_for_contract_object(
+        arctic_prices.write_merged_prices_for_contract_object(
             contract, prices_for_contract, ignore_duplication=True
         )
         print("Reading back prices from arctic to check")
-        written_prices = arctic_prices.get_prices_for_contract_object(contract)
+        written_prices = arctic_prices.get_merged_prices_for_contract_object(contract)
         print("Read back prices are \n %s" % str(written_prices))
 
 

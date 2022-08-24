@@ -72,7 +72,7 @@ class diagVolumes(productionDataLayerGeneric):
         return final_volume
 
     def get_daily_volumes_for_contract(self, contract: futuresContract) -> pd.Series:
-        price_data = self.db_futures_contract_price_data.get_prices_for_contract_object(
+        price_data = self.db_futures_contract_price_data.get_merged_prices_for_contract_object(
             contract
         )
 

@@ -272,13 +272,13 @@ instrument_returns_correlation:
   rollyears: 5
   floor_at_zero: False
   forward_fill_price_index: True
-  clip: 0.90
-  shrinkage_parameter: 0.5
+  clip: 0.99
 # small system optimisation
 small_system:
   shadow_cost: 50
   cost_multiplier: 1.0
   tracking_error_buffer: 0.0125
+  shrink_instrument_returns_correlation: 0.5
 #
 # duplicated/excluded instruments are ignored in backtests
 # we still collect price data for them in production, do rolls etc

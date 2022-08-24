@@ -105,7 +105,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
 
         return instrument_code, contract_date
 
-    def _get_prices_for_contract_object_no_checking(
+    def _get_merged_prices_for_contract_object_no_checking(
         self, futures_contract_object: futuresContract
     ) -> futuresContractPrices:
         """
@@ -151,7 +151,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
 
         return instrpricedata
 
-    def _write_prices_for_contract_object_no_checking(
+    def _write_merged_prices_for_contract_object_no_checking(
         self,
         futures_contract_object: futuresContract,
         futures_price_data: futuresContractPrices,
@@ -176,7 +176,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
     def _all_keynames_in_library(self) -> list:
         return files_with_extension_in_pathname(self._datapath, ".csv")
 
-    def _delete_prices_for_contract_object_with_no_checks_be_careful(
+    def _delete_merged_prices_for_contract_object_with_no_checks_be_careful(
         self, futures_contract_object: futuresContract
     ):
         raise NotImplementedError(
@@ -196,14 +196,14 @@ class csvFuturesContractPriceData(futuresContractPriceData):
 
         return list_of_contract_tuples
 
-    def has_data_for_contract(self, contract_object: futuresContract) -> bool:
+    def has_merged_price_data_for_contract(self, contract_object: futuresContract) -> bool:
         if (
             self._keyname_given_contract_object(contract_object)
             in self._all_keynames_in_library()
         ):
             return True
 
-    def get_contracts_with_price_data(self) -> listOfFuturesContracts:
+    def get_contracts_with_merged_price_data(self) -> listOfFuturesContracts:
         """
 
         :return: list of contracts

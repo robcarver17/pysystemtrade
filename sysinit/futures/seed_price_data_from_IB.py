@@ -20,7 +20,7 @@ def seed_price_data_from_IB(instrument_code):
             ibFuturesContractData,
         ]
     )
-    list_of_contracts = data.broker_futures_contract_price.contracts_with_price_data_for_instrument_code(
+    list_of_contracts = data.broker_futures_contract_price.contracts_with_merged_price_data_for_instrument_code(
         instrument_code, allow_expired=True
     )
 
@@ -44,7 +44,7 @@ def seed_price_data_for_contract(data: dataBlob, contract: futuresContract):
         ## If you want to modify this script so it updates existing prices
         ## eg from barchart, then uncomment the following line and comment the next
         # data.db_futures_contract_price.update_prices_for_contract(contract, prices)
-        data.db_futures_contract_price.write_prices_for_contract_object(
+        data.db_futures_contract_price.write_merged_prices_for_contract_object(
             new_contract, prices, ignore_duplication=True
         )
 

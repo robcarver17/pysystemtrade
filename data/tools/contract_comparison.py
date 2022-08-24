@@ -19,8 +19,8 @@ class ContractComparison:
         forward_contract = futuresContract(instrument_object=instrument_code, contract_date_object=forward_date_str)
 
         contract_prices = arcticFuturesContractPriceData()
-        price_prices = contract_prices.get_prices_for_contract_object(price_contract)
-        forward_prices = contract_prices.get_prices_for_contract_object(forward_contract)
+        price_prices = contract_prices.get_merged_prices_for_contract_object(price_contract)
+        forward_prices = contract_prices.get_merged_prices_for_contract_object(forward_contract)
 
         merged_contracts = pd.merge(price_prices,
                                     forward_prices,
