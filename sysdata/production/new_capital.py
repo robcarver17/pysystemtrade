@@ -173,7 +173,7 @@ class capitalData(baseData):
     ## STRATEGY CAPITAL
     def get_current_capital_for_strategy(self, strategy_name: str) -> float:
         capital_series = self.get_capital_pd_df_for_strategy(strategy_name)
-        return capital_series.values[-1]
+        return capital_series.iloc[-1, 0]
 
     def update_capital_value_for_strategy(self,
         strategy_name: str,
