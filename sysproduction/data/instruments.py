@@ -1,12 +1,11 @@
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 
 from sysdata.data_blob import dataBlob
-from sysproduction.data.currency_data import dataCurrency, last_currency_fx
+from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 from sysdata.futures.instruments import futuresInstrumentData
 from sysobjects.spot_fx_prices import currencyValue
 from sysobjects.instruments import instrumentCosts
-from sysproduction.data.prices import recent_average_price
 
 
 class dataInstruments(productionDataLayerGeneric):
@@ -89,23 +88,6 @@ class diagInstruments(productionDataLayerGeneric):
         ]
 
         return instrument_codes
-
-
-def get_cash_cost_in_base_for_instrument(data: dataBlob, instrument_code: str):
-    diag_instruments = diagInstruments(data)
-    costs_object = diag_instruments.get_cost_object(instrument_code)
-    blocks_traded = 1
-    block_price_multiplier = get_block_size(data, instrument_code)
-    price = recent_average_price(data, instrument_code)
-    cost_instrument_ccy = costs_object.calculate_cost_instrument_currency(
-        blocks_traded=blocks_traded,
-        block_price_multiplier=block_price_multiplier,
-        price=price,
-    )
-    fx = last_currency_fx(data, instrument_code)
-    cost_base_ccy = cost_instrument_ccy * fx
-
-    return cost_base_ccy
 
 
 def get_block_size(data, instrument_code):

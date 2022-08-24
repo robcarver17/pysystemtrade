@@ -36,7 +36,7 @@ from sysproduction.data.controls import diagOverrides
 
 from sysproduction.data.capital import capital_for_strategy
 from sysproduction.data.risk import get_correlation_matrix_for_instrument_returns, get_annualised_stdev_perc_of_instruments, covariance_from_stdev_and_correlation, get_perc_of_strategy_capital_for_instrument_per_contract
-from sysproduction.data.instruments import get_cash_cost_in_base_for_instrument
+from sysproduction.data.prices import get_cash_cost_in_base_for_instrument
 
 from sysquant.estimators.covariance import covarianceEstimate
 from sysquant.estimators.mean_estimator import meanEstimates

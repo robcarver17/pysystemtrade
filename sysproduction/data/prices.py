@@ -39,10 +39,12 @@ from sysdata.data_blob import dataBlob
 
 from sysobjects.multiple_prices import price_name
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
+from sysproduction.data.currency_data import last_currency_fx
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
 ## default for spike checking
+from sysproduction.data.instruments import diagInstruments, get_block_size
 from sysproduction.reporting.data.risk import DAILY_RISK_CALC_LOOKBACK
 
 VERY_BIG_NUMBER = 999999.0
@@ -401,3 +403,20 @@ def get_current_price_series(data, instrument_code):
     return diag_prices.get_current_priced_contract_prices_for_instrument(
         instrument_code
     )
+
+
+def get_cash_cost_in_base_for_instrument(data: dataBlob, instrument_code: str):
+    diag_instruments = diagInstruments(data)
+    costs_object = diag_instruments.get_cost_object(instrument_code)
+    blocks_traded = 1
+    block_price_multiplier = get_block_size(data, instrument_code)
+    price = recent_average_price(data, instrument_code)
+    cost_instrument_ccy = costs_object.calculate_cost_instrument_currency(
+        blocks_traded=blocks_traded,
+        block_price_multiplier=block_price_multiplier,
+        price=price,
+    )
+    fx = last_currency_fx(data, instrument_code)
+    cost_base_ccy = cost_instrument_ccy * fx
+
+    return cost_base_ccy
