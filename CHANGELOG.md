@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 1.46
+
+- fix for #745. Now correlation estimates for instrument returns are not shrunk, except when doing DO. Note that this will affect risk calculations and risk overlays.
+
 ## Version 1.45
 
 - Changed storage of capital IMPORTANT YOU MUST RUN sysdata/production/TEMP_capital_transfer.py from the command line to transfer your old capital

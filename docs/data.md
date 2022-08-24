@@ -274,17 +274,18 @@ Here we can see that the barchart files have one initial row we can ignore, and 
 The actual reading and writing is done here:
 
 ```python
-def init_arctic_with_csv_futures_contract_prices_for_code(instrument_code:str, datapath: str, csv_config = arg_not_supplied):
+def init_arctic_with_csv_futures_contract_prices_for_code(instrument_code: str, datapath: str,
+                                                          csv_config=arg_not_supplied):
     print(instrument_code)
     csv_prices = csvFuturesContractPriceData(datapath, config=csv_config)
     arctic_prices = arcticFuturesContractPriceData()
 
-    csv_price_dict = csv_prices.get_all_prices_for_instrument(instrument_code)
+    csv_price_dict = csv_prices.get_merged_prices_for_instrument(instrument_code)
 
     for contract_date_str, prices_for_contract in csv_price_dict.items():
         print(contract_date_str)
         contract = futuresContract(instrument_code, contract_date_str)
-        arctic_prices.write_prices_for_contract_object(contract, prices_for_contract, ignore_duplication=True)
+        arctic_prices.write_merged_prices_for_contract_object(contract, prices_for_contract, ignore_duplication=True)
 ```
 
 The objects `csvFuturesContractPriceData` and `arcticFuturesContractPriceData` are 'data pipelines', which allow us to read and write a specific type of data (in this case OHLC price data for individual futures contracts). They have the same methods (and they inherit from a more generic object, futuresContractPriceData), which allows us to write code that abstracts the actual place and way the data is stored. We'll see much more of this kind of thing later.

@@ -37,7 +37,7 @@ def clone_prices_per_contract(instrument_from: str, instrument_to: str,
 
     if list_of_contract_dates is None:
         list_of_contract_dates = (
-            db_data_individual_prices.contract_dates_with_price_data_for_instrument_code(
+            db_data_individual_prices.contract_dates_with_merged_price_data_for_instrument_code(
                 instrument_from
             )
         )
@@ -50,10 +50,10 @@ def clone_prices_per_contract(instrument_from: str, instrument_to: str,
 
 def clone_single_contract(instrument_from: str, instrument_to: str, contract_date: str, ignore_duplication = False):
 
-    data_in = db_data_individual_prices.get_prices_for_contract_object(
+    data_in = db_data_individual_prices.get_merged_prices_for_contract_object(
         futuresContract(instrument_from, contract_date)
     )
-    db_data_individual_prices.write_prices_for_contract_object(
+    db_data_individual_prices.write_merged_prices_for_contract_object(
         futuresContract(instrument_to, contract_date), futures_price_data=data_in,
         ignore_duplication=ignore_duplication
     )

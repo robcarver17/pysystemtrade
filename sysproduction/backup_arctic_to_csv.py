@@ -170,7 +170,7 @@ def get_data_and_create_csv_directories(logname):
 # Futures contract data
 def backup_futures_contract_prices_to_csv(data):
     instrument_list = (
-        data.arctic_futures_contract_price.get_list_of_instrument_codes_with_price_data()
+        data.arctic_futures_contract_price.get_list_of_instrument_codes_with_merged_price_data()
     )
     for instrument_code in instrument_list:
         backup_futures_contract_prices_for_instrument_to_csv(data, instrument_code)
@@ -179,7 +179,7 @@ def backup_futures_contract_prices_to_csv(data):
 def backup_futures_contract_prices_for_instrument_to_csv(
     data: dataBlob, instrument_code: str
 ):
-    list_of_contracts = data.arctic_futures_contract_price.contracts_with_price_data_for_instrument_code(
+    list_of_contracts = data.arctic_futures_contract_price.contracts_with_merged_price_data_for_instrument_code(
         instrument_code
     )
 
@@ -196,11 +196,11 @@ def backup_futures_contract_prices_for_contract_to_csv(
 
             return None
 
-        arctic_data = data.arctic_futures_contract_price.get_prices_for_contract_object(
+        arctic_data = data.arctic_futures_contract_price.get_merged_prices_for_contract_object(
             futures_contract
         )
 
-        csv_data = data.csv_futures_contract_price.get_prices_for_contract_object(
+        csv_data = data.csv_futures_contract_price.get_merged_prices_for_contract_object(
             futures_contract
         )
 
@@ -210,7 +210,7 @@ def backup_futures_contract_prices_for_contract_to_csv(
         else:
             # Write backup
             try:
-                data.csv_futures_contract_price.write_prices_for_contract_object(
+                data.csv_futures_contract_price.write_merged_prices_for_contract_object(
                     futures_contract,
                     arctic_data,
                     ignore_duplication=True,

@@ -1,7 +1,10 @@
 import datetime
 
+import numpy as np
+
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
-from syscore.dateutils import Frequency, from_config_frequency_to_frequency
+from syscore.dateutils import Frequency, from_config_frequency_to_frequency, n_days_ago
+from syscore.pdutils import prices_to_daily_prices
 
 from sysobjects.contracts import futuresContract
 from sysobjects.dict_of_futures_per_contract_prices import (
@@ -40,6 +43,8 @@ from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
 ## default for spike checking
+from sysproduction.reporting.data.risk import DAILY_RISK_CALC_LOOKBACK
+
 VERY_BIG_NUMBER = 999999.0
 
 class diagPrices(productionDataLayerGeneric):
@@ -98,7 +103,7 @@ class diagPrices(productionDataLayerGeneric):
     def get_prices_for_contract_object(
         self, contract_object: futuresContract
     ) -> futuresContractPrices:
-        prices = self.db_futures_contract_price_data.get_prices_for_contract_object(
+        prices = self.db_futures_contract_price_data.get_merged_prices_for_contract_object(
             contract_object
         )
 
@@ -114,7 +119,7 @@ class diagPrices(productionDataLayerGeneric):
 
     def get_list_of_instruments_with_contract_prices(self) -> list:
         unique_list_of_instruments = (
-            self.db_futures_contract_price_data.get_list_of_instrument_codes_with_price_data()
+            self.db_futures_contract_price_data.get_list_of_instrument_codes_with_merged_price_data()
         )
 
         return unique_list_of_instruments
@@ -122,7 +127,7 @@ class diagPrices(productionDataLayerGeneric):
     def contract_dates_with_price_data_for_instrument_code(
         self, instrument_code: str
     ) -> listOfContractDateStr:
-        list_of_contract_date_str = self.db_futures_contract_price_data.contract_dates_with_price_data_for_instrument_code(
+        list_of_contract_date_str = self.db_futures_contract_price_data.contract_dates_with_merged_price_data_for_instrument_code(
             instrument_code
         )
 
@@ -221,7 +226,7 @@ class updatePrices(productionDataLayerGeneric):
     ) -> int:
 
         error_or_rows_added = (
-            self.db_futures_contract_price_data.update_prices_for_contract(
+            self.db_futures_contract_price_data.update_merged_prices_for_contract(
                 contract_object, new_prices,
                 check_for_spike=check_for_spike,
                 max_price_spike = max_price_spike
@@ -327,3 +332,72 @@ def get_list_of_instruments(
     instrument_list.sort()
 
     return instrument_list
+
+
+def recent_average_price(data: dataBlob, instrument_code: str) -> float:
+    diag_prices = diagPrices(data)
+    prices = diag_prices.get_adjusted_prices(instrument_code)
+    if len(prices) == 0:
+        return np.nan
+    one_year_ago = n_days_ago(365)
+    recent_prices = prices[one_year_ago:]
+
+    return recent_prices.mean(skipna=True)
+
+
+def get_current_price_of_instrument(data, instrument_code):
+    price_series = get_price_series(data, instrument_code)
+    if len(price_series) == 0:
+        return np.nan
+
+    current_price = price_series.values[-1]
+
+    return current_price
+
+
+def get_daily_perc_returns(data, instrument_code):
+    daily_returns = get_daily_returns(data, instrument_code)
+    daily_prices = get_daily_current_price_series(data, instrument_code)
+
+    return daily_returns / daily_prices
+
+
+def get_daily_returns(data, instrument_code):
+    daily_prices = get_daily_price_series(data, instrument_code)
+    daily_returns = daily_prices.diff()
+
+    return daily_returns
+
+
+def get_daily_price_series(data, instrument_code):
+    price_series = get_price_series(data, instrument_code)
+    if len(price_series) == 0:
+        return price_series
+
+    daily_prices = prices_to_daily_prices(price_series)
+
+    return daily_prices[-DAILY_RISK_CALC_LOOKBACK:]
+
+
+def get_daily_current_price_series(data, instrument_code):
+    price_series = get_current_price_series(data, instrument_code)
+    if len(price_series) == 0:
+        return price_series
+
+    daily_prices = price_series.resample("1B").last()
+
+    return daily_prices[-DAILY_RISK_CALC_LOOKBACK:]
+
+
+def get_price_series(data, instrument_code):
+    diag_prices = diagPrices(data)
+    price_series = diag_prices.get_adjusted_prices(instrument_code)
+
+    return price_series
+
+
+def get_current_price_series(data, instrument_code):
+    diag_prices = diagPrices(data)
+    return diag_prices.get_current_priced_contract_prices_for_instrument(
+        instrument_code
+    )

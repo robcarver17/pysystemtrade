@@ -7,10 +7,11 @@ These are 'virtual' orders, because they are per instrument. We translate that t
 
 Desired virtual orders have to be labelled with the desired type: limit, market,best-execution
 """
+from copy import copy
 from typing import List
 from dataclasses import dataclass
 
-from syscore.objects import missing_data
+from syscore.objects import missing_data, arg_not_supplied
 from sysdata.data_blob import dataBlob
 
 from sysexecution.orders.instrument_orders import instrumentOrder, best_order_type
@@ -20,6 +21,7 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 from sysobjects.production.optimal_positions import (
     optimalPositionWithDynamicCalculations,
 )
+from sysquant.estimators.correlations import correlationEstimate
 from sysobjects.production.position_limits import NO_LIMIT
 from sysobjects.production.override import (
     Override,
@@ -32,12 +34,9 @@ from sysproduction.data.controls import dataPositionLimits
 from sysproduction.data.positions import dataOptimalPositions
 from sysproduction.data.controls import diagOverrides
 
-from sysproduction.reporting.data.risk import (
-    get_perc_of_strategy_capital_for_instrument_per_contract,
-    capital_for_strategy,
-    get_covariance_matrix_for_instrument_returns,
-)
-from sysproduction.reporting.data.costs import get_cash_cost_in_base_for_instrument
+from sysproduction.data.capital import capital_for_strategy
+from sysproduction.data.risk import get_correlation_matrix_for_instrument_returns, get_annualised_stdev_perc_of_instruments, covariance_from_stdev_and_correlation, get_perc_of_strategy_capital_for_instrument_per_contract
+from sysproduction.data.instruments import get_cash_cost_in_base_for_instrument
 
 from sysquant.estimators.covariance import covarianceEstimate
 from sysquant.estimators.mean_estimator import meanEstimates
@@ -245,9 +244,7 @@ def get_data_for_objective_instance(
     )
 
     data.log.msg("Getting covariance matrix")
-    covariance_matrix = get_covariance_matrix_for_instrument_returns(
-        data, list_of_instruments=list_of_instruments
-    )
+
 
     data.log.msg("Getting per contract values")
     per_contract_value = get_per_contract_values(
@@ -265,6 +262,9 @@ def get_data_for_objective_instance(
     constraints = get_constraints(
         data, strategy_name=strategy_name, list_of_instruments=list_of_instruments
     )
+
+    covariance_matrix = get_covariance_matrix_for_instrument_returns_for_optimisation(data,
+                                                                                      list_of_instruments=list_of_instruments)
 
     speed_control = get_speed_control(data)
 
@@ -450,6 +450,34 @@ def get_override_for_instrument_strategy(
 
     return override
 
+def get_covariance_matrix_for_instrument_returns_for_optimisation(data: dataBlob,
+                                                                  list_of_instruments: list) -> covarianceEstimate:
+
+    corr_matrix = get_correlation_matrix_for_instrument_returns(
+        data, list_of_instruments
+    )
+
+    stdev_estimate = get_annualised_stdev_perc_of_instruments(
+        data, instrument_list=list_of_instruments
+    )
+    covariance = covariance_from_stdev_and_correlation(
+        stdev_estimate=stdev_estimate, correlation_estimate=corr_matrix
+    )
+
+    return covariance
+
+def get_correlation_matrix_with_shrinkage(data,
+                                          list_of_instruments: list) -> correlationEstimate:
+    system_config = get_config_parameters(data)
+    shrinkage_corr = system_config['shrink_instrument_returns_correlation']
+    corr_matrix = get_correlation_matrix_for_instrument_returns(
+        data, list_of_instruments
+    )
+
+    corr_matrix_shrunk = copy(corr_matrix.shrink_to_offdiag(shrinkage_corr=shrinkage_corr,
+                                                            offdiag=0.0))
+
+    return corr_matrix_shrunk
 
 def get_speed_control(data):
     system_config = get_config_parameters(data)

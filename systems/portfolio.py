@@ -965,11 +965,13 @@ class Portfolios(SystemStage):
 
         return position_contracts
 
-    def get_covariance_matrix(
-        self, relevant_date: datetime.datetime = arg_not_supplied
+    def  get_covariance_matrix(
+        self, relevant_date: datetime.datetime = arg_not_supplied,
+            correlation_estimation_parameters = arg_not_supplied
     ) -> covarianceEstimate:
 
-        correlation_estimate = self.get_correlation_matrix(relevant_date=relevant_date)
+        correlation_estimate = self.get_correlation_matrix(relevant_date=relevant_date,
+                                                           correlation_estimation_parameters = correlation_estimation_parameters)
         stdev_estimate = self.get_stdev_estimate(relevant_date=relevant_date)
 
         covariance = covariance_from_stdev_and_correlation(
@@ -979,9 +981,10 @@ class Portfolios(SystemStage):
         return covariance
 
     def get_correlation_matrix(
-        self, relevant_date: datetime.datetime = arg_not_supplied
+        self, relevant_date: datetime.datetime = arg_not_supplied,
+            correlation_estimation_parameters: dict = arg_not_supplied
     ) -> correlationEstimate:
-        list_of_correlations = self.get_list_of_instrument_returns_correlations()
+        list_of_correlations = self.get_list_of_instrument_returns_correlations(correlation_estimation_parameters = correlation_estimation_parameters)
         try:
             correlation_matrix = (
                 list_of_correlations.most_recent_correlation_before_date(relevant_date)
@@ -995,18 +998,21 @@ class Portfolios(SystemStage):
         return correlation_matrix
 
     @diagnostic(not_pickable=True)
-    def get_list_of_instrument_returns_correlations(self) -> CorrelationList:
+    def get_list_of_instrument_returns_correlations(self,
+                                                    correlation_estimation_parameters: dict = arg_not_supplied) -> CorrelationList:
         config = self.config
-
-        # Get some useful stuff from the config
-        corr_params = copy(config.instrument_returns_correlation)
+        if correlation_estimation_parameters is arg_not_supplied:
+            # Get some useful stuff from the config
+            corr_parameters = copy(config.instrument_returns_correlation)
+        else:
+            corr_parameters = copy(correlation_estimation_parameters)
 
         # which function to use for calculation
-        corr_func = resolve_function(corr_params.pop("func"))
+        corr_func = resolve_function(corr_parameters.pop("func"))
 
         returns_as_pd = self.returns_across_instruments_as_df()
 
-        return corr_func(returns_as_pd, **corr_params)
+        return corr_func(returns_as_pd, **corr_parameters)
 
     @diagnostic()
     def returns_across_instruments_as_df(self) -> pd.DataFrame:
