@@ -4,7 +4,6 @@ import numpy as np
 
 from syscore.objects import missing_contract, arg_not_supplied, missing_data
 from syscore.dateutils import Frequency, from_config_frequency_to_frequency, n_days_ago
-from syscore.pdutils import prices_to_daily_prices
 
 from sysobjects.contracts import futuresContract
 from sysobjects.dict_of_futures_per_contract_prices import (
@@ -45,7 +44,6 @@ from sysproduction.data.generic_production_data import productionDataLayerGeneri
 
 ## default for spike checking
 from sysproduction.data.instruments import diagInstruments, get_block_size
-from sysproduction.reporting.data.risk import DAILY_RISK_CALC_LOOKBACK
 
 VERY_BIG_NUMBER = 999999.0
 
@@ -355,40 +353,6 @@ def get_current_price_of_instrument(data, instrument_code):
     current_price = price_series.values[-1]
 
     return current_price
-
-
-def get_daily_perc_returns(data, instrument_code):
-    daily_returns = get_daily_returns(data, instrument_code)
-    daily_prices = get_daily_current_price_series(data, instrument_code)
-
-    return daily_returns / daily_prices
-
-
-def get_daily_returns(data, instrument_code):
-    daily_prices = get_daily_price_series(data, instrument_code)
-    daily_returns = daily_prices.diff()
-
-    return daily_returns
-
-
-def get_daily_price_series(data, instrument_code):
-    price_series = get_price_series(data, instrument_code)
-    if len(price_series) == 0:
-        return price_series
-
-    daily_prices = prices_to_daily_prices(price_series)
-
-    return daily_prices[-DAILY_RISK_CALC_LOOKBACK:]
-
-
-def get_daily_current_price_series(data, instrument_code):
-    price_series = get_current_price_series(data, instrument_code)
-    if len(price_series) == 0:
-        return price_series
-
-    daily_prices = price_series.resample("1B").last()
-
-    return daily_prices[-DAILY_RISK_CALC_LOOKBACK:]
 
 
 def get_price_series(data, instrument_code):

@@ -5,10 +5,11 @@ import pandas as pd
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.objects import arg_not_supplied, resolve_function, missing_data
+from syscore.pdutils import prices_to_daily_prices
 from sysproduction.data.instruments import diagInstruments
-from sysproduction.data.prices import get_daily_perc_returns, get_daily_current_price_series, get_daily_returns, \
-    get_current_price_of_instrument
+from sysproduction.data.prices import get_current_price_of_instrument, get_price_series, get_current_price_series
 from sysproduction.data.capital import capital_for_strategy
+from sysproduction.reporting.data.risk import DAILY_RISK_CALC_LOOKBACK
 from sysquant.estimators.correlations import correlationEstimate
 from sysquant.estimators.covariance import covarianceEstimate, covariance_from_stdev_and_correlation
 from sysquant.estimators.stdev_estimator import stdevEstimates
@@ -80,7 +81,7 @@ def get_annualised_stdev_perc_of_instruments(data, instrument_list) -> stdevEsti
 def get_perc_returns_across_instruments(data, instrument_list: list) -> pd.DataFrame:
     perc_returns = dict(
         [
-            (instrument_code, get_daily_perc_returns(data, instrument_code))
+            (instrument_code, get_daily_perc_returns_for_risk(data, instrument_code))
             for instrument_code in instrument_list
         ]
     )
@@ -108,7 +109,7 @@ def get_current_daily_perc_stdev_for_instrument(data, instrument_code) -> float:
 
 def get_daily_ts_stdev_perc_of_prices(data, instrument_code: str) -> pd.Series:
     ## 100 scaled
-    denom_price = get_daily_current_price_series(data, instrument_code)
+    denom_price = get_daily_current_price_series_for_risk(data, instrument_code)
     return_vol = get_daily_ts_stdev_of_prices(data, instrument_code)
     (denom_price, return_vol) = denom_price.align(return_vol, join="right")
     perc_vol = return_vol / denom_price.ffill()
@@ -143,7 +144,7 @@ def get_perc_of_strategy_capital_for_instrument_per_contract(
 
 
 def get_daily_ts_stdev_of_prices(data, instrument_code):
-    dailyreturns = get_daily_returns(data, instrument_code)
+    dailyreturns = get_daily_returns_for_risk(data, instrument_code)
     volconfig = copy(vol_config(data))
 
     # volconfig contains 'func' and some other arguments
@@ -183,3 +184,37 @@ def get_base_currency_point_size_per_contract(data, instrument_code):
     )
 
     return point_size_base_currency
+
+
+def get_daily_perc_returns_for_risk(data, instrument_code):
+    daily_returns = get_daily_returns_for_risk(data, instrument_code)
+    daily_prices = get_daily_current_price_series_for_risk(data, instrument_code)
+
+    return daily_returns / daily_prices
+
+
+def get_daily_returns_for_risk(data, instrument_code):
+    daily_prices = get_daily_price_series_for_risk(data, instrument_code)
+    daily_returns = daily_prices.diff()
+
+    return daily_returns
+
+
+def get_daily_price_series_for_risk(data, instrument_code):
+    price_series = get_price_series(data, instrument_code)
+    if len(price_series) == 0:
+        return price_series
+
+    daily_prices = prices_to_daily_prices(price_series)
+
+    return daily_prices[-DAILY_RISK_CALC_LOOKBACK:]
+
+
+def get_daily_current_price_series_for_risk(data, instrument_code):
+    price_series = get_current_price_series(data, instrument_code)
+    if len(price_series) == 0:
+        return price_series
+
+    daily_prices = price_series.resample("1B").last()
+
+    return daily_prices[-DAILY_RISK_CALC_LOOKBACK:]
