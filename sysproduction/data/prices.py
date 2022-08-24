@@ -39,7 +39,7 @@ from sysdata.data_blob import dataBlob
 
 from sysobjects.multiple_prices import price_name
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
-from sysproduction.data.currency_data import last_currency_fx
+from sysproduction.data.currency_data import dataCurrency
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
@@ -420,3 +420,12 @@ def get_cash_cost_in_base_for_instrument(data: dataBlob, instrument_code: str):
     cost_base_ccy = cost_instrument_ccy * fx
 
     return cost_base_ccy
+
+
+def last_currency_fx(data: dataBlob, instrument_code: str) -> float:
+    data_currency = dataCurrency(data)
+    diag_instruments = diagInstruments(data)
+    currency = diag_instruments.get_currency(instrument_code)
+    fx_rate = data_currency.get_last_fx_rate_to_base(currency)
+
+    return fx_rate
