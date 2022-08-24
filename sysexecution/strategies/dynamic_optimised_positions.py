@@ -468,6 +468,7 @@ def get_covariance_matrix_for_instrument_returns_for_optimisation(data: dataBlob
 
 def get_correlation_matrix_with_shrinkage(data,
                                           list_of_instruments: list) -> correlationEstimate:
+    #FIXME feels like this ought to be done inside the DO code as violates DRY
     system_config = get_config_parameters(data)
     shrinkage_corr = system_config['shrink_instrument_returns_correlation']
     corr_matrix = get_correlation_matrix_for_instrument_returns(

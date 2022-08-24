@@ -8,7 +8,6 @@ from sysdata.data_blob import dataBlob
 from sysobjects.spot_fx_prices import currencyValue, fxPrices
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
-from sysproduction.data.instruments import diagInstruments
 
 
 class dataCurrency(productionDataLayerGeneric):
@@ -131,10 +130,3 @@ def get_valid_fx_code_from_user(
     return fx_code
 
 
-def last_currency_fx(data: dataBlob, instrument_code: str) -> float:
-    data_currency = dataCurrency(data)
-    diag_instruments = diagInstruments(data)
-    currency = diag_instruments.get_currency(instrument_code)
-    fx_rate = data_currency.get_last_fx_rate_to_base(currency)
-
-    return fx_rate
