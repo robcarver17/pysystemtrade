@@ -40,7 +40,7 @@ def send_mail_msg(body: str, subject: str, mail_type: MailType = MailType.plain)
     _send_msg(msg)
 
 
-def send_mail_dataframe(header: str, subject: str, df: pd.DataFrame):
+def send_mail_dataframe(subject: str, df: pd.DataFrame, header: str = ""):
     df_html = df.to_html()
     html = f"""\
     <html>
