@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
+from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.genutils import progressBar
 
 from sysobjects.production.tradeable_object import instrumentStrategy
@@ -23,7 +23,6 @@ from sysproduction.data.capital import dataCapital, dataMargin, capital_for_stra
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.prices import get_list_of_instruments, get_current_price_of_instrument
 
-DAILY_RISK_CALC_LOOKBACK = int(BUSINESS_DAYS_IN_YEAR * 2)
 
 ## only used for reporting purposes
 

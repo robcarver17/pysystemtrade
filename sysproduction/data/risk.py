@@ -3,13 +3,12 @@ from copy import copy
 import numpy as np
 import pandas as pd
 
-from syscore.dateutils import ROOT_BDAYS_INYEAR
+from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
 from syscore.objects import arg_not_supplied, resolve_function, missing_data
 from syscore.pdutils import prices_to_daily_prices
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.prices import get_current_price_of_instrument, get_price_series, get_current_price_series
 from sysproduction.data.capital import capital_for_strategy
-from sysproduction.reporting.data.risk import DAILY_RISK_CALC_LOOKBACK
 from sysquant.estimators.correlations import correlationEstimate
 from sysquant.estimators.covariance import covarianceEstimate, covariance_from_stdev_and_correlation
 from sysquant.estimators.stdev_estimator import stdevEstimates
@@ -218,3 +217,6 @@ def get_daily_current_price_series_for_risk(data, instrument_code):
     daily_prices = price_series.resample("1B").last()
 
     return daily_prices[-DAILY_RISK_CALC_LOOKBACK:]
+
+
+DAILY_RISK_CALC_LOOKBACK = int(BUSINESS_DAYS_IN_YEAR * 2)
