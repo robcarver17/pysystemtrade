@@ -6,7 +6,7 @@ from syscore.objects import arg_not_supplied, missing_contract
 
 from syslogdiag.logger import logger
 
-from sysobjects.contract_dates_and_expiries import contractDate, expiryDate
+from sysobjects.contract_dates_and_expiries import contractDate, expiryDate, listOfContractDateStr
 from sysobjects.instruments import futuresInstrument
 
 
@@ -353,7 +353,7 @@ class listOfFuturesContracts(list):
 
         return listOfFuturesContracts(contracts_currently_sampling)
 
-    def list_of_dates(self) -> list:
+    def list_of_dates(self) -> listOfContractDateStr:
         # Return list of contract_date identifiers
         contract_dates = [contract.date_str for contract in self]
         return contract_dates
