@@ -29,28 +29,28 @@ class capitalData(baseData):
         if pd_series is missing_data:
             return missing_data
 
-        return pd_series[-1]
+        return float(pd_series[-1])
 
     def get_current_broker_account_value(self) -> float:
         pd_series =self.get_broker_account_value_pd_series()
         if pd_series is missing_data:
             return missing_data
 
-        return pd_series[-1]
+        return float(pd_series[-1])
 
     def get_current_maximum_capital_value(self) -> float:
         pd_series = self.get_maximum_account_value_pd_series()
         if pd_series is missing_data:
             return missing_data
 
-        return pd_series[-1]
+        return float(pd_series[-1])
 
     def get_current_pandl_account(self) -> float:
         pd_series = self.get_profit_and_loss_account_pd_series()
         if pd_series is missing_data:
                     return missing_data
 
-        return pd_series[-1]
+        return float(pd_series[-1])
 
 
     def get_total_capital_pd_series(self) -> pd.Series:
@@ -173,7 +173,7 @@ class capitalData(baseData):
     ## STRATEGY CAPITAL
     def get_current_capital_for_strategy(self, strategy_name: str) -> float:
         capital_series = self.get_capital_pd_df_for_strategy(strategy_name)
-        return capital_series.iloc[-1, 0]
+        return float(capital_series.iloc[-1, 0])
 
     def update_capital_value_for_strategy(self,
         strategy_name: str,
