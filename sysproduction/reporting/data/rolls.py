@@ -318,7 +318,7 @@ def get_final_matched_price_from_contract_object(
 ):
 
     diag_prices = diagPrices(data)
-    price_series = diag_prices.get_prices_for_contract_object(
+    price_series = diag_prices.get_merged_prices_for_contract_object(
         contract_object
     ).return_final_prices()
 

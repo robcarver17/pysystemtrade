@@ -1,5 +1,5 @@
-from syscore.objects import failure
-from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
+from syscore.objects import missing_data, failure
+from syscore.dateutils import Frequency, DAILY_PRICE_FREQ, MIXED_FREQ
 from syscore.merge_data import spike_in_data
 
 from sysdata.base_data import baseData
@@ -14,6 +14,8 @@ from syslogdiag.log_to_screen import logtoscreen
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"
 
 VERY_BIG_NUMBER = 999999.0
+
+
 
 #### Three types of price data: at a specific frequency, and 'merged' (no specific frequency, covers all bases)
 ####   and 'all' (both types)
@@ -57,12 +59,30 @@ class futuresContractPriceData(baseData):
         :return: list of str
         """
 
-        list_of_contracts_with_price_data = self.get_contracts_with_merged_price_data()
+        list_of_contracts_with_price_data = \
+            self.get_contracts_with_merged_price_data()
         unique_list_of_instruments = (
             list_of_contracts_with_price_data.unique_list_of_instrument_codes()
         )
 
         return unique_list_of_instruments
+
+    def get_list_of_instrument_codes_with_price_data_at_frequency(self,
+                                                                  frequency: Frequency) -> list:
+        """
+
+        :return: list of str
+        """
+
+        list_of_contracts_with_price_data = \
+            self.get_contracts_with_price_data_for_frequency(frequency=frequency)
+        unique_list_of_instruments = (
+            list_of_contracts_with_price_data.unique_list_of_instrument_codes()
+        )
+
+        return unique_list_of_instruments
+
+
 
     def has_merged_price_data_for_contract(self, contract_object: futuresContract) -> bool:
         list_of_contracts = self.get_contracts_with_merged_price_data()
@@ -70,6 +90,18 @@ class futuresContractPriceData(baseData):
             return True
         else:
             return False
+
+    def has_price_data_for_contract_at_frequency(self,
+                                                 contract_object: futuresContract,
+                                                 frequency: Frequency) -> bool:
+
+        list_of_contracts = \
+            self.get_contracts_with_price_data_for_frequency(frequency=frequency)
+        if contract_object in list_of_contracts:
+            return True
+        else:
+            return False
+
 
     def contracts_with_merged_price_data_for_instrument_code(
         self, instrument_code: str
@@ -81,7 +113,8 @@ class futuresContractPriceData(baseData):
         :return: list of contract_date
         """
 
-        list_of_contracts_with_price_data = self.get_contracts_with_merged_price_data()
+        list_of_contracts_with_price_data = \
+            self.get_contracts_with_merged_price_data()
         list_of_contracts_for_instrument = (
             list_of_contracts_with_price_data.contracts_in_list_for_instrument_code(
                 instrument_code
@@ -89,6 +122,28 @@ class futuresContractPriceData(baseData):
         )
 
         return list_of_contracts_for_instrument
+
+    def contracts_with_price_data_at_frequency_for_instrument_code(
+        self, instrument_code: str,
+            frequency: Frequency
+    ) -> listOfFuturesContracts:
+        """
+        Valid contracts
+
+        :param instrument_code: str
+        :return: list of contract_date
+        """
+
+        list_of_contracts_with_price_data = \
+            self.get_contracts_with_price_data_for_frequency(frequency=frequency)
+        list_of_contracts_for_instrument = (
+            list_of_contracts_with_price_data.contracts_in_list_for_instrument_code(
+                instrument_code
+            )
+        )
+
+        return list_of_contracts_for_instrument
+
 
     def contract_dates_with_merged_price_data_for_instrument_code(
         self, instrument_code: str
@@ -103,11 +158,29 @@ class futuresContractPriceData(baseData):
             self.contracts_with_merged_price_data_for_instrument_code(instrument_code)
         )
 
-        contract_dates = [
-            str(contract.date_str) for contract in list_of_contracts_with_price_data
-        ]
-        list_of_contract_date_str = listOfContractDateStr(contract_dates)
+        list_of_contract_date_str = list_of_contracts_with_price_data.list_of_dates()
+
         return list_of_contract_date_str
+
+    def contract_dates_with_price_data_at_frequency_for_instrument_code(
+        self, instrument_code: str,
+            frequency: Frequency
+    ) -> listOfContractDateStr:
+        """
+
+        :param instrument_code:
+        :return: list of str
+        """
+
+        list_of_contracts_with_price_data = (
+            self.contracts_with_price_data_at_frequency_for_instrument_code(instrument_code=instrument_code,
+                                                                            frequency=frequency)
+        )
+
+        list_of_contract_date_str = list_of_contracts_with_price_data.list_of_dates()
+
+        return list_of_contract_date_str
+
 
     def get_merged_prices_for_instrument(
         self, instrument_code: str
@@ -134,7 +207,36 @@ class futuresContractPriceData(baseData):
 
         return dict_of_prices
 
-    def get_merged_prices_for_contract_object(self, contract_object: futuresContract,
+    def get_prices_at_frequency_for_instrument(
+        self, instrument_code: str,
+            frequency: Frequency
+    ) -> dictFuturesContractPrices:
+        """
+        Get all the prices for this code, returned as dict
+
+        :param instrument_code: str
+        :return: dictFuturesContractPrices
+        """
+
+        list_of_contracts = self.contracts_with_price_data_at_frequency_for_instrument_code(
+            instrument_code=instrument_code,
+            frequency=frequency
+        )
+        dict_of_prices = dictFuturesContractPrices(
+            [
+                (
+                    contract.date_str,
+                    self.get_prices_at_frequency_for_contract_object(contract, frequency=frequency),
+                )
+                for contract in list_of_contracts
+            ]
+        )
+
+        return dict_of_prices
+
+
+    def get_merged_prices_for_contract_object(self,
+                                              contract_object: futuresContract,
                                               return_empty: bool = True
                                               ):
         """
@@ -150,31 +252,27 @@ class futuresContractPriceData(baseData):
             if return_empty:
                 return futuresContractPrices.create_empty()
             else:
-                return failure
+                return missing_data
 
         return prices
 
-    def get_prices_at_frequency_for_contract_object(
-        self, contract_object: futuresContract, freq: Frequency = DAILY_PRICE_FREQ,
-            return_empty: bool = True
-    ):
+    def get_prices_at_frequency_for_contract_object(self, contract_object: futuresContract, frequency: Frequency,
+                                                    return_empty: bool = True):
         """
         get some prices at a given frequency
 
         :param contract_object:  futuresContract
-        :param freq: str; one of D, H, 5M, M, 10S, S
+        :param frequency: str; one of D, H, 5M, M, 10S, S
         :return: data
         """
 
         if self.has_merged_price_data_for_contract(contract_object):
-            return self._get_prices_at_frequency_for_contract_object_no_checking(
-                contract_object, freq=freq
-            )
+            return self._get_prices_at_frequency_for_contract_object_no_checking(contract_object, frequency=frequency)
         else:
             if return_empty:
                 return futuresContractPrices.create_empty()
             else:
-                return failure
+                return missing_data
 
     def write_merged_prices_for_contract_object(
         self,
@@ -204,28 +302,63 @@ class futuresContractPriceData(baseData):
             futures_contract_object, futures_price_data
         )
 
-    def update_merged_prices_for_contract(
+    def write_prices_at_frequency_for_contract_object(
+        self,
+        futures_contract_object: futuresContract,
+        futures_price_data: futuresContractPrices,
+        frequency: Frequency,
+        ignore_duplication=False,
+    ):
+        """
+        Write some prices
+
+        :param futures_contract_object:
+        :param futures_price_data:
+        :param ignore_duplication: bool, to stop us overwriting existing prices
+        :return: None
+        """
+        not_ignoring_duplication = not ignore_duplication
+        if not_ignoring_duplication:
+            if self.has_price_data_for_contract_at_frequency(contract_object=futures_contract_object,
+                                                             frequency=frequency):
+                log = futures_contract_object.log(self.log)
+                log.warn(
+                    "There is already existing data for %s"
+                    % futures_contract_object.key
+                )
+                return None
+
+        self._write_prices_at_frequency_for_contract_object_no_checking(
+            futures_contract_object=futures_contract_object,
+            futures_price_data=futures_price_data,
+            frequency=frequency
+        )
+
+
+
+    def update_prices_at_frequency_for_contract(
         self,
         contract_object: futuresContract,
         new_futures_per_contract_prices: futuresContractPrices,
+        frequency: Frequency,
         check_for_spike: bool = True,
         max_price_spike: float = VERY_BIG_NUMBER
     ) -> int:
-        """
-        Reads existing data, merges with new_futures_prices, writes merged data
 
-        :param new_futures_prices:
-        :return: int, number of rows
-        """
         new_log = contract_object.log(self.log)
 
         if len(new_futures_per_contract_prices) == 0:
             new_log.msg("No new data")
             return 0
 
-        old_prices = self.get_merged_prices_for_contract_object(contract_object)
+        if frequency is MIXED_FREQ:
+            old_prices = self.get_merged_prices_for_contract_object(contract_object)
+        else:
+            old_prices = self.get_prices_at_frequency_for_contract_object(contract_object, frequency=frequency)
+
         merged_prices = old_prices.add_rows_to_existing_data(
-            new_futures_per_contract_prices, check_for_spike=check_for_spike,
+            new_futures_per_contract_prices,
+            check_for_spike=check_for_spike,
             max_price_spike = max_price_spike
         )
 
@@ -250,9 +383,15 @@ class futuresContractPriceData(baseData):
             return 0
 
         # We have guaranteed no duplication
-        self.write_merged_prices_for_contract_object(
-            contract_object, merged_prices, ignore_duplication=True
-        )
+        if frequency is MIXED_FREQ:
+            self.write_merged_prices_for_contract_object(
+                contract_object, merged_prices, ignore_duplication=True
+            )
+        else:
+            self.write_prices_at_frequency_for_contract_object(
+                contract_object, merged_prices, frequency=frequency,
+                ignore_duplication=True
+            )
 
         new_log.msg("Added %d additional rows of data" % rows_added)
 
@@ -278,13 +417,37 @@ class futuresContractPriceData(baseData):
             log = futures_contract_object.log(self.log)
             log.warn("Tried to delete non existent contract")
 
+    def delete_prices_at_frequency_for_contract_object(
+        self, futures_contract_object: futuresContract,
+            frequency: Frequency,
+            areyousure=False
+    ):
+        """
+
+        :param futures_contract_object:
+        :return:
+        """
+
+        if not areyousure:
+            raise Exception("You have to be sure to delete prices_for_contract_object!")
+
+        if self.has_merged_price_data_for_contract(futures_contract_object):
+            self._delete_prices_at_frequency_for_contract_object_with_no_checks_be_careful(
+                futures_contract_object=futures_contract_object,
+                frequency=frequency
+            )
+        else:
+            log = futures_contract_object.log(self.log)
+            log.warn("Tried to delete non existent contract")
+
+
     def delete_merged_prices_for_instrument_code(
         self, instrument_code: str, areyousure=False
     ):
         # We don't pass areyousure, otherwise if we weren't sure would get
         # multiple exceptions
         if not areyousure:
-            raise Exception("You have to be sure to delete_all_prices_for_instrument!")
+            raise Exception("You have to be sure to delete_merged_prices_for_instrument!")
 
         all_contracts_to_delete = self.contracts_with_merged_price_data_for_instrument_code(
             instrument_code
@@ -292,19 +455,61 @@ class futuresContractPriceData(baseData):
         for contract in all_contracts_to_delete:
             self.delete_merged_prices_for_contract_object(contract, areyousure=True)
 
+    def delete_prices_at_frequency_for_instrument_code(
+        self, instrument_code: str,
+            frequency: Frequency,
+            areyousure=False
+    ):
+        # We don't pass areyousure, otherwise if we weren't sure would get
+        # multiple exceptions
+        if not areyousure:
+            raise Exception("You have to be sure to delete_prices_at_frequency_for_instrument!")
+
+        all_contracts_to_delete = \
+            self.contracts_with_price_data_at_frequency_for_instrument_code(instrument_code=instrument_code,
+            frequency=frequency)
+
+        for contract in all_contracts_to_delete:
+            self.delete_prices_at_frequency_for_contract_object(futures_contract_object=contract,
+                                                                frequency=frequency,
+                                                                areyousure=True)
+
+
     def get_contracts_with_merged_price_data(self) -> listOfFuturesContracts:
 
         raise NotImplementedError(BASE_CLASS_ERROR)
+
+    def get_contracts_with_price_data_for_frequency(self,
+                                                    frequency: Frequency) -> listOfFuturesContracts:
+
+        raise NotImplementedError(BASE_CLASS_ERROR)
+
 
     def _delete_merged_prices_for_contract_object_with_no_checks_be_careful(
         self, futures_contract_object: futuresContract
     ):
         raise NotImplementedError(BASE_CLASS_ERROR)
 
+    def _delete_prices_at_frequency_for_contract_object_with_no_checks_be_careful(
+        self, futures_contract_object: futuresContract,
+            frequency: Frequency
+    ):
+        raise NotImplementedError(BASE_CLASS_ERROR)
+
+
     def _write_merged_prices_for_contract_object_no_checking(
         self,
         futures_contract_object: futuresContract,
         futures_price_data: futuresContractPrices,
+    ):
+
+        raise NotImplementedError(BASE_CLASS_ERROR)
+
+    def _write_prices_at_frequency_for_contract_object_no_checking(
+        self,
+        futures_contract_object: futuresContract,
+        futures_price_data: futuresContractPrices,
+        frequency: Frequency
     ):
 
         raise NotImplementedError(BASE_CLASS_ERROR)
@@ -315,8 +520,8 @@ class futuresContractPriceData(baseData):
 
         raise NotImplementedError(BASE_CLASS_ERROR)
 
-    def _get_prices_at_frequency_for_contract_object_no_checking(
-        self, contract_object: futuresContract, freq: Frequency
-    ) -> futuresContractPrices:
+
+    def _get_prices_at_frequency_for_contract_object_no_checking \
+                    (self, futures_contract_object: futuresContract, frequency: Frequency) -> futuresContractPrices:
 
         raise NotImplementedError(BASE_CLASS_ERROR)

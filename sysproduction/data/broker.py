@@ -135,10 +135,9 @@ class dataBroker(productionDataLayerGeneric):
         self, contract_object: futuresContract, frequency: Frequency
     ) -> futuresContractPrices:
 
-        return self.broker_futures_contract_price_data.get_prices_at_frequency_for_contract_object(
-            contract_object, frequency,
-            return_empty=False ##want to return a failure if no prices available
-        )
+        return self.broker_futures_contract_price_data.get_prices_at_frequency_for_contract_object(contract_object,
+                                                                                                   frequency,
+                                                                                                   return_empty=False)
 
     def get_recent_bid_ask_tick_data_for_contract_object(
         self, contract: futuresContract
