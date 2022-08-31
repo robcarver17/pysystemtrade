@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Populate a mongo DB collection with roll data from a csv
 """

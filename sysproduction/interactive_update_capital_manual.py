@@ -1,5 +1,10 @@
 from syscore.objects import success, failure, arg_not_supplied, missing_data
-from syscore.interactive import get_and_convert, print_menu_and_get_response, get_datetime_input, true_if_answer_is_yes
+from syscore.interactive import (
+    get_and_convert,
+    print_menu_and_get_response,
+    get_datetime_input,
+    true_if_answer_is_yes,
+)
 
 from sysdata.data_blob import dataBlob
 from sysobjects.production.capital import LargeCapitalChange
@@ -48,8 +53,13 @@ def finished(data):
 def print_capital_and_get_user_input(data: dataBlob):
     data_capital = dataCapital(data)
 
-    all_calcs = data_capital.get_series_of_all_global_capital()
-    print("\n")
+    try:
+        all_calcs = data_capital.get_series_of_all_global_capital()
+    # TODO raise an appropriate exception
+    # AttributeError: 'named_object' object has no attribute 'groupby'
+    except AttributeError:
+        all_calcs = missing_data
+
     if all_calcs is missing_data:
         # No capital
         no_capital_setup = True
@@ -126,16 +136,17 @@ def get_initial_capital_values_from_user(data: dataBlob):
 
     return broker_account_value, total_capital, maximum_capital, acc_pandl
 
+
 A_VERY_LARGE_NUMBER = 999999999
+
+
 def update_capital_from_ib(data: dataBlob):
 
     data_capital = dataCapital(data)
     broker_account_value = get_broker_account_value(data)
     try:
-        total_capital = (
-            data_capital.update_and_return_total_capital_with_new_broker_account_value(
-                broker_account_value
-            )
+        total_capital = data_capital.update_and_return_total_capital_with_new_broker_account_value(
+            broker_account_value
         )
         print("New total capital is %s" % total_capital)
 
@@ -171,8 +182,7 @@ def adjust_capital_for_delta(data: dataBlob):
     old_capital = data_capital.get_series_of_broker_capital()[-1]
     new_capital = old_capital + capital_delta
     user_wants_adjustment = true_if_answer_is_yes(
-        "New brokerage capital will be %f, are you sure? "
-        % new_capital
+        "New brokerage capital will be %f, are you sure? " % new_capital
     )
     if user_wants_adjustment:
         data_capital.total_capital_calculator.adjust_broker_account_for_delta(
@@ -188,7 +198,7 @@ def modify_any_value(data: dataBlob):
         total_capital,
         maximum_capital,
         acc_pandl,
-    ) = get_values_from_user_to_modify(data = data)
+    ) = get_values_from_user_to_modify(data=data)
 
     ans_is_yes = true_if_answer_is_yes(
         "Sure about this? May cause subtle weirdness in capital calculations?"
@@ -199,7 +209,7 @@ def modify_any_value(data: dataBlob):
             total_capital=total_capital,
             maximum_capital=maximum_capital,
             acc_pandl=acc_pandl,
-            propagate = True
+            propagate=True,
         )
 
 
@@ -209,30 +219,26 @@ def get_values_from_user_to_modify(data: dataBlob):
 
     current_broker_value = capital_calculator.get_broker_account()[-1]
     broker_account_value = get_and_convert(
-        "Broker account value",
-        type_expected=float,
-        default_value=current_broker_value
+        "Broker account value", type_expected=float, default_value=current_broker_value
     )
 
     current_total_capital = capital_calculator.get_current_total_capital()
     total_capital = get_and_convert(
         "Total capital at risk",
         type_expected=float,
-        default_value=current_total_capital
+        default_value=current_total_capital,
     )
 
     current_maximum_capital = capital_calculator.get_maximum_account()[-1]
     maximum_capital = get_and_convert(
         "Max capital, only used for half compounding",
         type_expected=float,
-        default_value=current_maximum_capital
+        default_value=current_maximum_capital,
     )
 
     current_acc_profit = capital_calculator.get_profit_and_loss_account()[-1]
     acc_pandl = get_and_convert(
-        "Accumulated profit",
-        type_expected=float,
-        default_value=current_acc_profit
+        "Accumulated profit", type_expected=float, default_value=current_acc_profit
     )
 
     return broker_account_value, total_capital, maximum_capital, acc_pandl

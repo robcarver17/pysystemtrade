@@ -41,15 +41,14 @@ def get_list_of_strategy_order_timer_functions_for_strategies(data):
         # we add a method to the class with the strategy name, that just calls run_strategy_method with the current
         #    strategy
         setattr(strategyRunner, strategy_name, strategy_order_function_to_be_renamed)
-        object = strategyRunner(
+        obj = strategyRunner(
             data, strategy_name, process_name, name_of_main_generator_method
         )
-
-        strategy_tuple = (strategy_name, object)
+        strategy_tuple = (strategy_name, obj)
         list_of_timer_names_and_functions.append(strategy_tuple)
 
     return list_of_timer_names_and_functions
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_strategy_order_generator()

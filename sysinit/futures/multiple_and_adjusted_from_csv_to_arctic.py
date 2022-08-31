@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from syscore.objects import arg_not_supplied
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData

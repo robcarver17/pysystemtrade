@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Get FX prices from csv repo files and write to arctic
 

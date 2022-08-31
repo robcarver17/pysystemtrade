@@ -4,9 +4,7 @@ import pandas as pd
 
 from syscore.objects import arg_not_supplied, failure, missing_data
 from syscore.pdutils import uniquets
-from sysdata.production.timed_storage import (
-    listOfEntriesData,
-)
+from sysdata.production.timed_storage import listOfEntriesData
 
 from sysobjects.production.capital import (
     capitalEntry,
@@ -68,7 +66,7 @@ class capitalData(listOfEntriesData):
     def get_capital_pd_series_for_strategy(self, strategy_name: str) -> pd.Series:
         capital_series = self.get_capital_series_for_strategy(strategy_name)
         pd_series = capital_series.as_pd_df()
-        pd_series = uniquets(pd_series).squeeze()
+        pd_series = uniquets(pd_series)
         return pd_series
 
     def get_capital_series_for_strategy(self, strategy_name: str) -> capitalForStrategy:
@@ -117,18 +115,15 @@ class capitalData(listOfEntriesData):
         return current_capital_entry
 
     def update_broker_account_value(
-        self, new_capital_value: float,
-            date: datetime.datetime = arg_not_supplied,
-
+        self, new_capital_value: float, date: datetime.datetime = arg_not_supplied
     ):
-        ## Update account value but also propogate
+        # Update account value but also propogate
         if date is arg_not_supplied:
             date = datetime.datetime.now()
 
         self.update_capital_value_for_strategy(
             BROKER_ACCOUNT_VALUE, new_capital_value, date=date
         )
-
 
     def update_profit_and_loss_account(
         self, new_capital_value: float, date: datetime.datetime = arg_not_supplied
@@ -262,7 +257,6 @@ class totalCapitalCalculationData(object):
     It uses the special strategy names GLOBAL_STRATEGY and BROKER_ACCOUNT_VALUE, MAXIMUM and PROFIT
 
     Three different compounding methods are available  ['full', 'half', 'fixed']
-
     """
 
     def __init__(self, capital_data: capitalData, calc_method="full"):
@@ -324,7 +318,6 @@ class totalCapitalCalculationData(object):
 
     def get_total_capital(self) -> pd.Series:
         return self.capital_data.get_total_capital_pd_series()
-
 
     def get_profit_and_loss_account(self) -> pd.Series():
         return self.capital_data.get_profit_and_loss_account_pd_series()
@@ -389,10 +382,8 @@ class totalCapitalCalculationData(object):
     ) -> totalCapitalUpdater:
 
         calc_method = self.calc_method
-        prev_broker_account_value = (
-            self._get_prev_broker_account_value_create_if_no_data(
-                new_broker_account_value
-            )
+        prev_broker_account_value = self._get_prev_broker_account_value_create_if_no_data(
+            new_broker_account_value
         )
         prev_maximum_capital = self.capital_data.get_current_maximum_account_value()
         prev_total_capital = self.capital_data.get_current_total_capital()
@@ -467,10 +458,9 @@ class totalCapitalCalculationData(object):
         broker_account_value = prev_broker_account_value + delta_value
 
         # Update broker account value
-        self.modify_account_values(broker_account_value = broker_account_value,
-                                   propagate=True, are_you_sure=True)
-
-
+        self.modify_account_values(
+            broker_account_value=broker_account_value, propagate=True, are_you_sure=True
+        )
 
     def modify_account_values(
         self,
@@ -480,7 +470,7 @@ class totalCapitalCalculationData(object):
         acc_pandl: float = arg_not_supplied,
         date: datetime.datetime = arg_not_supplied,
         are_you_sure: bool = False,
-        propagate: bool = True
+        propagate: bool = True,
     ):
         """
         Allow any account valuation to be modified
@@ -530,9 +520,7 @@ class totalCapitalCalculationData(object):
 
     def propagate_broker_account(self, date):
         broker_account_value = self.capital_data.get_broker_account_value()
-        self.capital_data.update_broker_account_value(
-            broker_account_value, date=date
-        )
+        self.capital_data.update_broker_account_value(broker_account_value, date=date)
 
     def create_initial_capital(
         self,
@@ -543,7 +531,6 @@ class totalCapitalCalculationData(object):
         are_you_really_sure: bool = False,
     ):
         """
-
         Used to create the initial capital series
 
         Will delete capital! So be careful

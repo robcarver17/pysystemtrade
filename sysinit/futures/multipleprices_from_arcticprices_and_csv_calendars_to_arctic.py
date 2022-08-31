@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 We create multiple prices using:
 

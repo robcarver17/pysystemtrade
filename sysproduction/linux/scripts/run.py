@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Created on 16 Nov 2016
 @author: rob

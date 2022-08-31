@@ -1,8 +1,9 @@
 import datetime
+
 from syscore.objects import arg_not_supplied
-from sysdata.mongodb.mongo_log import mongoLogData
 from sysdata.data_blob import dataBlob
-from syslogdiag.database_log import logToDb, logData
+from sysdata.mongodb.mongo_log import mongoLogData
+from syslogdiag.database_log import logData
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
 

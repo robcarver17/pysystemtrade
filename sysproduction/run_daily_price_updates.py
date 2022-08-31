@@ -1,10 +1,12 @@
+from typing import List
+from typing import Tuple
+
 from syscontrol.run_process import processToRun
+from sysdata.data_blob import dataBlob
 from sysproduction.update_fx_prices import updateFxPrices
-from sysproduction.update_sampled_contracts import updateSampledContracts
 from sysproduction.update_historical_prices import updateHistoricalPrices
 from sysproduction.update_multiple_adjusted_prices import updateMultipleAdjustedPrices
-
-from sysdata.data_blob import dataBlob
+from sysproduction.update_sampled_contracts import updateSampledContracts
 
 
 def run_daily_price_updates():
@@ -15,7 +17,7 @@ def run_daily_price_updates():
     price_process.run_process()
 
 
-def get_list_of_timer_functions_for_price_update():
+def get_list_of_timer_functions_for_price_update() -> List[Tuple[str, object]]:
     data_fx = dataBlob(log_name="update_fx_prices")
     data_contracts = dataBlob(log_name="update_sampled_contracts")
     data_historical = dataBlob(log_name="update_historical_prices")
@@ -36,5 +38,5 @@ def get_list_of_timer_functions_for_price_update():
     return list_of_timer_names_and_functions
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_daily_price_updates()
