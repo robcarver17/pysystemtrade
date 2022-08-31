@@ -15,8 +15,7 @@ priceFilterConfig = namedtuple('priceFilterConfig',
                                 'ignore_prices_with_zero_volumes_intraday',
                                 'ignore_zero_prices',
                                 'ignore_negative_prices',
-                                'max_price_spike',
-                                'dont_sample_daily_if_intraday_fails'])
+                                'max_price_spike'])
 
 
 def apply_price_cleaning(data: dataBlob,
@@ -96,14 +95,12 @@ def get_config_for_price_filtering(data: dataBlob,
     ignore_zero_prices = production_config.get_element_or_missing_data('ignore_zero_prices')
     ignore_negative_prices = production_config.get_element_or_missing_data('ignore_negative_prices')
     max_price_spike = production_config.get_element_or_missing_data('max_price_spike')
-    dont_sample_daily_if_intraday_fails = production_config.get_element_or_missing_data('dont_sample_daily_if_intraday_fails')
 
     any_missing = any([x is arg_not_supplied for x in [ignore_future_prices,
                                                        ignore_prices_with_zero_volumes_daily,
                                                     ignore_prices_with_zero_volumes_intraday,
                                                        ignore_zero_prices,
                                                        ignore_negative_prices,
-                                                       dont_sample_daily_if_intraday_fails,
                                                        max_price_spike]])
 
     if any_missing:
@@ -116,8 +113,7 @@ def get_config_for_price_filtering(data: dataBlob,
                              ignore_future_prices=ignore_future_prices,
                              ignore_prices_with_zero_volumes_daily=ignore_prices_with_zero_volumes_daily,
                              ignore_prices_with_zero_volumes_intraday=ignore_prices_with_zero_volumes_intraday,
-                             max_price_spike=max_price_spike,
-                             dont_sample_daily_if_intraday_fails=dont_sample_daily_if_intraday_fails)
+                             max_price_spike=max_price_spike)
 
     return cleaning_config
 

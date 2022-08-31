@@ -6,6 +6,7 @@ from copy import copy
 from syscore.objects import success, failure, arg_not_supplied
 from syscore.merge_data import spike_in_data
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
+from syscore.pdutils import merge_data_with_different_freq
 
 from sysdata.data_blob import dataBlob
 from sysdata.tools.manual_price_checker import manual_price_checker
@@ -94,28 +95,20 @@ def update_historical_prices_for_instrument_and_contract(
     intraday_frequency = diag_prices.get_intraday_frequency_for_historical_download()
     daily_frequency = DAILY_PRICE_FREQ
 
-    # Get *intraday* data (defaults to hourly)
-    result = get_and_add_prices_for_frequency(
-        data,
-        contract_object,
-        frequency=intraday_frequency,
-        cleaning_config=cleaning_config,
-        interactive_mode = interactive_mode
-    )
-    if result is failure:
-        # Skip daily data if intraday not working
-        if cleaning_config.dont_sample_daily_if_intraday_fails:
-            data.log.msg("Had a problem samping intraday, skipping daily to avoid price gaps")
-            return failure
-        else:
-            data.log.warn("Had a problem samping intraday, but **NOT** skipping daily - may be price gaps")
+    list_of_frequencies = [intraday_frequency, daily_frequency]
 
-    # Get daily data
-    # we don't care about the result flag for this
-    get_and_add_prices_for_frequency(data, contract_object,
-                                     frequency=daily_frequency,
-                                     cleaning_config=cleaning_config,
-                                     interactive_mode = interactive_mode,)
+    for frequency in list_of_frequencies:
+        get_and_add_prices_for_frequency(
+            data,
+            contract_object,
+            frequency=frequency,
+            cleaning_config=cleaning_config,
+            interactive_mode = interactive_mode
+        )
+
+    write_merged_prices_for_contract(data,
+                                     contract_object=contract_object,
+                                     list_of_frequencies=list_of_frequencies)
 
     return success
 
@@ -123,8 +116,8 @@ def update_historical_prices_for_instrument_and_contract(
 def get_and_add_prices_for_frequency(
     data: dataBlob,
     contract_object: futuresContract,
-    frequency: Frequency = DAILY_PRICE_FREQ,
-    cleaning_config: priceFilterConfig = arg_not_supplied,
+    frequency: Frequency,
+    cleaning_config: priceFilterConfig,
     interactive_mode: bool = False
 ):
     broker_data_source = dataBroker(data)
@@ -144,13 +137,11 @@ def get_and_add_prices_for_frequency(
 
     if interactive_mode:
         print("\n\n Manually checking prices for %s \n\n" % str(contract_object))
-        if cleaning_config is arg_not_supplied:
-            max_price_spike = NO_SPIKE_CHECKING
-        else:
-            max_price_spike = cleaning_config.max_price_spike
+        max_price_spike = cleaning_config.max_price_spike
 
         price_data = diagPrices(data)
-        old_prices = price_data.get_prices_for_contract_object(contract_object)
+        old_prices = price_data.get_prices_at_frequency_for_contract_object(contract_object,
+                                                                            frequency=frequency)
         new_prices_checked = manual_price_checker(
             old_prices,
             broker_prices,
@@ -165,6 +156,7 @@ def get_and_add_prices_for_frequency(
         check_for_spike = True
 
     error_or_rows_added = price_updating_or_errors(data = data,
+                                                   frequency=frequency,
                                                    contract_object=contract_object,
                                                    new_prices_checked = new_prices_checked,
                                                    check_for_spike=check_for_spike,
@@ -180,16 +172,21 @@ def get_and_add_prices_for_frequency(
     return success
 
 def price_updating_or_errors(data: dataBlob,
+                             frequency: Frequency,
                              contract_object: futuresContract,
                              new_prices_checked: futuresContractPrices,
-                             check_for_spike: bool = True,
-                             cleaning_config: priceFilterConfig = arg_not_supplied):
+                             cleaning_config: priceFilterConfig,
+                             check_for_spike: bool = True
+                            ):
 
     price_updater = updatePrices(data)
 
-    error_or_rows_added = price_updater.update_prices_for_contract(
-            contract_object, new_prices_checked, check_for_spike=check_for_spike,
-            max_price_spike = cleaning_config.max_price_spike
+    error_or_rows_added = price_updater.update_prices_at_frequency_for_contract(
+        contract_object=contract_object,
+        new_prices=new_prices_checked,
+        frequency=frequency,
+        check_for_spike=check_for_spike,
+        max_price_spike = cleaning_config.max_price_spike
         )
 
     if error_or_rows_added is spike_in_data:
@@ -219,6 +216,27 @@ def report_price_spike(data: dataBlob, contract_object: futuresContract):
         data.log.warn(
             "Couldn't send email about price spike for %s" % str(contract_object)
         )
+
+def write_merged_prices_for_contract(data: dataBlob,
+                                     contract_object: futuresContract,
+                                     list_of_frequencies: list):
+
+    ## note list of frequencies must have daily as last or groupby won't work with volume
+
+    assert list_of_frequencies[-1]==DAILY_PRICE_FREQ
+
+    diag_prices = diagPrices(data)
+    price_updater = updatePrices(data)
+
+    list_of_data = [diag_prices.get_prices_at_frequency_for_contract_object(contract_object,
+                                                                            frequency=frequency)
+                    for frequency in list_of_frequencies]
+
+    merged_prices = merge_data_with_different_freq(list_of_data)
+
+    price_updater.overwrite_merged_prices_for_contract(contract_object=contract_object,
+                                                          new_prices=merged_prices)
+
 
 
 if __name__ == '__main__':

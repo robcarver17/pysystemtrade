@@ -393,7 +393,7 @@ def individual_prices(data):
         data, only_include_priced_contracts=True
     )
     diag_prices = diagPrices(data)
-    prices = diag_prices.get_prices_for_contract_object(contract)
+    prices = diag_prices.get_merged_prices_for_contract_object(contract)
 
     print(prices)
 

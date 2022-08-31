@@ -100,7 +100,7 @@ class diagPrices(productionDataLayerGeneric):
 
         return multiple_prices
 
-    def get_prices_for_contract_object(
+    def get_merged_prices_for_contract_object(
         self, contract_object: futuresContract
     ) -> futuresContractPrices:
         prices = self.db_futures_contract_price_data.get_merged_prices_for_contract_object(
@@ -108,6 +108,17 @@ class diagPrices(productionDataLayerGeneric):
         )
 
         return prices
+
+    def get_prices_at_frequency_for_contract_object(
+        self, contract_object: futuresContract,
+            frequency: Frequency
+    ) -> futuresContractPrices:
+        prices = self.db_futures_contract_price_data.\
+            get_prices_at_frequency_for_contract_object(contract_object,
+                                                        frequency=frequency)
+
+        return prices
+
 
     def get_current_priced_contract_prices_for_instrument(
         self, instrument_code: str
@@ -173,7 +184,7 @@ class diagPrices(productionDataLayerGeneric):
                 continue
             # Could blow up here if don't have prices for a contract??
             contract = futuresContract(instrument_code, contract_date_str)
-            prices = self.get_prices_for_contract_object(contract)
+            prices = self.get_merged_prices_for_contract_object(contract)
             dict_of_prices[contract_date_str] = prices
 
         dict_of_prices = dictFuturesContractPrices(dict_of_prices)
@@ -217,17 +228,31 @@ class updatePrices(productionDataLayerGeneric):
 
         return data
 
-    def update_prices_for_contract(
+    def overwrite_merged_prices_for_contract(
         self,
         contract_object: futuresContract,
+        new_prices: futuresContractPrices,
+    ):
+
+        self.db_futures_contract_price_data.write_merged_prices_for_contract_object(contract_object,
+                                                                                    futures_price_data=new_prices,
+                                                                                    ignore_duplication=True)
+
+
+    def update_prices_at_frequency_for_contract(
+        self,
+        contract_object: futuresContract,
+        frequency: Frequency,
         new_prices: futuresContractPrices,
         check_for_spike: bool = True,
         max_price_spike: float = VERY_BIG_NUMBER
     ) -> int:
 
         error_or_rows_added = (
-            self.db_futures_contract_price_data.update_merged_prices_for_contract(
-                contract_object, new_prices,
+            self.db_futures_contract_price_data.update_prices_at_frequency_for_contract(
+                contract_object=contract_object,
+                new_futures_per_contract_prices =new_prices,
+                frequency=frequency,
                 check_for_spike=check_for_spike,
                 max_price_spike = max_price_spike
             )

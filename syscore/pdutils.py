@@ -510,6 +510,12 @@ def get_intraday_df_at_frequency(df: pd.DataFrame, frequency="H"):
 
     return intraday_df_clean
 
+def merge_data_with_different_freq(list_of_data: list):
+    list_as_concat_pd = pd.concat(list_of_data, axis=0)
+    sorted_pd = list_as_concat_pd.sort_index()
+    unique_pd = uniquets(sorted_pd)
+
+    return unique_pd
 
 def sumup_business_days_over_pd_series_without_double_counting_of_closing_data(
     pd_series,

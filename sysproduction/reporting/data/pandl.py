@@ -438,7 +438,7 @@ def get_fx_series_for_instrument(data, instrument_code):
 def get_price_series_for_contract(data, instrument_code, contract_id):
     diag_prices = diagPrices(data)
     contract = futuresContract(instrument_code, contract_id)
-    all_prices = diag_prices.get_prices_for_contract_object(contract)
+    all_prices = diag_prices.get_merged_prices_for_contract_object(contract)
     price_series = all_prices.return_final_prices()
 
     return price_series

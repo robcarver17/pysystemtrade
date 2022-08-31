@@ -115,11 +115,13 @@ def calculate_starting_day_of_current_quarter(end_date):
 
 Frequency = Enum(
     "Frequency",
-    "Unknown Year Month Week BDay Day Hour Minutes_15 Minutes_5 Minute Seconds_10 Second",
+    "Unknown Year Month Week BDay Day Hour Minutes_15 Minutes_5 Minute Seconds_10 Second Mixed",
 )
 DAILY_PRICE_FREQ = Frequency.Day
 BUSINESS_DAY_FREQ = Frequency.BDay
 HOURLY_FREQ = Frequency.Hour
+
+MIXED_FREQ = Frequency.Mixed
 
 def from_config_frequency_pandas_resample(freq: Frequency) -> str:
     LOOKUP_TABLE = {

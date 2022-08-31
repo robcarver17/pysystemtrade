@@ -43,7 +43,7 @@ def get_liquidity_dict_for_instrument_code(data, instrument_code: str) -> dict:
 
 def get_average_daily_volume_for_contract_object(data, contract_object):
     diag_prices = diagPrices(data)
-    all_price_data = diag_prices.get_prices_for_contract_object(contract_object)
+    all_price_data = diag_prices.get_merged_prices_for_contract_object(contract_object)
     if all_price_data.empty:
         return 0.0
     volume = all_price_data.daily_volumes()
