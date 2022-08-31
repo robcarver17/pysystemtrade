@@ -1,5 +1,9 @@
 # Release notes
 
+## Version 1.47
+
+- fix for #729. Added hourly and daily per contract prices IMPORTANT YOU MUST RUN /sysinit/futures/create_hourly_and_daily.py from the command line to create hourly and daily data.
+
 ## Version 1.46
 
 - fix for #745. Now correlation estimates for instrument returns are not shrunk, except when doing DO. Note that this will affect risk calculations and risk overlays.
