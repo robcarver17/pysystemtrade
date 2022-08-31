@@ -1,63 +1,63 @@
-from syscore.dateutils import SECONDS_PER_HOUR, openingTimes, listOfOpeningTimes
-from syscore.interactive import (
-    get_and_convert,
-    run_interactive_menu,
-    print_menu_of_values_and_get_response,
-    print_menu_and_get_response,
-    true_if_answer_is_yes, get_report_dates
-)
+import pandas as pd
+
+from syscore.dateutils import listOfOpeningTimes
+from syscore.dateutils import openingTimes
+from syscore.dateutils import SECONDS_PER_HOUR
 from syscore.genutils import progressBar
+from syscore.interactive import get_and_convert
+from syscore.interactive import get_report_dates
+from syscore.interactive import print_menu_and_get_response
+from syscore.interactive import print_menu_of_values_and_get_response
+from syscore.interactive import run_interactive_menu
+from syscore.interactive import true_if_answer_is_yes
+from syscore.objects import ALL_ROLL_INSTRUMENTS
+from syscore.objects import arg_not_supplied
+from syscore.objects import missing_contract
+from syscore.objects import missing_data
+from syscore.objects import user_exit
 from syscore.pdutils import set_pd_print_options
-from syscore.objects import user_exit, arg_not_supplied, missing_contract, ALL_ROLL_INSTRUMENTS, missing_data
-from sysexecution.orders.list_of_orders import listOfOrders
-
 from sysdata.data_blob import dataBlob
-
+from sysexecution.orders.list_of_orders import listOfOrders
+from syslogdiag.email_via_db_interface import retrieve_and_delete_stored_messages
 from sysobjects.contracts import futuresContract
 from sysobjects.production.tradeable_object import instrumentStrategy
-
-from sysproduction.data.backtest import (
-    user_choose_backtest,
-    interactively_choose_timestamp,
-)
+from sysproduction.data.backtest import interactively_choose_timestamp
+from sysproduction.data.backtest import user_choose_backtest
+from sysproduction.data.broker import dataBroker
 from sysproduction.data.capital import dataCapital
+from sysproduction.data.contracts import dataContracts
+from sysproduction.data.contracts import get_valid_contract_object_from_user
 from sysproduction.data.contracts import (
     get_valid_instrument_code_and_contractid_from_user,
-    get_valid_contract_object_from_user,
 )
-from sysproduction.data.currency_data import dataCurrency, get_valid_fx_code_from_user
+from sysproduction.data.currency_data import dataCurrency
+from sysproduction.data.currency_data import get_valid_fx_code_from_user
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.logs import diagLogs
 from sysproduction.data.orders import dataOrders
-from sysproduction.data.positions import diagPositions, dataOptimalPositions
-from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
+from sysproduction.data.positions import dataOptimalPositions
+from sysproduction.data.positions import diagPositions
+from sysproduction.data.prices import diagPrices
+from sysproduction.data.prices import get_valid_instrument_code_from_user
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
-from sysproduction.data.contracts import dataContracts
-from sysproduction.data.broker import dataBroker
-
-
-from syslogdiag.email_via_db_interface import retrieve_and_delete_stored_messages
+from sysproduction.reporting.report_configs import account_curve_report_config
+from sysproduction.reporting.report_configs import costs_report_config
+from sysproduction.reporting.report_configs import daily_pandl_report_config
+from sysproduction.reporting.report_configs import duplicate_market_report_config
+from sysproduction.reporting.report_configs import instrument_risk_report_config
+from sysproduction.reporting.report_configs import liquidity_report_config
+from sysproduction.reporting.report_configs import market_monitor_report_config
+from sysproduction.reporting.report_configs import min_capital_report_config
+from sysproduction.reporting.report_configs import reconcile_report_config
+from sysproduction.reporting.report_configs import remove_markets_report_config
+from sysproduction.reporting.report_configs import risk_report_config
+from sysproduction.reporting.report_configs import roll_report_config
+from sysproduction.reporting.report_configs import slippage_report_config
+from sysproduction.reporting.report_configs import status_report_config
+from sysproduction.reporting.report_configs import strategy_report_config
+from sysproduction.reporting.report_configs import trade_report_config
 from sysproduction.reporting.reporting_functions import run_report
 from sysproduction.reporting.strategies_report import ALL_STRATEGIES
-from sysproduction.reporting.report_configs import (
-    roll_report_config,
-    daily_pandl_report_config,
-    status_report_config,
-    trade_report_config,
-    reconcile_report_config,
-    strategy_report_config,
-    risk_report_config,
-    liquidity_report_config,
-    costs_report_config,
-    slippage_report_config,
-    instrument_risk_report_config,
-    min_capital_report_config,
-    duplicate_market_report_config,
-    remove_markets_report_config,
-market_monitor_report_config,
-account_curve_report_config
-
-)
 
 
 def interactive_diagnostics():
@@ -100,7 +100,6 @@ nested_menu_of_options = {
         11: "View contract configuration data",
         12: "View trading hours for all instruments",
     },
-
     2: {20: "View stored emails", 21: "View errors", 22: "View logs"},
     3: {
         30: "Individual futures contract prices",
@@ -138,42 +137,41 @@ nested_menu_of_options = {
         72: "Duplicate markets",
         73: "Remove markets",
         74: "Market monitor",
-        75: "P&L account curve"
-    }
-
+        75: "P&L account curve",
+    },
 }
 
 
-def not_defined(data):
+def not_defined(data: dataBlob):
     print("\n\nFunction not yet defined\n\n")
 
 
-def backtest_plot(data):
+def backtest_plot(data: dataBlob):
     data_backtests = user_choose_backtest(data)
     data_backtests.plot_data_loop()
     return None
 
 
-def backtest_python(data):
+def backtest_python(data: dataBlob):
     data_backtests = user_choose_backtest(data)
     data_backtests.eval_loop()
     return None
 
 
-def backtest_print(data):
+def backtest_print(data: dataBlob):
     data_backtests = user_choose_backtest(data)
     data_backtests.print_data_loop()
     return None
 
 
-def backtest_html(data):
+def backtest_html(data: dataBlob):
     data_backtests = user_choose_backtest(data)
     data_backtests.html_data_loop()
     return None
 
 
 # reports
-def roll_report(data):
+def roll_report(data: dataBlob):
     instrument_code = get_valid_instrument_code_from_user(
         data, allow_all=True, all_code=ALL_ROLL_INSTRUMENTS
     )
@@ -182,35 +180,31 @@ def roll_report(data):
     run_report(report_config, data=data)
 
 
-def pandl_report(data):
+def pandl_report(data: dataBlob):
     start_date, end_date = get_report_dates()
     report_config = email_or_print_or_file(daily_pandl_report_config)
-    report_config.modify_kwargs(
-         start_date=start_date, end_date=end_date
-    )
+    report_config.modify_kwargs(start_date=start_date, end_date=end_date)
     run_report(report_config, data=data)
 
 
-def status_report(data):
+def status_report(data: dataBlob):
     report_config = email_or_print_or_file(status_report_config)
     run_report(report_config, data=data)
 
 
-def trade_report(data):
+def trade_report(data: dataBlob):
     start_date, end_date = get_report_dates()
     report_config = email_or_print_or_file(trade_report_config)
-    report_config.modify_kwargs(
-         start_date=start_date, end_date=end_date
-    )
+    report_config.modify_kwargs(start_date=start_date, end_date=end_date)
     run_report(report_config, data=data)
 
 
-def reconcile_report(data):
+def reconcile_report(data: dataBlob):
     report_config = email_or_print_or_file(reconcile_report_config)
     run_report(report_config, data=data)
 
 
-def strategy_report(data):
+def strategy_report(data: dataBlob):
 
     strategy_name = get_valid_strategy_name_from_user(
         data=data, allow_all=True, all_code=ALL_STRATEGIES
@@ -227,49 +221,53 @@ def strategy_report(data):
     run_report(report_config, data=data)
 
 
-def risk_report(data):
+def risk_report(data: dataBlob):
     report_config = email_or_print_or_file(risk_report_config)
     run_report(report_config, data=data)
 
 
-def cost_report(data):
+def cost_report(data: dataBlob):
     report_config = email_or_print_or_file(costs_report_config)
     run_report(report_config, data=data)
 
-def slippage_report(data):
-    start_date, end_date= get_report_dates()
+
+def slippage_report(data: dataBlob):
+    start_date, end_date = get_report_dates()
     report_config = email_or_print_or_file(slippage_report_config)
-    report_config.modify_kwargs(
-         start_date=start_date, end_date=end_date
-    )
+    report_config.modify_kwargs(start_date=start_date, end_date=end_date)
     run_report(report_config, data=data)
 
 
-def liquidity_report(data):
+def liquidity_report(data: dataBlob):
     report_config = email_or_print_or_file(liquidity_report_config)
     run_report(report_config, data=data)
 
-def instrument_risk_report(data):
+
+def instrument_risk_report(data: dataBlob):
     report_config = email_or_print_or_file(instrument_risk_report_config)
     run_report(report_config, data=data)
 
 
-def min_capital_report(data):
+def min_capital_report(data: dataBlob):
     report_config = email_or_print_or_file(min_capital_report_config)
     run_report(report_config, data=data)
 
-def duplicate_market_report(data):
+
+def duplicate_market_report(data: dataBlob):
     report_config = email_or_print_or_file(duplicate_market_report_config)
     run_report(report_config, data=data)
 
-def remove_markets_report(data):
+
+def remove_markets_report(data: dataBlob):
     report_config = email_or_print_or_file(remove_markets_report_config)
     run_report(report_config, data=data)
 
 
-def market_monitor_report(data):
+def market_monitor_report(data: dataBlob):
 
-    run_full_report = true_if_answer_is_yes('Run normal full report? (alternative is customise dates)')
+    run_full_report = true_if_answer_is_yes(
+        "Run normal full report? (alternative is customise dates)"
+    )
     if run_full_report:
         start_date = arg_not_supplied
         end_date = arg_not_supplied
@@ -277,13 +275,14 @@ def market_monitor_report(data):
         start_date, end_date = get_report_dates()
 
     report_config = email_or_print_or_file(market_monitor_report_config)
-    report_config.modify_kwargs(
-         start_date=start_date, end_date=end_date
-    )
-    run_report(report_config, data = data)
+    report_config.modify_kwargs(start_date=start_date, end_date=end_date)
+    run_report(report_config, data=data)
+
 
 def account_curve_report(data: dataBlob):
-    run_full_report = true_if_answer_is_yes('Run normal full report? (alternative is customise dates)')
+    run_full_report = true_if_answer_is_yes(
+        "Run normal full report? (alternative is customise dates)"
+    )
     if run_full_report:
         start_date = arg_not_supplied
         end_date = arg_not_supplied
@@ -291,10 +290,8 @@ def account_curve_report(data: dataBlob):
         start_date, end_date = get_report_dates()
 
     report_config = email_or_print_or_file(account_curve_report_config)
-    report_config.modify_kwargs(
-         start_date=start_date, end_date=end_date
-    )
-    run_report(report_config, data = data)
+    report_config.modify_kwargs(start_date=start_date, end_date=end_date)
+    run_report(report_config, data=data)
 
 
 def email_or_print_or_file(report_config):
@@ -309,7 +306,7 @@ def email_or_print_or_file(report_config):
         report_config = report_config.new_config_with_modified_output("console")
     elif ans == 2:
         report_config = report_config.new_config_with_modified_output("email")
-    elif ans ==3:
+    elif ans == 3:
         report_config = report_config.new_config_with_modified_output("file")
     else:
         report_config = report_config.new_config_with_modified_output("emailfile")
@@ -318,13 +315,13 @@ def email_or_print_or_file(report_config):
 
 
 # logs emails errors
-def retrieve_emails(data):
+def retrieve_emails(data: dataBlob):
     messages = retrieve_and_delete_stored_messages(data)
     for msg in messages:
         print(msg)
 
 
-def view_errors(data):
+def view_errors(data: dataBlob):
     diag_logs = diagLogs(data)
     msg_levels = diag_logs.get_possible_log_level_mapping()
     print("This will get all log messages with a given level of criticality")
@@ -340,7 +337,7 @@ def view_errors(data):
     print_log_items(log_item_list)
 
 
-def view_logs(data):
+def view_logs(data: dataBlob):
     diag_logs = diagLogs(data)
     lookback_days = get_and_convert(
         "How many days?", type_expected=int, default_value=7
@@ -388,7 +385,7 @@ def build_attribute_dict(diag_logs, lookback_days):
 
 
 # prices
-def individual_prices(data):
+def individual_prices(data: dataBlob):
     contract = get_valid_contract_object_from_user(
         data, only_include_priced_contracts=True
     )
@@ -400,7 +397,7 @@ def individual_prices(data):
     return None
 
 
-def multiple_prices(data):
+def multiple_prices(data: dataBlob):
     instrument_code = get_valid_instrument_code_from_user(data)
     diag_prices = diagPrices(data)
     prices = diag_prices.get_multiple_prices(instrument_code)
@@ -409,7 +406,7 @@ def multiple_prices(data):
     return None
 
 
-def adjusted_prices(data):
+def adjusted_prices(data: dataBlob):
     instrument_code = get_valid_instrument_code_from_user(data)
     diag_prices = diagPrices(data)
     prices = diag_prices.get_adjusted_prices(instrument_code)
@@ -418,7 +415,7 @@ def adjusted_prices(data):
     return None
 
 
-def fx_prices(data):
+def fx_prices(data: dataBlob):
     fx_code = get_valid_fx_code_from_user(data)
     diag_prices = dataCurrency(data)
     prices = diag_prices.get_fx_prices(fx_code)
@@ -427,7 +424,7 @@ def fx_prices(data):
     return None
 
 
-def spreads(data):
+def spreads(data: dataBlob):
     instrument_code = get_valid_instrument_code_from_user(data)
     diag_prices = diagPrices(data)
     spreads = diag_prices.get_spreads(instrument_code)
@@ -437,10 +434,10 @@ def spreads(data):
     return None
 
 
-def capital_strategy(data):
+def capital_strategy(data: dataBlob):
     data_capital = dataCapital(data)
     strat_list = data_capital.get_list_of_strategies_with_capital()
-    if len(strat_list)==0:
+    if len(strat_list) == 0:
         print("No strategies with capital need to run update_strategy_capital")
         return None
     strategy_name = print_menu_of_values_and_get_response(
@@ -454,7 +451,7 @@ def capital_strategy(data):
     return None
 
 
-def total_current_capital(data):
+def total_current_capital(data: dataBlob):
     data_capital = dataCapital(data)
     capital_series = data_capital.get_series_of_all_global_capital()
     if capital_series is missing_data:
@@ -464,13 +461,13 @@ def total_current_capital(data):
     return None
 
 
-def optimal_positions(data):
+def optimal_positions(data: dataBlob):
     strategy_name = get_valid_strategy_name_from_user(
         data=data, source="optimal_positions"
     )
     optimal_data = dataOptimalPositions(data)
 
-    instrument_code_list = (
+    instrument_code_list = sorted(
         optimal_data.get_list_of_instruments_for_strategy_with_optimal_position(
             strategy_name
         )
@@ -481,11 +478,16 @@ def optimal_positions(data):
     instrument_strategy = instrumentStrategy(
         instrument_code=instrument_code, strategy_name=strategy_name
     )
-    data_series = optimal_data.get_optimal_position_as_df_for_instrument_strategy(
-        instrument_strategy
+    data_series: pd.DataFrame = (
+        optimal_data.get_optimal_position_as_df_for_instrument_strategy(
+            instrument_strategy
+        )
     )
+    pd.options.display.float_format = "{:,.4f}".format
+    data_series.drop(columns=["position_limit_contracts"], inplace=True)
+    print(data_series.columns)
     print(data_series)
-
+    print("\n")
     return None
 
 
@@ -500,7 +502,7 @@ def get_valid_code_from_list(code_list):
             return ans
 
 
-def actual_instrument_position(data):
+def actual_instrument_position(data: dataBlob):
     diag_positions = diagPositions(data)
 
     strategy_name_list = diag_positions.get_list_of_strategies_with_positions()
@@ -527,7 +529,7 @@ def actual_instrument_position(data):
     return None
 
 
-def actual_contract_position(data):
+def actual_contract_position(data: dataBlob):
     diag_positions = diagPositions(data)
 
     instrument_code_list = diag_positions.get_list_of_instruments_with_any_position()
@@ -551,7 +553,7 @@ def actual_contract_position(data):
     return None
 
 
-def list_of_instrument_orders(data):
+def list_of_instrument_orders(data: dataBlob):
     order_pd = get_order_pd(
         data,
         list_method="get_historic_instrument_order_ids_in_date_range",
@@ -580,7 +582,7 @@ def get_order_pd(
     return order_pd
 
 
-def list_of_contract_orders(data):
+def list_of_contract_orders(data: dataBlob):
     order_pd = get_order_pd(
         data,
         list_method="get_historic_contract_order_ids_in_date_range",
@@ -590,7 +592,7 @@ def list_of_contract_orders(data):
     return None
 
 
-def list_of_broker_orders(data):
+def list_of_broker_orders(data: dataBlob):
     order_pd = get_order_pd(
         data,
         list_method="get_historic_broker_order_ids_in_date_range",
@@ -600,7 +602,7 @@ def list_of_broker_orders(data):
     return None
 
 
-def view_individual_order(data):
+def view_individual_order(data: dataBlob):
     list_of_order_types = [
         "Instrument / Strategy",
         "Instrument / Contract",
@@ -630,18 +632,19 @@ def view_individual_order(data):
     return None
 
 
-def view_instrument_config(data):
+def view_instrument_config(data: dataBlob):
     instrument_code = get_valid_instrument_code_from_user(data)
     diag_instruments = diagInstruments(data)
     meta_data = diag_instruments.get_meta_data(instrument_code)
     print(meta_data)
     data_broker = dataBroker(data)
-    instrument_broker_data = data_broker.get_brokers_instrument_with_metadata(instrument_code)
+    instrument_broker_data = data_broker.get_brokers_instrument_with_metadata(
+        instrument_code
+    )
     print(instrument_broker_data)
 
 
-
-def view_contract_config(data):
+def view_contract_config(data: dataBlob):
     instrument_code, contract_id = get_valid_instrument_code_and_contractid_from_user(
         data
     )
@@ -669,16 +672,24 @@ def display_a_dict_of_trading_hours(all_trading_hours):
     ):
         print(
             "%s: %s"
-            % ("{:20}".format(key), nice_print_list_of_trading_hours(trading_hours_this_instrument)
-        )
+            % (
+                "{:20}".format(key),
+                nice_print_list_of_trading_hours(trading_hours_this_instrument),
+            )
         )
 
+
 MAX_WIDTH_OF_PRINTABLE_TRADING_HOURS = 3
+
+
 def nice_print_list_of_trading_hours(trading_hours: listOfOpeningTimes) -> str:
-    list_of_nice_str = [nice_print_trading_hours(trading_hour_entry)
-                        for trading_hour_entry in trading_hours[:MAX_WIDTH_OF_PRINTABLE_TRADING_HOURS]]
+    list_of_nice_str = [
+        nice_print_trading_hours(trading_hour_entry)
+        for trading_hour_entry in trading_hours[:MAX_WIDTH_OF_PRINTABLE_TRADING_HOURS]
+    ]
     nice_string = " ".join(list_of_nice_str)
     return nice_string
+
 
 def nice_print_trading_hours(trading_hour_entry: openingTimes) -> str:
     start_datetime = trading_hour_entry.opening_time
@@ -725,23 +736,27 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied):
     return all_trading_hours
 
 
-def check_trading_hours(trading_hours: listOfOpeningTimes,
-                        instrument_code: str):
+def check_trading_hours(trading_hours: listOfOpeningTimes, instrument_code: str):
     for trading_hours_this_instrument in trading_hours:
         check_trading_hours_one_day(trading_hours_this_instrument, instrument_code)
 
-def check_trading_hours_one_day(trading_hours_this_instrument: openingTimes,
-                        instrument_code: str):
-    if trading_hours_this_instrument.opening_time >= \
-            trading_hours_this_instrument.closing_time:
+
+def check_trading_hours_one_day(
+    trading_hours_this_instrument: openingTimes, instrument_code: str
+):
+    if (
+        trading_hours_this_instrument.opening_time
+        >= trading_hours_this_instrument.closing_time
+    ):
         print(
             "%s Trading hours appear to be wrong: %s"
             % (instrument_code, nice_print_trading_hours(trading_hours_this_instrument))
         )
 
 
-def get_trading_hours_for_instrument(data: dataBlob,
-                                     instrument_code: str) -> listOfOpeningTimes:
+def get_trading_hours_for_instrument(
+    data: dataBlob, instrument_code: str
+) -> listOfOpeningTimes:
 
     diag_contracts = dataContracts(data)
     contract_id = diag_contracts.get_priced_contract_id(instrument_code)
@@ -759,11 +774,9 @@ dict_of_functions = {
     2: backtest_plot,
     3: backtest_print,
     4: backtest_html,
-
     10: view_instrument_config,
     11: view_contract_config,
     12: print_trading_hours_for_all_instruments,
-
     20: retrieve_emails,
     21: view_errors,
     22: view_logs,
@@ -781,7 +794,6 @@ dict_of_functions = {
     54: list_of_contract_orders,
     55: list_of_broker_orders,
     56: view_individual_order,
-
     60: roll_report,
     61: pandl_report,
     62: status_report,
@@ -797,8 +809,7 @@ dict_of_functions = {
     72: duplicate_market_report,
     73: remove_markets_report,
     74: market_monitor_report,
-    75: account_curve_report
-
+    75: account_curve_report,
 }
 
 if __name__ == "__main__":
