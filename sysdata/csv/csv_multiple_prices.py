@@ -67,6 +67,10 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
         self, instrument_code: str, multiple_price_data: futuresMultiplePrices
     ):
 
+        column_order = "CARRY,CARRY_CONTRACT,PRICE,PRICE_CONTRACT,FORWARD,FORWARD_CONTRACT".split(
+            ","
+        )
+        multiple_price_data = multiple_price_data[column_order]
         filename = self._filename_given_instrument_code(instrument_code)
         multiple_price_data.to_csv(filename, index_label=DATE_INDEX_NAME)
 
