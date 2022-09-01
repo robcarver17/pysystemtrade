@@ -266,7 +266,7 @@ class futuresContractPriceData(baseData):
         :return: data
         """
 
-        if self.has_merged_price_data_for_contract(contract_object):
+        if self.has_price_data_for_contract_at_frequency(contract_object, frequency=frequency):
             return self._get_prices_at_frequency_for_contract_object_no_checking(contract_object, frequency=frequency)
         else:
             if return_empty:

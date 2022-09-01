@@ -229,7 +229,8 @@ def write_merged_prices_for_contract(data: dataBlob,
     price_updater = updatePrices(data)
 
     list_of_data = [diag_prices.get_prices_at_frequency_for_contract_object(contract_object,
-                                                                            frequency=frequency)
+                                                                            frequency=frequency,
+                                                                            )
                     for frequency in list_of_frequencies]
 
     merged_prices = merge_data_with_different_freq(list_of_data)
