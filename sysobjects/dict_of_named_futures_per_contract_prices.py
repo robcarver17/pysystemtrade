@@ -24,6 +24,7 @@ contract_column_names = dict(
 list_of_contract_column_names = list(contract_column_names.values())
 
 
+
 class dictNamedFuturesContractFinalPrices(dict):
     ## keys are PRICE, CARRY, FORWARD
     def __init__(self, entry_dict):
