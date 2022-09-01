@@ -30,6 +30,35 @@ def make_account_curve_plot(daily_pandl: pd.Series,
     curve_to_plot.cumsum().plot()
     title(full_title)
 
+def make_account_curve_plot_from_df(pandl_df: pd.DataFrame,
+                            start_of_title: str = "",
+                            start_date: datetime.datetime = arg_not_supplied,
+                            end_date: datetime.datetime = arg_not_supplied):
+
+    curve_to_plot = pandl_df.resample("1B").sum()
+    if start_date is not arg_not_supplied:
+        curve_to_plot = curve_to_plot[start_date:]
+    if end_date is not arg_not_supplied:
+        curve_to_plot = curve_to_plot[:end_date]
+
+    # FIXME WOULD BE MUCH NICER IF THIS WAS AN ACCOUNT CURVE OBJECT
+    # AND WASN'T DIFFERENT FROM THE ABOVE
+
+    avg_returns = curve_to_plot.mean()
+    std_returns = curve_to_plot.std()
+    ann_returns = BUSINESS_DAYS_IN_YEAR * avg_returns
+    ann_std = ROOT_BDAYS_INYEAR * std_returns
+    ann_sr = ann_returns / ann_std
+
+    full_title = "%s \n ann. mean %s \n ann. std %s \n ann. SR %s" % \
+                 (start_of_title,
+                  str(ann_returns.round(3).to_dict()),
+                  str(ann_std.round(3).to_dict()),
+                  str(ann_sr.round(2).to_dict()))
+    curve_to_plot.cumsum().plot()
+    title(full_title)
+
+
 
 def nice_format_min_capital_table(min_capital_pd: pd.DataFrame) -> pd.DataFrame:
     min_capital_pd.point_size_base = min_capital_pd.point_size_base.round(1)
