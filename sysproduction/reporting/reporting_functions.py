@@ -38,8 +38,8 @@ class ParsedReport(object):
     def pdf_filename(self) -> str:
         return self._pdf_filename
 
-def run_report(report_config:
-reportConfig, data: dataBlob = arg_not_supplied):
+def run_report(report_config: reportConfig,
+               data: dataBlob = arg_not_supplied):
     """
 
     :param report_config:
