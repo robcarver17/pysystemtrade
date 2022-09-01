@@ -431,14 +431,14 @@ class futuresContractPriceData(baseData):
         if not areyousure:
             raise Exception("You have to be sure to delete prices_for_contract_object!")
 
-        if self.has_merged_price_data_for_contract(futures_contract_object):
+        if self.has_price_data_for_contract_at_frequency(futures_contract_object, frequency=frequency):
             self._delete_prices_at_frequency_for_contract_object_with_no_checks_be_careful(
                 futures_contract_object=futures_contract_object,
                 frequency=frequency
             )
         else:
             log = futures_contract_object.log(self.log)
-            log.warn("Tried to delete non existent contract")
+            log.warn("Tried to delete non existent contract at frequency %s" % frequency)
 
 
     def delete_merged_prices_for_instrument_code(
