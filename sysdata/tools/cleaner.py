@@ -23,9 +23,6 @@ def apply_price_cleaning(data: dataBlob,
                          daily_data: bool = True
                          ):
 
-    if broker_prices_raw is missing_data:
-        return missing_data
-
     cleaning_config = get_config_for_price_filtering(data =data,
                                                      cleaning_config=cleaning_config)
 

@@ -123,6 +123,8 @@ class dataBroker(productionDataLayerGeneric):
                 self.get_prices_at_frequency_for_contract_object(contract_object=contract_object,
                                                          frequency = frequency)
         daily_data = frequency is DAILY_PRICE_FREQ
+        if broker_prices_raw is missing_data:
+            return missing_data
 
         broker_prices = apply_price_cleaning(data = self.data,
                                              daily_data=daily_data,
