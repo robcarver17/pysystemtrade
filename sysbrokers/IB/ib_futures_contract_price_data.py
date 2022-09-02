@@ -166,6 +166,24 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
     ) -> futuresContractPrices:
         raise Exception("Have to get prices from IB with specific frequency")
 
+
+    def get_prices_at_frequency_for_contract_object(self, contract_object: futuresContract, frequency: Frequency,
+                                                    return_empty: bool = True):
+
+        ## Override this because don't want to check for existing data first
+
+        prices =  self._get_prices_at_frequency_for_contract_object_no_checking(
+            futures_contract_object=contract_object,
+            frequency=frequency
+        )
+        if prices is missing_data:
+            if return_empty:
+                return futuresContractPrices.create_empty()
+            else:
+                return missing_data
+
+        return prices
+
     def _get_prices_at_frequency_for_contract_object_no_checking(self,
             futures_contract_object: futuresContract, frequency: Frequency) -> futuresContractPrices:
 
@@ -196,7 +214,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         )
         if contract_object_with_ib_broker_config is missing_contract:
             new_log.warn("Can't get data for %s" % str(futures_contract_object))
-            return failure
+            return missing_data
 
         price_data = self._get_prices_at_frequency_for_ibcontract_object_no_checking(
             contract_object_with_ib_broker_config,

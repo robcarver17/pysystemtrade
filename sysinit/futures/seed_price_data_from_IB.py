@@ -8,7 +8,7 @@ from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
 
-from syscore.objects import failure
+from syscore.objects import failure, missing_data
 
 
 def seed_price_data_from_IB(instrument_code):
@@ -38,7 +38,7 @@ def seed_price_data_for_contract(data: dataBlob, contract: futuresContract):
     prices = data.broker_futures_contract_price.get_prices_at_frequency_for_potentially_expired_contract_object(
         new_contract
     )
-    if prices is failure or len(prices) == 0:
+    if prices is missing_data or len(prices) == 0:
         print("No data!")
     else:
         ## If you want to modify this script so it updates existing prices
