@@ -2,8 +2,7 @@ from collections import namedtuple
 from copy import copy
 
 from syscore.interactive import get_field_names_for_named_tuple, true_if_answer_is_yes
-from syscore.objects import arg_not_supplied, failure
-from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
+from syscore.objects import arg_not_supplied, missing_data
 
 from sysdata.data_blob import dataBlob
 
@@ -24,8 +23,8 @@ def apply_price_cleaning(data: dataBlob,
                          daily_data: bool = True
                          ):
 
-    if broker_prices_raw is failure:
-        return failure
+    if broker_prices_raw is missing_dadta:
+        return missing_data
 
     cleaning_config = get_config_for_price_filtering(data =data,
                                                      cleaning_config=cleaning_config)
