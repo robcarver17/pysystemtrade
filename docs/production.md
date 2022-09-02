@@ -2306,6 +2306,11 @@ Called by: `run_backups`
 
 It copies backtest pickle and config files to the backup directory,  "offsystem_backup_directory", subdirectory /statefile
 
+**Important**: the backed up files will contain any data you have added to your private config, some of which may be 
+sensitive (e.g., IB account number, email address, email password). If you 
+choose to store these files with a cloud storage provider or backup service, you should consider encrypting them first
+(some services may do this for you, but many do not).
+
 ### Backup mongo dump
 
 
