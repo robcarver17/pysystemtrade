@@ -244,7 +244,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 "Something went wrong getting IB price data for %s"
                 % str(contract_object_with_ib_broker_config)
             )
-            return failure
+            return missing_data
 
         if len(price_data) == 0:
             new_log.warn(
