@@ -101,7 +101,7 @@ class dictOfPandlCalculatorsWithGenericCosts(dict):
 
 
 def sum_list_of_pandl_curves(list_of_pandl_curves: list):
-    df_of_pandl_curves = pd.concat(list_of_pandl_curves, axis=1)
+    df_of_pandl_curves = pd.concat(list_of_pandl_curves, axis=1, sort=True)
     summed_pandl_curve = df_of_pandl_curves.sum(axis=1)
 
     return summed_pandl_curve
