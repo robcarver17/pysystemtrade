@@ -601,18 +601,18 @@ def calculate_start_and_end_dates(
         end_date = get_date_from_period_and_end_date(end_period)
 
     ## DO THE START DATE NEXT
-    ## First preference is to use period, then calendar days, then passed date
+    ## First preference is to use period, then passed date, then calendar days
     if start_period is arg_not_supplied:
-        if calendar_days_back is arg_not_supplied:
+        if start_date is arg_not_supplied:
             ## no period or calendar days, use passed date
-            if start_date is arg_not_supplied:
+            if calendar_days_back is arg_not_supplied:
                 raise Exception("Have to specify one of calendar days back, start period or start date!")
             else:
-                ## Use passed start date
-                pass
+                ## Calendar days
+                start_date = n_days_ago(calendar_days_back, end_date)
         else:
-            ## Calendar days
-            start_date = n_days_ago(calendar_days_back, end_date)
+            ## Use passed start date
+            pass
     else:
         ## have a period
         start_date = get_date_from_period_and_end_date(start_period, end_date)
