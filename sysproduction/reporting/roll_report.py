@@ -1,3 +1,4 @@
+from typing import Optional
 from syscore.objects import body_text, ALL_ROLL_INSTRUMENTS
 
 # We want a roll report (We could merge this into another kind of report)
@@ -8,7 +9,7 @@ from syscore.objects import body_text, ALL_ROLL_INSTRUMENTS
 from sysproduction.reporting.api import reportingApi
 
 
-def roll_info(data, instrument_code=ALL_ROLL_INSTRUMENTS):
+def roll_info(data, instrument_code=ALL_ROLL_INSTRUMENTS, reporting_api: Optional[reportingApi]=None):
     """
     Get some roll info. For all markets which are:
 
@@ -25,7 +26,8 @@ def roll_info(data, instrument_code=ALL_ROLL_INSTRUMENTS):
     :param: data blob
     :return: list of pd.DataFrame
     """
-    reporting_api = reportingApi(data)
+    if reporting_api is None:
+        reporting_api = reportingApi(data)
 
     formatted_output = []
 
