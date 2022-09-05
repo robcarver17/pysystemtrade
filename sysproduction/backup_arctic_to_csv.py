@@ -352,9 +352,14 @@ def backup_contract_position_data(data):
                     contract
                 )
             )
-            data.csv_contract_position.write_position_df_for_contract(
-                contract, mongo_data
-            )
+            try:
+                data.csv_contract_position.write_position_df_for_contract(
+                    contract, mongo_data
+                )
+            except:
+                ## deals with weird corner case
+                print("Couldn't write %s to .csv" % str(mongo_data))
+                pass
             data.log.msg(
                 "Backed up %s %s contract position data" % (instrument_code, contract)
             )
