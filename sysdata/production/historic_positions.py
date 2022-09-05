@@ -414,6 +414,8 @@ class contractPositionData(listOfEntriesData):
     ) -> bool:
 
         df_positions = self.get_position_as_df_for_contract_object(contract)
+        if df_positions is missing_data:
+            return False
         any_positions = any_positions_since_start_date(
             df_positions, start_date, end_date
         )
