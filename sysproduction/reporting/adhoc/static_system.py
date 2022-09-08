@@ -1,5 +1,5 @@
 from systems.provided.rob_system.run_system import futures_system, System
-
+from copy import copy
 from systems.provided.static_small_system_optimise.optimise_small_system import find_best_ordered_set_of_instruments
 
 from sysproduction.reporting.reporting_functions import parse_report_results, output_file_report, header, body_text
@@ -11,7 +11,6 @@ from sysproduction.reporting.report_configs import reportConfig
 
 def static_system_adhoc_report(system_function,
                                list_of_capital_and_estimate_instrument_count_tuples: list):
-    system = system_function()
 
     data = dataBlob()
     report_config = reportConfig(
@@ -21,13 +20,22 @@ def static_system_adhoc_report(system_function,
     )
 
 
-
+    saved_system = None
     all_results = []
     all_results.append(header("Selected instruments using static selection for different levels of capital"))
     for capital, est_number_of_instruments in list_of_capital_and_estimate_instrument_count_tuples:
-        instrument_list = static_system_results_for_capital(system,
+        if saved_system is None:
+            ## use a blank system
+            system_to_use = system_function()
+        else:
+            system_to_use = copy(saved_system)
+
+        instrument_list = static_system_results_for_capital(system_to_use,
                                                             est_number_of_instruments=est_number_of_instruments,
                                                             capital=capital)
+
+        if saved_system is None:
+            saved_system = copy(system_to_use)
 
         text_to_output = body_text("For capital of %d, %d instruments, Selected order: %s" % (
             capital,
@@ -66,7 +74,7 @@ def static_system_results_for_capital(system: System,
 if __name__ == '__main__':
     list_of_capital_and_estimate_instrument_count_tuples = [
         [10000, 5],
-        [25000, 10],
+        [25000, 7],
         [50000, 14],
         [100000, 16],
         [250000, 22],

@@ -26,8 +26,15 @@ def costs_report(
 
     formatted_output.append(reporting_api.std_header("Costs report"))
     formatted_output.append(COSTS_REPORT_TEXT)
+
+    formatted_output.append(body_text("Costs *including* spreads and commissions"))
     formatted_output.append(reporting_api.table_of_sr_costs())
     formatted_output.append(body_text("* indicates currently held position"))
+
+    formatted_output.append(body_text("Costs *excluding* spreads, commission only"))
+    formatted_output.append(reporting_api.table_of_sr_costs(commission_only=True))
+    formatted_output.append(body_text("* indicates currently held position"))
+
     formatted_output.append(reporting_api.footer())
 
     return formatted_output

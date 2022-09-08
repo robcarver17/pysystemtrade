@@ -233,6 +233,17 @@ class instrumentCosts(object):
 
         return new_costs
 
+    def spread_only(self):
+        new_costs = instrumentCosts(
+            price_slippage = self.price_slippage,
+            value_of_block_commission= 0,
+            percentage_cost = 0,
+            value_of_pertrade_commission = 0
+        )
+
+        return new_costs
+
+
     @property
     def price_slippage(self):
         return self._price_slippage

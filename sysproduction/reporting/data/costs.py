@@ -1,10 +1,18 @@
+from copy import copy
 import datetime
 
 import numpy as np
 import pandas as pd
 
 from syscore.genutils import progressBar
+from syscore.objects import missing_data, missing_contract
+
 from sysdata.data_blob import dataBlob
+
+from sysobjects.contracts import futuresContract
+
+from sysproduction.data.broker import dataBroker
+from sysproduction.data.contracts import dataContracts
 from sysproduction.data.instruments import diagInstruments, get_block_size
 from sysproduction.data.prices import diagPrices, recent_average_price
 from sysproduction.reporting.data.trades import (
@@ -35,8 +43,14 @@ def get_configured_spread_cost_for_instrument(data, instrument_code):
     return meta_data.Slippage
 
 
-def get_SR_cost_calculation_for_instrument(data: dataBlob, instrument_code: str):
-    percentage_cost = get_percentage_cost_for_instrument(data, instrument_code)
+def get_SR_cost_calculation_for_instrument(data: dataBlob,
+                                           instrument_code: str,
+                                           include_commission: bool = True,
+                                           include_spread: bool = True):
+
+    percentage_cost = get_percentage_cost_for_instrument(data, instrument_code,
+                                                         include_spread=include_spread,
+                                                         include_commission=include_commission)
     avg_annual_vol_perc = get_percentage_ann_stdev(data, instrument_code)
 
     # cost per round trip
@@ -47,9 +61,20 @@ def get_SR_cost_calculation_for_instrument(data: dataBlob, instrument_code: str)
         SR_cost=SR_cost)
 
 
-def get_percentage_cost_for_instrument(data: dataBlob, instrument_code: str):
+def get_percentage_cost_for_instrument(data: dataBlob,
+                                       instrument_code: str,
+                                       include_spread: bool = True,
+                                       include_commission: bool = True):
     diag_instruments = diagInstruments(data)
     costs_object = diag_instruments.get_cost_object(instrument_code)
+    if not include_spread and not include_commission:
+        return 0
+    if not include_spread:
+        costs_object = costs_object.commission_only()
+
+    if not include_commission:
+        costs_object = costs_object.spread_only()
+
     blocks_traded = 1
     block_price_multiplier = get_block_size(data, instrument_code)
     price = recent_average_price(data, instrument_code)
@@ -71,6 +96,51 @@ def get_percentage_ann_stdev(data, instrument_code):
 
     return perc
 
+
+def adjust_df_costs_show_ticks(data: dataBlob,
+                               combined_df_costs: pd.DataFrame) -> pd.DataFrame:
+
+    tick_adjusted_df_costs = copy(combined_df_costs)
+    list_of_instrument_codes = list(tick_adjusted_df_costs.index)
+    series_of_tick_values = get_series_of_tick_values(data, list_of_instrument_codes)
+
+    to_divide = ['bid_ask_trades', 'total_trades', 'bid_ask_sampled',
+       'estimate', 'Configured',
+       ]
+    for col_name in to_divide:
+        tick_adjusted_df_costs[col_name] = tick_adjusted_df_costs[col_name] / series_of_tick_values
+
+    return tick_adjusted_df_costs
+
+def get_series_of_tick_values(data: dataBlob,
+                            list_of_instrument_codes: list) -> dict:
+
+    list_of_tick_values = [
+         get_tick_value_for_instrument_code(instrument_code=instrument_code,
+                                            data=data)
+        for instrument_code in list_of_instrument_codes
+    ]
+
+    series_of_ticks = pd.Series(list_of_tick_values,
+                                index = list_of_instrument_codes)
+
+    return series_of_ticks
+
+
+def get_tick_value_for_instrument_code(instrument_code: str,
+                                       data: dataBlob) -> float:
+    broker_data = dataBroker(data)
+    contract_data = dataContracts()
+    try:
+        futures_contract = contract_data.get_priced_contract_id(instrument_code)
+    except AttributeError:
+        return np.nan
+
+    tick_value = broker_data.broker_futures_contract_data.get_min_tick_size_for_contract(futures_contract)
+    if tick_value is missing_contract:
+        return np.nan
+
+    return tick_value
 
 def get_combined_df_of_costs(
     data: dataBlob, start_date: datetime.datetime, end_date: datetime.datetime
@@ -248,7 +318,10 @@ def get_average_half_spread_by_instrument_from_raw_slippage(
     return average_half_spread_by_code
 
 
-def get_table_of_SR_costs(data):
+def get_table_of_SR_costs(data,
+                          include_commission: bool = True,
+                          include_spread: bool = True
+                          ):
     diag_prices = diagPrices(data)
     list_of_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
 
@@ -256,7 +329,9 @@ def get_table_of_SR_costs(data):
     p = progressBar(len(list_of_instruments))
     SR_costs = {}
     for instrument_code in list_of_instruments:
-        SR_costs[instrument_code] = get_SR_cost_calculation_for_instrument(data, instrument_code)
+        SR_costs[instrument_code] = get_SR_cost_calculation_for_instrument(data, instrument_code,
+                                                                           include_spread=include_spread,
+                                                                           include_commission=include_commission)
         p.iterate()
 
     p.finished()
