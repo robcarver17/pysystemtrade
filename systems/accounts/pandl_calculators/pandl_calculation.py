@@ -58,16 +58,10 @@ class pandlCalculation(object):
 
         as_pd_series = self.as_pd_series(**kwargs)
 
-        cum_returns = as_pd_series.cumsum()
         resample_freq = from_config_frequency_pandas_resample(frequency)
-        cum_returns_at_frequency = cum_returns.resample(resample_freq).last()
+        pd_series_at_frequency = as_pd_series.resample(resample_freq).sum(min_count=1)
 
-        ffill_cum_returns_at_frequency = cum_returns_at_frequency.ffill()
-        returns_at_frequency = ffill_cum_returns_at_frequency.diff()
-
-        returns_at_frequency[cum_returns_at_frequency.isna()] = np.nan
-
-        return returns_at_frequency
+        return pd_series_at_frequency
 
     def as_pd_series(self, percent=False):
         if percent:
