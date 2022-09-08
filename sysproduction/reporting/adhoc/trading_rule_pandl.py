@@ -5,8 +5,8 @@ Ad-hoc reports do not fit into the normal report framework and may include much 
 """
 
 # include these lines if running line by line in IDE console mode, but don't work in a headless server
-import matplotlib
-matplotlib.use("TkAgg")
+#import matplotlib
+#matplotlib.use("TkAgg")
 
 import datetime
 import pandas as pd
