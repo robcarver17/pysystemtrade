@@ -6,7 +6,7 @@ from syscore.objects import header, table, arg_not_supplied, body_text
 from sysproduction.reporting.api import reportingApi
 
 SLIPPAGE_REPORT_TEXT = body_text(
-    "Slippage calculations: all figures are in price points, not ticks. First three columns are slippage (mid to executed price) from 3 sources:\n"+
+    "Slippage calculations: First table is in price points. Second table in ticks. First three columns are slippage (mid to executed price) from 3 sources:\n"+
     "- bid_ask_trades: The difference between the mid price and bid/ask price when a trade is entered\n"+
     "- total_trades: The difference between the mid price and actual fill price when a trade occurs\n"+
     "- bid_ask_sampled: The difference between mid and bid/ask when a regular sample is taken, not when trading\n"+
@@ -43,6 +43,8 @@ def slippage_report(
     formatted_output.append(reporting_api.std_header("Slippage report"))
     formatted_output.append(SLIPPAGE_REPORT_TEXT)
     formatted_output.append(reporting_api.table_of_slippage_comparison())
+    formatted_output.append(body_text("* indicates currently held position"))
+    formatted_output.append(reporting_api.table_of_slippage_comparison_tick_adjusted())
     formatted_output.append(body_text("* indicates currently held position"))
     formatted_output.append(reporting_api.footer())
 

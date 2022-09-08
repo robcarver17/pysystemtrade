@@ -29,7 +29,9 @@ def find_best_ordered_set_of_instruments(system,
 
     minimum_instrument_weight_idm = max_instrument_weight * notional_starting_IDM
 
-    best_market = find_best_market(system=system, minimum_instrument_weight_idm=minimum_instrument_weight_idm)
+    best_market = find_best_market(system=system,
+                                   list_of_instruments = list_of_instruments,
+                                   minimum_instrument_weight_idm=minimum_instrument_weight_idm)
     set_of_instruments_used = [best_market]
 
     unused_list_of_instruments = copy(list_of_instruments)
@@ -58,9 +60,8 @@ def find_best_ordered_set_of_instruments(system,
 
 
 def find_best_market(system,
+                     list_of_instruments: list,
                      minimum_instrument_weight_idm: float) -> str:
-
-    list_of_instruments = system.get_instrument_list()
 
     all_results = []
     for instrument_code in list_of_instruments:
