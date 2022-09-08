@@ -837,7 +837,7 @@ class reportingApi(object):
         return combined_df_costs_as_formatted_table
 
     def combined_df_costs(self):
-        return self.cache.get(get_combined_df_of_costs)
+        return self.cache.get(self._combined_df_costs)
 
     def _combined_df_costs(self):
         combined_df_costs = get_combined_df_of_costs(
