@@ -104,10 +104,6 @@ class pandlCalculationWithGenericCosts(pandlCalculation):
 
 
 def _add_gross_and_costs(gross: pd.Series, costs: pd.Series):
-    cumsum_costs = costs.cumsum()
-    cumsum_costs_aligned = cumsum_costs.reindex(gross.index, method="ffill")
-    costs_aligned = cumsum_costs_aligned.diff()
-
-    net = gross + costs_aligned
+    net = gross.add(costs, fill_value=0)
 
     return net
