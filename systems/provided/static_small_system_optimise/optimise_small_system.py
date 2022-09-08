@@ -6,13 +6,15 @@ from sysquant.optimisation.shared import neg_SR
 from syscore.dateutils import WEEKS_IN_YEAR
 
 ## THIS MIGHT NEED TWEAKING, DEPENDING ON CAPITAL
-max_instrument_weight = 0.05
-
-notional_starting_IDM = 1.0
-minimum_instrument_weight_idm = max_instrument_weight * notional_starting_IDM
 
 
-def find_best_ordered_set_of_instruments(system, capital=500000) -> list:
+
+
+
+def find_best_ordered_set_of_instruments(system,
+                                         max_instrument_weight = 0.05,
+                                            notional_starting_IDM = 1.0,
+                                         capital=500000) -> list:
 
     ## 'system' can be precalculated up to the combined forecast stage to save time
 
@@ -25,7 +27,9 @@ def find_best_ordered_set_of_instruments(system, capital=500000) -> list:
     list_of_correlations = system.portfolio.get_instrument_correlation_matrix()
     corr_matrix = list_of_correlations.corr_list[-1]
 
-    best_market = find_best_market(system=system)
+    minimum_instrument_weight_idm = max_instrument_weight * notional_starting_IDM
+
+    best_market = find_best_market(system=system, minimum_instrument_weight_idm=minimum_instrument_weight_idm)
     set_of_instruments_used = [best_market]
 
     unused_list_of_instruments = copy(list_of_instruments)
@@ -38,6 +42,7 @@ def find_best_ordered_set_of_instruments(system, capital=500000) -> list:
             unused_list_of_instruments=unused_list_of_instruments,
             set_of_instruments_used=set_of_instruments_used,
             corr_matrix=corr_matrix,
+            minimum_instrument_weight_idm = minimum_instrument_weight_idm
         )
         if (new_SR) < (max_SR * 0.9):
             print("PORTFOLIO TOO BIG! SR falling")
@@ -52,7 +57,8 @@ def find_best_ordered_set_of_instruments(system, capital=500000) -> list:
     return set_of_instruments_used
 
 
-def find_best_market(system) -> str:
+def find_best_market(system,
+                     minimum_instrument_weight_idm: float) -> str:
 
     list_of_instruments = system.get_instrument_list()
 
@@ -64,6 +70,7 @@ def find_best_market(system) -> str:
                 net_SR_for_instrument_in_system(
                     system,
                     instrument_code,
+                    minimum_instrument_weight_idm=minimum_instrument_weight_idm,
                     instrument_weight_idm=minimum_instrument_weight_idm,
                 ),
             )
@@ -81,13 +88,17 @@ def find_next_instrument(
     unused_list_of_instruments: list,
     set_of_instruments_used: list,
     corr_matrix: correlationEstimate,
+minimum_instrument_weight_idm: float
 ):
     SR_list = []
     for instrument_code in unused_list_of_instruments:
         instrument_list = set_of_instruments_used + [instrument_code]
 
         portfolio_sizes, SR_this_instrument = SR_for_instrument_list(
-            system, corr_matrix=corr_matrix, instrument_list=instrument_list
+            system,
+            corr_matrix=corr_matrix,
+            instrument_list=instrument_list,
+            minimum_instrument_weight_idm=minimum_instrument_weight_idm
         )
         SR_list.append((instrument_code, SR_this_instrument))
 
@@ -98,7 +109,7 @@ def find_next_instrument(
     return new_SR, selected_market
 
 
-def SR_for_instrument_list(system, corr_matrix, instrument_list):
+def SR_for_instrument_list(system, corr_matrix, instrument_list,minimum_instrument_weight_idm):
 
     estimates = build_estimates(
         instrument_list=instrument_list, corr_matrix=corr_matrix
@@ -111,6 +122,7 @@ def SR_for_instrument_list(system, corr_matrix, instrument_list):
         system=system,
         risk_weights=risk_weights,
         handcraft_portfolio=handcraft_portfolio,
+        minimum_instrument_weight_idm=minimum_instrument_weight_idm
     )
 
     portfolio_sizes = estimate_portfolio_sizes_given_weights(
@@ -143,12 +155,16 @@ def build_estimates(instrument_list, corr_matrix, notional_years_data=30):
 
 
 def estimate_SR_given_weights(
-    system, risk_weights, handcraft_portfolio: handcraftPortfolio
+    system, risk_weights, handcraft_portfolio: handcraftPortfolio,
+    minimum_instrument_weight_idm: float
 ):
     instrument_list = list(risk_weights.keys())
 
     mean_estimates = mean_estimates_from_SR_function_actual_weights(
-        system, risk_weights=risk_weights, handcraft_portfolio=handcraft_portfolio
+        system,
+        risk_weights=risk_weights,
+        handcraft_portfolio=handcraft_portfolio,
+        minimum_instrument_weight_idm=minimum_instrument_weight_idm
     )
 
     wt = np.array(risk_weights.as_list_given_keys(instrument_list))
@@ -161,7 +177,8 @@ def estimate_SR_given_weights(
 
 
 def mean_estimates_from_SR_function_actual_weights(
-    system, risk_weights, handcraft_portfolio: handcraftPortfolio
+    system, risk_weights, handcraft_portfolio: handcraftPortfolio,
+    minimum_instrument_weight_idm: float
 ):
     instrument_list = list(risk_weights.keys())
     actual_idm = min(2.5, handcraft_portfolio.div_mult(risk_weights))
@@ -175,6 +192,8 @@ def mean_estimates_from_SR_function_actual_weights(
                         instrument_code,
                         instrument_weight_idm=actual_idm
                         * risk_weights[instrument_code],
+                        minimum_instrument_weight_idm =
+                        minimum_instrument_weight_idm
                     ),
                 )
                 for instrument_code in instrument_list
@@ -214,7 +233,8 @@ def estimate_portfolio_sizes_given_weights(
 def net_SR_for_instrument_in_system(
     system,
     instrument_code,
-    instrument_weight_idm=0.25,
+    minimum_instrument_weight_idm: float,
+    instrument_weight_idm: float,
 ):
 
     if instrument_weight_idm == 0:
