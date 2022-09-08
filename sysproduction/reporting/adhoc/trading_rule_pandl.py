@@ -5,8 +5,8 @@ Ad-hoc reports do not fit into the normal report framework and may include much 
 """
 
 # include these lines if running line by line in IDE console mode, but don't work in a headless server
-#import matplotlib
-#matplotlib.use("TkAgg")
+import matplotlib
+matplotlib.use("TkAgg")
 
 import datetime
 import pandas as pd
@@ -17,12 +17,13 @@ from sysproduction.reporting.formatting import make_account_curve_plot_from_df
 from sysproduction.reporting.reporting_functions import parse_report_results, output_file_report, PdfOutputWithTempFileName
 from sysproduction.reporting.report_configs import reportConfig
 
+from systems.provided.rob_system.run_system import futures_system, System
+
 def trading_rule_pandl_adhoc_report(dict_of_rule_groups: dict,
-                                    source_strategy: str,
+                                    system_function,
                                     ):
 
     data = dataBlob()
-
     report_config = reportConfig(
         title="Trading rule p&l",
         function="not_used",
@@ -34,19 +35,20 @@ def trading_rule_pandl_adhoc_report(dict_of_rule_groups: dict,
 
     report_output = []
 
-    for period in list_of_periods:
-        try:
-            start_date, end_date = calculate_start_and_end_dates(start_period=period)
-            assert end_date>start_date
-        except:
-            continue
+    for rule_group in list_of_rule_groups:
+        system = system_function()
+        for period in list_of_periods:
+            try:
+                start_date, end_date = calculate_start_and_end_dates(start_period=period)
+                assert end_date>start_date
+            except:
+                continue
 
-        for rule_group in list_of_rule_groups:
             ## We reload to avoid memory blowing up
             figure_object = get_figure_for_rule_group(rule_group=rule_group,
                 dict_of_rule_groups=dict_of_rule_groups,
                 data=data,
-                source_strategy=source_strategy,
+                system = system,
                                                       start_date=start_date,
                                                       end_date=end_date)
 
@@ -60,17 +62,14 @@ def trading_rule_pandl_adhoc_report(dict_of_rule_groups: dict,
 
 def get_figure_for_rule_group(rule_group: str,
       data: dataBlob,
-      source_strategy: str,
+      system: System,
       dict_of_rule_groups: dict,
       start_date: datetime.datetime,
       end_date: datetime.datetime):
 
-    data_backtest = dataBacktest()
-
-    backtest = data_backtest.get_most_recent_backtest(source_strategy)
     rules = dict_of_rule_groups[rule_group]
     pandl_by_rule = dict([
-        (rule_name, backtest.system.accounts.pandl_for_trading_rule(rule_name).percent.as_ts)
+        (rule_name, system.accounts.pandl_for_trading_rule(rule_name).percent.as_ts)
         for rule_name in rules
     ])
     concat_pd_by_rule = pd.concat(pandl_by_rule, axis=1)
@@ -100,6 +99,6 @@ if __name__ == '__main__':
                      skew = ['skewabs180', 'skewabs365', 'skewrv180', 'skewrv365'],
                         misc_mr = ['mrinasset160', 'mrwrings4'])
 
-    source_strategy = 'dynamic_TF_carry'
-    trading_rule_pandl_adhoc_report(source_strategy=source_strategy,
+
+    trading_rule_pandl_adhoc_report(system_function=futures_system,
                                     dict_of_rule_groups=dict_of_rule_groups)
