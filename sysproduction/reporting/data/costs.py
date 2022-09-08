@@ -35,8 +35,14 @@ def get_configured_spread_cost_for_instrument(data, instrument_code):
     return meta_data.Slippage
 
 
-def get_SR_cost_calculation_for_instrument(data: dataBlob, instrument_code: str):
-    percentage_cost = get_percentage_cost_for_instrument(data, instrument_code)
+def get_SR_cost_calculation_for_instrument(data: dataBlob,
+                                           instrument_code: str,
+                                           include_commission: bool = True,
+                                           include_spread: bool = True):
+
+    percentage_cost = get_percentage_cost_for_instrument(data, instrument_code,
+                                                         include_spread=include_spread,
+                                                         include_commission=include_commission)
     avg_annual_vol_perc = get_percentage_ann_stdev(data, instrument_code)
 
     # cost per round trip
@@ -47,9 +53,20 @@ def get_SR_cost_calculation_for_instrument(data: dataBlob, instrument_code: str)
         SR_cost=SR_cost)
 
 
-def get_percentage_cost_for_instrument(data: dataBlob, instrument_code: str):
+def get_percentage_cost_for_instrument(data: dataBlob,
+                                       instrument_code: str,
+                                       include_spread: bool = True,
+                                       include_commission: bool = True):
     diag_instruments = diagInstruments(data)
     costs_object = diag_instruments.get_cost_object(instrument_code)
+    if not include_spread and not include_commission:
+        return 0
+    if not include_spread:
+        costs_object = costs_object.commission_only()
+
+    if not include_commission:
+        costs_object = costs_object.spread_only()
+
     blocks_traded = 1
     block_price_multiplier = get_block_size(data, instrument_code)
     price = recent_average_price(data, instrument_code)
@@ -248,7 +265,10 @@ def get_average_half_spread_by_instrument_from_raw_slippage(
     return average_half_spread_by_code
 
 
-def get_table_of_SR_costs(data):
+def get_table_of_SR_costs(data,
+                          include_commission: bool = True,
+                          include_spread: bool = True
+                          ):
     diag_prices = diagPrices(data)
     list_of_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
 
@@ -256,7 +276,9 @@ def get_table_of_SR_costs(data):
     p = progressBar(len(list_of_instruments))
     SR_costs = {}
     for instrument_code in list_of_instruments:
-        SR_costs[instrument_code] = get_SR_cost_calculation_for_instrument(data, instrument_code)
+        SR_costs[instrument_code] = get_SR_cost_calculation_for_instrument(data, instrument_code,
+                                                                           include_spread=include_spread,
+                                                                           include_commission=include_commission)
         p.iterate()
 
     p.finished()

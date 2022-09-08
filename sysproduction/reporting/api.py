@@ -815,8 +815,13 @@ class reportingApi(object):
         return get_liquidity_report_data(self.data)
 
     ##### COSTS ######
-    def table_of_sr_costs(self):
-        SR_costs = self.SR_costs()
+    def table_of_sr_costs(self,
+                          commission_only = False):
+        if commission_only:
+            SR_costs = self.SR_costs_commission_only()
+        else:
+            SR_costs = self.SR_costs()
+
         SR_costs = SR_costs.round(5)
         SR_costs = annonate_df_index_with_positions_held(data=self.data, pd_df=SR_costs)
         formatted_table = table(
@@ -825,8 +830,27 @@ class reportingApi(object):
 
         return formatted_table
 
-    def SR_costs(self) -> pd.DataFrame:
-        SR_costs = get_table_of_SR_costs(self.data)
+    def SR_costs(self
+                 ) -> pd.DataFrame:
+        return self.cache.get(self._SR_costs,
+                              include_spread=True,
+                              include_commission=True)
+
+    def SR_costs_commission_only(self
+                 ) -> pd.DataFrame:
+        return self.cache.get(self._SR_costs,
+                              include_spread=False,
+                              include_commission=True)
+
+
+    def _SR_costs(self,
+                  include_commission: bool = True,
+                  include_spread: bool = True
+                  ) -> pd.DataFrame:
+
+        SR_costs = get_table_of_SR_costs(self.data,
+                                         include_commission=include_commission,
+                                         include_spread=include_spread)
 
         return SR_costs
 
