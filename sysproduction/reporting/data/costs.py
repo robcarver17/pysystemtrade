@@ -132,9 +132,11 @@ def get_tick_value_for_instrument_code(instrument_code: str,
     broker_data = dataBroker(data)
     contract_data = dataContracts()
     try:
-        futures_contract = contract_data.get_priced_contract_id(instrument_code)
+        contract_id = contract_data.get_priced_contract_id(instrument_code)
     except AttributeError:
         return np.nan
+
+    futures_contract= futuresContract(instrument_code, contract_id)
 
     tick_value = broker_data.broker_futures_contract_data.get_min_tick_size_for_contract(futures_contract)
     if tick_value is missing_contract:
