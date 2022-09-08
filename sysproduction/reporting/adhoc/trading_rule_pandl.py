@@ -11,7 +11,7 @@ Ad-hoc reports do not fit into the normal report framework and may include much 
 import datetime
 import pandas as pd
 from sysproduction.data.backtest import dataBacktest
-from syscore.dateutils import calculate_start_and_end_dates
+from syscore.dateutils import get_date_from_period_and_end_date
 from sysdata.data_blob import dataBlob
 from sysproduction.reporting.formatting import make_account_curve_plot_from_df
 from sysproduction.reporting.reporting_functions import parse_report_results, output_file_report, PdfOutputWithTempFileName
@@ -30,19 +30,21 @@ def trading_rule_pandl_adhoc_report(dict_of_rule_groups: dict,
         output="file"
     )
 
-    list_of_periods = ['YTD', '12M', '3Y', '5Y', '10Y','99Y']
+    list_of_periods = ['YTD', '1Y', '3Y',  '10Y','99Y']
     list_of_rule_groups = list(dict_of_rule_groups.keys())
 
     report_output = []
 
     for rule_group in list_of_rule_groups:
         system = system_function()
+        system.get_instrument_list(        remove_duplicates=True,
+                remove_ignored=True,
+                remove_trading_restrictions=True,
+                remove_bad_markets=True,
+        )
+
         for period in list_of_periods:
-            try:
-                start_date, end_date = calculate_start_and_end_dates(start_period=period)
-                assert end_date>start_date
-            except:
-                continue
+            start_date = get_date_from_period_and_end_date(period)
 
             ## We reload to avoid memory blowing up
             figure_object = get_figure_for_rule_group(rule_group=rule_group,
@@ -50,7 +52,7 @@ def trading_rule_pandl_adhoc_report(dict_of_rule_groups: dict,
                 data=data,
                 system = system,
                                                       start_date=start_date,
-                                                      end_date=end_date)
+                                                      )
 
             report_output.append(figure_object)
 
@@ -64,8 +66,7 @@ def get_figure_for_rule_group(rule_group: str,
       data: dataBlob,
       system: System,
       dict_of_rule_groups: dict,
-      start_date: datetime.datetime,
-      end_date: datetime.datetime):
+      start_date: datetime.datetime):
 
     rules = dict_of_rule_groups[rule_group]
     pandl_by_rule = dict([
@@ -78,8 +79,7 @@ def get_figure_for_rule_group(rule_group: str,
     pdf_output = PdfOutputWithTempFileName(data)
     make_account_curve_plot_from_df(concat_pd_by_rule,
                                     start_of_title="Total p&l",
-                                    start_date=start_date,
-                                    end_date=end_date)
+                                    start_date=start_date)
 
     figure_object = pdf_output.save_chart_close_and_return_figure()
 
