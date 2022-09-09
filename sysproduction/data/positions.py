@@ -1,3 +1,4 @@
+from typing import List, Dict
 from copy import copy
 import pandas as pd
 import datetime
@@ -119,7 +120,9 @@ class diagPositions(productionDataLayerGeneric):
 
         return roll_state
 
-    def get_dict_of_actual_positions_for_strategy(self, strategy_name: str) -> dict:
+    def get_dict_of_actual_positions_for_strategy(
+        self, strategy_name: str
+    ) -> Dict[str, int]:
         list_of_instruments = self.get_list_of_instruments_for_strategy_with_position(
             strategy_name
         )
@@ -203,7 +206,7 @@ class diagPositions(productionDataLayerGeneric):
 
     def get_list_of_instruments_for_strategy_with_position(
         self, strategy_name: str, ignore_zero_positions=True
-    ) -> list:
+    ) -> List[str]:
 
         instrument_list = self.db_strategy_position_data.get_list_of_instruments_for_strategy_with_position(
             strategy_name, ignore_zero_positions=ignore_zero_positions
@@ -590,7 +593,7 @@ def annonate_df_index_with_positions_held(data: dataBlob, pd_df: pd.DataFrame):
     return pd_df
 
 
-def get_list_of_instruments_with_current_positions(data):
+def get_list_of_instruments_with_current_positions(data: dataBlob) -> List[str]:
     diag_positions = diagPositions(data)
     all_contract_positions = diag_positions.get_all_current_contract_positions()
 

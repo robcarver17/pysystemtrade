@@ -36,6 +36,8 @@ def trading_rule_pandl_adhoc_report(dict_of_rule_groups: dict,
     report_output = []
 
     for rule_group in list_of_rule_groups:
+        ## We reload to avoid memory blowing up
+
         system = system_function()
         system.get_instrument_list(        remove_duplicates=True,
                 remove_ignored=True,
@@ -46,7 +48,6 @@ def trading_rule_pandl_adhoc_report(dict_of_rule_groups: dict,
         for period in list_of_periods:
             start_date = get_date_from_period_and_end_date(period)
 
-            ## We reload to avoid memory blowing up
             figure_object = get_figure_for_rule_group(rule_group=rule_group,
                 dict_of_rule_groups=dict_of_rule_groups,
                 data=data,
