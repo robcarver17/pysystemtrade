@@ -26,7 +26,7 @@ def instrument_list_report():
     diag_instruments = diagInstruments(data)
     list_of_instruments = diag_instruments.get_list_of_instruments()
 
-    p = progressBar()
+    p = progressBar(len(list_of_instruments))
     list_of_results = []
     for instrument_code in list_of_instruments:
         row_for_instrument = instrument_results_as_pd_df_row(data =data,
