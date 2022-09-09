@@ -11,7 +11,8 @@ from syscore.objects import missing_order
 from syscore.interactive import (
     get_and_convert,
     run_interactive_menu,
-    print_menu_of_values_and_get_response, get_datetime_input,
+    print_menu_of_values_and_get_response,
+    get_datetime_input,
 )
 from syscore.pdutils import set_pd_print_options
 
@@ -42,10 +43,12 @@ from sysexecution.orders.instrument_orders import (
     balance_order_type as instrument_balance_order_type,
 )
 from sysexecution.algos.allocate_algo_to_order import list_of_algos
+from sysbrokers.IB.ib_connection import connectionIB
+from syscore.objects import arg_not_supplied
 
 
-def interactive_order_stack():
-    with dataBlob(log_name="Interactive-Order-Stack") as data:
+def interactive_order_stack(ib_conn: connectionIB = arg_not_supplied):
+    with dataBlob(log_name="Interactive-Order-Stack", ib_conn=ib_conn) as data:
 
         menu = run_interactive_menu(
             top_level_menu_of_options,
@@ -896,5 +899,5 @@ dict_of_functions = {
 }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     interactive_order_stack()
