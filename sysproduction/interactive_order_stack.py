@@ -203,6 +203,9 @@ def create_balance_trade(data):
         data
     )
     fill_qty = get_and_convert("Quantity ", type_expected=int, allow_default=False)
+
+
+
     filled_price = get_and_convert(
         "Filled price", type_expected=float, allow_default=False
     )
