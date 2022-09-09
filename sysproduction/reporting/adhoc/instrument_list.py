@@ -40,10 +40,11 @@ def instrument_list_report():
     report_results.append(header("List of instruments with configuration"))
     report_results.append(table("Columns are ", results_as_df))
 
+    pandas_display_for_reports()
+
     parsed_report_results = parse_report_results(data,
                                           report_results=report_results)
 
-    pandas_display_for_reports()
     output_file_report(parsed_report=parsed_report_results,
                        data=data, report_config=report_config)
 
