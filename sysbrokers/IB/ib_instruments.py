@@ -60,6 +60,8 @@ class futuresInstrumentWithIBConfigData(object):
     def broker_symbol(self):
         return self.ib_data.symbol
 
+    @property
+    ## FIXME make it look like a standard instrument, but we don't officially inherit... not sure why?
     def meta_data(self):
         return self.ib_data
 
