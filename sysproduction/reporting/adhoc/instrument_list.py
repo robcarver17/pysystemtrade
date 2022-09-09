@@ -32,6 +32,7 @@ def instrument_list_report():
         row_for_instrument = instrument_results_as_pd_df_row(data =data,
                                                              instrument_code=instrument_code)
         list_of_results.append(row_for_instrument)
+        p.iterate()
 
     results_as_df = pd.concat(list_of_results, axis=0)
 
