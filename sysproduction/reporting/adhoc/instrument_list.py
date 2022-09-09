@@ -1,6 +1,8 @@
 import pandas as pd
 from copy import copy
 
+from syscore.genutils import progressBar
+
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.reporting.reporting_functions import parse_report_results, output_file_report, header, body_text, table
@@ -24,6 +26,7 @@ def instrument_list_report():
     diag_instruments = diagInstruments(data)
     list_of_instruments = diag_instruments.get_list_of_instruments()
 
+    p = progressBar()
     list_of_results = []
     for instrument_code in list_of_instruments:
         row_for_instrument = instrument_results_as_pd_df_row(data =data,
