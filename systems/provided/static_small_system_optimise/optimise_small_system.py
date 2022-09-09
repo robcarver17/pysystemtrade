@@ -16,7 +16,7 @@ from sysquant.optimisation.shared import neg_SR
 
 
 def find_best_ordered_set_of_instruments(system,
-                                        corr_matrix = arg_not_supplied,
+                                        corr_matrix: correlationEstimate = arg_not_supplied,
                                          max_instrument_weight = 0.05,
                                             notional_starting_IDM = 1.0,
                                          capital=500000) -> list:
@@ -63,8 +63,8 @@ def find_best_ordered_set_of_instruments(system,
 
     return set_of_instruments_used
 
-def get_correlation_matrix(system):
-    list_of_instruments = system.portfolio.get_instrument_list(
+def get_correlation_matrix(system) -> correlationEstimate:
+    system.portfolio.get_instrument_list(
         for_instrument_weights=True, auto_remove_bad_instruments=True
     )
     list_of_correlations = system.portfolio.get_instrument_correlation_matrix()
