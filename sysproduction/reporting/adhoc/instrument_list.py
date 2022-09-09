@@ -5,7 +5,7 @@ from syscore.genutils import progressBar
 
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.instruments import diagInstruments
-from sysproduction.reporting.reporting_functions import parse_report_results, output_file_report, header, body_text, table
+from sysproduction.reporting.reporting_functions import parse_report_results, output_file_report, header, body_text, table, pandas_display_for_reports
 from sysproduction.reporting.report_configs import reportConfig
 from sysproduction.reporting.data.costs import get_tick_value_for_instrument_code
 
@@ -43,6 +43,7 @@ def instrument_list_report():
     parsed_report_results = parse_report_results(data,
                                           report_results=report_results)
 
+    pandas_display_for_reports()
     output_file_report(parsed_report=parsed_report_results,
                        data=data, report_config=report_config)
 
