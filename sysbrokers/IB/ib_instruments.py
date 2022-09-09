@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from ib_insync import Future
 
-from sysobjects.instruments import futuresInstrument
+from sysobjects.instruments import futuresInstrument, futuresInstrumentWithMetaData
 
 
 def ib_futures_instrument_just_symbol(symbol):
@@ -35,6 +35,17 @@ class ibInstrumentConfigData:
                self.ignoreWeekly,
                self.effective_multiplier)
 
+    def as_dict(self):
+        return dict(
+            symbol = self.symbol,
+        exchange = self.exchange,
+        currency = self.currency,
+        ibMultiplier= self.ibMultiplier,
+        priceMagnifier = self.priceMagnifier,
+        ignoreWeekly = self.ignoreWeekly,
+        effective_multiplier = self.effective_multiplier
+
+        )
 
 @dataclass
 class futuresInstrumentWithIBConfigData(object):
@@ -49,6 +60,8 @@ class futuresInstrumentWithIBConfigData(object):
     def broker_symbol(self):
         return self.ib_data.symbol
 
+    def meta_data(self):
+        return self.ib_data
 
 def ib_futures_instrument(
     futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
