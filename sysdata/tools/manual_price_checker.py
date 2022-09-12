@@ -10,6 +10,7 @@ from syscore.merge_data import (
 
 NO_SPIKE_CHECKING = 9999999999.0
 
+
 def manual_price_checker(
     old_data_passed,
     new_data_passed,
@@ -18,8 +19,7 @@ def manual_price_checker(
     delta_columns=arg_not_supplied,
     type_new_data=pd.DataFrame,
     only_add_rows=True,
-    keep_older: bool = True
-
+    keep_older: bool = True,
 ):
     """
     Allows a user to manually merge old and new data, checking any usually large changes and overwriting
@@ -64,7 +64,7 @@ def manual_price_checker(
         merged_data_with_status = spike_check_merged_data(
             merged_data_with_status,
             column_to_check=column_to_check,
-            max_spike=max_price_spike
+            max_spike=max_price_spike,
         )
         spike_present = merged_data_with_status.spike_present
 
@@ -210,7 +210,7 @@ def _get_new_value(original_value, previous_value, col_date_str="", total_msg_st
             except ValueError:
                 # Not a valid float
                 waiting_for_valid_input = True
-                print("\n %s is not a valid input \n" % str(value_to_use))
+                print("\n %s is not a valid input \n" % str(result))
 
     return value_to_use, adjust_old_and_new_data
 
