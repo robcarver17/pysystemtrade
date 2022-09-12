@@ -9,6 +9,7 @@ from sysproduction.data.risk import get_correlation_matrix_for_instrument_return
     get_annualised_stdev_perc_of_instruments, get_current_annualised_perc_stdev_for_instrument, \
     get_current_daily_perc_stdev_for_instrument, get_daily_ts_stdev_of_prices, get_exposure_per_contract_base_currency, \
     get_base_currency_point_size_per_contract
+from sysproduction.data.instruments import diagInstruments
 from sysproduction.reporting.data.constants import RISK_TARGET_ASSUMED, INSTRUMENT_WEIGHT_ASSUMED, IDM_ASSUMED, \
     MIN_CONTRACTS_HELD
 
@@ -17,6 +18,7 @@ from sysquant.estimators.covariance import (
 )
 from sysquant.estimators.correlations import correlationEstimate
 from sysquant.estimators.clustering_correlations import assets_in_cluster_order
+from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights
 
 from sysproduction.data.capital import dataCapital, dataMargin, capital_for_strategy
@@ -167,17 +169,116 @@ def get_risk_data_for_instrument(data, instrument_code):
     )
 
 
-def get_portfolio_risk_for_all_strategies(data):
-    ## TOTAL PORTFOLIO RISK
-    weights = get_perc_of_capital_position_size_all_strategies(data)
-    instrument_list = list(weights.keys())
-    cmatrix = get_correlation_matrix_for_instrument_returns(data, instrument_list)
-    std_dev = get_annualised_stdev_perc_of_instruments(data, instrument_list)
+class portfolioRisks(object):
+    def __init__(self, data):
+        self._data = data
 
-    risk = get_annualised_risk(std_dev, cmatrix, weights)
+    def get_portfolio_risk_for_all_strategies(self) -> float:
+        ## TOTAL PORTFOLIO RISK
+        weights = self.weights
+        cmatrix = self.correlation_matrix
+        std_dev = self.stdev
+
+        risk = get_annualised_risk(std_dev, cmatrix, weights)
+
+        return risk
+
+    def get_pd_series_of_risk_by_asset_class(self) -> pd.Series:
+        asset_classes = self.dict_of_asset_classes_for_instruments
+        weights = self.weights
+        cmatrix = self.correlation_matrix
+        std_dev = self.stdev
+
+        risk_pd_series = get_pd_series_of_risk_by_asset_class(asset_classes=asset_classes,
+                                                              weights=weights,
+                                                              cmatrix=cmatrix,
+                                                              stdev=std_dev)
+
+        return risk_pd_series
+
+    @property
+    def dict_of_asset_classes_for_instruments(self) -> dict:
+        asset_classes = get_dict_of_asset_classes_for_instrument_list(self.data, self.instrument_list)
+        return asset_classes
+
+    @property
+    def correlation_matrix(self) -> correlationEstimate:
+        instrument_list = self.instrument_list
+        cmatrix = get_correlation_matrix_for_instrument_returns(self.data,
+                                                                instrument_list)
+
+        return cmatrix
+
+    @property
+    def stdev(self) -> stdevEstimates:
+        stdev = get_annualised_stdev_perc_of_instruments(self.data,
+                                                         self.instrument_list)
+        return stdev
+
+    @property
+    def instrument_list(self):
+        instrument_list = list(self.weights.keys())
+        return instrument_list
+
+    @property
+    def weights(self) -> portfolioWeights:
+        weights = get_perc_of_capital_position_size_all_strategies(self.data)
+        return weights
+
+    @property
+    def data(self):
+        return self._data
+
+def get_pd_series_of_risk_by_asset_class(asset_classes: dict,
+                                         weights: portfolioWeights,
+                                         cmatrix: correlationEstimate,
+                                         stdev: stdevEstimates) -> pd.Series:
+
+    unique_asset_classes = list(set(list(asset_classes.values())))
+    unique_asset_classes.sort()
+
+    list_of_risks = [get_risk_for_asset_class(asset_class,
+                                              asset_classes=asset_classes,
+                                              weights=weights,
+                                              cmatrix=cmatrix,
+                                              stdev=stdev)
+
+                     for asset_class in unique_asset_classes]
+
+    risk_as_series = pd.Series(list_of_risks,
+                               index = unique_asset_classes)
+
+    return risk_as_series
+
+def get_risk_for_asset_class(asset_class: str,
+        asset_classes: dict,
+                                         weights: portfolioWeights,
+                                         cmatrix: correlationEstimate,
+                                         stdev: stdevEstimates) -> float:
+
+    instruments_in_asset_class = [instrument_code for
+                                  instrument_code, instrument_asset_class
+                                  in asset_classes.items()
+                                  if instrument_asset_class == asset_class]
+    asset_class_weights = weights.subset(instruments_in_asset_class)
+    asset_class_cmatrix = cmatrix.subset(instruments_in_asset_class)
+    asset_class_stdev = stdev.subset(instruments_in_asset_class)
+
+    risk = get_annualised_risk(std_dev=asset_class_stdev,
+                               cmatrix=asset_class_cmatrix,
+                               weights=asset_class_weights)
 
     return risk
 
+def get_dict_of_asset_classes_for_instrument_list(data,
+                                                  instrument_list: str) -> dict:
+
+    diag_instruments = diagInstruments(data)
+    asset_classes = dict(
+        [(instrument_code, diag_instruments.get_asset_class(instrument_code))
+                    for instrument_code in instrument_list])
+
+    return asset_classes
 
 def get_perc_of_capital_position_size_all_strategies(data) -> portfolioWeights:
 

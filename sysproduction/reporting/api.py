@@ -62,7 +62,7 @@ from sysproduction.reporting.data.risk import (
     get_correlation_matrix_all_instruments,
     cluster_correlation_matrix,
     get_instrument_risk_table,
-    get_portfolio_risk_for_all_strategies,
+    portfolioRisks,
     get_portfolio_risk_across_strategies,
     get_margin_usage,
     minimum_capital_table
@@ -625,7 +625,8 @@ class reportingApi(object):
         return instrument_risk_sorted_table
 
     def body_text_portfolio_risk_total(self):
-        portfolio_risk_total = get_portfolio_risk_for_all_strategies(self.data)
+        portfolio_risk_object = self.portfolio_risks
+        portfolio_risk_total = portfolio_risk_object.get_portfolio_risk_for_all_strategies()
         portfolio_risk_total = portfolio_risk_total * 100.0
         portfolio_risk_total = portfolio_risk_total.round(1)
         portfolio_risk_total_text = body_text(
@@ -634,6 +635,24 @@ class reportingApi(object):
         )
 
         return portfolio_risk_total_text
+
+    def table_of_risk_by_asset_class(self) -> table:
+        portfolio_risk_object = self.portfolio_risks
+        risk_by_asset_class = portfolio_risk_object.get_pd_series_of_risk_by_asset_class()
+        risk_by_asset_class = risk_by_asset_class*100
+        risk_by_asset_class = risk_by_asset_class.round(1)
+        risk_by_asset_class_table = table("Risk by asset class",
+                                             risk_by_asset_class)
+
+        return risk_by_asset_class_table
+
+
+    @property
+    def portfolio_risks(self) -> portfolioRisks:
+        return self.cache.get(self._portfolio_risks)
+
+    def _portfolio_risks(self) -> portfolioRisks:
+        return portfolioRisks(data = self.data)
 
     def body_text_abs_total_all_risk_perc_capital(self):
         instrument_risk_data = self.instrument_risk_data()
