@@ -253,7 +253,8 @@ def create_balance_trade(data):
 
 def default_price_for_contract(data: dataBlob, futures_contract: futuresContract):
     diag_prices = diagPrices(data)
-    default_price = diag_prices.get_merged_prices_for_contract_object(futures_contract)
+    default_prices = diag_prices.get_merged_prices_for_contract_object(futures_contract)
+    default_price = default_prices.return_final_prices().values[-1]
 
     return default_price
 
