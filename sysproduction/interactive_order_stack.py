@@ -48,7 +48,12 @@ from syscore.objects import arg_not_supplied
 
 from sysobjects.contracts import futuresContract
 
-def interactive_order_stack(ib_conn: connectionIB = arg_not_supplied):
+def interactive_order_stack():
+    # Avoids pressing enter when running from script
+    ib_conn = arg_not_supplied
+    interactive_order_stack_with_ib_conn(ib_conn)
+
+def interactive_order_stack_with_ib_conn(ib_conn: connectionIB = arg_not_supplied):
     with dataBlob(log_name="Interactive-Order-Stack", ib_conn=ib_conn) as data:
 
         menu = run_interactive_menu(
