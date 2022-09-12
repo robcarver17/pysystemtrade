@@ -57,10 +57,10 @@ def instrument_results_as_pd_df_row(data: dataBlob, instrument_code:str ):
 
     meta_data_as_dict =meta_data.as_dict()
     broker_data_as_dict = instrument_broker_data.meta_data.as_dict()
-    broker_data_as_dict = dict([("Broker_%s" % key, value)
+    relabelled_broker_data_as_dict = dict([("Broker_%s" % key, value)
                                 for key,value in broker_data_as_dict.items()])
 
-    merged_data = {**meta_data_as_dict, **broker_data_as_dict}
+    merged_data = {**meta_data_as_dict, **relabelled_broker_data_as_dict}
     merged_data['tick_value'] = tick_value
 
     merged_data_as_pd = pd.DataFrame(merged_data, index=[instrument_code])
