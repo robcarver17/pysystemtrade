@@ -944,10 +944,9 @@ class reportingApi(object):
 
     def table_of_cash_slippage(self):
         cash_slippage = self.cash_slippage
-        cash_slippage = cash_slippage.round(2)
         if len(cash_slippage) == 0:
             return body_text("No trades")
-
+        cash_slippage = cash_slippage.round(2)
         table_slippage = table("Slippage (In base currency)", cash_slippage)
 
         return table_slippage

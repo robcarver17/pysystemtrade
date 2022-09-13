@@ -9,7 +9,7 @@ from syscore.pdutils import get_row_of_df_aligned_to_weights_as_dict
 
 from sysquant.estimators.estimates import Estimates
 from sysquant.estimators.correlation_estimator import correlationEstimate
-
+from sysquant.estimators.stdev_estimator import stdevEstimates
 
 class portfolioWeights(dict):
     @classmethod
@@ -72,6 +72,15 @@ class portfolioWeights(dict):
 
     def as_list_given_keys(self, list_of_keys: list):
         return [self[key] for key in list_of_keys]
+
+    def product_with_stdev(self, stdev: stdevEstimates):
+        stdev_align_list = stdev.list_in_key_order(self.assets)
+        self_align_list = self.as_list()
+
+        product = list(np.array(stdev_align_list) * np.array(self_align_list))
+
+        return self.from_weights_and_keys(list_of_weights=product,
+                                          list_of_keys=self.assets)
 
     @classmethod
     def from_list_of_subportfolios(portfolioWeights, list_of_portfolio_weights):
