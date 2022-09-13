@@ -56,6 +56,15 @@ def get_figures_for_DO(data: dataBlob,
     df_results = get_data_for_scatter_plot(data, strategy_name)
     all_results = []
 
+    pd_df_of_betas_to_plot = get_pd_df_of_betas_to_plot(data,
+                                                        strategy_name=strategy_name)
+
+    pdf_output = PdfOutputWithTempFileName(data)
+    pd_df_of_betas_to_plot.plot.bar()
+    plt.title("Beta loadings")
+    figure_object = pdf_output.save_chart_close_and_return_figure()
+    all_results.append(figure_object)
+
     pdf_output = PdfOutputWithTempFileName(data)
     plot_scatter_colors_only(df_results)
     plt.title("Optimised vs rounded weight*stdev scatter plot, colours are asset classes")
@@ -70,14 +79,6 @@ def get_figures_for_DO(data: dataBlob,
         figure_object = pdf_output.save_chart_close_and_return_figure()
         all_results.append(figure_object)
 
-    pd_df_of_betas_to_plot = get_pd_df_of_betas_to_plot(data,
-                                                        strategy_name=strategy_name)
-
-    pdf_output = PdfOutputWithTempFileName(data)
-    pd_df_of_betas_to_plot.plot.bar()
-    plt.title("Beta loadings")
-    figure_object = pdf_output.save_chart_close_and_return_figure()
-    all_results.append(figure_object)
 
     return all_results
 
@@ -213,10 +214,11 @@ def get_pd_df_of_betas_to_plot(data: dataBlob,
             dict_of_betas,
             dict_of_asset_classes)
 
-    both_loadings = pd.concat([pd.Series(beta_loadings_optimised),
-                              pd.Series(beta_loadings_unrounded)],
+    both_loadings = pd.concat([
+                              pd.Series(beta_loadings_unrounded),
+                              pd.Series(beta_loadings_optimised)],
                               axis=1)
-    both_loadings.columns = ['Optimised weights', 'Unrounded']
+    both_loadings.columns = ['Unrounded', 'Optimised weights']
 
     return both_loadings
 
