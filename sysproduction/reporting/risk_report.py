@@ -18,6 +18,7 @@ def risk_report(data: dataBlob = arg_not_supplied):
         "body_text_margin_usage",
         "table_of_strategy_risk",
         "table_of_risk_by_asset_class",
+        "table_of_beta_loadings_by_asset_class",
         "table_of_instrument_risk",
         "body_text_abs_total_all_risk_perc_capital",
         "body_text_abs_total_all_risk_annualised",
