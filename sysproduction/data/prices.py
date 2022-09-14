@@ -305,6 +305,8 @@ class updatePrices(productionDataLayerGeneric):
         return self.data.db_spreads_for_instrument
 
 
+INSTRUMENT_CODE_SOURCE_CONFIG = "config"
+
 def get_valid_instrument_code_from_user(
     data: dataBlob = arg_not_supplied,
     allow_all: bool = False,
@@ -351,8 +353,11 @@ def get_list_of_instruments(
         instrument_list = price_data.get_list_of_instruments_in_multiple_prices()
     elif source == "single":
         instrument_list = price_data.get_list_of_instruments_with_contract_prices()
+    elif source == INSTRUMENT_CODE_SOURCE_CONFIG:
+        instrument_data = diagInstruments(data)
+        instrument_list = instrument_data.get_list_of_instruments()
     else:
-        raise Exception("%s not recognised must be multiple or single" % source)
+        raise Exception("%s not recognised must be multiple or single or config" % source)
 
     instrument_list.sort()
 

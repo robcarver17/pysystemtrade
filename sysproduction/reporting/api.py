@@ -650,6 +650,7 @@ class reportingApi(object):
         portfolio_risk_object = self.portfolio_risks
         beta_load_by_asset_class = portfolio_risk_object.get_beta_loadings_by_asset_class()
         beta_load_by_asset_class = beta_load_by_asset_class.round(2)
+        beta_load_by_asset_class = beta_load_by_asset_class.sort_values()
         beta_load_by_asset_class_table = table("Beta loadings by asset class",
                                              beta_load_by_asset_class)
 
