@@ -173,6 +173,13 @@ class dataContracts(productionDataLayerGeneric):
 
         return current_contracts
 
+    def update_roll_parameters(self, instrument_code: str,
+                               roll_parameters: rollParameters):
+
+        self.db_roll_parameters.add_roll_parameters(instrument_code=instrument_code,
+                                                    roll_parameters=roll_parameters,
+                                                    ignore_duplication=True)
+
     def get_roll_parameters(self, instrument_code: str) -> rollParameters:
         roll_parameters = self.db_roll_parameters.get_roll_parameters(instrument_code)
         return roll_parameters
