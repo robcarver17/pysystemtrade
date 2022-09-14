@@ -104,6 +104,7 @@ def safely_modify_roll_parameters():
     print("Updated adjusted prices in database: copy backup files for .csv")
 
     print("All done!")
+    print("Run update_sampled_contracts and interactive_update_roll_status to make sure no issues")
 
 def modified_roll_parameters(data: dataBlob,
                              instrument_code)-> rollParameters:
@@ -135,7 +136,7 @@ def modified_roll_parameters(data: dataBlob,
             continue
 
         print("New parameters: %s " % str(new_roll_parameters))
-        happy = true_if_answer_is_yes("Happy with these?")
+        happy = true_if_answer_is_yes("Happy with these? (Be especially careful if deleting hold contracts which we actually hold)")
         unhappy = not happy
 
 
