@@ -1,6 +1,6 @@
 ## uncomment if using in interactive mode
-import matplotlib
-matplotlib.use("TkAgg")
+#import matplotlib
+#matplotlib.use("TkAgg")
 from matplotlib.pyplot import show
 import pandas as pd
 from syscore.interactive import true_if_answer_is_yes, get_and_convert
