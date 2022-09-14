@@ -343,43 +343,34 @@ def drawdown(x):
     return x - maxx
 
 
-def from_dict_of_values_to_df(data_dict: dict, long_ts_index, columns: list = None):
+def from_dict_of_values_to_df(data_dict: dict, ts_index, columns: list = None) -> pd.DataFrame:
     """
-    Turn a set of fixed values into a pd.dataframe that spans the long index
+    Turn a set of fixed values into a pd.DataFrame that spans the long index
 
     :param data_dict: A dict of scalars
     :param ts_index: A timeseries index
     :param columns: (optional) A list of str to align the column names to [must have entries in data_dict keys]
-    :return: pd.dataframe, column names from data_dict, values repeated scalars
+    :return: pd.DataFrame, column names from data_dict, values repeated scalars
     """
 
-    if columns is None:
-        columns = data_dict.keys()
+    if columns is not None:
+        data_dict = { keyname: data_dict[keyname] for keyname in columns }
 
-    columns_as_list = list(columns)
-
-    ts_index = [long_ts_index[0], long_ts_index[-1]]
-
-    numeric_values = dict(
-        [(keyname, [data_dict[keyname]] * len(ts_index)) for keyname in columns_as_list]
-    )
-
-    pd_dataframe = pd.DataFrame(numeric_values, ts_index)
+    pd_dataframe = pd.DataFrame(data_dict, ts_index)
 
     return pd_dataframe
 
 
-def from_scalar_values_to_ts(scalar_value: float, long_ts_index) -> pd.Series:
+def from_scalar_values_to_ts(scalar_value: float, ts_index) -> pd.Series:
     """
-    Turn a set of fixed values into a pd.dataframe that spans the long index
+    Turn a scalar value into a pd.Series that spans the long index
 
-    :param data_dict: A dict of scalars
+    :param scalar_value: A scalar
     :param ts_index: A timeseries index
-    :param columns: (optional) A list of str to align the column names to [must have entries in data_dict keys]
-    :return: pd.dataframe, column names from data_dict, values repeated scalars
+    :return: pd.Series, values repeated scalars
     """
 
-    pd_series = pd.Series([scalar_value] * len(long_ts_index), index=long_ts_index)
+    pd_series = pd.Series(scalar_value, index=ts_index)
 
     return pd_series
 
