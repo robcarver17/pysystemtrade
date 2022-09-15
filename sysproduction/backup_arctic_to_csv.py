@@ -23,6 +23,7 @@ from sysdata.csv.csv_optimal_position import csvOptimalPositionData
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 from sysdata.csv.csv_roll_state_storage import csvRollStateData
 from sysdata.csv.csv_spreads import csvSpreadsForInstrumentData
+from sysdata.csv.csv_roll_parameters import csvRollParametersData
 
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
@@ -82,6 +83,7 @@ class backupArcticToCsv:
         backup_instrument_data(backup_data)
         backup_optimal_positions(backup_data)
         backup_roll_state_data(backup_data)
+        backup_roll_parameters(backup_data)
         log.msg("Copying to backup directory")
         backup_csv_dump(self.data)
 
@@ -134,6 +136,7 @@ def get_data_and_create_csv_directories(logname):
             csvOptimalPositionData,
             csvFuturesInstrumentData,
             csvRollStateData,
+            csvRollParametersData,
             csvFuturesContractData,
             csvSpreadsForInstrumentData,
         ]
@@ -480,6 +483,17 @@ def backup_roll_state_data(data):
     roll_state_df.columns = ["state"]
     data.csv_roll_state.write_all_instrument_data(roll_state_df)
     data.log.msg("Backed up roll state")
+
+def backup_roll_parameters(data):
+    instrument_list = data.mongo_roll_parameters.get_list_of_instruments()
+    roll_parameters_list = []
+    for instrument_code in instrument_list:
+        roll_parameters_as_dict = data.mongo_roll_parameters.get_roll_parameters(instrument_code).as_dict()
+        roll_parameters_list.append(roll_parameters_as_dict)
+
+    roll_parameters_df = pd.DataFrame(roll_parameters_list, index=instrument_list)
+    data.csv_roll_parameters.write_all_roll_parameters_data(roll_parameters_df)
+    data.log.msg("Backed up roll parameters")
 
 
 def backup_contract_data(data):

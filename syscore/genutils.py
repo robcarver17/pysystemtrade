@@ -11,6 +11,17 @@ import numpy as np
 import datetime
 import functools
 
+from collections import namedtuple
+
+Changes = namedtuple('Changes', ['new', 'existing', 'removing'])
+
+def new_removing_existing(original_list: list, new_list: list):
+    existing = list(set(original_list).intersection(set(new_list)))
+    new = list(set(new_list).difference(set(original_list)))
+    removing = list(set(original_list).difference(set(new_list)))
+
+    return Changes(new=new, existing=existing, removing=removing)
+
 
 def flatten_list(some_list):
     flattened = [item for sublist in some_list for item in sublist]

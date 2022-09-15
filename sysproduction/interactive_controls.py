@@ -12,6 +12,10 @@ from syscore.pdutils import set_pd_print_options
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
 from syscore.objects import missing_data
 
+from sysinit.futures.repocsv_instrument_config import copy_instrument_config_from_csv_to_mongo
+from sysinit.futures.safely_modify_roll_parameters import safely_modify_roll_parameters
+from sysinit.futures.roll_parameters_csv_mongo import copy_roll_parameters_from_csv_to_mongo
+
 from sysdata.data_blob import dataBlob
 from sysobjects.production.override import override_dict, Override
 from sysobjects.production.tradeable_object import instrumentStrategy
@@ -19,6 +23,7 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 from sysproduction.backup_arctic_to_csv import (
     get_data_and_create_csv_directories,
     backup_instrument_data,
+    backup_roll_parameters
 )
 from sysproduction.data.controls import (
     diagOverrides,
@@ -121,6 +126,11 @@ nested_menu_of_options = {
         50: "Auto update spread cost configuration based on sampling and trades",
         51: "Suggest 'bad' markets (illiquid or costly)",
         52: "Suggest which duplicate market to use",
+        53: "Copy instrument configuration from DB to .csv",
+        54: "Copy instrument configuration from .csv to DB",
+        55: "Copy roll parameters config from DB to .csv",
+        56: "Copy roll parameters config from .csv to DB",
+        57: "Safe modify of roll parameters configuration"
     },
 }
 
@@ -894,10 +904,19 @@ def backup_instrument_data_to_csv(data: dataBlob):
     backup_data = get_data_and_create_csv_directories("")
     backup_data.mongo_futures_instrument = data.db_futures_instrument
     print(
-        "Backing up database to .csv %s; you will need to copy to /pysystemtrade/data/csvconfig/ for it to work in sim"
+        "Backing up instrument configuration in database to .csv %s; you will need to copy to /pysystemtrade/data/csvconfig/ for it to work in sim"
         % backup_data.csv_futures_instrument.config_file
     )
     backup_instrument_data(backup_data)
+
+def backup_roll_parameters_data_to_csv(data: dataBlob):
+    backup_data = get_data_and_create_csv_directories("")
+    backup_data.mongo_roll_parameters = data.db_roll_parameters
+    print(
+        "Backing up roll parameters in database to .csv %s; you will need to copy to /pysystemtrade/data/csvconfig/ for it to work in sim"
+        % backup_data.csv_roll_parameters.config_file
+    )
+    backup_roll_parameters(backup_data)
 
 
 def not_defined(data):
@@ -928,7 +947,14 @@ dict_of_functions = {
     43: finish_process,
     44: finish_all_processes,
     45: view_process_config,
-    50: auto_update_spread_costs
+    50: auto_update_spread_costs,
+    53: backup_instrument_data_to_csv,
+    54: copy_instrument_config_from_csv_to_mongo(),
+    55: backup_roll_parameters_data_to_csv,
+    56: copy_roll_parameters_from_csv_to_mongo,
+    57: safely_modify_roll_parameters
+
+
 }
 
 if __name__ == '__main__':
