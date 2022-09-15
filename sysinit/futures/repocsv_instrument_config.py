@@ -10,7 +10,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
 
 def copy_instrument_config_from_csv_to_mongo(data: dataBlob):
-    data_out = mongoFuturesInstrumentData(data)
+    data_out = mongoFuturesInstrumentData(data.mongo_db)
     data_in = csvFuturesInstrumentData()
 
     print("Transferring from %s to %s" % (str(data_in),
