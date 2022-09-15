@@ -77,3 +77,6 @@ class csvRollParametersData(rollParametersData):
         self, instrument_code: str, roll_parameters: rollParameters
     ):
         raise NotImplementedError("csv is read only")
+
+    def write_all_roll_parameters_data(self, roll_parameters_df: pd.DataFrame):
+        roll_parameters_df.to_csv(self._config_file, index_label="Instrument")

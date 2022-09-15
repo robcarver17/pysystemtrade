@@ -1,3 +1,4 @@
+import numpy as np
 from copy import copy
 from syscore.objects import arg_not_supplied
 from syscore.genutils import flatten_list
@@ -38,30 +39,69 @@ class futuresInstrument(object):
         return str(self.instrument_code)
 
 
-@dataclass
-class instrumentMetaData:
-    Description: str = ""
-    Pointsize: float = 0.0
-    Currency: str = ""
-    AssetClass: str = ""
-    Slippage: float = 0.0
-    PerBlock: float = 0.0
-    Percentage: float = 0.0
-    PerTrade: float = 0.0
+META_FIELD_LIST = ['Description',
+                   'Pointsize',
+                   'Currency',
+                   'AssetClass',
+                   'Slippage',
+                   'PerBlock',
+                   'Percentage',
+                   'PerTrade']
+
+def _zero_if_nan(x):
+    if np.isnan(x):
+        return 0
+    else:
+        return x
+
+class King(object):
+    def __init__(self, name = "Charles"):
+        self.name = name
+
+    def __repr__(self):
+        return self.name
+
+    def introduce(One):
+        print(str(One) + " is the king")
+
+class instrumentMetaData(object):
+    def __init__(self,
+        Description: str = "",
+        Pointsize: float = 0.0,
+        Currency: str = "",
+        AssetClass: str = "",
+        Slippage: float = 0.0,
+        PerBlock: float = 0.0,
+        Percentage: float = 0.0,
+        PerTrade: float = 0.0):
+
+        self.Description = Description
+        self.Currency = Currency
+        self.Pointsize = _zero_if_nan(Pointsize)
+        self.AssetClass = AssetClass
+        self.Slippage = _zero_if_nan(Slippage)
+        self.PerBlock = _zero_if_nan(PerBlock)
+        self.Percentage =  _zero_if_nan(Percentage)
+        self.PerTrade = _zero_if_nan(PerTrade)
 
     def as_dict(self) -> dict:
-        keys = self.__dataclass_fields__.keys()
+        keys = META_FIELD_LIST
         self_as_dict = dict([(key, getattr(self, key)) for key in keys])
 
         return self_as_dict
 
     @classmethod
     def from_dict(instrumentMetaData, input_dict):
-        keys = instrumentMetaData.__dataclass_fields__.keys()
+        keys = META_FIELD_LIST
         args_list = [input_dict[key] for key in keys]
 
         return instrumentMetaData(*args_list)
 
+    def __eq__(self, other):
+        return self.as_dict() == other.as_dict()
+
+    def __repr__(self):
+        return str(self.as_dict())
 
 @dataclass
 class futuresInstrumentWithMetaData:
@@ -102,6 +142,11 @@ class futuresInstrumentWithMetaData:
     def empty(self):
         return self.instrument.empty()
 
+    def __eq__(self, other):
+        instrument_matches = self.instrument == other.instrument
+        meta_data_matches =self.meta_data == other.meta_data
+
+        return instrument_matches and meta_data_matches
 
 class listOfFuturesInstrumentWithMetaData(list):
     def as_df(self):
