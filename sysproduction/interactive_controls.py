@@ -124,13 +124,11 @@ nested_menu_of_options = {
     },
     5: {
         50: "Auto update spread cost configuration based on sampling and trades",
-        51: "Suggest 'bad' markets (illiquid or costly)",
-        52: "Suggest which duplicate market to use",
-        53: "Copy instrument configuration from DB to .csv",
-        54: "Copy instrument configuration from .csv to DB",
-        55: "Copy roll parameters config from DB to .csv",
-        56: "Copy roll parameters config from .csv to DB",
-        57: "Safe modify of roll parameters configuration"
+        51: "Copy instrument configuration from DB to .csv",
+        52: "Copy instrument configuration from .csv to DB",
+        53: "Copy roll parameters config from DB to .csv",
+        54: "Copy roll parameters config from .csv to DB",
+        55: "Safe modify of roll parameters configuration"
     },
 }
 
@@ -948,11 +946,11 @@ dict_of_functions = {
     44: finish_all_processes,
     45: view_process_config,
     50: auto_update_spread_costs,
-    53: backup_instrument_data_to_csv,
-    54: copy_instrument_config_from_csv_to_mongo,
-    55: backup_roll_parameters_data_to_csv,
-    56: copy_roll_parameters_from_csv_to_mongo,
-    57: safely_modify_roll_parameters
+    51: backup_instrument_data_to_csv,
+    52: copy_instrument_config_from_csv_to_mongo,
+    53: backup_roll_parameters_data_to_csv,
+    54: copy_roll_parameters_from_csv_to_mongo,
+    55: safely_modify_roll_parameters
 
 
 }
