@@ -97,7 +97,7 @@ class csvFuturesInstrumentData(futuresInstrumentData):
         instrument_data_as_df.to_csv(
             self._config_file,
             index_label="Instrument",
-            columns=[field.name for field in META_FIELD_LIST]
+            columns=[field for field in META_FIELD_LIST]
         )
 
 
