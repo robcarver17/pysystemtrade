@@ -5,12 +5,13 @@ from syscore.genutils import new_removing_existing
 from syscore.interactive import true_if_answer_is_yes
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.csv.csv_roll_parameters import csvRollParametersData
+from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
 
 # modify flags as required
 
-def copy_roll_parameters_from_csv_to_mongo():
-    data_out = mongoRollParametersData()
+def copy_roll_parameters_from_csv_to_mongo(data: dataBlob):
+    data_out = mongoRollParametersData(data)
     data_in = csvRollParametersData()
 
     print("Transferring from %s to %s" % (str(data_in),
@@ -134,4 +135,4 @@ def process_deleted_instruments(data_out, deleted_instruments):
 if __name__ == "__main__":
     print("Transfer roll parameters from csv to mongo DB")
 
-    copy_roll_parameters_from_csv_to_mongo()
+    copy_roll_parameters_from_csv_to_mongo(dataBlob())

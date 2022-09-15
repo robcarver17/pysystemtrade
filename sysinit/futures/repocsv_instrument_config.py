@@ -6,10 +6,11 @@ from syscore.genutils import new_removing_existing
 from syscore.interactive import true_if_answer_is_yes
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
+from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
 
-def copy_instrument_config_from_csv_to_mongo():
-    data_out = mongoFuturesInstrumentData()
+def copy_instrument_config_from_csv_to_mongo(data: dataBlob):
+    data_out = mongoFuturesInstrumentData(data)
     data_in = csvFuturesInstrumentData()
 
     print("Transferring from %s to %s" % (str(data_in),
@@ -130,4 +131,4 @@ def process_deleted_instruments(
 if __name__ == "__main__":
     print("Transfer instrument config from csv to mongo DB")
     # modify flags as required
-    copy_instrument_config_from_csv_to_mongo()
+    copy_instrument_config_from_csv_to_mongo(dataBlob())
