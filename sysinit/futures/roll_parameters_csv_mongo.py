@@ -11,7 +11,7 @@ from sysproduction.data.prices import diagPrices
 # modify flags as required
 
 def copy_roll_parameters_from_csv_to_mongo(data: dataBlob):
-    data_out = mongoRollParametersData(data)
+    data_out = mongoRollParametersData(data.mongo_db)
     data_in = csvRollParametersData()
 
     print("Transferring from %s to %s" % (str(data_in),
