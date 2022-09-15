@@ -744,11 +744,19 @@ def get_equally_weighted_returns_for_asset_class(
                                   instrument, asset_class_for_instrument in
                                   dict_of_asset_classes.items()
                                   if asset_class == asset_class_for_instrument]
-    relevant_returns = perc_returns[instruments_in_asset_class]
-    ew_index_returns = relevant_returns.mean(axis=1)
+    perc_returns_for_asset_class = perc_returns[instruments_in_asset_class]
+    ew_index_returns = calculate_equal_returns_to_avg_vol(perc_returns_for_asset_class)
 
     return ew_index_returns
 
+def calculate_equal_returns_to_avg_vol(perc_returns_for_asset_class):
+    std_by_instrument = perc_returns_for_asset_class.std(axis=0)
+    perc_returns_for_asset_class_vol_norm = perc_returns_for_asset_class / std_by_instrument
+    avg_vol_norm_perc_returns = perc_returns_for_asset_class_vol_norm.mean(axis=1)
+    avg_std = std_by_instrument.mean()
+    asset_class_return_index = avg_vol_norm_perc_returns * avg_std
+
+    return asset_class_return_index
 
 def dict_of_beta_by_instrument(dict_of_asset_classes: dict,
                                perc_returns: pd.DataFrame,

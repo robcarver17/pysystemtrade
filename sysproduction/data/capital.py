@@ -24,6 +24,9 @@ class dataCapital(productionDataLayerGeneric):
 
     ## TOTAL CAPITAL...
 
+    def get_percentage_returns_as_account_curve(self) -> pd.DataFrame:
+        return self.total_capital_calculator.get_percentage_returns_as_pd()
+
     def get_percentage_returns_as_pd(self) -> pd.DataFrame:
         return self.total_capital_calculator.get_percentage_returns_as_pd()
 
