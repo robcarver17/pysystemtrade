@@ -902,7 +902,7 @@ def make_changes_to_slippage_in_db(data: dataBlob, changes_to_make: dict):
 
 def backup_instrument_data_to_csv(data: dataBlob):
     backup_data = get_data_and_create_csv_directories("")
-    backup_data.mongo_futures_instrument = data.db_futures_instrument
+
     print(
         "Backing up instrument configuration in database to .csv %s; you will need to copy to /pysystemtrade/data/csvconfig/ for it to work in sim"
         % backup_data.csv_futures_instrument.config_file
@@ -911,7 +911,7 @@ def backup_instrument_data_to_csv(data: dataBlob):
 
 def backup_roll_parameters_data_to_csv(data: dataBlob):
     backup_data = get_data_and_create_csv_directories("")
-    backup_data.mongo_roll_parameters = data.db_roll_parameters
+
     print(
         "Backing up roll parameters in database to .csv %s; you will need to copy to /pysystemtrade/data/csvconfig/ for it to work in sim"
         % backup_data.csv_roll_parameters.config_file
