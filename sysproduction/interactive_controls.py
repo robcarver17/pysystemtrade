@@ -949,7 +949,7 @@ dict_of_functions = {
     45: view_process_config,
     50: auto_update_spread_costs,
     53: backup_instrument_data_to_csv,
-    54: copy_instrument_config_from_csv_to_mongo(),
+    54: copy_instrument_config_from_csv_to_mongo,
     55: backup_roll_parameters_data_to_csv,
     56: copy_roll_parameters_from_csv_to_mongo,
     57: safely_modify_roll_parameters
