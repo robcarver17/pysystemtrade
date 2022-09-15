@@ -7,6 +7,7 @@ from sysobjects.instruments import (
     futuresInstrument,
     futuresInstrumentWithMetaData,
     instrumentMetaData,
+    META_FIELD_LIST
 )
 from syslogdiag.log_to_screen import logtoscreen
 import pandas as pd
@@ -96,7 +97,7 @@ class csvFuturesInstrumentData(futuresInstrumentData):
         instrument_data_as_df.to_csv(
             self._config_file,
             index_label="Instrument",
-            columns=[field.name for field in dataclasses.fields(instrumentMetaData)]
+            columns=[field.name for field in META_FIELD_LIST]
         )
 
 
