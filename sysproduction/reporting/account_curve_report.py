@@ -52,3 +52,6 @@ def _account_curve_report_full(
             print("Couldn't do a figure (weird time period %s?)" % period)
 
     return formatted_output
+
+if __name__ == '__main__':
+    account_curve_report()

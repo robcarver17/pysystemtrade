@@ -751,7 +751,7 @@ def get_equally_weighted_returns_for_asset_class(
                                   dict_of_asset_classes.items()
                                   if asset_class == asset_class_for_instrument]
     perc_returns_for_asset_class = perc_returns[instruments_in_asset_class]
-    ew_index_returns = calculate_equal_returns_to_avg_vol(perc_returns_for_asset_class)
+    ew_index_returns = calculate_equal_returns_to_avg_vol(perc_returns_for_asset_class, index_risk=index_risk)
 
     return ew_index_returns
 

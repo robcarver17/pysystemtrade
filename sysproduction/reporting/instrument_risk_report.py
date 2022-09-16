@@ -44,3 +44,7 @@ def instrument_risk_report(
 
 
     return formatted_output
+
+
+if __name__ == '__main__':
+    instrument_risk_report()

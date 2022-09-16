@@ -38,3 +38,6 @@ def costs_report(
     formatted_output.append(reporting_api.footer())
 
     return formatted_output
+
+if __name__ == '__main__':
+    costs_report()

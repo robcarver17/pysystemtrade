@@ -31,3 +31,7 @@ def duplicate_market_report(
 
 
     return formatted_output
+
+
+if __name__ == '__main__':
+    duplicate_market_report()
