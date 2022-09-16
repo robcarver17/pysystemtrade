@@ -25,6 +25,12 @@ from sysproduction.data.positions import dataOptimalPositions
 from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights
 
+from sysdata.config.production_config import get_production_config
+
+def get_notional_risk_target():
+    ## might be overriden by strategy but we don't have the backtest .yaml here
+    return 25.0
+
 def dynamic_optimisation_graphical(data: dataBlob,
                                    strategy_name: str):
 
@@ -48,15 +54,24 @@ def get_figures_for_DO(data: dataBlob,
 
     df_results = get_data_for_scatter_plot(data, strategy_name)
     all_results = []
+    index_risk = get_notional_risk_target()
 
-    pd_df_of_betas_to_plot = get_pd_df_of_betas_to_plot(data,
-                                                        strategy_name=strategy_name)
+    loadings_natural_risk_df, loadings_fix_index_risk_df = get_pd_df_of_betas_to_plot(data,
+                                                        strategy_name=strategy_name,
+                                                                                      index_risk=index_risk)
 
     pdf_output = PdfOutputWithTempFileName(data)
-    pd_df_of_betas_to_plot.plot.bar()
-    plt.title("Beta loadings")
+    loadings_natural_risk_df.plot.bar()
+    plt.title("Beta loadings with natural risk for asset class index")
     figure_object = pdf_output.save_chart_close_and_return_figure()
     all_results.append(figure_object)
+
+    pdf_output = PdfOutputWithTempFileName(data)
+    loadings_fix_index_risk_df.plot.bar()
+    plt.title("Beta loadings with index risk set to %f annualised" % index_risk)
+    figure_object = pdf_output.save_chart_close_and_return_figure()
+    all_results.append(figure_object)
+
 
     pdf_output = PdfOutputWithTempFileName(data)
     plot_scatter_colors_only(df_results)
@@ -171,7 +186,8 @@ def get_standard_deviations_for_instrument_list(data: dataBlob,
 
 
 def get_pd_df_of_betas_to_plot(data: dataBlob,
-                           strategy_name: str) -> pd.DataFrame:
+                           strategy_name: str,
+                               index_risk: float) -> tuple:
 
     optimal_position_objects_as_list = get_optimal_position_objects_as_list(data=data, strategy_name=strategy_name)
     unrounded_weights = get_unrounded_weights(optimal_position_objects_as_list)
@@ -180,8 +196,29 @@ def get_pd_df_of_betas_to_plot(data: dataBlob,
     list_of_instruments = instrument_codes_from_optimal_positions_as_list(optimal_position_objects_as_list)
     dict_of_asset_classes = get_asset_classes_for_instrument_list(data, list_of_instruments)
 
-    dict_of_betas = get_beta_for_instrument_list(data=data,
+    dict_of_betas_natural_risk = get_beta_for_instrument_list(data=data,
                                                  dict_of_asset_classes=dict_of_asset_classes)
+
+    loadings_natural_risk_df = get_pd_df_of_beta_loadings(unrounded_weights=unrounded_weights,
+                                                          optimised_weights=optimised_weights,
+                                                          dict_of_betas=dict_of_betas_natural_risk,
+                                                          dict_of_asset_classes=dict_of_asset_classes)
+
+    dict_of_betas_fix_index_risk = get_beta_for_instrument_list(data=data,
+                                                                dict_of_asset_classes=dict_of_asset_classes,
+                                                                index_risk = index_risk)
+
+    loadings_fix_index_risk_df = get_pd_df_of_beta_loadings(unrounded_weights=unrounded_weights,
+                                                          optimised_weights=optimised_weights,
+                                                          dict_of_betas=dict_of_betas_fix_index_risk,
+                                                          dict_of_asset_classes=dict_of_asset_classes)
+
+    return loadings_natural_risk_df, loadings_fix_index_risk_df
+
+def get_pd_df_of_beta_loadings(unrounded_weights: portfolioWeights,
+                               optimised_weights: portfolioWeights,
+                               dict_of_betas: dict,
+                               dict_of_asset_classes: dict):
 
     beta_loadings_unrounded =\
         calculate_dict_of_beta_loadings_by_asset_class_given_weights(

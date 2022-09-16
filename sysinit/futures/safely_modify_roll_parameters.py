@@ -16,8 +16,7 @@ from sysobjects.rolls import rollParameters
 from sysproduction.data.prices import get_valid_instrument_code_from_user, INSTRUMENT_CODE_SOURCE_CONFIG, diagPrices, updatePrices
 from sysproduction.data.contracts import dataContracts
 
-def safely_modify_roll_parameters():
-    data = dataBlob()
+def safely_modify_roll_parameters(data: dataBlob):
     print("Strongly suggest you backup and/or do this on a test machine first")
     print("Enter instrument code: Must be defined in database config")
     instrument_code = get_valid_instrument_code_from_user(data,
@@ -143,4 +142,6 @@ def modified_roll_parameters(data: dataBlob,
     return new_roll_parameters
 
 if __name__ == "__main__":
-    safely_modify_roll_parameters()
+    data = dataBlob()
+
+    safely_modify_roll_parameters(data)
