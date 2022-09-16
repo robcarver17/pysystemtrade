@@ -4,7 +4,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.reporting.api import reportingApi
 
 
-def trades_info(
+def trades_report(
     data=arg_not_supplied,
     calendar_days_back=1,
     end_date=arg_not_supplied,
@@ -47,3 +47,7 @@ def trades_info(
     formatted_output.append(reporting_api.footer())
 
     return formatted_output
+
+
+if __name__ == '__main__':
+    trades_report()

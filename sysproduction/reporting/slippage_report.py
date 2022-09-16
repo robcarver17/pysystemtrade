@@ -49,3 +49,7 @@ def slippage_report(
     formatted_output.append(reporting_api.footer())
 
     return formatted_output
+
+
+if __name__ == '__main__':
+    slippage_report()

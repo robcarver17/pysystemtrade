@@ -14,7 +14,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.reporting.api import reportingApi
 
 
-def reconcile_info(data=arg_not_supplied):
+def reconcile_report(data=arg_not_supplied):
     """
     Report on system status
 
@@ -43,3 +43,7 @@ def reconcile_info(data=arg_not_supplied):
     formatted_output.append(reporting_api.footer())
 
     return formatted_output
+
+
+if __name__ == '__main__':
+    reconcile_report()

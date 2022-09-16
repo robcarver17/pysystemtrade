@@ -10,7 +10,7 @@ from sysproduction.reporting.api import reportingApi
 # We also chuck in a title and a timestamp
 
 
-def pandl_info(
+def pandl_report(
     data: dataBlob = arg_not_supplied,
     calendar_days_back=7,
     start_date=arg_not_supplied,
@@ -54,3 +54,7 @@ def pandl_info(
     formatted_output.append(reporting_api.footer())
 
     return formatted_output
+
+
+if __name__ == '__main__':
+    pandl_report()

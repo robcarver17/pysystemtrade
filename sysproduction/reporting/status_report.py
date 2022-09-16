@@ -13,7 +13,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.reporting.api import reportingApi
 
 
-def system_status(data: dataBlob = arg_not_supplied):
+def status_report(data: dataBlob = arg_not_supplied):
     """
     Report on system status
 
@@ -54,3 +54,7 @@ def system_status(data: dataBlob = arg_not_supplied):
     formatted_output.append(reporting_api.footer())
 
     return formatted_output
+
+
+if __name__ == '__main__':
+    status_report()

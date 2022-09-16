@@ -30,3 +30,7 @@ def liquidity_report(data: dataBlob = arg_not_supplied):
     formatted_output.append(reporting_api.footer())
 
     return formatted_output
+
+
+if __name__ == '__main__':
+    liquidity_report()

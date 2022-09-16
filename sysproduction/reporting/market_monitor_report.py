@@ -85,3 +85,7 @@ def _market_monitor_report_full(
                     period=period, sortby=sortby, truncate=truncate))
 
     return formatted_output
+
+
+if __name__ == '__main__':
+    market_monitor_report()
