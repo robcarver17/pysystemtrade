@@ -61,14 +61,14 @@ def get_figures_for_DO(data: dataBlob,
                                                                                       index_risk=index_risk)
 
     pdf_output = PdfOutputWithTempFileName(data)
-    loadings_natural_risk_df.plot.bar()
-    plt.title("Beta loadings with natural risk for asset class index")
+    loadings_fix_index_risk_df.plot.bar()
+    plt.title("Beta loadings with index risk set to %.1f annualised" % index_risk)
     figure_object = pdf_output.save_chart_close_and_return_figure()
     all_results.append(figure_object)
 
     pdf_output = PdfOutputWithTempFileName(data)
-    loadings_fix_index_risk_df.plot.bar()
-    plt.title("Beta loadings with index risk set to %.1f annualised" % index_risk)
+    loadings_natural_risk_df.plot.bar()
+    plt.title("Beta loadings with natural risk for asset class index")
     figure_object = pdf_output.save_chart_close_and_return_figure()
     all_results.append(figure_object)
 
@@ -236,7 +236,9 @@ def get_pd_df_of_beta_loadings(unrounded_weights: portfolioWeights,
                               pd.Series(beta_loadings_unrounded),
                               pd.Series(beta_loadings_optimised)],
                               axis=1)
+
     both_loadings.columns = ['Unrounded', 'Optimised weights']
+    both_loadings = both_loadings.sort_index()
 
     return both_loadings
 

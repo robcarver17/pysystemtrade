@@ -66,3 +66,7 @@ def get_output_for_single_strategy(data, strategy_name, timestamp=arg_not_suppli
     strategy_format_output_list = strategy_reporting_function(data, backtest)
 
     return strategy_format_output_list
+
+
+if __name__ == '__main__':
+    strategy_report()

@@ -38,3 +38,7 @@ def minimum_capital_report(
     formatted_output.append(reporting_api.footer())
 
     return formatted_output
+
+
+if __name__ == '__main__':
+    minimum_capital_report()
