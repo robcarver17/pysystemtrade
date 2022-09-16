@@ -68,7 +68,7 @@ def get_figures_for_DO(data: dataBlob,
 
     pdf_output = PdfOutputWithTempFileName(data)
     loadings_fix_index_risk_df.plot.bar()
-    plt.title("Beta loadings with index risk set to %f annualised" % index_risk)
+    plt.title("Beta loadings with index risk set to %.1f annualised" % index_risk)
     figure_object = pdf_output.save_chart_close_and_return_figure()
     all_results.append(figure_object)
 
