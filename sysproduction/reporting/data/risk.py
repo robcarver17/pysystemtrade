@@ -4,8 +4,10 @@ from statsmodels.formula import api as sm
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR, n_days_ago
 from syscore.genutils import progressBar
+from syscore.objects import arg_not_supplied
 from syscore.pdutils import prices_to_daily_prices
 from sysdata.data_blob import dataBlob
+
 
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysproduction.data.risk import get_correlation_matrix_for_instrument_returns, \
@@ -677,7 +679,8 @@ def calculate_beta_loading_for_asset_class(asset_class: str,
 
 
 def get_beta_for_instrument_list(data: dataBlob,
-                            dict_of_asset_classes: dict):
+                            dict_of_asset_classes: dict,
+                                 index_risk: float = arg_not_supplied):
 
     list_of_instruments = list(dict_of_asset_classes.keys())
     perc_returns = last_years_perc_returns_for_list_of_instruments(data=data,
@@ -685,7 +688,7 @@ def get_beta_for_instrument_list(data: dataBlob,
     equally_weighted_returns_across_asset_classes = get_equally_weighted_returns_across_asset_classes(
         dict_of_asset_classes=dict_of_asset_classes,
         perc_returns=perc_returns,
-
+        index_risk = index_risk
     )
     dict_of_betas = dict_of_beta_by_instrument(dict_of_asset_classes=dict_of_asset_classes,
                                                perc_returns=perc_returns,
@@ -714,7 +717,8 @@ def last_years_perc_returns_for_list_of_instruments(data: dataBlob,
 
 def get_equally_weighted_returns_across_asset_classes(
                                                       dict_of_asset_classes: dict,
-                                                      perc_returns: pd.DataFrame
+                                                      perc_returns: pd.DataFrame,
+                                                        index_risk: float = arg_not_supplied
                                                       ) -> pd.DataFrame:
 
     list_of_asset_classes = list(set(list(dict_of_asset_classes.values())))
@@ -723,7 +727,8 @@ def get_equally_weighted_returns_across_asset_classes(
          get_equally_weighted_returns_for_asset_class(
              asset_class=asset_class,
              dict_of_asset_classes=dict_of_asset_classes,
-             perc_returns=perc_returns
+             perc_returns=perc_returns,
+             index_risk = index_risk
              )
 
         for asset_class in list_of_asset_classes
@@ -738,7 +743,8 @@ def get_equally_weighted_returns_across_asset_classes(
 def get_equally_weighted_returns_for_asset_class(
                                         asset_class: str,
                                         dict_of_asset_classes: dict,
-                                        perc_returns: pd.DataFrame) -> pd.Series:
+                                        perc_returns: pd.DataFrame,
+                                        index_risk: float = arg_not_supplied) -> pd.Series:
 
     instruments_in_asset_class = [instrument for
                                   instrument, asset_class_for_instrument in
@@ -749,12 +755,21 @@ def get_equally_weighted_returns_for_asset_class(
 
     return ew_index_returns
 
-def calculate_equal_returns_to_avg_vol(perc_returns_for_asset_class):
+def calculate_equal_returns_to_avg_vol(perc_returns_for_asset_class: pd.DataFrame,
+                                       index_risk: float = arg_not_supplied) -> pd.Series:
+
     std_by_instrument = perc_returns_for_asset_class.std(axis=0)
     perc_returns_for_asset_class_vol_norm = perc_returns_for_asset_class / std_by_instrument
     avg_vol_norm_perc_returns = perc_returns_for_asset_class_vol_norm.mean(axis=1)
-    avg_std = std_by_instrument.mean()
-    asset_class_return_index = avg_vol_norm_perc_returns * avg_std
+
+    if index_risk is arg_not_supplied:
+        ## normalise to average risk of instruments in asset class
+        avg_std = std_by_instrument.mean()
+        asset_class_return_index = avg_vol_norm_perc_returns * avg_std
+    else:
+        ## normalise to provided index_risk; 20 = 20% per year
+        index_risk_as_daily =  index_risk / (ROOT_BDAYS_INYEAR * 100)
+        asset_class_return_index = avg_vol_norm_perc_returns * index_risk_as_daily
 
     return asset_class_return_index
 
