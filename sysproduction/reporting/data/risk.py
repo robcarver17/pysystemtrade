@@ -1,3 +1,4 @@
+from typing import Union, Dict
 import numpy as np
 import pandas as pd
 from statsmodels.formula import api as sm
@@ -631,7 +632,7 @@ def calculate_dict_of_beta_loadings_per_instrument(
     weights: portfolioWeights
         ) -> dict:
 
-    list_of_instruments = weights.assets
+    list_of_instruments = dict_of_betas.keys()
 
     dict_of_beta_loadings_per_instrument =\
          dict([
@@ -668,7 +669,7 @@ def calculate_beta_loading_for_asset_class(asset_class: str,
     relevant_instruments = [instrument_code for
                             instrument_code, asset_class_for_instrument in
                             dict_of_asset_classes.items()
-                            if asset_class == asset_class_for_instrument]
+                            if asset_class == asset_class_for_instrument and instrument_code in dict_of_beta_loadings_per_instrument]
 
     relevant_beta_loads = np.array([
         dict_of_beta_loadings_per_instrument[instrument_code]
@@ -778,15 +779,14 @@ def dict_of_beta_by_instrument(dict_of_asset_classes: dict,
                        equally_weighted_returns_across_asset_classes: pd.DataFrame) -> dict:
 
     list_of_instruments = list(set(list(dict_of_asset_classes.keys())))
-    dict_of_betas = dict([
-        (instrument_code,
-         beta_for_instrument(instrument_code=instrument_code,
+    dict_of_betas:Dict[str, float] = {}
+    for instrument_code in list_of_instruments:
+        beta = beta_for_instrument(instrument_code=instrument_code,
                              perc_returns=perc_returns,
                              dict_of_asset_classes=dict_of_asset_classes,
-                             equally_weighted_returns_across_asset_classes=equally_weighted_returns_across_asset_classes))
-        for instrument_code in list_of_instruments
-    ])
-
+                             equally_weighted_returns_across_asset_classes=equally_weighted_returns_across_asset_classes)
+        if beta is not None:
+            dict_of_betas[instrument_code] = beta
     return dict_of_betas
 
 
@@ -794,7 +794,7 @@ def beta_for_instrument(instrument_code: str,
                         dict_of_asset_classes: dict,
                         perc_returns: pd.DataFrame,
 
-    equally_weighted_returns_across_asset_classes: pd.DataFrame) -> float:
+    equally_weighted_returns_across_asset_classes: pd.DataFrame) -> Union[None, float]:
 
     asset_class = dict_of_asset_classes[instrument_code]
     perc_returns_for_instrument = perc_returns[instrument_code]
@@ -804,8 +804,9 @@ def beta_for_instrument(instrument_code: str,
                               perc_returns_for_asset_class], axis=1)
     both_returns.columns = ['y', 'x']
     both_returns = both_returns.dropna()
+    if not both_returns.empty:
 
-    reg_result = sm.ols(formula = "y ~ x", data = both_returns).fit()
-    beta = reg_result.params.x
+        reg_result = sm.ols(formula = "y ~ x", data = both_returns).fit()
+        beta = reg_result.params.x
 
-    return beta
+        return beta
