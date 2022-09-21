@@ -83,4 +83,10 @@ class csvRollParametersData(rollParametersData):
         raise NotImplementedError("csv is read only")
 
     def write_all_roll_parameters_data(self, roll_parameters_df: pd.DataFrame):
-        roll_parameters_df.to_csv(self._config_file, index_label="Instrument")
+        roll_parameters_df_to_write = pd.DataFrame(dict(HoldRollCycle = roll_parameters_df.hold_rollcycle,
+                                           RollOffsetDays = roll_parameters_df.roll_offset_day,
+                                           CarryOffset = roll_parameters_df.carry_offset,
+                                           PricedRollCycle = roll_parameters_df.priced_rollcycle,
+                                           ExpiryOffset = roll_parameters_df.approx_expiry_offset))
+
+        roll_parameters_df_to_write.to_csv(self._config_file, index_label="Instrument")
