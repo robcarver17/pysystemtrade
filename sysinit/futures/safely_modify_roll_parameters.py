@@ -114,9 +114,9 @@ def modified_roll_parameters(data: dataBlob,
     unhappy = True
     while unhappy:
         hold_rollcycle = get_and_convert('Hold rollcycle (use FGHJKMNQUVXZ)', type_expected=str,
-                                         default_value=roll_parameters.hold_rollcycle)
+                                         default_value=str(roll_parameters.hold_rollcycle))
         priced_rollcycle = get_and_convert('Priced rollcycle (use FGHJKMNQUVXZ)', type_expected=str,
-                                         default_value=roll_parameters.priced_rollcycle)
+                                         default_value=str(roll_parameters.priced_rollcycle))
         roll_offset_day =  get_and_convert('Roll offset days versus expiry (normally negative)', type_expected=int,
                                          default_value=roll_parameters.roll_offset_day)
         carry_offset = get_and_convert('Carry offset (ideally -1, 1 if trading front)', type_expected=int,
