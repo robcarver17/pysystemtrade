@@ -1,6 +1,7 @@
 """
 Populate a mongo DB collection with roll data from a csv
 """
+import argparse
 from syscore.genutils import new_removing_existing
 from syscore.interactive import true_if_answer_is_yes
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
@@ -11,7 +12,9 @@ from sysproduction.data.prices import diagPrices
 # modify flags as required
 
 
-def copy_roll_parameters_from_csv_to_mongo(data: dataBlob):
+def copy_roll_parameters_from_csv_to_mongo(
+    data: dataBlob, echo_difference=False, check_only=False
+):
     data_out = mongoRollParametersData(data.mongo_db)
     data_in = csvRollParametersData()
 
@@ -40,11 +43,12 @@ def copy_roll_parameters_from_csv_to_mongo(data: dataBlob):
         data_in=data_in,
         data_out=data_out,
         existing_instruments_maybe_modified=existing_instruments_maybe_modified,
+        echo_difference=echo_difference,
+        check_only=check_only,
     )
 
 
 def process_new_instruments(data_in, data_out, new_instruments):
-
     if len(new_instruments) == 0:
         return None
 
@@ -68,21 +72,29 @@ def process_new_instruments(data_in, data_out, new_instruments):
 
 
 def process_modified_instruments(
-    data_in, data_out, existing_instruments_maybe_modified
+    data_in,
+    data_out,
+    existing_instruments_maybe_modified,
+    echo_difference: bool,
+    check_only: bool,
 ):
-
     modified_instruments = []
     for instrument_code in existing_instruments_maybe_modified:
         roll_object = data_in.get_roll_parameters(instrument_code)
         existing_roll_object = data_out.get_roll_parameters(instrument_code)
 
-        if roll_object == existing_roll_object:
-            continue
-
-        modified_instruments.append(instrument_code)
+        if roll_object != existing_roll_object:
+            if echo_difference:
+                print(f"\nFound difference in roll configs for {instrument_code}:")
+                print(f"\tExisting config: {existing_roll_object}")
+                print(f"\tNew config: {roll_object}")
+            modified_instruments.append(instrument_code)
 
     if len(modified_instruments) == 0:
         return None
+    if check_only:
+        print(f'\nFound changes in roll config for {", ".join(modified_instruments)}')
+        return
 
     diag_prices = diagPrices()
     instruments_with_prices = diag_prices.get_list_of_instruments_in_multiple_prices()
@@ -146,6 +158,11 @@ def process_deleted_instruments(data_out, deleted_instruments):
 
 
 if __name__ == "__main__":
-    print("Transfer roll parameters from csv to mongo DB")
-
-    copy_roll_parameters_from_csv_to_mongo(dataBlob())
+    print(__doc__)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--echo-diff", action="store_true")
+    parser.add_argument("--check-only", action="store_true")
+    parsed = parser.parse_args()
+    copy_roll_parameters_from_csv_to_mongo(
+        dataBlob(), echo_difference=parsed.echo_diff, check_only=parsed.check_only
+    )
