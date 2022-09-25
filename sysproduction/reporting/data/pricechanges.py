@@ -1,6 +1,7 @@
 ######## DO AS A CACHEING OBJECT
 ### CREATE A CACHE
 
+from typing import List, Any, Dict
 import datetime
 import pandas as pd
 import numpy as np
@@ -18,18 +19,17 @@ class marketMovers(object):
 
     def get_market_moves_for_dates(self,
                                    start_date: datetime.datetime,
-                                   end_date: datetime.datetime):
-
+                                   end_date: datetime.datetime) -> pd.DataFrame:
         self._end_date = end_date
         self._start_date = start_date
         list_of_instruments = get_list_of_instruments(self.data, source="multiple")
-        all_moves = [self.get_market_move_for_instrument_and_dates(
-                                                               instrument_code=instrument_code)
-                     for instrument_code in list_of_instruments]
+        all_moves = [
+            self.get_market_move_for_instrument_and_dates(instrument_code=instrument_code)
+            for instrument_code in list_of_instruments
+        ]
 
         all_moves_as_df = pd.DataFrame(all_moves)
         all_moves_as_df = all_moves_as_df.dropna()
-
         return all_moves_as_df
 
     def get_market_move_for_instrument_and_dates(self, instrument_code: str) -> dict:
@@ -41,9 +41,9 @@ class marketMovers(object):
                                              start_date = start_date,
                                              end_date = end_date)
 
-        vol_for_period = self.calculate_vol( instrument_code=instrument_code,
-                                             start_date=start_date,
-                                             end_date=end_date)
+        vol_for_period = self.calculate_vol(instrument_code=instrument_code,
+                                            start_date=start_date,
+                                            end_date=end_date)
 
         vol_adjusted = price_change / vol_for_period
 
@@ -57,22 +57,27 @@ class marketMovers(object):
                     vol_adjusted=vol_adjusted)
 
 
-    def get_market_moves_for_period(self,
-                                    period: str) -> pd.DataFrame:
+    def get_market_moves_for_period(self, period: str) -> pd.DataFrame:
 
         self._end_date = datetime.datetime.now()
 
         print("Getting data for %s" % period)
         # ['name', 'change', 'vol_adjusted']
         list_of_instruments = get_list_of_instruments(self.data, source="multiple")
-        all_moves = [self.get_market_move_for_instrument_and_period(
-                                                               instrument_code=instrument_code,
-                                                               period=period)
-                     for instrument_code in list_of_instruments]
+        all_moves: List[Dict[str, Any]] = []
+        for instrument_code in list_of_instruments:
+            try:
+                market_moves = self.get_market_move_for_instrument_and_period(
+                    instrument_code=instrument_code,
+                    period=period,
+                )
+                all_moves.append(market_moves)
+            except IndexError:
+                # missing data for this period
+                pass
 
         all_moves_as_df = pd.DataFrame(all_moves)
         all_moves_as_df = all_moves_as_df.dropna()
-
         return all_moves_as_df
 
     def get_market_move_for_instrument_and_period(self,
