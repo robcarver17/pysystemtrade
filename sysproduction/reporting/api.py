@@ -3,14 +3,20 @@ import datetime
 import pandas as pd
 
 from syscore.cache import Cache
-from syscore.dateutils import SECONDS_PER_DAY, calculate_start_and_end_dates, get_date_from_period_and_end_date
-from syscore.objects import arg_not_supplied, missing_data, body_text, ALL_ROLL_INSTRUMENTS
+from syscore.dateutils import (
+    SECONDS_PER_DAY,
+    calculate_start_and_end_dates,
+    get_date_from_period_and_end_date,
+)
+from syscore.objects import (
+    arg_not_supplied,
+    missing_data,
+    body_text,
+    ALL_ROLL_INSTRUMENTS,
+)
 from syscore.pdutils import top_and_tail
-
 from sysdata.data_blob import dataBlob
-
 from sysproduction.data.prices import diagPrices
-
 from sysproduction.data.positions import annonate_df_index_with_positions_held
 from sysproduction.reporting.formatting import (
     nice_format_instrument_risk_table,
@@ -18,17 +24,20 @@ from sysproduction.reporting.formatting import (
     nice_format_slippage_table,
     nice_format_roll_table,
     nice_format_min_capital_table,
-    make_account_curve_plot)
-from sysproduction.reporting.reporting_functions import header, table, PdfOutputWithTempFileName, figure
-
+    make_account_curve_plot,
+)
+from sysproduction.reporting.reporting_functions import (
+    header,
+    table,
+    PdfOutputWithTempFileName,
+    figure,
+)
 from sysproduction.reporting.data.costs import (
     get_table_of_SR_costs,
     get_combined_df_of_costs,
-adjust_df_costs_show_ticks
+    adjust_df_costs_show_ticks,
 )
-
 from sysproduction.reporting.data.pricechanges import marketMovers
-
 from sysproduction.reporting.data.trades import (
     get_recent_broker_orders,
     create_raw_slippage_df,
@@ -39,18 +48,16 @@ from sysproduction.reporting.data.trades import (
     get_recent_trades_from_db_as_terse_df,
     get_broker_trades_as_terse_df,
 )
-
-
 from sysproduction.reporting.data.duplicate_remove_markets import (
     get_list_of_duplicate_market_tables,
     text_suggest_changes_to_duplicate_markets,
     get_remove_market_data,
-    RemoveMarketData)
-
+    RemoveMarketData,
+)
 from sysproduction.reporting.data.pandl import (
     get_total_capital_pandl,
     pandlCalculateAndStore,
-    get_daily_perc_pandl
+    get_daily_perc_pandl,
 )
 from sysproduction.reporting.data.positions import (
     get_optimal_positions,
@@ -65,7 +72,7 @@ from sysproduction.reporting.data.risk import (
     portfolioRisks,
     get_portfolio_risk_across_strategies,
     get_margin_usage,
-    minimum_capital_table
+    minimum_capital_table,
 )
 from sysproduction.reporting.data.rolls import (
     get_roll_data_for_instrument,
@@ -87,6 +94,7 @@ from sysproduction.reporting.data.volume import get_liquidity_data_df
 
 REPORT_DATETIME_FORMAT = "%d/%m/%Y %H:%M"
 
+
 class reportingApi(object):
     def __init__(
         self,
@@ -95,7 +103,7 @@ class reportingApi(object):
         end_date: datetime.datetime = arg_not_supplied,
         start_date: datetime.datetime = arg_not_supplied,
         start_period: str = arg_not_supplied,
-        end_period: str = arg_not_supplied
+        end_period: str = arg_not_supplied,
     ):
 
         self._data = data
@@ -115,7 +123,7 @@ class reportingApi(object):
                 report_name,
                 datetime.datetime.now().strftime(REPORT_DATETIME_FORMAT),
                 start_date.strftime(REPORT_DATETIME_FORMAT),
-                end_date.strftime(REPORT_DATETIME_FORMAT)
+                end_date.strftime(REPORT_DATETIME_FORMAT),
             )
         )
 
@@ -131,28 +139,28 @@ class reportingApi(object):
     def footer(self):
         return header("END OF REPORT")
 
-
-
     ## PANDL ACCOUNT CURVE
     def figure_of_account_curve_using_dates(self) -> figure:
         pdf_output = PdfOutputWithTempFileName(self.data)
         daily_pandl = self.daily_perc_pandl
-        make_account_curve_plot(daily_pandl,
-                                start_of_title = "Total p&l",
-                                start_date = self.start_date,
-                                end_date = self.end_date)
+        make_account_curve_plot(
+            daily_pandl,
+            start_of_title="Total p&l",
+            start_date=self.start_date,
+            end_date=self.end_date,
+        )
         figure_object = pdf_output.save_chart_close_and_return_figure()
 
         return figure_object
 
-    def figure_of_account_curves_given_period(self, period:str) -> figure:
+    def figure_of_account_curves_given_period(self, period: str) -> figure:
         pdf_output = PdfOutputWithTempFileName(self.data)
         daily_pandl = self.daily_perc_pandl
         start_date = get_date_from_period_and_end_date(period)
 
-        make_account_curve_plot(daily_pandl,
-                                start_of_title= "Total p&l",
-                                start_date = start_date)
+        make_account_curve_plot(
+            daily_pandl, start_of_title="Total p&l", start_date=start_date
+        )
 
         figure_object = pdf_output.save_chart_close_and_return_figure()
 
@@ -166,9 +174,9 @@ class reportingApi(object):
         return get_daily_perc_pandl(self.data)
 
     ## MARKET MOVES
-    def table_of_market_moves_using_dates(self,
-                                           sortby: str,
-                                           truncate: bool = True) -> table:
+    def table_of_market_moves_using_dates(
+        self, sortby: str, truncate: bool = True
+    ) -> table:
 
         # sort by one of ['name', 'change', 'vol_adjusted']
         raw_df = self.market_moves_for_dates()
@@ -178,14 +186,15 @@ class reportingApi(object):
         if truncate:
             rounded_df = top_and_tail(rounded_df, rows=6)
 
-        return table("Market moves between %s and %s, sort by %s"  %
-                     (str(self.start_date), str(self.end_date), sortby),
-                     rounded_df)
+        return table(
+            "Market moves between %s and %s, sort by %s"
+            % (str(self.start_date), str(self.end_date), sortby),
+            rounded_df,
+        )
 
-
-    def table_of_market_moves_given_period(self, period: str,
-                                           sortby: str,
-                                           truncate: bool = True) -> table:
+    def table_of_market_moves_given_period(
+        self, period: str, sortby: str, truncate: bool = True
+    ) -> table:
 
         # sort by one of ['name', 'change', 'vol_adjusted']
         # period eg ['1B', '7D', '1M', '3M', '6M', 'YTD', '12M']
@@ -196,21 +205,22 @@ class reportingApi(object):
         if truncate:
             rounded_df = top_and_tail(rounded_df, rows=6)
 
-        return table("Market moves for period %s, sort by %s (%s/%s)"  %
-                     (period, sortby, period, sortby),
-                     rounded_df)
+        return table(
+            "Market moves for period %s, sort by %s (%s/%s)"
+            % (period, sortby, period, sortby),
+            rounded_df,
+        )
 
-    def market_moves_for_period(self, period: str) ->pd.DataFrame:
+    def market_moves_for_period(self, period: str) -> pd.DataFrame:
         market_moves = self.get_market_moves_object()
         return market_moves.get_market_moves_for_period(period)
 
-    def market_moves_for_dates(self) ->pd.DataFrame:
+    def market_moves_for_dates(self) -> pd.DataFrame:
         market_moves = self.get_market_moves_object()
-        return market_moves.get_market_moves_for_dates(self.start_date,
-                                                       self.end_date)
+        return market_moves.get_market_moves_for_dates(self.start_date, self.end_date)
 
     def get_market_moves_object(self) -> marketMovers:
-        key = '_market_moves'
+        key = "_market_moves"
         stored_market_moves = getattr(self, key, missing_data)
         if stored_market_moves is missing_data:
             stored_market_moves = marketMovers(self.data)
@@ -255,9 +265,7 @@ class reportingApi(object):
         return body_text(remove_market_data.str_explain_safety)
 
     def remove_market_data(self) -> RemoveMarketData:
-        remove_market_data = getattr(self,
-                                     "_remove_market_data",
-                                     missing_data)
+        remove_market_data = getattr(self, "_remove_market_data", missing_data)
         if remove_market_data is missing_data:
             remove_market_data = self._get_remove_market_data()
             self._remove_market_data = remove_market_data
@@ -268,24 +276,24 @@ class reportingApi(object):
         return get_remove_market_data(self.data)
 
     ## DUPLICATE MARKETS
-
     def body_text_suggest_changes_to_duplicate_markets(self) -> body_text:
         list_of_duplicate_markets = self.list_of_duplicate_market_tables()
-        output_text = text_suggest_changes_to_duplicate_markets(list_of_duplicate_markets)
+        output_text = text_suggest_changes_to_duplicate_markets(
+            list_of_duplicate_markets
+        )
         output_body_text = body_text(output_text)
 
         return output_body_text
 
-
     def list_of_duplicate_market_tables(self) -> list:
-        list_of_duplicate_market_tables = getattr(self,
-                                "_list_of_duplicate_market_tables",
-                                missing_data)
+        list_of_duplicate_market_tables = getattr(
+            self, "_list_of_duplicate_market_tables", missing_data
+        )
         if list_of_duplicate_market_tables is missing_data:
-            list_of_duplicate_market_tables = \
+            list_of_duplicate_market_tables = (
                 self._get_list_of_duplicate_market_tables()
-            self._list_of_duplicate_market_tables = \
-                list_of_duplicate_market_tables
+            )
+            self._list_of_duplicate_market_tables = list_of_duplicate_market_tables
 
         return list_of_duplicate_market_tables
 
@@ -295,14 +303,12 @@ class reportingApi(object):
     ### MINIMUM CAPITAL
     def table_of_minimum_capital(self) -> table:
         min_capital = minimum_capital_table(self.data)
-        min_capital = min_capital.sort_values('minimum_capital')
+        min_capital = min_capital.sort_values("minimum_capital")
 
         min_capital = nice_format_min_capital_table(min_capital)
-        min_capital_table = table("Minimum capital in base currency",
-                                             min_capital)
+        min_capital_table = table("Minimum capital in base currency", min_capital)
 
         return min_capital_table
-
 
     #### PROFIT AND LOSS ####
     def body_text_total_capital_pandl(self):
@@ -403,7 +409,6 @@ class reportingApi(object):
         )
 
     ##### STATUS #####
-
     def table_of_control_config_list_for_all_processes(self):
         process = get_control_config_list_for_all_processes_as_df(self.data)
         process_table = table("Config for process control", process)
@@ -412,46 +417,56 @@ class reportingApi(object):
 
     def table_of_delayed_methods(self):
         method_status = get_control_data_list_for_all_methods_as_df(self.data)
-        delay_methods_table = filter_data_for_delays_and_return_table(method_status,
-                                                                      datetime_colum='last_start',
-                                                                      max_delay_in_days=3,
-                                                                      table_header='Delayed methods')
+        delay_methods_table = filter_data_for_delays_and_return_table(
+            method_status,
+            datetime_colum="last_start",
+            max_delay_in_days=3,
+            table_header="Delayed methods",
+        )
 
         return delay_methods_table
 
     def table_of_delayed_prices(self):
         price = get_last_price_updates_as_df(self.data)
-        price_delays = filter_data_for_delays_and_return_table(price,
-                                                        datetime_colum='last_update',
-                                                        max_delay_in_days=3,
-                                                        table_header = "Delayed adjusted / FX prices")
+        price_delays = filter_data_for_delays_and_return_table(
+            price,
+            datetime_colum="last_update",
+            max_delay_in_days=3,
+            table_header="Delayed adjusted / FX prices",
+        )
 
         return price_delays
 
     def table_of_delayed_optimal(self):
         position = get_last_optimal_position_updates_as_df(self.data)
-        position_delays = filter_data_for_delays_and_return_table(position,
-                                                        datetime_colum='last_update',
-                                                        max_delay_in_days=3,
-                                                        table_header = "Delayed optimal positions")
+        position_delays = filter_data_for_delays_and_return_table(
+            position,
+            datetime_colum="last_update",
+            max_delay_in_days=3,
+            table_header="Delayed optimal positions",
+        )
 
         return position_delays
 
     def table_of_limited_trades(self):
         limits = get_trade_limits_as_df(self.data)
-        at_limit = filter_data_for_max_value_and_return_table(limits,
-                                                   field_column='trade_capacity_remaining',
-                                                   max_value=0,
-                                                   table_header="Instruments at trade limit")
+        at_limit = filter_data_for_max_value_and_return_table(
+            limits,
+            field_column="trade_capacity_remaining",
+            max_value=0,
+            table_header="Instruments at trade limit",
+        )
 
         return at_limit
 
     def table_of_used_position_limits(self):
         position_limits = get_position_limits_as_df(self.data)
-        at_limit = filter_data_for_max_value_and_return_table(position_limits,
-                                                   field_column='spare',
-                                                   max_value=0,
-                                                   table_header="Instruments at position limit")
+        at_limit = filter_data_for_max_value_and_return_table(
+            position_limits,
+            field_column="spare",
+            max_value=0,
+            table_header="Instruments at position limit",
+        )
 
         return at_limit
 
@@ -572,7 +587,9 @@ class reportingApi(object):
     def body_text_margin_usage(self) -> body_text:
         margin_usage = self.get_margin_usage()
         perc_margin_usage = margin_usage * 100.0
-        body_text_margin_usage = body_text("Percentage of capital used for margin %.1f%%" % perc_margin_usage)
+        body_text_margin_usage = body_text(
+            "Percentage of capital used for margin %.1f%%" % perc_margin_usage
+        )
 
         return body_text_margin_usage
 
@@ -600,33 +617,46 @@ class reportingApi(object):
 
         return table_strategy_risk
 
-    def table_of_risk_all_instruments(self,
-                                      table_header =
-                                      "Risk of all instruments with data - sorted by annualised % standard deviation",
-                                      sort_by = 'annual_perc_stdev'):
+    def table_of_risk_all_instruments(
+        self,
+        table_header="Risk of all instruments with data - sorted by annualised % standard deviation",
+        sort_by="annual_perc_stdev",
+    ):
         instrument_risk_all = self.instrument_risk_data_all_instruments()
         instrument_risk_sorted = instrument_risk_all.sort_values(sort_by)
-        instrument_risk_sorted = instrument_risk_sorted[['daily_price_stdev',
-                    'annual_price_stdev', 'price', 'daily_perc_stdev',
-       'annual_perc_stdev', 'point_size_base', 'contract_exposure',
-       'annual_risk_per_contract']]
-        instrument_risk_sorted = \
-            instrument_risk_sorted.round({'daily_price_stdev': 4,
-                                            'annual_price_stdev': 3,
-                                          'price': 4,
-                                          'daily_perc_stdev': 3,
-                                          'annual_perc_stdev': 1,
-                                          'point_size_base': 3,
-                                          'contract_exposure': 0,
-                                          'annual_risk_per_contract': 0})
-        instrument_risk_sorted_table = table(table_header,
-                                             instrument_risk_sorted)
+        instrument_risk_sorted = instrument_risk_sorted[
+            [
+                "daily_price_stdev",
+                "annual_price_stdev",
+                "price",
+                "daily_perc_stdev",
+                "annual_perc_stdev",
+                "point_size_base",
+                "contract_exposure",
+                "annual_risk_per_contract",
+            ]
+        ]
+        instrument_risk_sorted = instrument_risk_sorted.round(
+            {
+                "daily_price_stdev": 4,
+                "annual_price_stdev": 3,
+                "price": 4,
+                "daily_perc_stdev": 3,
+                "annual_perc_stdev": 1,
+                "point_size_base": 3,
+                "contract_exposure": 0,
+                "annual_risk_per_contract": 0,
+            }
+        )
+        instrument_risk_sorted_table = table(table_header, instrument_risk_sorted)
 
         return instrument_risk_sorted_table
 
     def body_text_portfolio_risk_total(self):
         portfolio_risk_object = self.portfolio_risks
-        portfolio_risk_total = portfolio_risk_object.get_portfolio_risk_for_all_strategies()
+        portfolio_risk_total = (
+            portfolio_risk_object.get_portfolio_risk_for_all_strategies()
+        )
         portfolio_risk_total = portfolio_risk_total * 100.0
         portfolio_risk_total = portfolio_risk_total.round(1)
         portfolio_risk_total_text = body_text(
@@ -638,31 +668,34 @@ class reportingApi(object):
 
     def table_of_risk_by_asset_class(self) -> table:
         portfolio_risk_object = self.portfolio_risks
-        risk_by_asset_class = portfolio_risk_object.get_pd_series_of_risk_by_asset_class()
-        risk_by_asset_class = risk_by_asset_class*100
+        risk_by_asset_class = (
+            portfolio_risk_object.get_pd_series_of_risk_by_asset_class()
+        )
+        risk_by_asset_class = risk_by_asset_class * 100
         risk_by_asset_class = risk_by_asset_class.round(1)
-        risk_by_asset_class_table = table("Risk by asset class",
-                                             risk_by_asset_class)
+        risk_by_asset_class_table = table("Risk by asset class", risk_by_asset_class)
 
         return risk_by_asset_class_table
 
     def table_of_beta_loadings_by_asset_class(self):
         portfolio_risk_object = self.portfolio_risks
-        beta_load_by_asset_class = portfolio_risk_object.get_beta_loadings_by_asset_class()
+        beta_load_by_asset_class = (
+            portfolio_risk_object.get_beta_loadings_by_asset_class()
+        )
         beta_load_by_asset_class = beta_load_by_asset_class.round(2)
         beta_load_by_asset_class = beta_load_by_asset_class.sort_values()
-        beta_load_by_asset_class_table = table("Beta loadings by asset class",
-                                             beta_load_by_asset_class)
+        beta_load_by_asset_class_table = table(
+            "Beta loadings by asset class", beta_load_by_asset_class
+        )
 
         return beta_load_by_asset_class_table
-
 
     @property
     def portfolio_risks(self) -> portfolioRisks:
         return self.cache.get(self._portfolio_risks)
 
     def _portfolio_risks(self) -> portfolioRisks:
-        return portfolioRisks(data = self.data)
+        return portfolioRisks(data=self.data)
 
     def body_text_abs_total_all_risk_perc_capital(self):
         instrument_risk_data = self.instrument_risk_data()
@@ -796,8 +829,7 @@ class reportingApi(object):
         return get_liquidity_report_data(self.data)
 
     ##### COSTS ######
-    def table_of_sr_costs(self,
-                          commission_only = False):
+    def table_of_sr_costs(self, commission_only=False):
         if commission_only:
             SR_costs = self.SR_costs_commission_only()
         else:
@@ -805,33 +837,29 @@ class reportingApi(object):
 
         SR_costs = SR_costs.round(5)
         SR_costs = annonate_df_index_with_positions_held(data=self.data, pd_df=SR_costs)
-        formatted_table = table(
-            "SR costs (using stored slippage)", SR_costs
-        )
+        formatted_table = table("SR costs (using stored slippage)", SR_costs)
 
         return formatted_table
 
-    def SR_costs(self
-                 ) -> pd.DataFrame:
-        return self.cache.get(self._SR_costs,
-                              include_spread=True,
-                              include_commission=True)
+    def SR_costs(self) -> pd.DataFrame:
+        return self.cache.get(
+            self._SR_costs, include_spread=True, include_commission=True
+        )
 
-    def SR_costs_commission_only(self
-                 ) -> pd.DataFrame:
-        return self.cache.get(self._SR_costs,
-                              include_spread=False,
-                              include_commission=True)
+    def SR_costs_commission_only(self) -> pd.DataFrame:
+        return self.cache.get(
+            self._SR_costs, include_spread=False, include_commission=True
+        )
 
+    def _SR_costs(
+        self, include_commission: bool = True, include_spread: bool = True
+    ) -> pd.DataFrame:
 
-    def _SR_costs(self,
-                  include_commission: bool = True,
-                  include_spread: bool = True
-                  ) -> pd.DataFrame:
-
-        SR_costs = get_table_of_SR_costs(self.data,
-                                         include_commission=include_commission,
-                                         include_spread=include_spread)
+        SR_costs = get_table_of_SR_costs(
+            self.data,
+            include_commission=include_commission,
+            include_spread=include_spread,
+        )
 
         return SR_costs
 
@@ -848,11 +876,11 @@ class reportingApi(object):
 
         return combined_df_costs_as_formatted_table
 
-
     def table_of_slippage_comparison_tick_adjusted(self):
         combined_df_costs = self.combined_df_costs()
-        combined_df_costs = adjust_df_costs_show_ticks(data = self.data,
-                                                       combined_df_costs=combined_df_costs)
+        combined_df_costs = adjust_df_costs_show_ticks(
+            data=self.data, combined_df_costs=combined_df_costs
+        )
 
         combined_df_costs = nice_format_slippage_table(combined_df_costs)
         combined_df_costs = annonate_df_index_with_positions_held(
@@ -876,7 +904,6 @@ class reportingApi(object):
         return combined_df_costs
 
     ##### TRADES ######
-
     def table_of_orders_overview(self):
         broker_orders = self.broker_orders
         if len(broker_orders) == 0:
@@ -1009,7 +1036,6 @@ class reportingApi(object):
         return broker_orders
 
     ##### DATA AND DATES #####
-
     @property
     def data(self) -> dataBlob:
         return self._data
@@ -1033,10 +1059,10 @@ class reportingApi(object):
     def _calculate_start_and_end_dates(self) -> tuple:
         start_date, end_date = calculate_start_and_end_dates(
             calendar_days_back=self._calendar_days_back,
-            start_date = self._passed_start_date,
-            end_date = self._passed_end_date,
-            start_period = self._start_period,
-            end_period = self._end_period
+            start_date=self._passed_start_date,
+            end_date=self._passed_end_date,
+            start_period=self._start_period,
+            end_period=self._end_period,
         )
 
         return start_date, end_date
@@ -1045,6 +1071,7 @@ class reportingApi(object):
     def cache(self) -> Cache:
         return self._cache
 
+
 def get_liquidity_report_data(data: dataBlob) -> pd.DataFrame:
     all_liquidity_df = get_liquidity_data_df(data)
     all_liquidity_df = annonate_df_index_with_positions_held(data, all_liquidity_df)
@@ -1052,55 +1079,60 @@ def get_liquidity_report_data(data: dataBlob) -> pd.DataFrame:
     return all_liquidity_df
 
 
-def filter_data_for_delays_and_return_table(data_with_datetime,
-                           datetime_colum='last_start',
-                        table_header = "Only delayed data",
-                max_delay_in_days = 3):
+def filter_data_for_delays_and_return_table(
+    data_with_datetime,
+    datetime_colum="last_start",
+    table_header="Only delayed data",
+    max_delay_in_days=3,
+):
 
-    filtered_data = filter_data_for_delays(data_with_datetime,
-                                           datetime_colum=datetime_colum,
-                                           max_delay_in_days=max_delay_in_days)
-    if len(filtered_data)==0:
+    filtered_data = filter_data_for_delays(
+        data_with_datetime,
+        datetime_colum=datetime_colum,
+        max_delay_in_days=max_delay_in_days,
+    )
+    if len(filtered_data) == 0:
         return body_text("%s: No delays" % table_header)
     else:
-        return table(table_header,
-                     filtered_data)
+        return table(table_header, filtered_data)
 
-def filter_data_for_delays(data_with_datetime,
-                           datetime_colum='last_start',
-                max_delay_in_days = 3) -> pd.DataFrame:
+
+def filter_data_for_delays(
+    data_with_datetime, datetime_colum="last_start", max_delay_in_days=3
+) -> pd.DataFrame:
 
     max_delay_in_seconds = max_delay_in_days * SECONDS_PER_DAY
     # ignore missing data
-    data_with_datetime = data_with_datetime[data_with_datetime[datetime_colum] != missing_data]
+    data_with_datetime = data_with_datetime[
+        data_with_datetime[datetime_colum] != missing_data
+    ]
     time_delays = datetime.datetime.now() - data_with_datetime[datetime_colum]
-    delayed = [time_difference.total_seconds() > max_delay_in_seconds
-               for time_difference in time_delays]
+    delayed = [
+        time_difference.total_seconds() > max_delay_in_seconds
+        for time_difference in time_delays
+    ]
 
     return data_with_datetime[delayed]
 
 
-def filter_data_for_max_value_and_return_table(data_with_field,
-                           field_column = 'field',
-                        max_value = 0,
-                        table_header = ""):
+def filter_data_for_max_value_and_return_table(
+    data_with_field, field_column="field", max_value=0, table_header=""
+):
 
-    filtered_data = filter_data_for_max_value(data_with_field,
-                                              field_column=field_column,
-                                              max_value=max_value)
-    if len(filtered_data)==0:
+    filtered_data = filter_data_for_max_value(
+        data_with_field, field_column=field_column, max_value=max_value
+    )
+    if len(filtered_data) == 0:
         return body_text("%s: No constraints" % table_header)
     else:
-        return table(table_header,
-                     filtered_data)
+        return table(table_header, filtered_data)
 
 
-def filter_data_for_max_value(data_with_field,
-                           field_column = 'field',
-                max_value = 0) -> pd.DataFrame:
+def filter_data_for_max_value(
+    data_with_field, field_column="field", max_value=0
+) -> pd.DataFrame:
 
     field_values = data_with_field[field_column]
-    filtered = [value<=max_value
-                for value in field_values]
+    filtered = [value <= max_value for value in field_values]
 
     return data_with_field[filtered]
