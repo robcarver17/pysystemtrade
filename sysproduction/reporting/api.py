@@ -15,11 +15,8 @@ from syscore.objects import (
     ALL_ROLL_INSTRUMENTS,
 )
 from syscore.pdutils import top_and_tail
-
 from sysdata.data_blob import dataBlob
-
 from sysproduction.data.prices import diagPrices
-
 from sysproduction.data.positions import annonate_df_index_with_positions_held
 from sysproduction.reporting.formatting import (
     nice_format_instrument_risk_table,
@@ -35,15 +32,12 @@ from sysproduction.reporting.reporting_functions import (
     PdfOutputWithTempFileName,
     figure,
 )
-
 from sysproduction.reporting.data.costs import (
     get_table_of_SR_costs,
     get_combined_df_of_costs,
     adjust_df_costs_show_ticks,
 )
-
 from sysproduction.reporting.data.pricechanges import marketMovers
-
 from sysproduction.reporting.data.trades import (
     get_recent_broker_orders,
     create_raw_slippage_df,
@@ -54,15 +48,12 @@ from sysproduction.reporting.data.trades import (
     get_recent_trades_from_db_as_terse_df,
     get_broker_trades_as_terse_df,
 )
-
-
 from sysproduction.reporting.data.duplicate_remove_markets import (
     get_list_of_duplicate_market_tables,
     text_suggest_changes_to_duplicate_markets,
     get_remove_market_data,
     RemoveMarketData,
 )
-
 from sysproduction.reporting.data.pandl import (
     get_total_capital_pandl,
     pandlCalculateAndStore,
