@@ -5,7 +5,7 @@ from copy import copy
 from syscore.objects import missing_order
 from sysproduction.data.broker import dataBroker
 
-from sysexecution.algos.algo import Algo
+from sysexecution.algos.algo import Algo, limit_price_from_input, limit_order_type
 from sysexecution.algos.common_functions import (
     post_trade_processing,
     MESSAGING_FREQUENCY,
@@ -31,7 +31,9 @@ class algoLimit(Algo):
         contract_order = self.contract_order
         broker_order_with_controls = (
             self.get_and_submit_broker_order_for_contract_order(
-                contract_order, order_type=market_order_type
+                contract_order, order_type=limit_order_type,
+                input_limit_price = contract_order.limit_price,
+                limit_price_from=limit_price_from_input
             )
         )
 
