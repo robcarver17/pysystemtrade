@@ -423,3 +423,34 @@ def last_currency_fx(data: dataBlob, instrument_code: str) -> float:
     fx_rate = data_currency.get_last_fx_rate_to_base(currency)
 
     return fx_rate
+
+
+def modify_price_when_contract_has_changed(
+    data: dataBlob,
+    instrument_code: str,
+    new_contract_date: str,
+    original_contract_date: str,
+    original_price: float,
+) -> float:
+
+    if original_contract_date == new_contract_date:
+        return original_price
+
+    diag_prices = diagPrices(data)
+    contract_list = [original_contract_date, new_contract_date]
+    (
+        _last_matched_date,
+        list_of_matching_prices,
+    ) = diag_prices.get_last_matched_date_and_prices_for_contract_list(
+        instrument_code, contract_list
+    )
+    differential = list_of_matching_prices[1] - list_of_matching_prices[0]
+
+    if np.isnan(differential):
+        # can't adjust
+        # note need to test code there may be other ways in which this fails
+        return missing_data
+
+    adjusted_price = original_price + differential
+
+    return adjusted_price

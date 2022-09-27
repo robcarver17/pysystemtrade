@@ -1,8 +1,11 @@
+import datetime
 from collections import namedtuple
 
 import pandas as pd
 
 from syscore.objects import missing_order, named_object
+from sysobjects.orders import SimpleOrder, ListOfSimpleOrders
+
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.base_orders import Order
 
@@ -98,3 +101,52 @@ def fill_from_order(order: Order) -> Fill:
         return missing_order
 
     return Fill(fill_datetime, fill_qty, fill_price)
+
+def fill_from_simple_order(simple_order: SimpleOrder,
+                           market_price: float,
+                           fill_datetime: datetime.datetime,
+                           slippage: float = 0) -> Fill:
+    if simple_order.is_zero_order:
+        return NOT_FILLED
+
+    elif simple_order.is_market_order:
+        fill = fill_from_simple_market_order(simple_order,
+                                             market_price = market_price,
+                                             slippage=slippage,
+                                             fill_datetime=fill_datetime)
+    else:
+        ## limit order
+        fill = fill_from_simple_limit_order(simple_order,
+                                            market_price=market_price,
+                                            fill_datetime=fill_datetime)
+
+    return fill
+
+def fill_from_simple_limit_order(simple_order: SimpleOrder,
+                           market_price: float,
+                           fill_datetime: datetime.datetime) -> Fill:
+
+    limit_price = simple_order.limit_price
+    if simple_order.quantity > 0:
+        if limit_price > market_price:
+            return Fill(fill_datetime, simple_order.quantity, limit_price)
+
+    if simple_order.quantity < 0:
+        if limit_price < market_price:
+            return Fill(fill_datetime, simple_order.quantity, limit_price)
+
+    return NOT_FILLED
+
+def fill_from_simple_market_order(simple_order: SimpleOrder,
+                                 market_price: float,
+                                 fill_datetime: datetime.datetime,
+                                 slippage: float = 0
+                                 ) -> Fill:
+
+    if simple_order.quantity > 0:
+        fill_price_with_slippage = market_price + slippage
+    else:
+        fill_price_with_slippage = market_price - slippage
+
+    return Fill(fill_datetime, simple_order.quantity, fill_price_with_slippage)
+

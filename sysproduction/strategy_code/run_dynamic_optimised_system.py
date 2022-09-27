@@ -41,22 +41,9 @@ class runSystemCarryTrendDynamic(runSystemClassic):
 
         return system
 
-    def run_backtest(self):
-        strategy_name = self.strategy_name
-        data = self.data
-
-        base_currency, notional_trading_capital = self._get_currency_and_capital()
-
-        system = self.system_method(
-            notional_trading_capital=notional_trading_capital,
-            base_currency=base_currency,
-        )
-
-        ## This is the difference here
-        updated_optimal_positions(data, strategy_name, system)
-
-        store_backtest_state(data, system, strategy_name=strategy_name)
-
+    @property
+    def function_to_call_on_update(self):
+        return updated_optimal_positions_for_dynamic_system
 
 def dynamic_system(
     data: dataBlob,
@@ -124,7 +111,7 @@ def futures_system(data, config):
     return system
 
 
-def updated_optimal_positions(data: dataBlob, strategy_name: str, system: System):
+def updated_optimal_positions_for_dynamic_system(data: dataBlob, strategy_name: str, system: System):
     log = data.log
 
     data_optimal_positions = dataOptimalPositions(data)

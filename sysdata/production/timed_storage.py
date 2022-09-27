@@ -118,8 +118,8 @@ class listOfEntriesData(baseData):
                 str(new_entry),
             )
 
-            self.log.critical(e)
-            raise Exception(e)
+            self.log.critical(error_msg)
+            raise Exception(error_msg)
 
         class_of_entry_list_as_str = new_entry.containing_data_class_name
 

@@ -48,7 +48,7 @@ class instrumentOrder(Order):
         parent: int = no_parent,
         children: list = no_children,
         active: bool = True,
-        order_type: instrumentOrderType = instrumentOrderType("best"),
+        order_type: instrumentOrderType = best_order_type,
         limit_price: float = None,
         limit_contract: str = None,
         reference_datetime: datetime.datetime = None,

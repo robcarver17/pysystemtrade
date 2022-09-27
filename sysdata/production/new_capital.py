@@ -186,7 +186,11 @@ class capitalData(baseData):
             date = datetime.datetime.now()
 
         capital_df = self.get_capital_pd_df_for_strategy(strategy_name)
-        capital_series = capital_df.squeeze()
+        if capital_df is missing_data:
+            capital_series = pd.Series(dtype=float)
+        else:
+            capital_series = capital_df.squeeze()
+
         new_capital_item = pd.Series([new_capital_value], [date])
         updated_capital_series = pd.concat([capital_series, new_capital_item], axis=0)
         updated_capital_df = updated_capital_series.to_frame()
