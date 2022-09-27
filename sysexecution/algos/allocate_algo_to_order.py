@@ -88,8 +88,9 @@ def check_and_if_required_allocate_algo_to_single_contract_order(
         )
 
     elif instrument_order_type == limit_order_type:
-        log.critical("Don't have an algo for instrument level limit orders yet!")
-        return missing_order
+        contract_order = allocate_for_limit_order(
+            data, contract_order=contract_order
+        )
 
     elif instrument_order_type == balance_order_type:
         log.critical("Balance orders aren't executed, shouldn't even be here!")
