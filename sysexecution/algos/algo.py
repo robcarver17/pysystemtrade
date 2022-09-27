@@ -51,6 +51,10 @@ class Algo(object):
         return self._data
 
     @property
+    def blocking_algo_requires_management(self) -> bool:
+        return True
+
+    @property
     def data_broker(self):
         return self._data_broker
 

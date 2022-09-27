@@ -72,11 +72,16 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
             placed_broker_order_with_controls
         )
 
-        completed_broker_order_with_controls = algo_instance.manage_trade(
-            broker_order_with_controls_and_order_id
-        )
+        if algo_instance.blocking_algo_requires_management:
 
-        self.post_trade_processing(completed_broker_order_with_controls)
+            completed_broker_order_with_controls = algo_instance.manage_trade(
+                broker_order_with_controls_and_order_id
+            )
+
+            self.post_trade_processing(completed_broker_order_with_controls)
+        else:
+            ### Hopefully order will come through...
+            pass
 
     def preprocess_contract_order(
         self, original_contract_order: contractOrder

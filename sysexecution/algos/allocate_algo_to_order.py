@@ -21,6 +21,7 @@ from sysexecution.orders.list_of_orders import listOfOrders
 
 DEFAULT_ALGO = MARKET_ALGO = "sysexecution.algos.algo_market.algoMarket"
 ORIGINAL_BEST = "sysexecution.algos.algo_original_best.algoOriginalBest"
+LIMIT_ALGO = "sysexecution.algos.algo_limit_orders.algoLimit"
 
 # Don't trade with an algo in last 30 minutes
 HOURS_BEFORE_MARKET_CLOSE_TO_SWITCH_TO_MARKET = 0.5
@@ -120,5 +121,15 @@ def allocate_for_best_execution_no_limit(
     else:
         log.msg("'Best' order so allocating to original_best")
         contract_order.algo_to_use = ORIGINAL_BEST
+
+    return contract_order
+
+def allocate_for_limit_order(
+    data: dataBlob, contract_order: contractOrder
+) -> contractOrder:
+    # in the future could be randomized...
+    log = contract_order.log_with_attributes(data.log)
+    log.msg("Allocating to limit order")
+    contract_order.algo_to_use = LIMIT_ALGO
 
     return contract_order
