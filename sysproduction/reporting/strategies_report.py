@@ -44,11 +44,14 @@ def get_strategies_report_output(data, list_of_strategies, timestamp=arg_not_sup
 
     formatted_output = []
     for strategy_name in list_of_strategies:
-        strategy_format_output_list = get_output_for_single_strategy(
-            data, strategy_name, timestamp=timestamp
-        )
-        for output_item in strategy_format_output_list:
-            formatted_output.append(output_item)
+        try:
+            strategy_format_output_list = get_output_for_single_strategy(
+                data, strategy_name, timestamp=timestamp
+            )
+            for output_item in strategy_format_output_list:
+                formatted_output.append(output_item)
+        except FileNotFoundError as e:
+            print(e)
 
     return formatted_output
 
@@ -68,5 +71,5 @@ def get_output_for_single_strategy(data, strategy_name, timestamp=arg_not_suppli
     return strategy_format_output_list
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     strategy_report()
