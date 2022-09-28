@@ -12,7 +12,7 @@ HEADER_TEXT = body_text("The following report calculates the minimum capital for
                         'E- minimum_capital_one_contract:  Minimum capital to hold a single contract on a standalone basis = A * B * C / D \n' +
                         'F- minimum_position_contracts: Minimum position we want to hold for an average sized forecast\n' +
                         'G- instrument_weight: Proportion of capital allocated to instrument \n' +
-                        'H- IDM: Instrument diversification multipilier \n' +
+                        'H- IDM: Instrument diversification multiplier \n' +
                         'I- minimum_capital: Minimum capital within a portfolio, allowing for minimum position = E * F / ( G * H) \n'
                         )
 
