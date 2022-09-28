@@ -187,10 +187,6 @@ class Algo(object):
 
         # These prices will be used for limit price purposes
         # They are scalars
-        benchmark_side_prices = tick_analysis.side_price
-        offside_price = tick_analysis.offside_price
-        mid_price = tick_analysis.mid_price
-
         collected_prices = benchmarkPriceCollection(
             offside_price=tick_analysis.offside_price,
             side_price=tick_analysis.side_price,
