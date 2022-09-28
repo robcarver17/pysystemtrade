@@ -36,6 +36,9 @@ class ibOrdersClient(ibContractsClient):
         :return: list
         """
         self.refresh()
+
+        ## Seems to make it more likely we get open orders back
+        self.ib.reqAllOpenOrders()
         trades_in_broker_format = self.ib.trades()
         if account_id is not arg_not_supplied:
             trades_in_broker_format_this_account = [
