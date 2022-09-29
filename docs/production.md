@@ -38,6 +38,7 @@ Table of Contents
    * [Code and configuration management](#code-and-configuration-management)
       * [Managing your separate directories of code and configuration](#managing-your-separate-directories-of-code-and-configuration)
       * [Managing your private directory](#managing-your-private-directory)
+      * [Custom private directory](#custom-private-directory)
    * [Finalise your backtest configuration](#finalise-your-backtest-configuration)
    * [Linking to a broker](#linking-to-a-broker)
    * [Other data sources](#other-data-sources)
@@ -490,6 +491,20 @@ cd ~/pysystemtrade/
 git pull
 ```
 
+### Custom private directory
+
+If you prefer to keep your private config outside the *pysystemtrade* directory structure, this is possible too. Set
+the environment variable `PYSYS_PRIVATE_CONFIG_DIR` with the full path to the custom directory:
+
+```
+PYSYS_PRIVATE_CONFIG_DIR=/home/user_name/private_custom_dir
+```
+
+or to set a custom config directory in the context of a single script
+
+```
+PYSYS_PRIVATE_CONFIG_DIR=/home/user_name/private_custom_dir python sysproduction/whatever.py
+```
 
 
 ## Finalise your backtest configuration

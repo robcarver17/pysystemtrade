@@ -242,24 +242,6 @@ def backup_fx_to_csv(data):
                 data.log.warn("Problem writing .csv backup for %s" % fx_code)
 
 
-def backup_fx_to_csv(data):
-    fx_codes = data.arctic_fx_prices.get_list_of_fxcodes()
-    for fx_code in fx_codes:
-        arctic_data = data.arctic_fx_prices.get_fx_prices(fx_code)
-        csv_data = data.csv_fx_prices.get_fx_prices(fx_code)
-        if check_ts_equals(arctic_data, csv_data):
-            data.log.msg("No fx backup needed for %s" % fx_code)
-        else:
-            # Write backup
-            try:
-                data.csv_fx_prices.add_fx_prices(
-                    fx_code, arctic_data, ignore_duplication=True
-                )
-                data.log.msg("Written .csv backup for %s" % fx_code)
-            except BaseException:
-                data.log.warn("Problem writing .csv backup for %s" % fx_code)
-
-
 def backup_multiple_to_csv(data):
     instrument_list = data.arctic_futures_multiple_prices.get_list_of_instruments()
     for instrument_code in instrument_list:
