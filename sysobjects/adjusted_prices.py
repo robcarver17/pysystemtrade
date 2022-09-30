@@ -29,7 +29,7 @@ class futuresAdjustedPrices(pd.Series):
         Our graceful fail is to return an empty, but valid, dataframe
         """
 
-        futures_contract_prices = futuresContractPrices(pd.Series())
+        futures_contract_prices = futuresContractPrices(pd.Series(dtype='float64'))
 
         return futures_contract_prices
 

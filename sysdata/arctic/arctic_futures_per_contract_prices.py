@@ -100,8 +100,8 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         self.arctic_connection.write(ident, futures_price_data_as_pd)
 
         log.msg(
-            "Wrote %s lines of prices for %s to %s"
-            % (len(futures_price_data), str(futures_contract_object.key), str(self))
+            "Wrote %s lines of prices for %s at %s to %s"
+            % (len(futures_price_data), str(futures_contract_object.key), str(frequency), str(self))
         )
 
 

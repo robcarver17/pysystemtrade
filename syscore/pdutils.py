@@ -262,7 +262,7 @@ def pd_readcsv(
     :type filename: str
 
     :param date_index_name: Column name of date index
-    :type date_index_name: list of str
+    :type date_index_name: str
 
     :param date_format: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
     :type date_format: str
