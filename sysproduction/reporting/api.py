@@ -1023,11 +1023,8 @@ class reportingApi(object):
 
     @property
     def broker_orders(self) -> pd.DataFrame:
-        broker_orders = getattr(self, "_broker_orders", missing_data)
-        if broker_orders is missing_data:
-            broker_orders = self._broker_orders = self._get_broker_orders()
+        return self.cache.get(self._get_broker_orders)
 
-        return broker_orders
 
     def _get_broker_orders(self) -> pd.DataFrame:
         broker_orders = get_recent_broker_orders(
