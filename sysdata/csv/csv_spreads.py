@@ -15,7 +15,7 @@ SPREAD_COLUMN_NAME = "spread"
 class csvSpreadsForInstrumentData(spreadsForInstrumentData):
     """
 
-    Class for adjusted prices write / to from csv
+    Class for spreads write / to from csv
     """
 
     def __init__(
@@ -47,7 +47,7 @@ class csvSpreadsForInstrumentData(spreadsForInstrumentData):
         try:
             spreads_from_pd = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
         except OSError:
-            self.log.warn("Can't find adjusted price file %s" % filename)
+            self.log.warn("Can't find spread file %s" % filename)
             return spreadsForInstrument()
 
         spreads_as_series = pd.Series(spreads_from_pd[SPREAD_COLUMN_NAME])

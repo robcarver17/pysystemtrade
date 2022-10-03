@@ -81,6 +81,24 @@ process_configuration_methods:
       max_executions: 1
     trade_report:
       max_executions: 1
+    strategy_report:
+      max_executions: 1
+    risk_report:
+      max_executions: 1
+    slippage_report:
+      max_executions: 1
+    instrument_risk_report:
+      max_executions: 1
+    min_capital:
+      max_executions: 1
+    duplicate_market:
+      max_executions: 1
+    remove_markets_report:
+      max_executions: 1
+    market_monitor_report:
+      max_executions: 1
+    account_curve_report:
+      max_executions: 1
   run_backups:
     backup_arctic_to_csv:
       max_executions: 1

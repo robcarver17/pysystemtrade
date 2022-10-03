@@ -779,6 +779,7 @@ The full list of keys that you can use in the `csv_data_paths` are:
 * `csvFuturesMultiplePricesData` (prices for current, next and carry contracts)
 * `csvFuturesAdjustedPricesData` (stitched back-adjusted prices)
 * `csvFxPricesData` (for FX prices)
+* `csvRollParametersData` (for roll configuration)
   
 Note that you can't put adjusted prices and carry data in the same directory since they use the same file format.
 
