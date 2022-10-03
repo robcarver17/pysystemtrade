@@ -6,7 +6,7 @@ USE_CHILD_CLASS_ERROR = "You need to use a child class of spreadsForInstrumentDa
 
 class spreadsForInstrumentData(baseData):
     """
-    Read and write data class to get adjusted prices
+    Read and write data class to get spreads
 
     We'd inherit from this class for a specific implementation
 

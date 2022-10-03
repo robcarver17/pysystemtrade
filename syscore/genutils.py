@@ -221,7 +221,7 @@ class progressBar(object):
         self.current_iter = 0
         self.suffix = suffix
         self.range_to_iter = range_to_iter
-        self.range_per_block = range_to_iter / np.float(toolbar_width)
+        self.range_per_block = range_to_iter / float(toolbar_width)
         self._how_many_blocks_displayed = -1  # will always display first time
         self._show_each_time = show_each_time
         self._show_timings = show_timings

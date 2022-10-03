@@ -35,6 +35,30 @@ class listOfOrders(list):
 
         return pd_df
 
+    def as_pd_with_limits(self) -> pd.DataFrame:
+        date_list = [order.fill_datetime for order in self]
+        key_list = [order.key for order in self]
+        trade_list = [order.trade for order in self]
+        fill_list = [order.fill for order in self]
+        id_list = [order.order_id for order in self]
+        price_list = [order.filled_price for order in self]
+        limit_list = [order.limit_price for order in self]
+
+        pd_df = pd.DataFrame(
+            dict(
+                fill_datetime=date_list,
+                key=key_list,
+                trade=trade_list,
+                fill=fill_list,
+                price=price_list,
+                limit = limit_list
+            ),
+            index=id_list,
+        )
+
+        return pd_df
+
+
     def list_of_filled_price(self) -> list:
         list_of_filled_price = [order.filled_price for order in self]
 

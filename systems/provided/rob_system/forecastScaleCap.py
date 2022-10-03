@@ -35,7 +35,7 @@ class volAttenForecastScaleCap(ForecastScaleCap):
 
     @diagnostic()
     def get_raw_forecast(self, instrument_code, rule_variation_name):
-        ## overriden methon this will be called downstream so don't change name
+        ## overriden method this will be called downstream so don't change name
         raw_forecast_before_atten = self.get_raw_forecast_before_attenuation(
             instrument_code, rule_variation_name
         )
