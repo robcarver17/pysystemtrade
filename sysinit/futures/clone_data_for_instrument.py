@@ -84,7 +84,7 @@ inverse: bool = False
 
     prices = db_data_multiple_prices.get_multiple_prices(instrument_from)
     if inverse:
-        prices = futuresMultiplePrices(1/prices)
+        prices = prices.inverse()
 
     db_data_multiple_prices.add_multiple_prices(
         instrument_to, multiple_price_data=prices, ignore_duplication=ignore_duplication
