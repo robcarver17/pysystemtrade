@@ -80,7 +80,7 @@ DIVDAX-DIVI,1000,0,2,0,Equity,EUR,DivDAX Dividend Points Index,
 DJSTX-SMALL,50,0,2,0,Equity,EUR,Dow Jones STOXX Small 200 Index,0.2
 DJUBS,250,,,,Ags,EUR,Dow Jones-UBS Commodity Index,
 DOW,0.5,0,0.25,0,Equity,USD,Micro E-Mini Dow Jones Industrial Average Index,0.72
-DOW_mini,5,,,,Equity,USD,Mini Sized Dow Jones Industrial Average $5,
+DOW_mini,5,,0.85,,Equity,USD,Mini Sized Dow Jones Industrial Average $5,0.5
 DOW_YEN,100,,,,Equity,JPY,OSE Dow Jones Industrial Average,
 DX,1000,0,2.2,0,FX,USD,US Dollar Index,0.1
 EDOLLAR,2500,0,2.11,0,Bond,USD,US STIR Eurodollar,0.0025
