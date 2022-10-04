@@ -9,6 +9,7 @@ from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 
 from sysobjects.contracts import futuresContract
+from syscore.dateutils import DAILY_PRICE_FREQ, HOURLY_FREQ
 from sysobjects.multiple_prices import futuresMultiplePrices
 from sysobjects.adjusted_prices import futuresAdjustedPrices
 
@@ -54,21 +55,51 @@ def clone_prices_per_contract(instrument_from: str, instrument_to: str,
         for contract_date in list_of_contract_dates
     ]
 
-
-def clone_single_contract(instrument_from: str, instrument_to: str, contract_date: str, ignore_duplication = False,
+def clone_single_contract(instrument_from: str, instrument_to: str,
+                          contract_date: str, ignore_duplication = False,
                           inverse: bool = False):
 
+    futures_contract_from = futuresContract(instrument_from, contract_date)
+    futures_contract_to = futuresContract(instrument_to, contract_date)
+
     data_in = db_data_individual_prices.get_merged_prices_for_contract_object(
-        futuresContract(instrument_from, contract_date)
+        futures_contract_from
     )
 
     if inverse:
         data_in = data_in.inverse()
 
     db_data_individual_prices.write_merged_prices_for_contract_object(
-        futuresContract(instrument_to, contract_date), futures_price_data=data_in,
+        futures_contract_to, futures_price_data=data_in,
         ignore_duplication=ignore_duplication
     )
+
+    hourly_data_in = db_data_individual_prices.get_prices_at_frequency_for_contract_object(
+        futures_contract_from, frequency=HOURLY_FREQ
+    )
+    if len(hourly_data_in)>0:
+        if inverse:
+            hourly_data_in = hourly_data_in.inverse()
+
+        db_data_individual_prices.write_prices_at_frequency_for_contract_object(
+            futures_contract_to,
+            futures_price_data=hourly_data_in,
+            frequency=HOURLY_FREQ
+        )
+
+    daily_data_in = db_data_individual_prices.get_prices_at_frequency_for_contract_object(
+        futures_contract_from, frequency=DAILY_PRICE_FREQ
+    )
+    if len(hourly_data_in)>0:
+        if inverse:
+            daily_data_in = daily_data_in.inverse()
+
+        db_data_individual_prices.write_prices_at_frequency_for_contract_object(
+            futures_contract_to,
+            futures_price_data=daily_data_in,
+            frequency=DAILY_PRICE_FREQ
+        )
+
 
 
 def clone_roll_calendar(instrument_from: str, instrument_to: str):

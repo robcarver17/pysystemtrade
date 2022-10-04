@@ -11,7 +11,6 @@ if __name__ == "__main__":
     for instrument_code in instrument_list:
         print(instrument_code)
         list_of_contracts = a.contracts_with_merged_price_data_for_instrument_code(instrument_code)
-
         for contract in list_of_contracts:
             print(contract)
             merged_data = a.get_merged_prices_for_contract_object(contract)
@@ -19,14 +18,13 @@ if __name__ == "__main__":
                 continue
             daily_data = closing_date_rows_in_pd_object(merged_data)
             hourly_data = get_intraday_df_at_frequency(merged_data, frequency="H")
-
             if len(daily_data)>0:
                 a.write_prices_at_frequency_for_contract_object(contract,
                                                                 futures_price_data=daily_data,
-                                                                ignore_duplication=True,
+                                                                ignore_duplication=False,
                                                                 frequency=DAILY_PRICE_FREQ)
             if len(hourly_data)>0:
                 a.write_prices_at_frequency_for_contract_object(contract,
                                                                 futures_price_data=hourly_data,
-                                                                ignore_duplication=True,
+                                                                ignore_duplication=False,
                                                                 frequency=HOURLY_FREQ)
