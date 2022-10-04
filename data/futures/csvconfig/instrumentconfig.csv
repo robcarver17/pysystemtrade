@@ -1,6 +1,6 @@
 Instrument,Pointsize,Percentage,PerBlock,PerTrade,AssetClass,Currency,Description,Slippage
 AEX,200,0,2,0,Equity,EUR,Netherlands equity index AEX,0.1
-AEX_mini,20,,,,Equity,EUR,AEX mini,
+AEX_mini,20,,0.2,,Equity,EUR,AEX mini,0.1
 ALUMINIUM,25,0,1.5,0,Metals,USD,NYMEX Aluminum Index,8.5
 ALUMINIUM_LME,25,,,,Metals,USD,High-Grade Primary Aluminium,
 ASX,25,,,,Equity,AUD,Australian equity index ASX200,
