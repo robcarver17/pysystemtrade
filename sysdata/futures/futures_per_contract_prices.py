@@ -238,7 +238,7 @@ class futuresContractPriceData(baseData):
     def get_merged_prices_for_contract_object(self,
                                               contract_object: futuresContract,
                                               return_empty: bool = True
-                                              ):
+                                              ) -> futuresContractPrices:
         """
         get all prices without worrying about frequency
 

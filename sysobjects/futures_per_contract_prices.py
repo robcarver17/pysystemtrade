@@ -11,6 +11,7 @@ from syscore.merge_data import merge_newer_data, full_merge_of_existing_data
 PRICE_DATA_COLUMNS = sorted(["OPEN", "HIGH", "LOW", "FINAL", "VOLUME"])
 FINAL_COLUMN = "FINAL"
 VOLUME_COLUMN = "VOLUME"
+NOT_VOLUME_COLUMNS = sorted(["OPEN", "HIGH", "LOW", "FINAL"])
 
 VERY_BIG_NUMBER = 999999.0
 
@@ -33,6 +34,7 @@ class futuresContractPrices(pd.DataFrame):
 
     def __copy__(self):
         return futuresContractPrices(copy(self._as_df))
+
 
 
     @classmethod
@@ -69,6 +71,13 @@ class futuresContractPrices(pd.DataFrame):
         data = self[VOLUME_COLUMN]
 
         return data
+
+    def inverse(self):
+        new_version = copy(self)
+        for colname in NOT_VOLUME_COLUMNS:
+            new_version[colname] = 1/self[colname]
+
+        return new_version
 
     def daily_volumes(self) -> pd.Series:
         volumes = self._raw_volumes()
