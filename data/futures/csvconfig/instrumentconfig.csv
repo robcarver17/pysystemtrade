@@ -34,7 +34,7 @@ BUTTER,200,0,0.85,0,Ags,USD,CME Cash-Settled Butter Futures,1.89375
 BUXL,1000,0,2,0,Bond,EUR,German Buxl 15 to 30 year bond,0.013
 CAC,10,0,2,0,Equity,EUR,French equity index CAC40,0.25
 CAD,100000,0,1.5,0,FX,USD,CADUSD currency,3.4E-05
-CAD_micro,10000,,,,FX,USD,CADUSD_micro,
+CAD_micro,10000,,0.85,,FX,USD,CADUSD_micro,5E-05
 CAD10,1000,,,,Bond,CAD,Canadian 10 year bond,
 CAD2,1000,,,,Bond,CAD,Canadian 2 year bond,
 CAD5,1000,,,,Bond,CAD,Canadian 10 year bond,
