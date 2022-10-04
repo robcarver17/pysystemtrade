@@ -309,7 +309,7 @@ ROBUSTA,10,0,3,0,Ags,USD,Robusta Coffee,0.5
 RUBBER,50,0,3,0,Other,USD,TSR 20 Rubber,0.05
 RUR,2500000,0,1.5,0,FX,USD,RURUSD currency,5E-06
 RUSSELL,5,0,0.25,0,Equity,USD,Micro E-Mini Russell 2000 Index,0.1
-RUSSELL_mini,50,,,,Equity,USD,E-Mini Russell 2000 Index,
+RUSSELL_mini,50,0,0.85,0,Equity,USD,E-Mini Russell 2000 Index,0.1
 SARONA,2500,,,,Bond,CHF,Three Month SaronA,
 SEK,2000000,0,1.5,0,FX,USD,SEKUSD currency,2E-05
 SGD,100000,0,3.5,0,FX,SGD,SGX US Dollar in Singapore Dollar Futures (Full-Sized),0.000125
