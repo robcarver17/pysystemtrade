@@ -77,7 +77,7 @@ class futuresContractPrices(pd.DataFrame):
         for colname in NOT_VOLUME_COLUMNS:
             new_version[colname] = 1/self[colname]
 
-        return new_version
+        return futuresContractPrices(new_version)
 
     def daily_volumes(self) -> pd.Series:
         volumes = self._raw_volumes()
