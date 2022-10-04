@@ -62,7 +62,7 @@ COCOA_LDN,10,,,,Ags,GBP,Cocoa London,
 COFFEE,37500,0,3,0,Ags,USD,Coffee,0.001
 COPPER,25000,0,2.31,0,Metals,USD,Copper,0.000423883318893
 COPPER_LME,25,,,,Metals,USD,Grade A Copper - LME,
-COPPER-micro,2500,,,,Metals,USD,Copper micro,
+COPPER-micro,2500,,0.85,,Metals,USD,Copper micro,0.0005
 COPPER-mini,12500,0,0.85,0,Metals,USD,COMEX MINY Copper,0.002
 CORN,50,0,2.9,0,Ags,USD,Corn,0.125
 CORN_mini,10,0,2.9,0,Ags,USD,Corn mini,0.125
