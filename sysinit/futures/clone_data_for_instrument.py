@@ -9,6 +9,9 @@ from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 
 from sysobjects.contracts import futuresContract
+from sysobjects.multiple_prices import futuresMultiplePrices
+from sysobjects.adjusted_prices import futuresAdjustedPrices
+
 
 db_data_individual_prices = arcticFuturesContractPriceData()
 db_data_multiple_prices = arcticFuturesMultiplePricesData()
@@ -81,7 +84,7 @@ inverse: bool = False
 
     prices = db_data_multiple_prices.get_multiple_prices(instrument_from)
     if inverse:
-        prices = 1/inverse
+        prices = futuresMultiplePrices(1/inverse)
 
     db_data_multiple_prices.add_multiple_prices(
         instrument_to, multiple_price_data=prices, ignore_duplication=ignore_duplication
@@ -98,7 +101,7 @@ def clone_adjusted_prices(
 
     prices = db_data_adjusted_prices.get_adjusted_prices(instrument_from)
     if inverse:
-        prices = 1/inverse
+        prices = futuresAdjustedPrices(1/inverse)
 
     db_data_adjusted_prices.add_adjusted_prices(
         instrument_to, adjusted_price_data=prices,
