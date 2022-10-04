@@ -84,7 +84,7 @@ inverse: bool = False
 
     prices = db_data_multiple_prices.get_multiple_prices(instrument_from)
     if inverse:
-        prices = futuresMultiplePrices(1/inverse)
+        prices = futuresMultiplePrices(1/prices)
 
     db_data_multiple_prices.add_multiple_prices(
         instrument_to, multiple_price_data=prices, ignore_duplication=ignore_duplication
@@ -101,7 +101,7 @@ def clone_adjusted_prices(
 
     prices = db_data_adjusted_prices.get_adjusted_prices(instrument_from)
     if inverse:
-        prices = futuresAdjustedPrices(1/inverse)
+        prices = futuresAdjustedPrices(1/prices)
 
     db_data_adjusted_prices.add_adjusted_prices(
         instrument_to, adjusted_price_data=prices,
