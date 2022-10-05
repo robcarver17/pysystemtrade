@@ -236,7 +236,7 @@ KR3,1000000,4E-05,0,0,Bond,KRW,Korean 3 year bond,0.005
 KRW,125000000,,,,FX,USD,KRWUSD SGX,
 KRWJPY,25000000,0,285,0,FX,JPY,SGX Korean Won in Japanese Yen Futures,
 KRWUSD,125000000,0,0.85,0,FX,USD,Korean Won,4E-07
-KRWUSD_mini,25000000,0,2.85,0,FX,USD,SGX Korean Won in US Dollar Futures (Mini),0.0002
+KRWUSD_mini,25000,0,2.85,0,FX,USD,SGX Korean Won in US Dollar Futures (Mini),0.0002
 LEAD_LME,25,,,,Metals,USD,Lead – LME,
 LEANHOG,400,0,2.9,0,Ags,USD,Lean hogs,0.025
 LIBOR1,2500,0,0.85,0,Bond,USD,1 Month LIBOR (Int. Rate),0.01
@@ -312,7 +312,7 @@ RUSSELL_mini,50,0,0.85,0,Equity,USD,E-Mini Russell 2000 Index,0.1
 SARONA,2500,,,,Bond,CHF,Three Month SaronA,
 SEK,2000000,0,1.5,0,FX,USD,SEKUSD currency,2E-05
 SGD,100000,0,3.5,0,FX,SGD,SGX US Dollar in Singapore Dollar Futures (Full-Sized),0.000125
-SGD_mini,25000,,2.25,,Equity,USD,SGX US Dollar in Singapore Dollar (Mini) Futures,0.000125
+SGD_mini,25000,,2.25,,FX,SGD,SGX US Dollar in Singapore Dollar (Mini) Futures,0.000125
 SGX,10,0,4,0,Equity,SGD,SGX Straits Times Index,
 SHATZ,1000,0,2,0,Bond,EUR,German 2 year bond Schatz,0.0025
 SILVER,1000,0,1.5,0,Metals,USD,NYMEX Silver Index,0.004
