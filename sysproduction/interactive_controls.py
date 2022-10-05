@@ -17,6 +17,7 @@ from sysinit.futures.safely_modify_roll_parameters import safely_modify_roll_par
 from sysinit.futures.roll_parameters_csv_mongo import copy_roll_parameters_from_csv_to_mongo
 
 from sysdata.data_blob import dataBlob
+from sysobjects.contracts import futuresContract
 from sysobjects.production.override import override_dict, Override
 from sysobjects.production.tradeable_object import instrumentStrategy
 
@@ -32,10 +33,14 @@ from sysproduction.data.controls import (
     dataPositionLimits,
     dataBrokerClientIDs,
 )
+from sysproduction.data.broker import dataBroker
+from sysproduction.data.instruments import diagInstruments
+from sysproduction.data.contracts import dataContracts
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
 from sysproduction.data.prices import (
     get_valid_instrument_code_from_user,
     get_list_of_instruments,
+
 )
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.instruments import dataInstruments
@@ -128,7 +133,8 @@ nested_menu_of_options = {
         52: "Copy instrument configuration from .csv to DB",
         53: "Copy roll parameters config from DB to .csv",
         54: "Copy roll parameters config from .csv to DB",
-        55: "Safe modify of roll parameters configuration"
+        55: "Safe modify of roll parameters configuration",
+        56: "Check price multipliers are consistent"
     },
 }
 
@@ -916,6 +922,46 @@ def backup_roll_parameters_data_to_csv(data: dataBlob):
     )
     backup_roll_parameters(backup_data)
 
+def check_price_multipliers_consistent(data: dataBlob):
+    list_of_instruments = get_list_of_instruments(data,
+                                                  "single")
+    for instrument_code in list_of_instruments:
+        check_price_multipliers_consistent_for_instrument(data, instrument_code)
+
+def check_price_multipliers_consistent_for_instrument(data: dataBlob,
+                                                      instrument_code: str):
+
+    data_broker = dataBroker(data)
+    diag_instruments = diagInstruments(data)
+    data_contracts = dataContracts(data)
+
+    point_size_from_instrument_config = diag_instruments.get_point_size(instrument_code)
+
+    ib_config_for_instrument = data_broker.broker_futures_instrument_data.get_instrument_data(instrument_code)
+
+    contract_id_priced_contract = data_contracts.get_priced_contract_id(instrument_code)
+    priced_contract = futuresContract(instrument_code, contract_id_priced_contract)
+    contract_price_magnifier_from_ib = data_broker.broker_futures_contract_data.get_price_magnifier_for_contract(priced_contract)
+
+    ib_configured_multiplier = ib_config_for_instrument.ib_data.ibMultiplier
+    ib_configured_price_magnifier = ib_config_for_instrument.ib_data.priceMagnifier
+    ib_configured_effective_multiplier = ib_config_for_instrument.ib_data.effective_multiplier
+
+    if contract_price_magnifier_from_ib!=ib_configured_price_magnifier:
+        print("Configured price magnifier of %s is different from value returned by IB of %s, for %s!" %
+              (str(ib_configured_price_magnifier),
+               str(contract_price_magnifier_from_ib),
+               instrument_code))
+
+    if ib_configured_effective_multiplier!=point_size_from_instrument_config:
+        print("IB configured effective multiplier of %s (equal to multiplier %s x magnifier %s) is different from instrument configuration value of %s for %s" % \
+              (str(ib_configured_effective_multiplier),
+               str(ib_configured_multiplier),
+               str(ib_configured_price_magnifier),
+               str(point_size_from_instrument_config),
+               instrument_code))
+
+    return None
 
 def not_defined(data):
     print("\n\nFunction not yet defined\n\n")
@@ -950,7 +996,8 @@ dict_of_functions = {
     52: copy_instrument_config_from_csv_to_mongo,
     53: backup_roll_parameters_data_to_csv,
     54: copy_roll_parameters_from_csv_to_mongo,
-    55: safely_modify_roll_parameters
+    55: safely_modify_roll_parameters,
+    56: check_price_multipliers_consistent
 
 
 }

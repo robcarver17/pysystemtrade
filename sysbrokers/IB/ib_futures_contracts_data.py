@@ -157,6 +157,25 @@ class ibFuturesContractData(brokerFuturesContractData):
 
         return min_tick_size
 
+    def get_price_magnifier_for_contract(self, contract_object: futuresContract) -> float:
+        new_log = contract_object.log(self.log)
+        contract_object_with_ib_data = self.get_contract_object_with_IB_data(
+            contract_object
+        )
+        if contract_object_with_ib_data is missing_contract:
+            new_log.msg("Can't resolve contract so can't find tick size")
+            return missing_contract
+
+        price_magnifier = self.ib_client.ib_get_price_magnifier(
+            contract_object_with_ib_data
+        )
+
+        if price_magnifier is missing_contract:
+            new_log.msg("No contract found")
+            return missing_contract
+
+        return price_magnifier
+
 
 
     def get_trading_hours_for_contract(self, futures_contract: futuresContract) -> list:

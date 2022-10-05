@@ -129,6 +129,30 @@ class ibContractsClient(ibClient):
 
         return min_tick
 
+    def ib_get_price_magnifier(self, contract_object_with_ib_data: futuresContract
+    ) -> float:
+        specific_log = contract_object_with_ib_data.specific_log(self.log)
+        ib_contract = self.ib_futures_contract(
+            contract_object_with_ib_data, always_return_single_leg=True
+        )
+        if ib_contract is missing_contract:
+            specific_log.warn("Can't get price magnifier as contract missing")
+            return missing_contract
+
+        ib_contract_details = self.ib.reqContractDetails(ib_contract)[0]
+
+        try:
+            price_magnifier = ib_contract_details.priceMagnifier
+        except Exception as e:
+            specific_log.warn(
+                "%s when getting price magnifier from %s!"
+                % (str(e), str(ib_contract_details))
+            )
+            return missing_contract
+
+        return price_magnifier
+
+
     def ib_futures_contract(
         self,
         futures_contract_with_ib_data: futuresContract,
