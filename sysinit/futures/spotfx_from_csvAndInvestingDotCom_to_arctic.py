@@ -11,7 +11,7 @@ import pandas as pd
 
 
 investing_dot_com_config = ConfigCsvFXPrices(
-    price_column="Price", date_column="Date", date_format="%b %d, %Y"
+    price_column="Close", date_column="Date Time", date_format="%Y-%m-%d"
 )
 
 
