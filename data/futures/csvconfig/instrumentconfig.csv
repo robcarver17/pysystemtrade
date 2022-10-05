@@ -30,7 +30,7 @@ BRENT-LAST,1000,0,1.5,0,OilGas,USD,Brent Crude Oil - Last Day,0.012
 BTP,1000,0,2,0,Bond,EUR,Italian 10 year bond BTP,0.005
 BTP3,1000,0,2,0,Bond,EUR,Short-Term Euro-BTP Italian Government Bond,0.005
 BUND,1000,0,2,0,Bond,EUR,German 10 year bond Bund,0.005
-BUTTER,20000,0,0.85,0,Ags,USD,CME Cash-Settled Butter Futures,1.89375
+BUTTER,200,0,0.85,0,Ags,USD,CME Cash-Settled Butter Futures,1.89375
 BUXL,1000,0,2,0,Bond,EUR,German Buxl 15 to 30 year bond,0.013
 CAC,10,0,2,0,Equity,EUR,French equity index CAC40,0.25
 CAD,100000,0,1.5,0,FX,USD,CADUSD currency,3.4E-05
@@ -148,7 +148,7 @@ EUROSTX-SMALL,50,0,2,0,Equity,EUR,Euro Stoxx Small,0.15
 EUROSTX200-LARGE,50,0,2,0,Sector,EUR,Dow Jones STOXX Large 200 Index,0.15
 FANG,5,,,,Equity,USD,NYSE FANG index,
 FED,4167,0,0.85,0,Bond,USD,30 Day Fed Funds,0.00125
-FEEDCOW,50000,0,1.5,0,Ags,USD,Feeder cattle,0.05
+FEEDCOW,500,0,1.5,0,Ags,USD,Feeder cattle,0.05
 FTSE100,10,0,1.7,0,Equity,GBP,FTSE100 Index,0.1
 FTSE100-DIV,10,,,,Equity,GBP,FTSE 100 Dividend Index,
 FTSE250,2,,,,Equity,GBP,FTSE 250,
@@ -212,8 +212,8 @@ IBEX_mini,1,,,,Equity,EUR,IBEX 35 mini,
 IBXEX,10,,,,Equity,EUR,Spanish equity index IBEX,
 IG,1000,0,0.85,0,Bond,USD,iBoxx iShares $ Investment Grade Corporate Bond Index TR,0.02
 IND-BANK,1,,,,Equity,INR,Nifty Bank,
-INR,5000000,0,0.85,0,FX,USD,Indian Rupee,0.015
-INR-micro,1000000,0,0.85,0,FX,USD,Indian Rupee,0.12
+INR,500,0,0.85,0,FX,USD,Indian Rupee,0.015
+INR-micro,100,0,0.85,0,FX,USD,Indian Rupee,0.12
 INR-SGX,2000000,0,2.85,0,FX,USD,SGX Indian Rupee in US Dollar Futures,0.01
 INR-SGX1,1000,,,,FX,USD,SGX USD-INR (USD) Futures,
 IPC,10,,,,Equity,MXP,Mexico Bolsa (IPC) Index,
@@ -248,7 +248,7 @@ MIB_mini,1,,,,Equity,EUR,FTSE MIB INDEX Mini,
 MIB-DIVI,5,,,,Equity,EUR,FTSE MIB Dividend Index,
 MID-DAX,5,0,2,0,Equity,EUR,Midcap DAX,25
 MILK,2000,0,1.5,0,Ags,USD,Milk class III,0.055882352941177
-MILKDRY,44000,0,0.85,0,Ags,USD,NON FAT DRY MILK INDEX,1.11779940031748
+MILKDRY,440,0,0.85,0,Ags,USD,NON FAT DRY MILK INDEX,1.11779940031748
 MILKWET,2000,0,0.85,0,Ags,USD,Class IV Milk - 200k lbs,0.3
 MILLWHEAT,50,,,,Ags,EUR,Milling Wheat Futures,
 MSCIASIA,100,0,2.4,0,Equity,USD,MSCI Emerging Markets Asia,0.4
@@ -289,7 +289,7 @@ NIKKEI400,100,0,50,0,Equity,JPY,JPX-Nikkei Index 400,2.5
 NOK,2000000,0,1.5,0,FX,USD,NOKUSD currency,3E-05
 NZD,100000,0,2.46,0,FX,USD,NZDUSD currency,5.8E-05
 OAT,1000,0,2,0,Bond,EUR,French 10 year bond OAT,0.005
-OATIES,5000,0,1.5,0,Ags,USD,Oat Futures,1.5
+OATIES,50,0,1.5,0,Ags,USD,Oat Futures,1.5
 OJ,15000,0,3,0,Ags,USD,Orange Juice (FCOJ-A),0.01075
 OMX,10,0,2,0,Equity,EUR,OMX Helsinki 25 Index,11.75
 OMXESG,100,,,,Equity,EUR,OMXS30 ESG Responsible Index,
@@ -302,7 +302,7 @@ PRECIOUS_small,100,,,,Metals,USD,Small precious metals,
 R1000,50,0,1.5,0,Equity,USD,E-Mini Russell 1000 Value Index Futures,0.5
 R1000GROWTH-mini,50,0,0.85,0,Equity,USD,E-mini Russell 1000 Growth Index Futures,0.4
 R1000mini,50,0,0.85,0,Equity,USD,E-mini Russell 1000 Index Futures,0.45
-REDWHEAT,5000,0,1.5,0,Ags,USD,Hard Red Winter Wheat -KCBOT-,0.25
+REDWHEAT,50,0,1.5,0,Ags,USD,Hard Red Winter Wheat -KCBOT-,0.25
 RICE,2000,0,1.5,0,Ags,USD,Rough Rice,0.015
 ROBUSTA,10,0,3,0,Ags,USD,Robusta Coffee,0.5
 RUBBER,50,0,3,0,Other,USD,TSR 20 Rubber,0.05
@@ -328,7 +328,7 @@ SONIA3,2500,,,,Bond,GBP,Three Month SONIA,
 SOYBEAN,50,0,2.9,0,Ags,USD,Soybean,0.25
 SOYBEAN_mini,10,0,2.9,0,Ags,USD,Soybean mini,0.25
 SOYMEAL,100,0,1.5,0,Ags,USD,Soybean Meal,0.07
-SOYOIL,60000,0,1.5,0,Ags,USD,Soybean oil,0.015
+SOYOIL,600,0,1.5,0,Ags,USD,Soybean oil,0.015
 SP400,100,0,1.5,0,Equity,USD,E-mini S&P Midcap 400 Futures,0.544478367863703
 SP500,50,0,2.05,0,Equity,USD,US equity index S&P500 ,0.125
 SP500_micro,5,0,0.25,0,Equity,USD,S&P 500 micro,0.125

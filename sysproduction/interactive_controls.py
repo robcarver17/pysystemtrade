@@ -931,6 +931,7 @@ def check_price_multipliers_consistent(data: dataBlob):
 def check_price_multipliers_consistent_for_instrument(data: dataBlob,
                                                       instrument_code: str):
 
+    print("Checking %s" % instrument_code)
     data_broker = dataBroker(data)
     diag_instruments = diagInstruments(data)
     data_contracts = dataContracts(data)
