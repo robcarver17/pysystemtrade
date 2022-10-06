@@ -989,6 +989,7 @@ def delete_instrument_from_prices(data: dataBlob):
     update_prices = updatePrices(data)
     update_prices.delete_contract_prices_at_frequency_for_instrument_code(instrument_code, frequency=intraday_frequency, are_you_sure=True)
     update_prices.delete_contract_prices_at_frequency_for_instrument_code(instrument_code, frequency=daily_frequency, are_you_sure=True)
+    update_prices.delete_merged_contract_prices_for_instrument_code(instrument_code, are_you_sure=True)
     update_prices.delete_multiple_prices(instrument_code, are_you_sure=True)
     update_prices.delete_adjusted_prices(instrument_code, are_you_sure=True)
 
