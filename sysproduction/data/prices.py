@@ -283,6 +283,18 @@ class updatePrices(productionDataLayerGeneric):
             ignore_duplication=ignore_duplication,
         )
 
+    def delete_merged_contract_prices_for_instrument_code(self, instrument_code: str, are_you_sure: bool = True):
+        self.db_futures_contract_price_data.delete_merged_prices_for_instrument_code(instrument_code, areyousure=are_you_sure)
+
+    def delete_contract_prices_at_frequency_for_instrument_code(self, instrument_code: str, frequency: Frequency, are_you_sure: bool = True):
+        self.db_futures_contract_price_data.delete_prices_at_frequency_for_instrument_code(instrument_code, frequency=frequency, areyousure=are_you_sure)
+
+    def delete_adjusted_prices(self, instrument_code: str, are_you_sure: bool = True):
+        self.db_futures_adjusted_prices_data.delete_adjusted_prices(instrument_code, are_you_sure=are_you_sure)
+
+    def delete_multiple_prices(self, instrument_code: str, are_you_sure: bool = True):
+        self.db_futures_multiple_prices_data.delete_multiple_prices(instrument_code, are_you_sure=are_you_sure)
+
     def add_spread_entry(self, instrument_code: str, spread: float):
         self.db_spreads_for_instrument_data.add_spread_entry(
             instrument_code, spread=spread

@@ -560,11 +560,7 @@ class reportingApi(object):
 
     @property
     def roll_data_dict(self):
-        roll_data_dict = getattr(self, "_roll_data_dict", missing_data)
-        if roll_data_dict is missing_data:
-            roll_data_dict = self._roll_data_dict = self._get_roll_data_dict()
-
-        return roll_data_dict
+        return self.cache.get(self._get_roll_data_dict)
 
     def _get_roll_data_dict(self):
         list_of_instruments = self._list_of_all_instruments()

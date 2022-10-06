@@ -6,10 +6,11 @@ from syscore.interactive import (
     get_and_convert,
     run_interactive_menu,
     print_menu_and_get_response,
+true_if_answer_is_yes
 )
 from syscore.algos import magnitude
 from syscore.pdutils import set_pd_print_options
-from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
+from syscore.dateutils import CALENDAR_DAYS_IN_YEAR, DAILY_PRICE_FREQ
 from syscore.objects import missing_data
 
 from sysinit.futures.repocsv_instrument_config import copy_instrument_config_from_csv_to_mongo
@@ -40,7 +41,7 @@ from sysproduction.data.control_process import dataControlProcess, diagControlPr
 from sysproduction.data.prices import (
     get_valid_instrument_code_from_user,
     get_list_of_instruments,
-
+    diagPrices, updatePrices
 )
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.instruments import dataInstruments
@@ -93,6 +94,7 @@ top_level_menu_of_options = {
     3: "Broker client IDS",
     4: "Process control and monitoring",
     5: "Update configuration",
+    6: "Deletion"
 }
 
 nested_menu_of_options = {
@@ -136,6 +138,9 @@ nested_menu_of_options = {
         55: "Safe modify of roll parameters configuration",
         56: "Check price multipliers are consistent"
     },
+    6: {
+        60: "Delete instrument from price tables"
+    }
 }
 
 
@@ -964,6 +969,29 @@ def check_price_multipliers_consistent_for_instrument(data: dataBlob,
 
     return None
 
+def delete_instrument_from_prices(data: dataBlob):
+    exit_code=""
+    instrument_code = get_valid_instrument_code_from_user(
+        allow_all=False, source = "single", allow_exit=True,
+    exit_code=exit_code)
+
+    if instrument_code == exit_code:
+        return False
+
+    sure = true_if_answer_is_yes("Note that this will only delete price data. Won't delete configuration, position, or order data related to an instrument. Are you REALLY sure about this???")
+    if not sure:
+        return False
+
+    diag_prices = diagPrices(data)
+    intraday_frequency = diag_prices.get_intraday_frequency_for_historical_download()
+    daily_frequency = DAILY_PRICE_FREQ
+
+    update_prices = updatePrices(data)
+    update_prices.delete_contract_prices_at_frequency_for_instrument_code(instrument_code, frequency=intraday_frequency, are_you_sure=True)
+    update_prices.delete_contract_prices_at_frequency_for_instrument_code(instrument_code, frequency=daily_frequency, are_you_sure=True)
+    update_prices.delete_multiple_prices(instrument_code, are_you_sure=True)
+    update_prices.delete_adjusted_prices(instrument_code, are_you_sure=True)
+
 def not_defined(data):
     print("\n\nFunction not yet defined\n\n")
 
@@ -998,7 +1026,8 @@ dict_of_functions = {
     53: backup_roll_parameters_data_to_csv,
     54: copy_roll_parameters_from_csv_to_mongo,
     55: safely_modify_roll_parameters,
-    56: check_price_multipliers_consistent
+    56: check_price_multipliers_consistent,
+    60: delete_instrument_from_prices
 
 
 }
