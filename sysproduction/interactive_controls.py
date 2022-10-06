@@ -978,7 +978,7 @@ def delete_instrument_from_prices(data: dataBlob):
     if instrument_code == exit_code:
         return False
 
-    sure = true_if_answer_is_yes("Note that this will only delete price data. Won't delete configuration, position, or order data related to an instrument. Are you REALLY sure about this???")
+    sure = true_if_answer_is_yes("Note that this will only delete price data and contract data. Won't delete configuration, position, or order data related to an instrument. Are you REALLY sure about this???")
     if not sure:
         return False
 
@@ -991,6 +991,9 @@ def delete_instrument_from_prices(data: dataBlob):
     update_prices.delete_contract_prices_at_frequency_for_instrument_code(instrument_code, frequency=daily_frequency, are_you_sure=True)
     update_prices.delete_multiple_prices(instrument_code, are_you_sure=True)
     update_prices.delete_adjusted_prices(instrument_code, are_you_sure=True)
+
+    data_contracts= dataContracts(data)
+    data_contracts.delete_all_contracts_for_instrument(instrument_code, are_you_sure=True)
 
 def not_defined(data):
     print("\n\nFunction not yet defined\n\n")

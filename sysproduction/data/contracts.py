@@ -270,6 +270,8 @@ class dataContracts(productionDataLayerGeneric):
 
         return contract_date
 
+    def delete_all_contracts_for_instrument(self, instrument_code: str, are_you_sure: bool = False):
+        self.db_contract_data.delete_all_contracts_for_instrument(instrument_code, areyoureallysure=are_you_sure)
 
 def get_valid_contract_object_from_user(
     data: dataBlob,
