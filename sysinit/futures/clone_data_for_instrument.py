@@ -39,7 +39,8 @@ def clone_data_for_instrument(
 def clone_prices_per_contract(instrument_from: str, instrument_to: str,
                               list_of_contract_dates = None,
                               ignore_duplication = False,
-                              inverse: bool = False):
+                              inverse: bool = False,
+                              multiplier: float = 1.0):
 
     if list_of_contract_dates is None:
         list_of_contract_dates = (
@@ -51,13 +52,14 @@ def clone_prices_per_contract(instrument_from: str, instrument_to: str,
     _ = [
         clone_single_contract(instrument_from, instrument_to, contract_date,
                               ignore_duplication = ignore_duplication,
-                              inverse=inverse)
+                              inverse=inverse, multiplier = multiplier)
         for contract_date in list_of_contract_dates
     ]
 
 def clone_single_contract(instrument_from: str, instrument_to: str,
                           contract_date: str, ignore_duplication = False,
-                          inverse: bool = False):
+                          inverse: bool = False,
+                          multiplier: float = 1.0):
 
     futures_contract_from = futuresContract(instrument_from, contract_date)
     futures_contract_to = futuresContract(instrument_to, contract_date)
@@ -68,6 +70,9 @@ def clone_single_contract(instrument_from: str, instrument_to: str,
 
     if inverse:
         data_in = data_in.inverse()
+
+    if multiplier!=1:
+        data_in = data_in.multiply_prices(multiplier)
 
     db_data_individual_prices.write_merged_prices_for_contract_object(
         futures_contract_to, futures_price_data=data_in,
@@ -81,6 +86,9 @@ def clone_single_contract(instrument_from: str, instrument_to: str,
         if inverse:
             hourly_data_in = hourly_data_in.inverse()
 
+        if multiplier != 1:
+            hourly_data_in = hourly_data_in.multiply_prices(multiplier)
+
         db_data_individual_prices.write_prices_at_frequency_for_contract_object(
             futures_contract_to,
             futures_price_data=hourly_data_in,
@@ -93,6 +101,9 @@ def clone_single_contract(instrument_from: str, instrument_to: str,
     if len(hourly_data_in)>0:
         if inverse:
             daily_data_in = daily_data_in.inverse()
+
+        if multiplier != 1:
+            daily_data_in = daily_data_in.multiply_prices(multiplier)
 
         db_data_individual_prices.write_prices_at_frequency_for_contract_object(
             futures_contract_to,

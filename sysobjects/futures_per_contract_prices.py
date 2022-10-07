@@ -79,6 +79,14 @@ class futuresContractPrices(pd.DataFrame):
 
         return futuresContractPrices(new_version)
 
+    def multiply_prices(self, multiplier: float):
+        new_version = copy(self)
+        for colname in NOT_VOLUME_COLUMNS:
+            new_version[colname] = multiplier * self[colname]
+
+        return futuresContractPrices(new_version)
+
+
     def daily_volumes(self) -> pd.Series:
         volumes = self._raw_volumes()
 

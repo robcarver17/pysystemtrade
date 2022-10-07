@@ -1,14 +1,11 @@
 from sysbrokers.IB.client.ib_contracts_client import ibContractsClient
-from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
+from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData, futuresInstrumentWithIBConfigData
 from sysbrokers.IB.ib_connection import connectionIB
-
 from sysbrokers.broker_futures_contract_data import brokerFuturesContractData
 
 from syscore.objects import missing_contract, missing_instrument
 
-
-
-from sysobjects.contract_dates_and_expiries import expiryDate
+from sysobjects.contract_dates_and_expiries import expiryDate, listOfContractDateStr
 from sysobjects.contracts import futuresContract
 
 from syslogdiag.log_to_screen import logtoscreen
@@ -49,6 +46,12 @@ class ibFuturesContractData(brokerFuturesContractData):
     @property
     def ib_futures_instrument_data(self) -> ibFuturesInstrumentData:
         return ibFuturesInstrumentData(self.ibconnection, log=self.log)
+
+    def get_list_of_contract_dates_for_instrument_code(self, instrument_code: str) -> listOfContractDateStr:
+        futures_instrument_with_ib_data = self._get_futures_instrument_object_with_IB_data(instrument_code)
+        list_of_contracts = self.ib_client.broker_get_futures_contract_list(futures_instrument_with_ib_data)
+
+        return listOfContractDateStr(list_of_contracts)
 
     def get_contract_object_with_IB_data(
         self, futures_contract: futuresContract, allow_expired: bool = False
@@ -122,11 +125,9 @@ class ibFuturesContractData(brokerFuturesContractData):
         self, contract_object: futuresContract
     ) -> futuresContract:
 
-        futures_instrument_with_ib_data = (
-            self.ib_futures_instrument_data.get_futures_instrument_object_with_IB_data(
-                contract_object.instrument_code
-            )
-        )
+        futures_instrument_with_ib_data = \
+            self._get_futures_instrument_object_with_IB_data(contract_object.instrument_code)
+
         if futures_instrument_with_ib_data is missing_instrument:
             return missing_contract
 
@@ -137,6 +138,13 @@ class ibFuturesContractData(brokerFuturesContractData):
         )
 
         return contract_object_with_ib_data
+
+    def _get_futures_instrument_object_with_IB_data(self, instrument_code: str) -> futuresInstrumentWithIBConfigData:
+        return (
+            self.ib_futures_instrument_data.get_futures_instrument_object_with_IB_data(
+                instrument_code
+            )
+        )
 
     def get_min_tick_size_for_contract(self, contract_object: futuresContract) -> float:
         new_log = contract_object.log(self.log)

@@ -257,7 +257,7 @@ class futuresContractPriceData(baseData):
         return prices
 
     def get_prices_at_frequency_for_contract_object(self, contract_object: futuresContract, frequency: Frequency,
-                                                    return_empty: bool = True):
+                                                    return_empty: bool = True) -> futuresContractPrices:
         """
         get some prices at a given frequency
 

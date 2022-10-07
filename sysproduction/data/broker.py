@@ -90,6 +90,9 @@ class dataBroker(productionDataLayerGeneric):
 
     ## Methods
 
+    def get_list_of_contract_dates_for_instrument_code(self, instrument_code: str):
+        return self.broker_futures_contract_data.get_list_of_contract_dates_for_instrument_code(instrument_code)
+
     def broker_fx_balances(self) -> dict:
         account_id = self.get_broker_account()
         return self.broker_fx_handling_data.broker_fx_balances(account_id=account_id)
