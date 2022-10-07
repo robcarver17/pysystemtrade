@@ -116,7 +116,7 @@ def process_modified_instruments(
             existing_roll_object = data_out.get_roll_parameters(instrument_code)
             okay_to_modify = true_if_answer_is_yes(
                 "Do you want to replace \n%s with \n%s for %s"
-                % (str(roll_object), str(existing_roll_object), instrument_code)
+                % (str(existing_roll_object), str(roll_object), instrument_code)
             )
 
             if not okay_to_modify:
