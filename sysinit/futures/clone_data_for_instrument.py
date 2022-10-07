@@ -71,8 +71,7 @@ def clone_single_contract(instrument_from: str, instrument_to: str,
     if inverse:
         data_in = data_in.inverse()
 
-    if multiplier!=1:
-        data_in = data_in.multiply_prices(multiplier)
+    data_in = data_in.multiply_prices(multiplier)
 
     db_data_individual_prices.write_merged_prices_for_contract_object(
         futures_contract_to, futures_price_data=data_in,
@@ -86,8 +85,7 @@ def clone_single_contract(instrument_from: str, instrument_to: str,
         if inverse:
             hourly_data_in = hourly_data_in.inverse()
 
-        if multiplier != 1:
-            hourly_data_in = hourly_data_in.multiply_prices(multiplier)
+        hourly_data_in = hourly_data_in.multiply_prices(multiplier)
 
         db_data_individual_prices.write_prices_at_frequency_for_contract_object(
             futures_contract_to,
@@ -98,12 +96,11 @@ def clone_single_contract(instrument_from: str, instrument_to: str,
     daily_data_in = db_data_individual_prices.get_prices_at_frequency_for_contract_object(
         futures_contract_from, frequency=DAILY_PRICE_FREQ
     )
-    if len(hourly_data_in)>0:
+    if len(daily_data_in)>0:
         if inverse:
             daily_data_in = daily_data_in.inverse()
 
-        if multiplier != 1:
-            daily_data_in = daily_data_in.multiply_prices(multiplier)
+        daily_data_in = daily_data_in.multiply_prices(multiplier)
 
         db_data_individual_prices.write_prices_at_frequency_for_contract_object(
             futures_contract_to,
