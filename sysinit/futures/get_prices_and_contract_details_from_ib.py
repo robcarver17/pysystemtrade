@@ -19,7 +19,7 @@ if __name__ == "__main__":
     ## prices
     contract_object = futuresContract(instrument_code, arbitrary_contract_date)
     ## price multipliers
-    price_multiplier_from_ib = data_broker.broker_futures_contract_data.get_price_magnifier_for_contract()
+    price_multiplier_from_ib = data_broker.broker_futures_contract_data.get_price_magnifier_for_contract(contract_object)
     print("Price multiplier from IB %s" % str(price_multiplier_from_ib))
 
     prices = data_broker.get_prices_at_frequency_for_contract_object(contract_object)
