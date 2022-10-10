@@ -10,6 +10,7 @@ from sysdata.arctic.arctic_futures_per_contract_prices import (
 
 from syscore.objects import failure, missing_data
 
+from sysinit.futures.create_hourly_and_daily import write_split_data_for_instrument
 
 def seed_price_data_from_IB(instrument_code):
     data = dataBlob()
@@ -26,6 +27,8 @@ def seed_price_data_from_IB(instrument_code):
 
     for contract in list_of_contracts:
         seed_price_data_for_contract(data, contract)
+
+    write_split_data_for_instrument(instrument_code)
 
 
 def seed_price_data_for_contract(data: dataBlob, contract: futuresContract):
@@ -47,6 +50,7 @@ def seed_price_data_for_contract(data: dataBlob, contract: futuresContract):
         data.db_futures_contract_price.write_merged_prices_for_contract_object(
             new_contract, prices, ignore_duplication=True
         )
+
 
 
 if __name__ == "__main__":
