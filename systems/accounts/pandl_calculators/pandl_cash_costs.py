@@ -110,10 +110,12 @@ class pandlCalculationWithCashCostsAndFills(
             year, rolls_per_year
         )
         notional_price = 0  # doesn't actually affect costs
+        last_date_with_positions = self.last_date_with_positions
 
         fills_this_year = [
             Fill(date=date, qty=qty, price=notional_price)
             for date, qty in zip(date_list, average_holding_by_period)
+            if date<=last_date_with_positions
         ]
 
         return fills_this_year
@@ -142,6 +144,10 @@ class pandlCalculationWithCashCostsAndFills(
             return 0.0
         else:
             return avg_position
+
+    @property
+    def last_date_with_positions(self) -> datetime.datetime:
+        return self.positions.index[-1]
 
     def normalise_costs_in_instrument_currency(self, costs_as_pd_series) -> pd.Series:
 
