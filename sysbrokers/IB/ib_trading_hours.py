@@ -164,6 +164,7 @@ def get_conservative_trading_time_for_time_zone(time_zone_id: str) -> openingTim
 
     return openingTimesAnyDay(conservative_start_time,
                               conservative_end_time)
+
 def get_GMT_offset_hours():
     # this needs to be in private_config.YAML
     # where are the defaults stored that needs to be

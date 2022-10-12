@@ -7,7 +7,8 @@ from syscore.pdutils import (
     fix_weights_vs_position_or_forecast,
     from_dict_of_values_to_df,
     from_scalar_values_to_ts,
-    get_row_of_df_aligned_to_weights_as_dict
+    get_row_of_df_aligned_to_weights_as_dict,
+weights_sum_to_one
 )
 from syscore.objects import resolve_function, missing_data, arg_not_supplied
 from syscore.genutils import str2Bool
@@ -418,13 +419,15 @@ class Portfolios(SystemStage):
         )
 
         # smooth to avoid jumps when they change
-        instrument_weights = daily_unsmoothed_instrument_weights.ewm(
+        smoothed_instrument_weights = daily_unsmoothed_instrument_weights.ewm(
             smooth_weighting
         ).mean()
 
+        normalised_smoothed_instrument_weights = weights_sum_to_one(smoothed_instrument_weights)
+
         # daily
 
-        return instrument_weights
+        return normalised_smoothed_instrument_weights
 
     @diagnostic()
     def get_unsmoothed_instrument_weights_fitted_to_position_lengths(

@@ -317,6 +317,10 @@ def fix_weights_vs_position_or_forecast(
     # forward fill forecasts/positions
     pdm_ffill = position_or_forecast.ffill()
 
+    ## Set leading all nan to zero so weights not set to zero
+    p_or_f_notnan = ~pdm_ffill.isna()
+    pdm_ffill[p_or_f_notnan.sum(axis=1) == 0] = 0
+
     # resample weights
     adj_weights = uniquets(weights)
     adj_weights = adj_weights.reindex(pdm_ffill.index, method="ffill")
@@ -327,10 +331,16 @@ def fix_weights_vs_position_or_forecast(
     # remove weights if nan forecast or position
     adj_weights[np.isnan(pdm_ffill)] = 0.0
 
-    # change rows so weights add to one
-    normalised_weights = weights_sum_to_one(adj_weights)
+    return adj_weights
 
-    return normalised_weights
+
+def reindex_last_monthly_include_first_date(x: pd.DataFrame) -> pd.DataFrame:
+    x_monthly_index = list(x.resample("1M").last().index)  ## last day in month
+    x_first_date_in_index = x.index[0]
+    x_monthly_index = [x_first_date_in_index] + x_monthly_index
+    x_reindex = x.reindex(x_monthly_index).ffill()
+
+    return x_reindex
 
 
 def weights_sum_to_one(weights: pd.DataFrame):

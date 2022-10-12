@@ -11,6 +11,8 @@ from syscore.pdutils import (
     from_dict_of_values_to_df,
     from_scalar_values_to_ts,
     listOfDataFrames,
+    weights_sum_to_one,
+    reindex_last_monthly_include_first_date
 )
 
 from sysdata.config.configdata import Config
@@ -172,9 +174,12 @@ class ForecastCombine(SystemStage):
             ).mean()
         )
 
+        # change rows so weights add to one
+        smoothed_normalised_daily_weights = weights_sum_to_one(smoothed_daily_forecast_weights)
+
         # still daily
 
-        return smoothed_daily_forecast_weights
+        return smoothed_normalised_daily_weights
 
     @diagnostic()
     def get_unsmoothed_forecast_weights(self, instrument_code: str):
@@ -929,7 +934,11 @@ class ForecastCombine(SystemStage):
             fixed_weights, forecasts_time_index, columns=forecast_columns_to_align
         )
 
-        return forecast_weights
+        ## Should be monthly for consistency, but span all data
+        monthly_forecast_weights = reindex_last_monthly_include_first_date(forecast_weights)
+
+        return monthly_forecast_weights
+
 
     @diagnostic()
     def _get_fixed_forecast_weights_as_dict(self, instrument_code: str) -> dict:

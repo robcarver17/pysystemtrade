@@ -34,7 +34,7 @@ def diversification_multiplier_from_list(
 
     """
     # align weights to corr list columns
-    weight_df = weight_df[correlation_list.column_names]
+    weight_df_aligned = weight_df[correlation_list.column_names]
 
     ref_periods = [fit_period.period_start for fit_period in correlation_list.fit_dates]
 
@@ -43,7 +43,7 @@ def diversification_multiplier_from_list(
 
     for (corrmatrix, start_of_period) in zip(correlation_list.corr_list, ref_periods):
 
-        weight_slice = weight_df[:start_of_period]
+        weight_slice = weight_df_aligned[:start_of_period]
         if weight_slice.shape[0] == 0:
             # empty space
             div_mult_vector.append(1.0)
@@ -61,8 +61,11 @@ def diversification_multiplier_from_list(
     # In same space as correlations probably annually
     div_mult_df = pd.Series(div_mult_vector, index=ref_periods)
 
-    # Change to business days, so moving average will make sense
-    div_mult_df_daily = div_mult_df.resample("1B").ffill()
+    # Change to business days, so moving average will make sense, aligned to original weights
+    div_mult_df_daily = div_mult_df.reindex(weight_df_aligned.index, method="ffill")
+
+    ## Leading Nans, just use 1.0
+    div_mult_df_daily[div_mult_df_daily.isna()] = 1.0
 
     # take a moving average to smooth the jumps
     div_mult_df_smoothed = div_mult_df_daily.ewm(span=ewma_span).mean()
