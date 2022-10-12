@@ -347,8 +347,8 @@ TOPIX,1000,0,50,0,Equity,JPY,Japan Mini Topix,0.2
 TOPIX_Large,10000,,,,Equity,JPY,TOPIX full size,
 TOPIX30,1000,0,50,0,Equity,JPY,Topix Core30,
 TSX,5,,,,Equity,CAD,Canadian equity index TSX composite,
-TWD,3000000,0,2.1,0,FX,USD,SGX Taiwan Dollar in US Dollar Futures (Full-Sized),0.00975
-TWD-mini,1000000,0,1.75,0,FX,USD,SGX Taiwan Dollar in US Dollar Futures (Mini),0.00015
+TWD,3000,0,2.1,0,FX,USD,SGX Taiwan Dollar in US Dollar Futures (Full-Sized),0.00975
+TWD-mini,100000,0,1.75,0,FX,USD,SGX Taiwan Dollar in US Dollar Futures (Mini),0.00015
 URANIUM,250,0,0.85,0,OilGas,USD,NYMEX Uranium Index,
 US-DISCRETE,100,0,1.5,0,Sector,USD,Consumer Discretionary Select Sector Index,17.409669579606
 US-ENERGY,100,0,1.5,0,Sector,USD,Energy Select Sector Index,7
