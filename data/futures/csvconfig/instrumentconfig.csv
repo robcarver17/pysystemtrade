@@ -159,7 +159,7 @@ FTSECHINAA-IS,5000,,,,Equity,HKD,ISHARES FTSE CHINA A50 E-HKD,
 FTSECHINAH,2,0,2.85,0,Equity,USD,FTSE China H50,15
 FTSEINDO,5,0,1.5,0,Equity,USD,FTSE Indonesia Index,8.14150047483381
 FTSETAIWAN,40,0,1.5,0,Equity,USD,FTSE Taiwan RIC Capped Price Return TWD Index,0.15
-FTSEVIET,5,,,,Equity,USD,FTSE Vietnam 30 Price Return Index,
+FTSEVIET,5,,1.5,,Equity,USD,FTSE Vietnam 30 Price Return Index,
 GAS_UK,31000,,,,OilGas,GBP,Natural gas UK,
 GAS_US,10000,0,2.31,0,OilGas,USD,Natural gas US,0.0013
 GAS_US_mini,2500,0,1.5,0,OilGas,USD,Natural gas US mini,0.005
@@ -265,7 +265,7 @@ MSCIRUSSIA,10,0,2,0,Equity,USD,MSCI Russia Index,1.5
 MSCISING,100,0,4,0,Equity,SGD,MSCI Singapore Free Index,0.049302362865398
 MSCITAIWAN,100,,,,Equity,USD,MSCI Taiwan (USD) Index - HKFE,
 MSCIUSA,50,,,,Equity,USD,MSCI USA index,
-MSCIWORLD,10,,,,Equity,USD,MSCI World Index,
+MSCIWORLD,10,,3,,Equity,USD,MSCI World Index,
 MSCIWORLDNET-EUR,100,,,,Equity,EUR,MSCI World Net EUR Index 1,
 MSCIWORLDNET-USD,10,,,,Equity,USD,MSCI World NETR USD Index,
 MUMMY,1000,0,50,0,Equity,JPY,TSE Mothers Index,0.5
