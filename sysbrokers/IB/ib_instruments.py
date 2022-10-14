@@ -95,10 +95,11 @@ def ib_futures_instrument(
 
 
 def _resolve_multiplier(multiplier_passed):
-    multiplier = float(multiplier_passed)
-    if multiplier < 1.0:
-        multiplier = str(float(multiplier_passed))
-    else:
+    multiplier = float()
+    multiplier_is_round_number = round(multiplier) == multiplier
+    if multiplier_is_round_number:
         multiplier = str(int(multiplier_passed))
+    else:
+        multiplier = str(multiplier_passed)
 
     return multiplier
