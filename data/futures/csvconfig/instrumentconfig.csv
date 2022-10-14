@@ -242,7 +242,7 @@ LEANHOG,400,0,2.9,0,Ags,USD,Lean hogs,0.025
 LIBOR1,2500,0,0.85,0,Bond,USD,1 Month LIBOR (Int. Rate),0.01
 LIVECOW,400,0,2.9,0,Ags,USD,Live cattle,0.025
 LUMBER,110,0,3,0,Ags,USD,Random Length Lumber,5.4
-LUMBER-mini,27500,0,3,0,Ags,USD,Random Length Lumber – mini,5.4
+LUMBER-mini,27.5,0,3,0,Ags,USD,Random Length Lumber – mini,5.4
 MIB,5,,,,Equity,EUR,FTSE MIB INDEX,
 MIB_micro,0.2,,,,Equity,EUR,FTSE MIB INDEX Micro,
 MIB_mini,1,,,,Equity,EUR,FTSE MIB INDEX Mini,
