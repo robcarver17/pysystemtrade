@@ -95,7 +95,7 @@ def ib_futures_instrument(
 
 
 def _resolve_multiplier(multiplier_passed):
-    multiplier = float()
+    multiplier = float(multiplier_passed)
     multiplier_is_round_number = round(multiplier) == multiplier
     if multiplier_is_round_number:
         multiplier = str(int(multiplier_passed))
