@@ -402,7 +402,7 @@ VNKI,10000,0,400,0,Vol,JPY,Nikkei 225 Volatility Index,0.3
 WHEAT,50,0,2.9,0,Ags,USD,Wheat,0.25
 WHEAT_ICE,100,,,,Ags,GBP,Wheat ICE,
 WHEAT_mini,10,0,2.9,0,Ags,USD,Wheat mini,0.25
-WHEY,44000,,,,Ags,USD,CME DRY WHEY INDEX ,
+WHEY,440,,3,,Ags,USD,CME DRY WHEY INDEX ,0.25
 WTI_small,100,,,,OilGas,USD,Small US Crude Oil,
 YENEUR,125000,0,1.5,0,FX,JPY,YENEUR currency,0.01
 ZINC_LME,25,,,,Metals,USD,Zinc – LME,
