@@ -825,9 +825,17 @@ class reportingApi(object):
         return get_liquidity_report_data(self.data)
 
     ##### COSTS ######
-    def table_of_sr_costs(self, commission_only=False):
-        if commission_only:
+    def table_of_sr_costs(self,
+                          include_commission: bool = True,
+                          include_spreads: bool = True
+                          ) -> table:
+
+        if not include_commission and not include_spreads:
+            raise Exception("Must include commission or spreads!")
+        elif not include_spreads:
             SR_costs = self.SR_costs_commission_only()
+        elif not include_commission:
+            SR_costs = self.SR_costs_spreads_only()
         else:
             SR_costs = self.SR_costs()
 
@@ -846,6 +854,12 @@ class reportingApi(object):
         return self.cache.get(
             self._SR_costs, include_spread=False, include_commission=True
         )
+
+    def SR_costs_spreads_only(self) -> pd.DataFrame:
+        return self.cache.get(
+            self._SR_costs, include_spread=True, include_commission=False
+        )
+
 
     def _SR_costs(
         self, include_commission: bool = True, include_spread: bool = True
