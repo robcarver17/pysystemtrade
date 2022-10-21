@@ -838,7 +838,7 @@ def get_list_of_changes_to_make_to_slippage(
         if mult_factor > 1:
             print("ALL VALUES MULTIPLIED BY %f INCLUDING INPUTS!!!!" % mult_factor)
 
-        suggested_estimate_multiplied = round_significant_figures(suggested_estimate * mult_factor)
+        suggested_estimate_multiplied = round_significant_figures(suggested_estimate * mult_factor,2)
         configured_estimate_multiplied = configured * mult_factor
 
         print(pd_row * mult_factor)
