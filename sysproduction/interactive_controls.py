@@ -11,6 +11,7 @@ true_if_answer_is_yes
 from syscore.algos import magnitude
 from syscore.pdutils import set_pd_print_options
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR, DAILY_PRICE_FREQ
+from syscore.genutils import round_significant_figures
 from syscore.objects import missing_data
 
 from sysinit.futures.repocsv_instrument_config import copy_instrument_config_from_csv_to_mongo
@@ -837,7 +838,7 @@ def get_list_of_changes_to_make_to_slippage(
         if mult_factor > 1:
             print("ALL VALUES MULTIPLIED BY %f INCLUDING INPUTS!!!!" % mult_factor)
 
-        suggested_estimate_multiplied = suggested_estimate * mult_factor
+        suggested_estimate_multiplied = round_significant_figures(suggested_estimate * mult_factor)
         configured_estimate_multiplied = configured * mult_factor
 
         print(pd_row * mult_factor)
@@ -846,7 +847,7 @@ def get_list_of_changes_to_make_to_slippage(
             % (configured_estimate_multiplied, suggested_estimate_multiplied),
             type_expected=float,
             allow_default=True,
-            default_value=suggested_estimate * mult_factor,
+            default_value=suggested_estimate_multiplied,
         )
 
         if estimate_to_use_with_mult == configured_estimate_multiplied:
