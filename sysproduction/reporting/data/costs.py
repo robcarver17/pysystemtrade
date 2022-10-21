@@ -229,7 +229,7 @@ def best_estimate_from_cost_data(
     )
     weight_on_config[weight_on_config.isna()] = 0.0
     weight_on_config[all_weights.configured.isna()] = 0.0
-    weight_on_config[weight_on_config==0] = 0.0
+    weight_on_config[all_weights.configured==0] = 0.0
 
     weight_all = weight_on_samples + weight_on_trades + weight_on_config
     weight_all[weight_all == 0.0] = np.nan
