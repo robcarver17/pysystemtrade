@@ -93,7 +93,7 @@ def turnover(x, y, smooth_y_days: int = 250):
     else:
         daily_y = y.reindex(daily_x.index, method="ffill")
         ## need to apply a drag to this or will give zero turnover for constant risk
-        daily_y = daily_y.ewm(smooth_y_days).mean()
+        daily_y = daily_y.ewm(smooth_y_days, min_periods=2).mean()
 
     norm_x = daily_x / daily_y.ffill()
 
