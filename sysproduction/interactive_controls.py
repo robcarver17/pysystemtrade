@@ -820,7 +820,7 @@ def get_list_of_changes_to_make_to_slippage(
 
     for instrument_code in instrument_list:
         pd_row = slippage_comparison_pd.loc[instrument_code]
-        difference = pd_row["% Difference"]
+        difference = pd_row["Difference"]
         configured = pd_row["Configured"]
         suggested_estimate = pd_row["estimate"]
 
