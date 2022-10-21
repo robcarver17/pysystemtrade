@@ -253,6 +253,7 @@ def best_estimate_from_cost_data(
         "weight_config",
         "estimate",
     ]
+    estimate_with_data.dropna(how="all")
 
     return estimate_with_data
 

@@ -855,7 +855,7 @@ def get_list_of_changes_to_make_to_slippage(
             continue
         if estimate_to_use_with_mult != suggested_estimate_multiplied:
             difference = (
-                abs(estimate_to_use_with_mult / suggested_estimate_multiplied) - 1.0
+                abs((estimate_to_use_with_mult / suggested_estimate_multiplied) - 1.0)
             )
             if difference > 0.5:
                 ans = input(
