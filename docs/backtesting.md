@@ -1074,6 +1074,7 @@ Methods that you'll probably want to override:
 - `get_instrument_currency`: Returns str
 - `_get_fx_data(currency1, currency2)` Returns Tx1 pandas data frame of
   exchange rates
+- 'get_rolls_per_year': returns int
 
 You should not override `get_fx_for_instrument`, or any of the other private fx
 related methods. Once you've created a `_get_fx_data method`, then the methods
