@@ -368,6 +368,7 @@ class futuresContractPriceData(baseData):
             )
             return spike_in_data
 
+        old_prices = old_prices[~old_prices.index.duplicated(keep="first")]
         rows_added = len(merged_prices) - len(old_prices)
 
         if rows_added < 0:

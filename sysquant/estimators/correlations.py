@@ -164,14 +164,7 @@ class correlationEstimate(Estimate):
         return corr_matrix
 
     def average_corr(self) -> float:
-        new_corr_values = copy(self.values)
-        np.fill_diagonal(new_corr_values, np.nan)
-        if np.all(np.isnan(new_corr_values)):
-            return np.nan
-
-        avg_corr = np.nanmean(new_corr_values)
-
-        return avg_corr
+        return average_correlation(self)
 
     def ordered_correlation_matrix(self):
         list_of_keys = list(self.columns)
@@ -481,3 +474,14 @@ def modify_correlation(
         corr_matrix = corr_matrix.shrink_to_average(shrinkage)
 
     return corr_matrix
+
+
+def average_correlation(corr_matrix: correlationEstimate) -> float:
+    new_corr_values = copy(corr_matrix.values)
+    np.fill_diagonal(new_corr_values, np.nan)
+    if np.all(np.isnan(new_corr_values)):
+        return np.nan
+
+    avg_corr = np.nanmean(new_corr_values)
+
+    return avg_corr

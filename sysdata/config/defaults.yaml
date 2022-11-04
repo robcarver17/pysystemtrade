@@ -243,9 +243,9 @@ instrument_weight_estimate:
      min_periods: 5
 #
 # buffering / position inertia
-buffer_method: position
+buffer_method: forecast
 buffer_size: 0.10
-buffer_trade_to_edge: False
+buffer_trade_to_edge: True
 # costs and accounting
 use_SR_costs: False
 vol_normalise_currency_costs: True
