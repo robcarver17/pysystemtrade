@@ -68,7 +68,7 @@ def allowable_roll_state_from_current_and_position(
         Force_Outright0=["Roll_Adjusted", "Passive"],
         Force_Outright1=["Force", "Force_Outright", "Passive", "No_Roll", "Close"],
         Close0=["Roll_Adjusted", "Passive"],
-        Close1=["Force", "Force_Outright", "Passive", "No_Roll"],
+        Close1=["Close" ,"Force", "Force_Outright", "Passive", "No_Roll"],
         Roll_Adjusted0=["No_Roll"],
         Roll_Adjusted1=["Roll_Adjusted"],
 
