@@ -1,5 +1,5 @@
 from syscore.dateutils import  listOfOpeningTimes
-from syscore.objects import missingContract
+from syscore.exceptions import missingContract
 from sysdata.futures.contracts import futuresContractData
 
 from sysobjects.contract_dates_and_expiries import expiryDate

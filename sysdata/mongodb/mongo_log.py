@@ -1,4 +1,5 @@
-from syscore.objects import arg_not_supplied, existingData
+from syscore.objects import arg_not_supplied
+from syscore.exceptions import existingData
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey, MONGO_ID_KEY
 from syscore.dateutils import long_to_datetime, datetime_to_long

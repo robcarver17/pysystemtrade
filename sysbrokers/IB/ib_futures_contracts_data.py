@@ -3,7 +3,8 @@ from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData, futuresIn
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_futures_contract_data import brokerFuturesContractData
 
-from syscore.objects import missing_contract, missing_instrument, missingContract
+from syscore.objects import missing_contract, missing_instrument
+from syscore.exceptions import missingContract
 
 from sysobjects.contract_dates_and_expiries import expiryDate, listOfContractDateStr
 from sysobjects.contracts import futuresContract

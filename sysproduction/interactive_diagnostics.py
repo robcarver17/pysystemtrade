@@ -8,7 +8,8 @@ from syscore.interactive import (
 )
 from syscore.genutils import progressBar
 from syscore.pdutils import set_pd_print_options
-from syscore.objects import user_exit, arg_not_supplied, ALL_ROLL_INSTRUMENTS, missing_data, missingContract
+from syscore.objects import user_exit, arg_not_supplied, ALL_ROLL_INSTRUMENTS, missing_data
+from syscore.exceptions import missingContract
 from sysexecution.orders.list_of_orders import listOfOrders
 
 from sysdata.data_blob import dataBlob
