@@ -221,9 +221,11 @@ class missingData(Exception):
     pass
 
 
-class existingData(Exception):
+class missingContract(Exception):
     pass
 
+class existingData(Exception):
+    pass
 
 missing_file = named_object("missing file")
 missing_data = named_object("missing data")
