@@ -7,7 +7,7 @@ from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_contract_position_data import brokerContractPositionData
 
-from syscore.objects import arg_not_supplied, missing_contract
+from syscore.objects import arg_not_supplied
 
 
 from sysobjects.production.positions import contractPosition, listOfContractPositions
