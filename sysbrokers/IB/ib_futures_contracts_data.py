@@ -4,6 +4,7 @@ from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_futures_contract_data import brokerFuturesContractData
 
 from syscore.objects import missing_contract, missing_instrument
+from syscore.exceptions import missingContract
 
 from sysobjects.contract_dates_and_expiries import expiryDate, listOfContractDateStr
 from sysobjects.contracts import futuresContract
@@ -199,7 +200,7 @@ class ibFuturesContractData(brokerFuturesContractData):
         )
         if contract_object_with_ib_data is missing_contract:
             new_log.msg("Can't resolve contract")
-            return missing_contract
+            raise missingContract
 
         trading_hours = self.ib_client.ib_get_trading_hours(
             contract_object_with_ib_data
