@@ -9,6 +9,7 @@ from ib_insync import util
 from sysbrokers.IB.client.ib_client import PACING_INTERVAL_SECONDS
 from sysbrokers.IB.client.ib_contracts_client import ibContractsClient
 from sysbrokers.IB.ib_positions import resolveBS_for_list
+from syscore.exceptions import missingContract
 
 from syscore.objects import missing_contract, missing_data
 from syscore.dateutils import (
@@ -144,7 +145,7 @@ class ibPriceClient(ibContractsClient):
                 "Can't find matching IB contract for %s"
                 % str(contract_object_with_ib_data)
             )
-            return missing_contract
+            raise missingContract
 
         recent_time = datetime.datetime.now() - datetime.timedelta(seconds=60)
 
