@@ -1,3 +1,4 @@
+from syscore.exceptions import missingContract
 from syslogdiag.log_to_screen import logtoscreen
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 
@@ -6,7 +7,7 @@ from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_contract_position_data import brokerContractPositionData
 
-from syscore.objects import arg_not_supplied, missing_contract
+from syscore.objects import arg_not_supplied
 
 
 from sysobjects.production.positions import contractPosition, listOfContractPositions
@@ -54,10 +55,11 @@ class ibContractPositionData(brokerContractPositionData):
         )
         current_positions = []
         for position_entry in all_positions:
-            contract_position_object = self._get_contract_position_for_raw_entry(
-                position_entry
-            )
-            if contract_position_object is missing_contract:
+            try:
+                contract_position_object = self._get_contract_position_for_raw_entry(
+                    position_entry
+                )
+            except missingContract:
                 continue
             else:
                 current_positions.append(contract_position_object)
@@ -73,7 +75,7 @@ class ibContractPositionData(brokerContractPositionData):
     def _get_contract_position_for_raw_entry(self, position_entry) -> contractPosition:
         position = position_entry["position"]
         if position == 0:
-            return missing_contract
+            raise missingContract
 
         ib_code = position_entry["symbol"]
         instrument_code = (
