@@ -116,10 +116,7 @@ class ibFuturesContractData(brokerFuturesContractData):
             futures_contract_with_ib_data, allow_expired=allow_expired
         )
 
-        if expiry_date is missing_contract:
-            raise missingContract
-        else:
-            expiry_date = expiryDate.from_str(expiry_date)
+        expiry_date = expiryDate.from_str(expiry_date)
 
         return expiry_date
 

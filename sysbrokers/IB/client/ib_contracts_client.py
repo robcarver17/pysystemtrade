@@ -14,6 +14,7 @@ from sysbrokers.IB.ib_contracts import (
     resolve_unique_contract_from_ibcontract_list,
     _add_legs_to_ib_contract,
 )
+from syscore.exceptions import missingContract
 
 from syscore.objects import missing_contract
 from syscore.genutils import list_of_ints_with_highest_common_factor_positive_first
@@ -63,7 +64,7 @@ class ibContractsClient(ibClient):
         specific_log = futures_contract_with_ib_data.specific_log(self.log)
         if futures_contract_with_ib_data.is_spread_contract():
             specific_log.warn("Can only find expiry for single leg contract!")
-            return missing_contract
+            raise missingContract
 
         ibcontract = self.ib_futures_contract(
             futures_contract_with_ib_data,
@@ -73,7 +74,7 @@ class ibContractsClient(ibClient):
 
         if ibcontract is missing_contract:
             specific_log.warn("Contract is missing can't get expiry")
-            return missing_contract
+            raise missingContract
 
         expiry_date = ibcontract.lastTradeDateOrContractMonth
 
