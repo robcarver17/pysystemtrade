@@ -105,7 +105,7 @@ class ibContractsClient(ibClient):
 
         return trading_hours
 
-    def _ib_get_raw_trading_hours(
+    def ib_get_raw_trading_hours(
         self, contract_object_with_ib_data: futuresContract
     ) -> list:
         specific_log = contract_object_with_ib_data.specific_log(self.log)
