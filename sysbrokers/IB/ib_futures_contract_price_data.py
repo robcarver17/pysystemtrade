@@ -319,11 +319,11 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
             new_log.warn("Can't get data for %s" % str(contract_object))
             return dataFrameOfRecentTicks.create_empty()
 
-        tick_data = self.ib_client.ib_get_recent_bid_ask_tick_data(
-            contract_object_with_ib_data
-        )
-
-        if tick_data is missing_contract:
+        try:
+            tick_data = self.ib_client.ib_get_recent_bid_ask_tick_data(
+                contract_object_with_ib_data
+            )
+        except missingContract:
             return missing_data
 
         tick_data_as_df = from_ib_bid_ask_tick_data_to_dataframe(tick_data)
