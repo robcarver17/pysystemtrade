@@ -95,7 +95,7 @@ class ibContractsClient(ibClient):
             #trading_hours = intersecting_trading_hours(trading_hours_from_ib,
             #                                           saved_trading_hours)
 
-            time_zone_id = contract_object_with_ib_data.timeZoneId
+            time_zone_id = self.ib_get_timezoneid(contract_object_with_ib_data)
             trading_hours = get_conservative_trading_hours(time_zone_id=time_zone_id,
                                                            trading_hours=trading_hours_from_ib)
 
@@ -108,9 +108,40 @@ class ibContractsClient(ibClient):
 
         return trading_hours
 
+    def ib_get_timezoneid(self, contract_object_with_ib_data: futuresContract) -> str:
+        specific_log = contract_object_with_ib_data.specific_log(self.log)
+        try:
+            ib_contract_details = self.ib_get_contract_details(contract_object_with_ib_data)
+            time_zone_id = ib_contract_details.timeZoneId
+        except Exception as e:
+            specific_log.warn(
+                "%s when getting time zone from %s!"
+                % (str(e), str(ib_contract_details))
+            )
+            raise missingData
+
+        return time_zone_id
+
     def ib_get_raw_trading_hours(
         self, contract_object_with_ib_data: futuresContract
     ) -> listOfOpeningTimes:
+        specific_log = contract_object_with_ib_data.specific_log(self.log)
+
+        try:
+            ib_contract_details = self.ib_get_contract_details(contract_object_with_ib_data)
+            trading_hours = get_trading_hours(ib_contract_details)
+        except Exception as e:
+            specific_log.warn(
+                "%s when getting trading hours from %s!"
+                % (str(e), str(ib_contract_details))
+            )
+            raise missingData
+
+        return trading_hours
+
+    def ib_get_contract_details(
+        self, contract_object_with_ib_data: futuresContract
+    ):
         specific_log = contract_object_with_ib_data.specific_log(self.log)
         ib_contract = self.ib_futures_contract(
             contract_object_with_ib_data, always_return_single_leg=True
@@ -123,16 +154,7 @@ class ibContractsClient(ibClient):
         ib_contract_details_list = self.ib.reqContractDetails(ib_contract)
         ib_contract_details = ib_contract_details_list[0]
 
-        try:
-            trading_hours = get_trading_hours(ib_contract_details)
-        except Exception as e:
-            specific_log.warn(
-                "%s when getting trading hours from %s!"
-                % (str(e), str(ib_contract_details))
-            )
-            raise missingData
-
-        return trading_hours
+        return ib_contract_details
 
     def ib_get_saved_trading_hours_for_contract(
         self, futures_contract: futuresContract
