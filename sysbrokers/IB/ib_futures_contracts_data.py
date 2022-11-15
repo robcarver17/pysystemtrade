@@ -212,3 +212,29 @@ class ibFuturesContractData(brokerFuturesContractData):
             trading_hours = []
 
         return trading_hours
+
+    def get_raw_trading_hours_for_contract(self, futures_contract: futuresContract) -> list:
+        """
+
+        :param futures_contract:
+        :return: list of paired date times
+        """
+        new_log = futures_contract.log(self.log)
+
+        try:
+            contract_object_with_ib_data = self.get_contract_object_with_IB_data(
+                futures_contract
+            )
+        except missingContract:
+            new_log.msg("Can't resolve contract")
+            raise
+
+        trading_hours = self.ib_client.ib_get_raw_trading_hours(
+            contract_object_with_ib_data
+        )
+
+        if trading_hours is missing_contract:
+            new_log.msg("No IB expiry date found")
+            trading_hours = []
+
+        return trading_hours

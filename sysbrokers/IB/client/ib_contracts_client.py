@@ -7,7 +7,7 @@ from sysbrokers.IB.ib_instruments import (
     futuresInstrumentWithIBConfigData,
     ib_futures_instrument,
 )
-from sysbrokers.IB.ib_trading_hours import get_conservative_trading_hours
+from sysbrokers.IB.ib_trading_hours import get_conservative_trading_hours, get_trading_hours
 from sysbrokers.IB.ib_contracts import (
     ibcontractWithLegs,
     get_ib_contract_with_specific_expiry,
@@ -105,6 +105,34 @@ class ibContractsClient(ibClient):
             return missing_contract
 
         return trading_hours
+
+    def ib_get_raw_trading_hours(
+        self, contract_object_with_ib_data: futuresContract
+    ) -> list:
+        specific_log = contract_object_with_ib_data.specific_log(self.log)
+        ib_contract = self.ib_futures_contract(
+            contract_object_with_ib_data, always_return_single_leg=True
+        )
+        if ib_contract is missing_contract:
+            specific_log.warn("Can't get trading hours as contract is missing")
+            return missing_contract
+
+        # returns a list but should only have one element
+        ib_contract_details_list = self.ib.reqContractDetails(ib_contract)
+        ib_contract_details = ib_contract_details_list[0]
+
+        try:
+            trading_hours = get_trading_hours(ib_contract_details)
+        except Exception as e:
+            specific_log.warn(
+                "%s when getting trading hours from %s!"
+                % (str(e), str(ib_contract_details))
+            )
+            return missing_contract
+
+        return trading_hours
+
+
 
     def ib_get_min_tick_size(
         self, contract_object_with_ib_data: futuresContract

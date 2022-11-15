@@ -1,7 +1,8 @@
 import datetime
 from ib_insync import ContractDetails as ibContractDetails
 
-from syscore.dateutils import adjust_trading_hours_conservatively, openingTimesAnyDay, openingTimes, listOfOpeningTimes
+from sysobjects.production.opening_times import openingTimes, openingTimesAnyDay, listOfOpeningTimes, \
+    adjust_trading_hours_conservatively
 
 from sysdata.config.production_config import get_production_config
 

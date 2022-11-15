@@ -170,9 +170,9 @@ def true_if_answer_is_yes(prompt="",
                 return None
 
         x = x.lower()
-        if x[0] == "y":
+        if len(x) > 0 and x[0] == "y":
             return True
-        elif x[0] == "n":
+        elif len(x) > 0 and x[0] == "n":
             return False
         print("Need one of yes/no, Yes/No, y/n, Y/N")
 
