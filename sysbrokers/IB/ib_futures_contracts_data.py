@@ -4,7 +4,7 @@ from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_futures_contract_data import brokerFuturesContractData
 
 from syscore.objects import missing_contract, missing_instrument
-from syscore.exceptions import missingContract
+from syscore.exceptions import missingContract, missingData
 
 from sysobjects.contract_dates_and_expiries import expiryDate, listOfContractDateStr
 from sysobjects.contracts import futuresContract
@@ -206,38 +206,13 @@ class ibFuturesContractData(brokerFuturesContractData):
             new_log.msg("Can't resolve contract")
             raise
 
-        trading_hours = self.ib_client.ib_get_trading_hours(
-            contract_object_with_ib_data
-        )
-
-        if trading_hours is missing_contract:
-            new_log.msg("No IB expiry date found")
-            trading_hours = []
-
-        return trading_hours
-
-    def get_raw_trading_hours_for_contract(self, futures_contract: futuresContract) -> list:
-        """
-
-        :param futures_contract:
-        :return: list of paired date times
-        """
-        new_log = futures_contract.log(self.log)
-
         try:
-            contract_object_with_ib_data = self.get_contract_object_with_IB_data(
-                futures_contract
+            trading_hours = self.ib_client.ib_get_trading_hours(
+                contract_object_with_ib_data
             )
-        except missingContract:
-            new_log.msg("Can't resolve contract")
-            raise
-
-        trading_hours = self.ib_client.ib_get_raw_trading_hours(
-            contract_object_with_ib_data
-        )
-
-        if trading_hours is missing_contract:
+        except missingData:
             new_log.msg("No IB expiry date found")
             trading_hours = []
 
         return trading_hours
+

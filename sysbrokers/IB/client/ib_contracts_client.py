@@ -1,13 +1,15 @@
 from copy import copy
 from ib_insync import Contract
 
+from syscore.cache import Cache
+from syscore.exceptions import missingData, missingContract
 from sysbrokers.IB.client.ib_client import ibClient
 from sysbrokers.IB.ib_instruments import (
     ib_futures_instrument_just_symbol,
     futuresInstrumentWithIBConfigData,
     ib_futures_instrument,
 )
-from sysbrokers.IB.ib_trading_hours import get_conservative_trading_hours, get_trading_hours
+from sysbrokers.IB.ib_trading_hours import get_trading_hours, get_saved_trading_hours, get_conservative_trading_hours
 from sysbrokers.IB.ib_contracts import (
     ibcontractWithLegs,
     get_ib_contract_with_specific_expiry,
@@ -21,6 +23,7 @@ from syscore.genutils import list_of_ints_with_highest_common_factor_positive_fi
 from syslogdiag.logger import logger
 
 from sysobjects.contracts import futuresContract, contractDate
+from sysobjects.production.opening_times import intersecting_trading_hours, listOfOpeningTimes, dictOfDictOfWeekdayOpeningTimes, weekdayDictOflistOfOpeningTimesAnyDay
 from sysexecution.trade_qty import tradeQuantity
 
 
@@ -81,40 +84,40 @@ class ibContractsClient(ibClient):
 
     def ib_get_trading_hours(
         self, contract_object_with_ib_data: futuresContract
-    ) -> list:
+    ) -> listOfOpeningTimes:
         specific_log = contract_object_with_ib_data.specific_log(self.log)
-        ib_contract = self.ib_futures_contract(
-            contract_object_with_ib_data, always_return_single_leg=True
-        )
-        if ib_contract is missing_contract:
-            specific_log.warn("Can't get trading hours as contract is missing")
-            return missing_contract
-
-        # returns a list but should only have one element
-        ib_contract_details_list = self.ib.reqContractDetails(ib_contract)
-        ib_contract_details = ib_contract_details_list[0]
 
         try:
-            trading_hours = get_conservative_trading_hours(ib_contract_details)
+            trading_hours_from_ib = self.ib_get_raw_trading_hours(contract_object_with_ib_data)
+            saved_trading_hours = self.ib_get_saved_trading_hours_for_contract(contract_object_with_ib_data)
+
+            ## uncomment
+            #trading_hours = intersecting_trading_hours(trading_hours_from_ib,
+            #                                           saved_trading_hours)
+
+            time_zone_id = contract_object_with_ib_data.timeZoneId
+            trading_hours = get_conservative_trading_hours(time_zone_id=time_zone_id,
+                                                           trading_hours=trading_hours_from_ib)
+
         except Exception as e:
             specific_log.warn(
                 "%s when getting trading hours from %s!"
-                % (str(e), str(ib_contract_details))
+                % (str(e), str(contract_object_with_ib_data))
             )
-            return missing_contract
+            raise missingData
 
         return trading_hours
 
     def ib_get_raw_trading_hours(
         self, contract_object_with_ib_data: futuresContract
-    ) -> list:
+    ) -> listOfOpeningTimes:
         specific_log = contract_object_with_ib_data.specific_log(self.log)
         ib_contract = self.ib_futures_contract(
             contract_object_with_ib_data, always_return_single_leg=True
         )
         if ib_contract is missing_contract:
             specific_log.warn("Can't get trading hours as contract is missing")
-            return missing_contract
+            raise missingContract
 
         # returns a list but should only have one element
         ib_contract_details_list = self.ib.reqContractDetails(ib_contract)
@@ -127,10 +130,28 @@ class ibContractsClient(ibClient):
                 "%s when getting trading hours from %s!"
                 % (str(e), str(ib_contract_details))
             )
-            return missing_contract
+            raise missingData
 
         return trading_hours
 
+    def ib_get_saved_trading_hours_for_contract(
+        self, futures_contract: futuresContract
+    ) -> weekdayDictOflistOfOpeningTimesAnyDay:
+        instrument_code = futures_contract.instrument_code
+
+        all_saved_trading_hours = self.get_all_saved_trading_hours()
+        return all_saved_trading_hours[instrument_code]
+
+    def get_all_saved_trading_hours(self) -> dictOfDictOfWeekdayOpeningTimes:
+        all_trading_hours = getattr(self, "_all_trading_hours", None)
+        if all_trading_hours is None:
+            all_trading_hours = self._get_all_saved_trading_hours_from_file()
+            self._all_trading_hours = all_trading_hours
+
+        return all_trading_hours
+
+    def _get_all_saved_trading_hours_from_file(self):
+        return get_saved_trading_hours()
 
 
     def ib_get_min_tick_size(
