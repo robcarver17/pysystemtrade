@@ -1,4 +1,4 @@
-from syscore.dateutils import  listOfOpeningTimes
+from sysobjects.production.opening_times import listOfOpeningTimes
 from syscore.exceptions import missingContract
 from sysdata.futures.contracts import futuresContractData
 
