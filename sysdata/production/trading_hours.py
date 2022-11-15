@@ -1,5 +1,5 @@
 import yaml
-from sysobjects.production.opening_times import dictOfDictOfWeekdayOpeningTimes
+from sysobjects.production.trading_hours import dictOfDictOfWeekdayOpeningTimes
 
 def read_trading_hours(filename: str):
     try:

@@ -2,7 +2,7 @@ import datetime
 import yaml
 from ib_insync import ContractDetails as ibContractDetails
 
-from sysobjects.production.opening_times import openingTimes, openingTimesAnyDay, listOfOpeningTimes, \
+from sysobjects.production.trading_hours import openingTimes, openingTimesAnyDay, listOfOpeningTimes, \
     adjust_trading_hours_conservatively
 from syscore.fileutils import get_filename_for_package
 from sysdata.config.production_config import get_production_config

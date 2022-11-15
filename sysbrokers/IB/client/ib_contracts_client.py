@@ -23,7 +23,7 @@ from syscore.genutils import list_of_ints_with_highest_common_factor_positive_fi
 from syslogdiag.logger import logger
 
 from sysobjects.contracts import futuresContract, contractDate
-from sysobjects.production.opening_times import intersecting_trading_hours, listOfOpeningTimes, dictOfDictOfWeekdayOpeningTimes, weekdayDictOflistOfOpeningTimesAnyDay
+from sysobjects.production.trading_hours import intersecting_trading_hours, listOfOpeningTimes, dictOfDictOfWeekdayOpeningTimes, weekdayDictOflistOfOpeningTimesAnyDay
 from sysexecution.trade_qty import tradeQuantity
 
 
@@ -92,8 +92,8 @@ class ibContractsClient(ibClient):
             saved_trading_hours = self.ib_get_saved_trading_hours_for_contract(contract_object_with_ib_data)
 
             ## uncomment
-            #trading_hours = intersecting_trading_hours(trading_hours_from_ib,
-            #                                           saved_trading_hours)
+            trading_hours = intersecting_trading_hours(trading_hours_from_ib,
+                                                       saved_trading_hours)
 
             time_zone_id = self.ib_get_timezoneid(contract_object_with_ib_data)
             trading_hours = get_conservative_trading_hours(time_zone_id=time_zone_id,
