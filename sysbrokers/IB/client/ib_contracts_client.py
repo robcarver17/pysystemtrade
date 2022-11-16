@@ -88,7 +88,12 @@ class ibContractsClient(ibClient):
     def ib_get_trading_hours(
         self, contract_object_with_ib_data: futuresContract
     ) -> listOfOpeningTimes:
-        specific_log = contract_object_with_ib_data.specific_log(self.log)
+        return self.cache.get(self._ib_get_trading_hours,
+                              contract_object_with_ib_data)
+
+    def _ib_get_trading_hours(
+            self, contract_object_with_ib_data: futuresContract
+    ) -> listOfOpeningTimes:
 
         try:
             trading_hours_from_ib = self.ib_get_raw_trading_hours(contract_object_with_ib_data)
@@ -202,12 +207,7 @@ class ibContractsClient(ibClient):
         return hours_for_timezone
 
     def get_all_saved_trading_hours(self) -> dictOfDictOfWeekdayOpeningTimes:
-        all_trading_hours = getattr(self, "_all_trading_hours", None)
-        if all_trading_hours is None:
-            all_trading_hours = self._get_all_saved_trading_hours_from_file()
-            self._all_trading_hours = all_trading_hours
-
-        return all_trading_hours
+        return self.cache.get(self._get_all_saved_trading_hours_from_file)
 
     def _get_all_saved_trading_hours_from_file(self):
         return get_saved_trading_hours()
@@ -332,12 +332,22 @@ class ibContractsClient(ibClient):
 
     @property
     def contract_cache(self):
+        ## FIXME MERGE WITH CACHE
         if getattr(self, "_futures_contract_cache", None) is None:
             self._futures_contract_cache = {}
 
         cache = self._futures_contract_cache
 
         return cache
+
+    @property
+    def cache(self) -> Cache:
+        cache = getattr(self, "_cache", None)
+        if cache is None:
+            cache = self._cache = Cache(self)
+
+        return cache
+
 
     def _get_ib_futures_contract_from_cache(
         self,
