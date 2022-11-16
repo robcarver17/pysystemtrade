@@ -9,7 +9,7 @@ from sysbrokers.IB.ib_instruments import (
     futuresInstrumentWithIBConfigData,
     ib_futures_instrument,
 )
-from sysbrokers.IB.ib_trading_hours import get_trading_hours, get_saved_trading_hours, get_conservative_trading_hours
+from sysbrokers.IB.ib_trading_hours import get_trading_hours, get_saved_trading_hours
 from sysbrokers.IB.ib_contracts import (
     ibcontractWithLegs,
     get_ib_contract_with_specific_expiry,
@@ -24,7 +24,9 @@ from syscore.genutils import list_of_ints_with_highest_common_factor_positive_fi
 from syslogdiag.logger import logger
 
 from sysobjects.contracts import futuresContract, contractDate
-from sysobjects.production.trading_hours import intersecting_trading_hours, listOfOpeningTimes, dictOfDictOfWeekdayOpeningTimes, weekdayDictOflistOfOpeningTimesAnyDay
+from sysobjects.production.trading_hours import weekdayDictOflistOfOpeningTimesAnyDay, dictOfDictOfWeekdayOpeningTimes, \
+    intersecting_trading_hours
+from sysobjects.production.trading_hours.hours_for_specific_days import listOfOpeningTimes
 from sysexecution.trade_qty import tradeQuantity
 
 
@@ -106,7 +108,6 @@ class ibContractsClient(ibClient):
 
         trading_hours = intersecting_trading_hours(trading_hours_from_ib,
                                                    saved_trading_hours)
-
 
         return trading_hours
 

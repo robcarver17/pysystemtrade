@@ -475,3 +475,32 @@ def calculate_start_and_end_dates(
 
     return start_date, end_date
 
+
+def time_to_string(time: datetime.time):
+    return time.strftime("%H:%M")
+
+
+def time_from_string(time_string: str):
+    split_string = time_string.split(":")
+
+    return datetime.time(int(split_string[0]),
+                         int(split_string[1]))
+
+
+MIDNIGHT = datetime.time(0,0)
+
+
+def preceeding_midnight_of_datetime(some_datetime: datetime.datetime):
+    return datetime.datetime.combine(some_datetime.date(), datetime.time(0,0))
+
+
+def preceeding_midnight_of_date(some_date: datetime.date):
+    return datetime.datetime.combine(some_date, datetime.time(0,0))
+
+
+def following_midnight_of_datetime(some_datetime: datetime.datetime):
+    return preceeding_midnight_of_datetime(some_datetime + datetime.timedelta(days=1))
+
+
+def following_midnight_of_date(some_date: datetime.date):
+    return following_midnight_of_datetime(preceeding_midnight_of_date(some_date))
