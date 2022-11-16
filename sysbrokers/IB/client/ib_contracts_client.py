@@ -97,7 +97,6 @@ class ibContractsClient(ibClient):
             )
             raise missingData
 
-        """
         try:
             saved_trading_hours = self.ib_get_saved_trading_hours_for_contract(contract_object_with_ib_data)
             trading_hours = intersecting_trading_hours(trading_hours_from_ib,
@@ -106,12 +105,12 @@ class ibContractsClient(ibClient):
         except:
             ## no saved hours use the IB ones
             trading_hours = trading_hours_from_ib
-        """
 
+        """
         time_zone_id = self.ib_get_timezoneid(contract_object_with_ib_data)
         trading_hours = get_conservative_trading_hours(time_zone_id=time_zone_id,
                                                        trading_hours=trading_hours_from_ib)
-
+        """
 
         return trading_hours
 

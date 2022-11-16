@@ -167,7 +167,7 @@ class openingTimes():
         for open_time in list_of_open_times:
             intersection = self.intersect_with_open_time(open_time)
             if intersection.not_zero_length():
-                intersected_list = intersected_list.append(intersection)
+                intersected_list.append(intersection)
 
         return listOfOpeningTimes(intersected_list)
 
@@ -420,8 +420,8 @@ def intersecting_trading_hours(list_of_opening_times: listOfOpeningTimes,
 
     list_of_intersecting_hours = []
     for opening_times in list_of_opening_times:
-        intesected_hours = intersected_trading_hours(opening_times, saved_trading_hours)
-        list_of_intersecting_hours = list_of_intersecting_hours + intesected_hours
+        intersected_hours = intersected_trading_hours(opening_times, saved_trading_hours)
+        list_of_intersecting_hours = list_of_intersecting_hours + intersected_hours
 
     return listOfOpeningTimes(list_of_intersecting_hours)
 
@@ -445,7 +445,8 @@ def intersected_trading_hours(opening_times: openingTimes,
         return listOfOpeningTimes(list_of_opening_times)
 
     ## We know that the hours will be on the same day now
-    saved_hours_for_weekday = day_name[trading_hours_open_weekday]
+    name_of_day = day_name[trading_hours_open_weekday]
+    saved_hours_for_weekday = saved_trading_hours[name_of_day]
     intersected_hours = opening_times.intersect_with_list_of_open_times_any_day(saved_hours_for_weekday)
 
     return intersected_hours
