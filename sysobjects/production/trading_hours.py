@@ -215,7 +215,7 @@ class openingTimes():
 
     @classmethod
     def create_zero_length_day(cls, some_date: datetime.date):
-        midnight_on_date = following_midnight_of_datetime(some_date)
+        midnight_on_date = following_midnight_of_date(some_date)
         return cls(midnight_on_date, midnight_on_date)
 
     def without_date(self) -> openingTimesAnyDay:
@@ -565,7 +565,12 @@ def split_trading_hours_into_two_weekdays(opening_times: openingTimes) -> tuple:
 def preceeding_midnight_of_datetime(some_datetime: datetime.datetime):
     return datetime.datetime.combine(some_datetime.date(), datetime.time(0,0))
 
+def preceeding_midnight_of_date(some_date: datetime.date):
+    return datetime.datetime.combine(some_date, datetime.time(0,0))
+
 def following_midnight_of_datetime(some_datetime: datetime.datetime):
     return preceeding_midnight_of_datetime(some_datetime + datetime.timedelta(days=1))
 
+def following_midnight_of_date(some_date: datetime.date):
+    return following_midnight_of_datetime(preceeding_midnight_of_date(some_date))
 
