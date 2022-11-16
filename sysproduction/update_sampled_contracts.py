@@ -1,3 +1,4 @@
+from syscore.exceptions import missingContract
 from syscore.objects import missing_contract, success
 
 from sysobjects.contract_dates_and_expiries import contractDate, expiryDate
@@ -330,10 +331,10 @@ def update_expiry_for_contract(contract_object: futuresContract, data: dataBlob)
     """
     log = contract_object.specific_log(data.log)
 
-    broker_expiry_date = get_contract_expiry_from_broker(contract_object, data=data)
-    db_expiry_date = get_contract_expiry_from_db(contract_object, data=data)
-
-    if broker_expiry_date is missing_contract:
+    try:
+        broker_expiry_date = get_contract_expiry_from_broker(contract_object, data=data)
+        db_expiry_date = get_contract_expiry_from_db(contract_object, data=data)
+    except missingContract:
         log.msg(
             "Can't find expiry for %s, could be a connection problem but could be because contract has already expired"
             % (str(contract_object))
@@ -341,18 +342,19 @@ def update_expiry_for_contract(contract_object: futuresContract, data: dataBlob)
 
         ## don't warn as probably expired we'll remove it from the sampling list
 
-    elif broker_expiry_date == db_expiry_date:
-        log.msg(
-            "No change to contract expiry %s to %s"
-            % (str(contract_object), str(broker_expiry_date))
-        )
     else:
-        # Different!
-        update_contract_object_with_new_expiry_date(
-            data=data,
-            broker_expiry_date=broker_expiry_date,
-            contract_object=contract_object,
-        )
+        if broker_expiry_date == db_expiry_date:
+            log.msg(
+                "No change to contract expiry %s to %s"
+                % (str(contract_object), str(broker_expiry_date))
+            )
+        else:
+            # Different!
+            update_contract_object_with_new_expiry_date(
+                data=data,
+                broker_expiry_date=broker_expiry_date,
+                contract_object=contract_object,
+            )
 
 
 def get_contract_expiry_from_db(

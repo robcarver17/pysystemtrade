@@ -10,6 +10,7 @@ from sysbrokers.broker_capital_data import brokerCapitalData
 from sysbrokers.broker_contract_position_data import brokerContractPositionData
 from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
+from syscore.exceptions import missingContract
 
 from syscore.objects import (
     arg_not_supplied,
@@ -237,10 +238,11 @@ class dataBroker(productionDataLayerGeneric):
     def update_expiry_for_single_contract(
         self, original_contract: futuresContract
     ) -> futuresContract:
-        actual_expiry = self.get_actual_expiry_date_for_single_contract(
-            original_contract
-        )
-        if actual_expiry is missing_contract:
+        try:
+            actual_expiry = self.get_actual_expiry_date_for_single_contract(
+                original_contract
+            )
+        except missingContract:
             log = original_contract.specific_log(self.data.log)
             log.warn(
                 "Contract %s is missing from IB probably expired - need to manually close on DB"
