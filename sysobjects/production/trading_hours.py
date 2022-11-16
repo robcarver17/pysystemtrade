@@ -15,6 +15,41 @@ class openingTimesAnyDay():
     opening_time: datetime.time
     closing_time: datetime.time
 
+    def as_list(self):
+        return [self.opening_time, self.closing_time]
+
+    @classmethod
+    def create_zero_length(cls):
+        return cls(MIDNIGHT, MIDNIGHT)
+
+    def not_zero_length(self) ->bool:
+        return not self.is_zero_length()
+
+    def is_zero_length(self) -> bool:
+        return self.opening_time == self.closing_time
+
+    def intersect_with_list(self, list_of_open_times: 'listOfOpeningTimesAnyDay') -> 'listOfOpeningTimesAnyDay':
+
+        intersected_list = []
+        for open_time in list_of_open_times:
+            intersection = self.intersect_with_open_time(open_time)
+            if intersection.not_zero_length():
+                intersected_list.append(intersection)
+
+        return listOfOpeningTimesAnyDay(intersected_list)
+
+    def intersect_with_open_time(self, open_time: 'openingTimesAnyDay') -> 'openingTimesAnyDay':
+        self_as_list = self.as_list()
+        other_as_list = open_time.as_list()
+
+        intervals = intersection_intervals([self_as_list, other_as_list])
+
+        if len(intervals)==0:
+            return openingTimesAnyDay.create_zero_length()
+
+        return openingTimesAnyDay(intervals[0], intervals[1])
+
+
     def add_date(self, some_date: datetime.date) -> 'openingTimes':
         return openingTimes(
             datetime.datetime.combine(some_date, self.opening_time),
@@ -44,6 +79,19 @@ class listOfOpeningTimesAnyDay(list):
     def __init__(self, list_of_times: List[openingTimesAnyDay]):
         super().__init__(list_of_times)
 
+    def not_zero_length(self)-> bool:
+        return len(self)>0
+
+    def intersect(self, list_of_times: 'listOfOpeningTimesAnyDay') -> 'listOfOpeningTimesAnyDay':
+        intersected_list = []
+        for open_time in self:
+            intersection = open_time.intersect_with_list(list_of_times)
+            if intersection.not_zero_length():
+                intersected_list.append(intersection)
+
+        return listOfOpeningTimesAnyDay(intersected_list)
+
+
     def add_date(self, some_date: datetime.date):
         return listOfOpeningTimes([
             open_time.add_date(some_date)
@@ -60,6 +108,14 @@ class listOfOpeningTimesAnyDay(list):
 
     @classmethod
     def from_simple_list(cls, simple_list: list):
+        # length zero means no opening hours
+        if len(simple_list)==0:
+            return cls([])
+        ## this could be a nested list of lists, or just a single entry open/close
+        if type(simple_list[0]) is not list:
+            ## not nested, make it nested
+            simple_list = [simple_list]
+
         list_of_times = [
             openingTimesAnyDay.from_simple_list(
                 opening_times
@@ -68,9 +124,16 @@ class listOfOpeningTimesAnyDay(list):
         ]
         return cls(list_of_times)
 
+
+
 class weekdayDictOflistOfOpeningTimesAnyDay(dict):
     def __init__(self, dict_of_list_of_times: Dict[str, listOfOpeningTimesAnyDay]):
         super().__init__(dict_of_list_of_times)
+
+    def intersect(self, weekday_dict_of_list_of_open_times) -> 'weekdayDictOflistOfOpeningTimesAnyDay':
+        return intersection_weekday_dict_of_list_of_open_times\
+                        (self,
+                        weekday_dict_of_list_of_open_times)
 
     def to_simple_dict(self)-> dict:
         simple_dict = dict(
@@ -87,21 +150,59 @@ class weekdayDictOflistOfOpeningTimesAnyDay(dict):
         return simple_dict
 
     @classmethod
-    def from_simple_dict(cls, simple_dict: dict):
-        weekday_dict = dict(
+    def from_simple_dict(cls, simple_dict: dict) -> 'weekdayDictOflistOfOpeningTimesAnyDay':
+        if type(simple_dict) is list:
+            ## if not specified per day
+            return weekday_dict_of_opening_times_from_simple_list(simple_dict)
+        else:
+            ## if specified per day
+            return weekday_dict_of_opening_times_from_simple_dict(simple_dict)
+
+def intersection_weekday_dict_of_list_of_open_times\
+            (first_dict: weekdayDictOflistOfOpeningTimesAnyDay,
+            second_dict: weekdayDictOflistOfOpeningTimesAnyDay) -> weekdayDictOflistOfOpeningTimesAnyDay:
+
+    new_dict = dict(
+        [
+            (weekday,
+             first_dict[weekday].intersect(second_dict[weekday]))
+            for weekday in list(day_name)
+        ]
+    )
+
+    return weekdayDictOflistOfOpeningTimesAnyDay(new_dict)
+
+def weekday_dict_of_opening_times_from_simple_dict(simple_dict: dict) -> weekdayDictOflistOfOpeningTimesAnyDay:
+    weekday_dict = dict(
             [
                 (
-                    instrument_code,
+                    weekday_name,
                     listOfOpeningTimesAnyDay.from_simple_list(
-                        simple_dict[instrument_code]
+                        simple_dict.get(weekday_name, [])
                     )
                 )
 
-                for instrument_code in list(simple_dict.keys())
+                for weekday_name in list(day_name)
             ]
         )
 
-        return cls(weekday_dict)
+    return weekdayDictOflistOfOpeningTimesAnyDay(weekday_dict)
+
+def weekday_dict_of_opening_times_from_simple_list(simple_list: list) -> weekdayDictOflistOfOpeningTimesAnyDay:
+    weekday_dict = dict(
+            [
+                (
+                    weekday_name,
+                    listOfOpeningTimesAnyDay.from_simple_list(
+                        simple_list ## same opening times every day
+                    )
+                )
+
+                for weekday_name in list(day_name)
+            ]
+        )
+
+    return weekdayDictOflistOfOpeningTimesAnyDay(weekday_dict)
 
 
 @dataclass()
@@ -468,6 +569,3 @@ def following_midnight_of_datetime(some_datetime: datetime.datetime):
     return preceeding_midnight_of_datetime(some_datetime + datetime.timedelta(days=1))
 
 
-x = dictOfOpeningTimes(dict(EDOLLAR = listOfOpeningTimes([openingTimes(opening_time=datetime.datetime(2022, 11, 14, 0, 0), closing_time=datetime.datetime(2022, 11, 14, 21, 0)), openingTimes(opening_time=datetime.datetime(2022, 11, 15, 0, 0), closing_time=datetime.datetime(2022, 11, 15, 21, 0)), openingTimes(opening_time=datetime.datetime(2022, 11, 16, 0, 0), closing_time=datetime.datetime(2022, 11, 16, 21, 0)), openingTimes(opening_time=datetime.datetime(2022, 11, 17, 0, 0), closing_time=datetime.datetime(2022, 11, 17, 21, 0)), openingTimes(opening_time=datetime.datetime(2022, 11, 18, 0, 0), closing_time=datetime.datetime(2022, 11, 18, 21, 0))]),
-KR3 = listOfOpeningTimes([openingTimes(opening_time=datetime.datetime(2022, 11, 15, 2, 0), closing_time=datetime.datetime(2022, 11, 15, 6, 45)), openingTimes(opening_time=datetime.datetime(2022, 11, 16, 2, 0), closing_time=datetime.datetime(2022, 11, 16, 6, 45)), openingTimes(opening_time=datetime.datetime(2022, 11, 17, 3, 0), closing_time=datetime.datetime(2022, 11, 17, 7, 45)), openingTimes(opening_time=datetime.datetime(2022, 11, 18, 2, 0), closing_time=datetime.datetime(2022, 11, 18, 6, 45))]),
-JGB = listOfOpeningTimes([openingTimes(opening_time=datetime.datetime(2022, 11, 14, 8, 30), closing_time=datetime.datetime(2022, 11, 14, 21, 0)), openingTimes(opening_time=datetime.datetime(2022, 11, 15, 1, 45), closing_time=datetime.datetime(2022, 11, 15, 2, 2)), openingTimes(opening_time=datetime.datetime(2022, 11, 15, 5, 30), closing_time=datetime.datetime(2022, 11, 15, 6, 2)), openingTimes(opening_time=datetime.datetime(2022, 11, 15, 8, 30), closing_time=datetime.datetime(2022, 11, 15, 21, 0)), openingTimes(opening_time=datetime.datetime(2022, 11, 16, 1, 45), closing_time=datetime.datetime(2022, 11, 16, 2, 2)), openingTimes(opening_time=datetime.datetime(2022, 11, 16, 5, 30), closing_time=datetime.datetime(2022, 11, 16, 6, 2)), openingTimes(opening_time=datetime.datetime(2022, 11, 16, 8, 30), closing_time=datetime.datetime(2022, 11, 16, 21, 0)), openingTimes(opening_time=datetime.datetime(2022, 11, 17, 1, 45), closing_time=datetime.datetime(2022, 11, 17, 2, 2)), openingTimes(opening_time=datetime.datetime(2022, 11, 17, 5, 30), closing_time=datetime.datetime(2022, 11, 17, 6, 2)), openingTimes(opening_time=datetime.datetime(2022, 11, 17, 8, 30), closing_time=datetime.datetime(2022, 11, 17, 21, 0)), openingTimes(opening_time=datetime.datetime(2022, 11, 18, 1, 45), closing_time=datetime.datetime(2022, 11, 18, 2, 2)), openingTimes(opening_time=datetime.datetime(2022, 11, 18, 5, 30), closing_time=datetime.datetime(2022, 11, 18, 6, 2)), openingTimes(opening_time=datetime.datetime(2022, 11, 18, 8, 30), closing_time=datetime.datetime(2022, 11, 18, 21, 0)), openingTimes(opening_time=datetime.datetime(2022, 11, 21, 1, 45), closing_time=datetime.datetime(2022, 11, 21, 2, 2)), openingTimes(opening_time=datetime.datetime(2022, 11, 21, 5, 30), closing_time=datetime.datetime(2022, 11, 21, 6, 2))] )))

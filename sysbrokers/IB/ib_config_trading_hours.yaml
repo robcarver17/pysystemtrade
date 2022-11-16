@@ -1,18 +1,59 @@
+# Entries in this file overwrite trading hours received from IB
+#
+# NOTE: these file will be superseded if a file with the same name exists in the private directory
+#
+# We trade only in the intersection of these
+# We can encode time zones by instrumen tin three different ways
+# Firstly, by day. The following are lists per day, so we can encode multiple sessions per day
 EDOLLAR:
   Monday:
-  - - '15:00'
-    - '21:00'
-  Tuesday:
+    - - '15:00'
+      - '21:00'
+    - - '14:00'
+      - '14:05'
+  Tuesday: # With only one entry in the list only one session
   - - '16:00'
     - '21:00'
   Wednesday:
-  - - '17:00'
+    - '17:00' # There is no need to nest lists for one session
     - '21:00'
   Thursday:
-  - - '18:00'
+    - '18:00'
     - '21:00'
   Friday:
+    - '19:00'
+    - '21:00'
+  Saturday: [] # if a day is omitted, like Sunday, we assume no trading on that day
+## Or we can have just one list that applies to all days of the week
+US2:
   - - '19:00'
     - '21:00'
-  Saturday: []
-  Sunday: []
+  - - '18:05'
+    - '18:10'
+# Or we can have just one session per day for every day of the week
+US10:
+  - '19:00'
+  - '21:00'
+# Time zones by region
+# Again these can be in any of the formats shown above
+# Time zones by region will be overwritten by market specific if available
+# If a time zone by region is not available, stuff will break
+# As it's important to know if region coding has changed
+US/Central:
+  - '15:00'
+  - '20:00'
+US/Eastern:
+  - '14:00'
+  - '19:00'
+GB-Eire:
+  - '09:00'
+  - '16:00'
+MET:
+  - '08:00'
+  - '15:00'
+Japan:
+  - '01:00'
+  - '06:00'
+HongKong:
+  - '01:00'
+  - '06:00'
