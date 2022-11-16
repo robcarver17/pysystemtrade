@@ -35,7 +35,6 @@ class openingTimesAnyDay():
         return self.opening_time == self.closing_time
 
     def intersect_with_list(self, list_of_open_times: 'listOfOpeningTimesAnyDay') -> 'listOfOpeningTimesAnyDay':
-
         intersected_list = []
         for open_time in list_of_open_times:
             intersection = self.intersect_with_open_time(open_time)
@@ -84,7 +83,7 @@ class listOfOpeningTimesAnyDay(list):
         for open_time in self:
             intersection = open_time.intersect_with_list(list_of_times)
             if intersection.not_zero_length():
-                intersected_list.append(intersection)
+                intersected_list = intersected_list + intersection
 
         return listOfOpeningTimesAnyDay(intersected_list)
 
@@ -175,9 +174,9 @@ class openingTimes():
     def intersect_with_list_of_open_times_any_day(self,
                                                   saved_hours_for_weekday: listOfOpeningTimesAnyDay) -> 'listOfOpeningTimes':
         opening_date = self.opening_time.date()
-        list_of_all_hours_to_intersect = saved_hours_for_weekday.add_date(opening_date)
+        list_of_open_times = saved_hours_for_weekday.add_date(opening_date)
 
-        return self.intersect_with_list_of_open_times(list_of_all_hours_to_intersect)
+        return self.intersect_with_list_of_open_times(list_of_open_times)
 
     def intersect_with_list_of_open_times(self,
                                           list_of_open_times: 'listOfOpeningTimes') -> 'listOfOpeningTimes':
