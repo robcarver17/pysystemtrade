@@ -89,22 +89,23 @@ class ibContractsClient(ibClient):
 
         try:
             trading_hours_from_ib = self.ib_get_raw_trading_hours(contract_object_with_ib_data)
-            saved_trading_hours = self.ib_get_saved_trading_hours_for_contract(contract_object_with_ib_data)
-
-            ## uncomment
-            #trading_hours = intersecting_trading_hours(trading_hours_from_ib,
-            #                                           saved_trading_hours)
-
-            time_zone_id = self.ib_get_timezoneid(contract_object_with_ib_data)
-            trading_hours = get_conservative_trading_hours(time_zone_id=time_zone_id,
-                                                           trading_hours=trading_hours_from_ib)
-
         except Exception as e:
             specific_log.warn(
                 "%s when getting trading hours from %s!"
                 % (str(e), str(contract_object_with_ib_data))
             )
             raise missingData
+
+        saved_trading_hours = self.ib_get_saved_trading_hours_for_contract(contract_object_with_ib_data)
+
+        ## uncomment
+        #trading_hours = intersecting_trading_hours(trading_hours_from_ib,
+        #                                           saved_trading_hours)
+
+        time_zone_id = self.ib_get_timezoneid(contract_object_with_ib_data)
+        trading_hours = get_conservative_trading_hours(time_zone_id=time_zone_id,
+                                                       trading_hours=trading_hours_from_ib)
+
 
         return trading_hours
 
@@ -162,7 +163,8 @@ class ibContractsClient(ibClient):
         instrument_code = futures_contract.instrument_code
 
         all_saved_trading_hours = self.get_all_saved_trading_hours()
-        return all_saved_trading_hours[instrument_code]
+        return all_saved_trading_hours.get(instrument_code,
+                                           weekdayDictOflistOfOpeningTimesAnyDay({}))
 
     def get_all_saved_trading_hours(self) -> dictOfDictOfWeekdayOpeningTimes:
         all_trading_hours = getattr(self, "_all_trading_hours", None)
