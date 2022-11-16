@@ -1,11 +1,20 @@
 # Entries in this file overwrite trading hours received from IB
 #
-# NOTE: these file will be superseded if a file with the same name exists in the private directory
+# NOTE: these file will be replaced by this file private.private_config_trading_hours.yaml
+# At a minimum, this must include a complete set of time zone specific trading hours
 #
-# We trade only in the intersection of these
-# We can encode time zones by instrumen tin three different ways
+# We trade only in the intersection of:
+#  1) instrument specific trading hours (optionally)
+#  2) time zone specific (see later in file)
+#  3) hours pulled from IB
+#
+# TRADING HOURS BY INSTRUMENT
+#
+# If an instrument is omitted, then we will use the time zone specific hours only
+#
+# We can encode time zones in this file in three different ways
 # Firstly, by day. The following are lists per day, so we can encode multiple sessions per day
-EDOLLAR:
+EDOLLAR_example:
   Monday:
     - - '15:00'
       - '21:00'
@@ -25,20 +34,21 @@ EDOLLAR:
     - '21:00'
   Saturday: [] # if a day is omitted, like Sunday, we assume no trading on that day
 ## Or we can have just one list that applies to all days of the week
-US2:
+US2_example:
   - - '19:00'
     - '21:00'
   - - '18:05'
     - '18:10'
 # Or we can have just one session per day for every day of the week
-US10:
+US10_example:
   - '19:00'
   - '21:00'
-# Time zones by region
+# TRADING HOURS BY TIME ZONE
+#
 # Again these can be in any of the formats shown above
 # Time zones by region will be overwritten by market specific if available
-# If a time zone by region is not available, stuff will break
-# As it's important to know if region coding has changed
+# WARNING: If a time zone by region is not available, stuff will break
+#          As it's important to know if region coding has changed
 US/Central:
   - '15:00'
   - '20:00'

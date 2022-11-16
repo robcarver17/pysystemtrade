@@ -2,17 +2,19 @@ import datetime
 import yaml
 from ib_insync import ContractDetails as ibContractDetails
 
-from sysobjects.production.trading_hours import openingTimes, openingTimesAnyDay, listOfOpeningTimes
-from syscore.fileutils import get_filename_for_package
+from sysobjects.production.trading_hours import openingTimes, listOfOpeningTimes
+from syscore.fileutils import get_filename_for_package, does_file_exist
 from sysdata.config.production_config import get_production_config
 from sysdata.production.trading_hours import read_trading_hours
 
-IB_FUTURES_CONFIG_FILE = get_filename_for_package("sysbrokers.IB.ib_config_trading_hours.yaml")
+IB_CONFIG_TRADING_HOURS_FILE = get_filename_for_package("sysbrokers.IB.ib_config_trading_hours.yaml")
+PRIVATE_CONFIG_TRADING_HOURS_FILE = get_filename_for_package("private.private_config_trading_hours.yaml")
 
 def get_saved_trading_hours():
-    return read_trading_hours(IB_FUTURES_CONFIG_FILE)
-
-
+    if does_file_exist(PRIVATE_CONFIG_TRADING_HOURS_FILE):
+        return read_trading_hours(PRIVATE_CONFIG_TRADING_HOURS_FILE)
+    else:
+        return read_trading_hours(IB_CONFIG_TRADING_HOURS_FILE)
 
 def get_trading_hours(ib_contract_details: ibContractDetails) -> listOfOpeningTimes:
     try:

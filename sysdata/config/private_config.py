@@ -24,3 +24,4 @@ def get_private_config_as_dict(filename:str = arg_not_supplied) -> dict:
         private_dict = yaml.load(file_to_parse, Loader=yaml.FullLoader)
 
     return private_dict
+
