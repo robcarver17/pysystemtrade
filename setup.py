@@ -60,12 +60,16 @@ default_config_yaml_files = package_files(default_config_path, "yaml")
 brokers_csv_path = os.path.join(dir_this_file(), "sysbrokers")
 brokers_csv_files = package_files(brokers_csv_path, "csv")
 
+brokers_yaml_path = os.path.join(dir_this_file(), "sysbrokers")
+brokers_yaml_files = package_files(brokers_yaml_path, "yaml")
+
 package_data = {
     "": private_yaml_files
     + provided_yaml_files
     + data_csv_files
     + test_data_csv_files
     + brokers_csv_files
+    + brokers_yaml_files
     + control_yaml_files
     + default_config_yaml_files
 }

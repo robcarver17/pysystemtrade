@@ -1,16 +1,21 @@
 import datetime
+import yaml
 from ib_insync import ContractDetails as ibContractDetails
 
-from sysobjects.production.opening_times import openingTimes, openingTimesAnyDay, listOfOpeningTimes, \
+from sysobjects.production.trading_hours import openingTimes, openingTimesAnyDay, listOfOpeningTimes, \
     adjust_trading_hours_conservatively
-
+from syscore.fileutils import get_filename_for_package
 from sysdata.config.production_config import get_production_config
+from sysdata.production.trading_hours import read_trading_hours, write_trading_hours
 
-def get_conservative_trading_hours(ib_contract_details: ibContractDetails) -> listOfOpeningTimes:
-    time_zone_id = ib_contract_details.timeZoneId
+IB_FUTURES_CONFIG_FILE = get_filename_for_package("sysbrokers.IB.ib_config_trading_hours.yaml")
+
+def get_saved_trading_hours():
+    return read_trading_hours(IB_FUTURES_CONFIG_FILE)
+
+
+def get_conservative_trading_hours(time_zone_id, trading_hours: listOfOpeningTimes) -> listOfOpeningTimes:
     conservative_times = get_conservative_trading_time_for_time_zone(time_zone_id)
-
-    trading_hours = get_trading_hours(ib_contract_details)
 
     trading_hours_adjusted_to_be_conservative = adjust_trading_hours_conservatively(
         trading_hours, conservative_times=conservative_times

@@ -1,5 +1,5 @@
 from syscore.dateutils import SECONDS_PER_HOUR
-from sysobjects.production.opening_times import openingTimes, listOfOpeningTimes
+from sysobjects.production.trading_hours import openingTimes, listOfOpeningTimes
 from syscore.interactive import (
     get_and_convert,
     run_interactive_menu,
