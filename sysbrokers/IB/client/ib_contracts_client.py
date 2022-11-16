@@ -97,11 +97,16 @@ class ibContractsClient(ibClient):
             )
             raise missingData
 
-        saved_trading_hours = self.ib_get_saved_trading_hours_for_contract(contract_object_with_ib_data)
+        """
+        try:
+            saved_trading_hours = self.ib_get_saved_trading_hours_for_contract(contract_object_with_ib_data)
+            trading_hours = intersecting_trading_hours(trading_hours_from_ib,
+                                                       saved_trading_hours)
 
-        ## uncomment
-        #trading_hours = intersecting_trading_hours(trading_hours_from_ib,
-        #                                           saved_trading_hours)
+        except:
+            ## no saved hours use the IB ones
+            trading_hours = trading_hours_from_ib
+        """
 
         time_zone_id = self.ib_get_timezoneid(contract_object_with_ib_data)
         trading_hours = get_conservative_trading_hours(time_zone_id=time_zone_id,
@@ -164,8 +169,8 @@ class ibContractsClient(ibClient):
         instrument_code = futures_contract.instrument_code
 
         all_saved_trading_hours = self.get_all_saved_trading_hours()
-        return all_saved_trading_hours.get(instrument_code,
-                                           weekdayDictOflistOfOpeningTimesAnyDay({}))
+
+        return all_saved_trading_hours[instrument_code]
 
     def get_all_saved_trading_hours(self) -> dictOfDictOfWeekdayOpeningTimes:
         all_trading_hours = getattr(self, "_all_trading_hours", None)
