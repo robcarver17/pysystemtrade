@@ -94,6 +94,7 @@ class ibContractsClient(ibClient):
     def _ib_get_trading_hours(
             self, contract_object_with_ib_data: futuresContract
     ) -> listOfOpeningTimes:
+        specific_log = contract_object_with_ib_data.specific_log(self.log)
 
         try:
             trading_hours_from_ib = self.ib_get_raw_trading_hours(contract_object_with_ib_data)
@@ -124,7 +125,7 @@ class ibContractsClient(ibClient):
         except Exception as e:
             specific_log.warn(
                 "%s when getting time zone from %s!"
-                % (str(e), str(ib_contract_details))
+                % (str(e), str(contract_object_with_ib_data))
             )
             raise missingData
 
@@ -141,7 +142,7 @@ class ibContractsClient(ibClient):
         except Exception as e:
             specific_log.warn(
                 "%s when getting trading hours from %s!"
-                % (str(e), str(ib_contract_details))
+                % (str(e), str(contract_object_with_ib_data))
             )
             raise missingData
 
@@ -200,7 +201,7 @@ class ibContractsClient(ibClient):
             hours_for_timezone = all_saved_trading_hours[time_zone_id]
         except:
             # this means IB have changed something so we bork and alert
-            error_msg = "Check ib_config_trading_hours in sysbrokers/IB or private directory, hours for timezone %s not found!" % hours_for_timezone
+            error_msg = "Check ib_config_trading_hours in sysbrokers/IB or private directory, hours for timezone %s not found!" % time_zone_id
             self.log.critical(error_msg)
             raise Exception(error_msg)
 

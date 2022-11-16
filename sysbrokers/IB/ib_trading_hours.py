@@ -1,5 +1,4 @@
 import datetime
-import yaml
 from ib_insync import ContractDetails as ibContractDetails
 
 from sysobjects.production.trading_hours import openingTimes, listOfOpeningTimes

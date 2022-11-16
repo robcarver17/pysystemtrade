@@ -1,18 +1,20 @@
-# Entries in this file overwrite trading hours received from IB
+# Entries in this file determine trading hours
+# This replaces the 'conservative' trading hours
 #
 # NOTE: these file will be replaced by this file private.private_config_trading_hours.yaml
 # At a minimum, this must include a complete set of time zone specific trading hours
 #
 # We trade only in the intersection of:
-#  1) instrument specific trading hours (optionally)
-#  2) time zone specific (see later in file)
-#  3) hours pulled from IB
+#  1) instrument specific trading hours (see immediately below)
+#  2) time zone specific trading hours (see later in file)
+#  3) trading hours pulled from IB for a specific contract
 #
 # TRADING HOURS BY INSTRUMENT
 #
 # If an instrument is omitted, then we will use the time zone specific hours only
 #
 # We can encode time zones in this file in three different ways
+# Replace the '..._example' with actual instrument names
 # Firstly, by day. The following are lists per day, so we can encode multiple sessions per day
 EDOLLAR_example:
   Monday:
