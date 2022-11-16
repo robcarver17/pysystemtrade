@@ -563,7 +563,7 @@ def split_trading_hours_into_two_weekdays(opening_times: openingTimes) -> tuple:
                  ])
 
 def preceeding_midnight_of_datetime(some_datetime: datetime.datetime):
-    return datetime.datetime.combine(some_datetime.date(), datetime.datetime.min.time())
+    return datetime.datetime.combine(some_datetime.date(), datetime.time(0,0))
 
 def following_midnight_of_datetime(some_datetime: datetime.datetime):
     return preceeding_midnight_of_datetime(some_datetime + datetime.timedelta(days=1))
