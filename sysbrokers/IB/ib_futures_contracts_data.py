@@ -8,6 +8,7 @@ from syscore.exceptions import missingContract, missingData
 
 from sysobjects.contract_dates_and_expiries import expiryDate, listOfContractDateStr
 from sysobjects.contracts import futuresContract
+from sysobjects.production.trading_hours import listOfOpeningTimes
 
 from syslogdiag.log_to_screen import logtoscreen
 
@@ -190,7 +191,7 @@ class ibFuturesContractData(brokerFuturesContractData):
 
 
 
-    def get_trading_hours_for_contract(self, futures_contract: futuresContract) -> list:
+    def get_trading_hours_for_contract(self, futures_contract: futuresContract) -> listOfOpeningTimes:
         """
 
         :param futures_contract:
@@ -204,7 +205,7 @@ class ibFuturesContractData(brokerFuturesContractData):
             )
         except missingContract:
             new_log.msg("Can't resolve contract")
-            raise
+            raise missingContract
 
         try:
             trading_hours = self.ib_client.ib_get_trading_hours(
