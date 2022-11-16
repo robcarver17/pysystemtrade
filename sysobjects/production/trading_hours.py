@@ -15,7 +15,7 @@ class openingTimesAnyDay():
     opening_time: datetime.time
     closing_time: datetime.time
 
-    def add_date(self, some_date: datetime.date) -> openingTimes:
+    def add_date(self, some_date: datetime.date) -> 'openingTimes':
         return openingTimes(
             datetime.datetime.combine(some_date, self.opening_time),
             datetime.datetime.combine(some_date, self.closing_time)
