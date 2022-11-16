@@ -2,11 +2,10 @@ import datetime
 import yaml
 from ib_insync import ContractDetails as ibContractDetails
 
-from sysobjects.production.trading_hours import openingTimes, openingTimesAnyDay, listOfOpeningTimes, \
-    adjust_trading_hours_conservatively
+from sysobjects.production.trading_hours import openingTimes, openingTimesAnyDay, listOfOpeningTimes
 from syscore.fileutils import get_filename_for_package
 from sysdata.config.production_config import get_production_config
-from sysdata.production.trading_hours import read_trading_hours, write_trading_hours
+from sysdata.production.trading_hours import read_trading_hours
 
 IB_FUTURES_CONFIG_FILE = get_filename_for_package("sysbrokers.IB.ib_config_trading_hours.yaml")
 
@@ -14,21 +13,11 @@ def get_saved_trading_hours():
     return read_trading_hours(IB_FUTURES_CONFIG_FILE)
 
 
-def get_conservative_trading_hours(time_zone_id, trading_hours: listOfOpeningTimes) -> listOfOpeningTimes:
-    conservative_times = get_conservative_trading_time_for_time_zone(time_zone_id)
-
-    trading_hours_adjusted_to_be_conservative = adjust_trading_hours_conservatively(
-        trading_hours, conservative_times=conservative_times
-    )
-
-    return trading_hours_adjusted_to_be_conservative
-
 
 def get_trading_hours(ib_contract_details: ibContractDetails) -> listOfOpeningTimes:
     try:
         time_zone_id = ib_contract_details.timeZoneId
         time_zone_adjustment = get_time_difference(time_zone_id)
-        one_off_adjustment = one_off_adjustments(ib_contract_details.contract.symbol)
 
         trading_hours_string = ib_contract_details.tradingHours
         list_of_open_times = parse_trading_hours_string(
@@ -107,69 +96,6 @@ def parse_phrase(phrase: str, adjustment_hours: int = 0, additional_adjust: int 
     adjustment = datetime.timedelta(hours=total_adjustment)
 
     return original_time + adjustment
-
-
-def get_conservative_trading_time_for_time_zone(time_zone_id: str) -> openingTimesAnyDay:
-    # ALthough many things are liquid all day, we want to be conservative
-    # confusingly, IB seem to have changed their time zone codes in 2020
-    # times returned are in UTC
-
-    start_times = {
-        ## US
-        "CST (Central Standard Time)": 15,
-        "US/Central": 15,
-        "CST": 15,
-
-        "EST (Eastern Standard Time)": 14,
-        "US/Eastern": 14,
-        "EST": 14,
-
-        ## UK
-        "GB-Eire": 9,
-        "": 9,
-
-        ## Middle European
-        "MET (Middle Europe Time)": 8,
-        "MET": 8,
-
-        ## Asia
-        "JST (Japan Standard Time)": 1,
-        "JST": 1,
-        "Japan": 1,
-        "Hongkong": 1,
-
-    }
-
-    end_times = {
-        ## US
-        "CST (Central Standard Time)": 20,
-        "US/Central": 20,
-        "CST": 20,
-
-        "EST (Eastern Standard Time)": 19,
-        "US/Eastern": 19,
-        "EST": 19,
-
-        ## UK
-        "GB-Eire": 16,
-        "": 16,
-
-        ## Middle European
-        "MET (Middle Europe Time)": 15,
-        "MET": 15,
-
-        ## Asia
-        "JST (Japan Standard Time)": 6,
-        "JST": 6,
-        "Japan": 6,
-        "Hongkong": 6,
-    }
-
-    conservative_start_time = datetime.time(start_times[time_zone_id])
-    conservative_end_time = datetime.time(end_times[time_zone_id])
-
-    return openingTimesAnyDay(conservative_start_time,
-                              conservative_end_time)
 
 def get_GMT_offset_hours():
     # this needs to be in private_config.YAML

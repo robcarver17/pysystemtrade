@@ -26,7 +26,7 @@ from syslogdiag.logger import logger
 from sysobjects.contracts import futuresContract, contractDate
 from sysobjects.production.trading_hours import weekdayDictOflistOfOpeningTimesAnyDay, dictOfDictOfWeekdayOpeningTimes, \
     intersecting_trading_hours
-from sysobjects.production.trading_hours.hours_for_specific_days import listOfOpeningTimes
+from sysobjects.production.trading_hours import listOfOpeningTimes
 from sysexecution.trade_qty import tradeQuantity
 
 
