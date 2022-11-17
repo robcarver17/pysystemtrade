@@ -313,92 +313,22 @@ class ibContractsClient(ibClient):
         allow_expired: bool = False,
     ):
 
-        ibcontract_with_legs = self._get_ib_futures_contract_from_cache(
-            contract_object_to_use=contract_object_to_use,
-            trade_list_for_multiple_legs=trade_list_for_multiple_legs,
-        )
-        if ibcontract_with_legs is missing_contract:
-            ibcontract_with_legs = self._get_ib_futures_contract_from_broker(
+        ibcontract_with_legs = self.cache.get(
+                self._get_ib_futures_contract_from_broker,
                 contract_object_to_use,
                 trade_list_for_multiple_legs=trade_list_for_multiple_legs,
-                allow_expired=allow_expired,
-            )
-            self._store_contract_in_cache(
-                contract_object_to_use=contract_object_to_use,
-                trade_list_for_multiple_legs=trade_list_for_multiple_legs,
-                ibcontract_with_legs=ibcontract_with_legs,
-            )
+                allow_expired=allow_expired)
 
         return ibcontract_with_legs
 
     @property
-    def contract_cache(self):
-        ## FIXME MERGE WITH CACHE
-        if getattr(self, "_futures_contract_cache", None) is None:
-            self._futures_contract_cache = {}
-
-        cache = self._futures_contract_cache
-
-        return cache
-
-    @property
     def cache(self) -> Cache:
+        ## dynamically create because don't have access to __init__ method
         cache = getattr(self, "_cache", None)
         if cache is None:
             cache = self._cache = Cache(self)
 
         return cache
-
-
-    def _get_ib_futures_contract_from_cache(
-        self,
-        contract_object_to_use: futuresContract,
-        trade_list_for_multiple_legs: tradeQuantity = None,
-    ) -> ibcontractWithLegs:
-
-        key = self._get_contract_cache_key(
-            contract_object_to_use=contract_object_to_use,
-            trade_list_for_multiple_legs=trade_list_for_multiple_legs,
-        )
-        cache = self.contract_cache
-        ibcontract_with_legs = cache.get(key, missing_contract)
-
-        return ibcontract_with_legs
-
-    def _store_contract_in_cache(
-        self,
-        contract_object_to_use: futuresContract,
-        ibcontract_with_legs: ibcontractWithLegs,
-        trade_list_for_multiple_legs: tradeQuantity = None,
-    ):
-        cache = self.contract_cache
-        key = self._get_contract_cache_key(
-            contract_object_to_use=contract_object_to_use,
-            trade_list_for_multiple_legs=trade_list_for_multiple_legs,
-        )
-
-        cache[key] = ibcontract_with_legs
-
-    def _get_contract_cache_key(
-        self,
-        contract_object_to_use: futuresContract,
-        trade_list_for_multiple_legs: tradeQuantity = None,
-    ) -> str:
-
-        if not contract_object_to_use.is_spread_contract():
-            trade_list_suffix = ""
-        else:
-            # WANT TO TREAT EG -2,2 AND -4,4 AS THE SAME BUT DIFFERENT FROM
-            # -2,1 OR -1,2,-1...
-            trade_list_suffix = str(
-                list_of_ints_with_highest_common_factor_positive_first(
-                    trade_list_for_multiple_legs
-                )
-            )
-
-        key = contract_object_to_use.key + trade_list_suffix
-
-        return key
 
     def _get_ib_futures_contract_from_broker(
         self,

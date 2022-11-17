@@ -19,8 +19,9 @@ def read_trading_hours(filename: str):
 def write_trading_hours(dict_of_dict_of_trading_hours: dictOfDictOfWeekdayOpeningTimes,
                         filename: str):
     simple_dict = dict_of_dict_of_trading_hours.to_simple_dict()
-    with open(filename, "w") as file_to_parse:
+    resolved_filename = get_filename_for_package(filename)
+    with open(resolved_filename, "w") as file_to_write_to:
         yaml.dump(simple_dict,
-                  file_to_parse,
+                  file_to_write_to,
                   sort_keys = False)
 
