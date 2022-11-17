@@ -16,17 +16,15 @@ def get_saved_trading_hours():
     else:
         return read_trading_hours(IB_CONFIG_TRADING_HOURS_FILE)
 
-def get_trading_hours(ib_contract_details: ibContractDetails) -> listOfOpeningTimes:
+def get_trading_hours_from_contract_details(ib_contract_details: ibContractDetails) -> listOfOpeningTimes:
     try:
         time_zone_id = ib_contract_details.timeZoneId
         time_zone_adjustment = get_time_difference(time_zone_id)
-        one_off_adjustment = one_off_adjustments(ib_contract_details.contract.symbol)
 
         trading_hours_string = ib_contract_details.tradingHours
         list_of_open_times = parse_trading_hours_string(
             trading_hours_string,
-            adjustment_hours=time_zone_adjustment,
-            one_off_adjustment=one_off_adjustment,
+            adjustment_hours=time_zone_adjustment
         )
     except Exception as e:
         raise e
@@ -40,15 +38,13 @@ CLOSED_ALL_DAY = object()
 def parse_trading_hours_string(
     trading_hours_string: str,
     adjustment_hours: int = 0,
-    one_off_adjustment: tuple = NO_ADJUSTMENTS,
     ) -> listOfOpeningTimes:
 
     day_by_day = trading_hours_string.split(";")
     list_of_open_times = [
         parse_trading_for_day(
             string_for_day,
-            adjustment_hours=adjustment_hours,
-            one_off_adjustment=one_off_adjustment,
+            adjustment_hours=adjustment_hours
         )
         for string_for_day in day_by_day
     ]
@@ -64,8 +60,7 @@ def parse_trading_hours_string(
 
 def parse_trading_for_day(
     string_for_day: str,
-    adjustment_hours: int = 0,
-    one_off_adjustment: tuple = NO_ADJUSTMENTS,
+    adjustment_hours: int = 0
     ) -> openingTimes:
 
     start_and_end = string_for_day.split("-")
@@ -78,8 +73,8 @@ def parse_trading_for_day(
 
     # Doesn't deal with DST. We will be conservative and only trade 1 hour
     # after and 1 hour before
-    adjust_start = 1 + one_off_adjustment[0]
-    adjust_end = -1 + one_off_adjustment[-1]
+    adjust_start = 1
+    adjust_end = -1
 
     start_dt = parse_phrase(
         start_phrase, adjustment_hours=adjustment_hours, additional_adjust=adjust_start
@@ -138,10 +133,3 @@ def get_time_difference(time_zone_id: str) -> int:
         raise Exception("Time zone '%s' not found!" % time_zone_id)
 
     return diff_hours
-
-
-def one_off_adjustments(symbol: str) -> tuple:
-    ## Instrument specific - none needed any more
-    ## Leave code unless have problems again
-
-    return NO_ADJUSTMENTS

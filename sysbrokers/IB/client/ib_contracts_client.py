@@ -9,7 +9,7 @@ from sysbrokers.IB.ib_instruments import (
     futuresInstrumentWithIBConfigData,
     ib_futures_instrument,
 )
-from sysbrokers.IB.ib_trading_hours import get_trading_hours, get_saved_trading_hours
+from sysbrokers.IB.ib_trading_hours import get_trading_hours_from_contract_details, get_saved_trading_hours
 from sysbrokers.IB.ib_contracts import (
     ibcontractWithLegs,
     get_ib_contract_with_specific_expiry,
@@ -138,7 +138,7 @@ class ibContractsClient(ibClient):
 
         try:
             ib_contract_details = self.ib_get_contract_details(contract_object_with_ib_data)
-            trading_hours = get_trading_hours(ib_contract_details)
+            trading_hours = get_trading_hours_from_contract_details(ib_contract_details)
         except Exception as e:
             specific_log.warn(
                 "%s when getting trading hours from %s!"
