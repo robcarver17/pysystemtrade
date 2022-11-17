@@ -1,9 +1,11 @@
 import yaml
 from sysobjects.production.trading_hours import dictOfDictOfWeekdayOpeningTimes
+from syscore.fileutils import get_filename_for_package
 
 def read_trading_hours(filename: str):
+    resolved_filename = get_filename_for_package(filename)
     try:
-        with open(filename, "r") as file_to_parse:
+        with open(resolved_filename, "r") as file_to_parse:
             simple_dict = yaml.load(
                 file_to_parse,
                 Loader=yaml.Loader

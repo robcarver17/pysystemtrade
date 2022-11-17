@@ -1,5 +1,5 @@
 from sysdata.config.configdata import Config
-from sysdata.config.private_directory import get_full_path_for_config
+from sysdata.config.private_directory import get_full_path_for_private_config
 from yaml.parser import ParserError
 
 PRIVATE_CONTROL_CONFIG_FILE = "private_control_config.yaml"
@@ -8,7 +8,7 @@ DEFAULT_CONTROL_CONFIG_FILE = "syscontrol.control_config.yaml"
 
 def get_control_config() -> Config:
 
-    private_control_path = get_full_path_for_config(PRIVATE_CONTROL_CONFIG_FILE)
+    private_control_path = get_full_path_for_private_config(PRIVATE_CONTROL_CONFIG_FILE)
 
     try:
         control_config = Config(
