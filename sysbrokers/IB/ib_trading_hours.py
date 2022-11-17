@@ -2,7 +2,7 @@ import datetime
 from ib_insync import ContractDetails as ibContractDetails
 
 from sysdata.config.private_directory import get_full_path_for_private_config
-from sysobjects.production.trading_hours import openingTimes, listOfOpeningTimes
+from sysobjects.production.trading_hours.trading_hours import tradingHours, listOfTradingHours
 from syscore.fileutils import does_file_exist
 from sysdata.config.production_config import get_production_config
 from sysdata.production.trading_hours import read_trading_hours
@@ -16,7 +16,7 @@ def get_saved_trading_hours():
     else:
         return read_trading_hours(IB_CONFIG_TRADING_HOURS_FILE)
 
-def get_trading_hours_from_contract_details(ib_contract_details: ibContractDetails) -> listOfOpeningTimes:
+def get_trading_hours_from_contract_details(ib_contract_details: ibContractDetails) -> listOfTradingHours:
     try:
         time_zone_id = ib_contract_details.timeZoneId
         time_zone_adjustment = get_time_difference(time_zone_id)
@@ -38,7 +38,7 @@ CLOSED_ALL_DAY = object()
 def parse_trading_hours_string(
     trading_hours_string: str,
     adjustment_hours: int = 0,
-    ) -> listOfOpeningTimes:
+    ) -> listOfTradingHours:
 
     day_by_day = trading_hours_string.split(";")
     list_of_open_times = [
@@ -53,7 +53,7 @@ def parse_trading_hours_string(
         open_time for open_time in list_of_open_times if open_time is not CLOSED_ALL_DAY
     ]
 
-    list_of_open_times = listOfOpeningTimes(list_of_open_times)
+    list_of_open_times = listOfTradingHours(list_of_open_times)
 
     return list_of_open_times
 
@@ -61,7 +61,7 @@ def parse_trading_hours_string(
 def parse_trading_for_day(
     string_for_day: str,
     adjustment_hours: int = 0
-    ) -> openingTimes:
+    ) -> tradingHours:
 
     start_and_end = string_for_day.split("-")
     if len(start_and_end) == 1:
@@ -84,7 +84,7 @@ def parse_trading_for_day(
         end_phrase, adjustment_hours=adjustment_hours, additional_adjust=adjust_end
     )
 
-    return openingTimes(start_dt, end_dt)
+    return tradingHours(start_dt, end_dt)
 
 
 def parse_phrase(phrase: str, adjustment_hours: int = 0, additional_adjust: int = 0)\

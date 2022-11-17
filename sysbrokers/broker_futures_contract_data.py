@@ -1,4 +1,4 @@
-from sysobjects.production.trading_hours import listOfOpeningTimes
+from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
 from syscore.exceptions import missingContract
 from sysdata.futures.contracts import futuresContractData
 
@@ -45,7 +45,7 @@ class brokerFuturesContractData(futuresContractData):
             return trading_hours.less_than_N_hours_left(N_hours=N_hours)
 
     def get_trading_hours_for_contract(self, futures_contract: futuresContract) -> \
-            listOfOpeningTimes:
+            listOfTradingHours:
         raise NotImplementedError
 
 

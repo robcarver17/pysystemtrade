@@ -21,9 +21,8 @@ from sysbrokers.IB.ib_contracts import (
 from syslogdiag.logger import logger
 
 from sysobjects.contracts import futuresContract, contractDate
-from sysobjects.production.trading_hours import weekdayDictOflistOfOpeningTimesAnyDay, dictOfDictOfWeekdayOpeningTimes, \
-    intersecting_trading_hours
-from sysobjects.production.trading_hours import listOfOpeningTimes
+from sysobjects.production.trading_hours.TEMP import weekdayDictOflistOfOpeningTimesAnyDay, dictOfDictOfWeekdayOpeningTimes, intersection_of_weekly_and_specific_trading_hours
+from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
 from sysexecution.trade_qty import tradeQuantity
 
 
@@ -84,14 +83,14 @@ class ibContractsClient(ibClient):
 
     def ib_get_trading_hours(
         self, contract_object_with_ib_data: futuresContract
-    ) -> listOfOpeningTimes:
+    ) -> listOfTradingHours:
         ## Expensive calculations so we cache
         return self.cache.get(self._ib_get_uncached_trading_hours,
                               contract_object_with_ib_data)
 
     def _ib_get_uncached_trading_hours(
             self, contract_object_with_ib_data: futuresContract
-    ) -> listOfOpeningTimes:
+    ) -> listOfTradingHours:
 
         specific_log = contract_object_with_ib_data.specific_log(self.log)
 
@@ -111,14 +110,14 @@ class ibContractsClient(ibClient):
                 str(e), str(contract_object_with_ib_data)))
             return trading_hours_from_ib
 
-        trading_hours = intersecting_trading_hours(trading_hours_from_ib,
-                                                   saved_weekly_trading_hours)
+        trading_hours = intersection_of_weekly_and_specific_trading_hours(trading_hours_from_ib,
+                                                                          saved_weekly_trading_hours)
 
         return trading_hours
 
     def ib_get_trading_hours_from_IB(
         self, contract_object_with_ib_data: futuresContract
-    ) -> listOfOpeningTimes:
+    ) -> listOfTradingHours:
         specific_log = contract_object_with_ib_data.specific_log(self.log)
 
         try:

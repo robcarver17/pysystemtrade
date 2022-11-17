@@ -1,5 +1,5 @@
 import yaml
-from sysobjects.production.trading_hours import dictOfDictOfWeekdayOpeningTimes
+from sysobjects.production.trading_hours.TEMP import dictOfDictOfWeekdayOpeningTimes
 from syscore.fileutils import get_filename_for_package
 
 def read_trading_hours(filename: str):
