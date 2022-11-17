@@ -19,7 +19,7 @@ from syscore.objects import (
     missing_data
 )
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
-from sysobjects.production.trading_hours import listOfOpeningTimes
+from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
 
 from sysdata.data_blob import dataBlob
 from sysdata.tools.cleaner import apply_price_cleaning
@@ -199,7 +199,7 @@ class dataBroker(productionDataLayerGeneric):
         )
         return result
 
-    def get_trading_hours_for_contract(self, contract: futuresContract) -> listOfOpeningTimes:
+    def get_trading_hours_for_contract(self, contract: futuresContract) -> listOfTradingHours:
         result = self.broker_futures_contract_data.get_trading_hours_for_contract(
             contract
         )
