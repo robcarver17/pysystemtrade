@@ -156,15 +156,12 @@ class ibContractsClient(ibClient):
         specific_log = contract_object_with_ib_data.log(self.log)
 
         if specific_weekly_hours_for_contract is None and weekly_hours_for_timezone is None:
-            specific_log.warn('No time zone or specific hours for contract %s, will use IB only' % str(contract_object_with_ib_data))
             raise missingData
 
         if specific_weekly_hours_for_contract is None:
-            specific_log.msg('No specific hours for contract %s, will use timezone and IB only' % str(contract_object_with_ib_data))
             return weekly_hours_for_timezone
 
         if weekly_hours_for_timezone is None:
-            specific_log.msg('No timezone hours for %s will use specific and IB only' % str(contract_object_with_ib_data))
             return specific_weekly_hours_for_contract
 
         intersected_trading_hours = weekly_hours_for_timezone.intersect(specific_weekly_hours_for_contract)
