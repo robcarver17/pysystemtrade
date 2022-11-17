@@ -161,7 +161,7 @@ class ibContractsClient(ibClient):
 
         if specific_weekly_hours_for_contract is None:
             # use timezone ones - no warning necessary this is normal
-            empty_hours = weekdayDictOfListOfTradingHoursAnyDay({})
+            empty_hours = weekdayDictOfListOfTradingHoursAnyDay.create_empty()
             return empty_hours
 
         return specific_weekly_hours_for_contract
@@ -170,7 +170,7 @@ class ibContractsClient(ibClient):
                 self, contract_object_with_ib_data: futuresContract
         ) -> weekdayDictOfListOfTradingHoursAnyDay:
         specific_log = contract_object_with_ib_data.log(self.log)
-        empty_hours = weekdayDictOfListOfTradingHoursAnyDay({})
+        empty_hours = weekdayDictOfListOfTradingHoursAnyDay.create_empty()
 
         try:
             time_zone_id = self.ib_get_timezoneid(contract_object_with_ib_data)

@@ -39,6 +39,9 @@ class weekdayDictOfListOfTradingHoursAnyDay(dict):
             ## if specified per day
             return weekday_dict_of_trading_hour_from_simple_dict(simple_dict)
 
+    @classmethod
+    def create_empty(cls) -> 'weekdayDictOfListOfTradingHoursAnyDay':
+        return cls.from_simple_dict({})
 
 def intersection_weekday_dict_of_list_of_trading_hours_any_day\
             (first_dict: weekdayDictOfListOfTradingHoursAnyDay,
