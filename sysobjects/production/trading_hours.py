@@ -11,7 +11,7 @@ from syscore.dateutils import SECONDS_PER_HOUR, following_midnight_of_date
 from syscore.genutils import intersection_intervals
 
 
-from syscore.dateutils import MIDNIGHT, time_to_string, time_from_string, following_midnight_of_datetime, \
+from syscore.dateutils import MIDNIGHT, time_to_string, time_from_string, following_one_second_before_midnight_of_datetime, \
     preceeding_midnight_of_datetime
 from syscore.genutils import intersection_intervals
 from syscore.objects import named_object
@@ -486,7 +486,7 @@ def split_trading_hours_into_two_weekdays(opening_times: openingTimes) -> tuple:
     closing_time = opening_times.closing_time
 
     return tuple([openingTimes(opening_time,
-                               following_midnight_of_datetime(opening_time)),
+                               following_one_second_before_midnight_of_datetime(opening_time)),
                   openingTimes(preceeding_midnight_of_datetime(closing_time),
                                closing_time)
                   ])

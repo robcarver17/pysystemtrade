@@ -498,9 +498,9 @@ def preceeding_midnight_of_date(some_date: datetime.date):
     return datetime.datetime.combine(some_date, datetime.time(0,0))
 
 
-def following_midnight_of_datetime(some_datetime: datetime.datetime):
-    return preceeding_midnight_of_datetime(some_datetime + datetime.timedelta(days=1))
+def following_one_second_before_midnight_of_datetime(some_datetime: datetime.datetime):
+    return datetime.datetime.combine(some_datetime.date(), datetime.time(23, 59, 59))
 
 
 def following_midnight_of_date(some_date: datetime.date):
-    return following_midnight_of_datetime(preceeding_midnight_of_date(some_date))
+    return following_one_second_before_midnight_of_datetime(preceeding_midnight_of_date(some_date))
