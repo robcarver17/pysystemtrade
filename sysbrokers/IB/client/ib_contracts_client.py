@@ -21,7 +21,10 @@ from sysbrokers.IB.ib_contracts import (
 from syslogdiag.logger import logger
 
 from sysobjects.contracts import futuresContract, contractDate
-from sysobjects.production.trading_hours.TEMP import weekdayDictOflistOfOpeningTimesAnyDay, dictOfDictOfWeekdayOpeningTimes, intersection_of_weekly_and_specific_trading_hours
+from sysobjects.production.trading_hours.intersection_of_weekly_and_specific_trading_hours import \
+    intersection_of_any_weekly_and_list_of_normal_trading_hours
+from sysobjects.production.trading_hours.dict_of_weekly_trading_hours_any_day import dictOfDictOfWeekdayTradingHours
+from sysobjects.production.trading_hours.weekly_trading_hours_any_day import weekdayDictOfListOfTradingHoursAnyDay
 from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
 from sysexecution.trade_qty import tradeQuantity
 
@@ -110,8 +113,8 @@ class ibContractsClient(ibClient):
                 str(e), str(contract_object_with_ib_data)))
             return trading_hours_from_ib
 
-        trading_hours = intersection_of_weekly_and_specific_trading_hours(trading_hours_from_ib,
-                                                                          saved_weekly_trading_hours)
+        trading_hours = intersection_of_any_weekly_and_list_of_normal_trading_hours(trading_hours_from_ib,
+                                                                                    saved_weekly_trading_hours)
 
         return trading_hours
 
@@ -134,7 +137,7 @@ class ibContractsClient(ibClient):
 
     def ib_get_saved_weekly_trading_hours_for_contract(
         self, contract_object_with_ib_data: futuresContract
-    ) -> weekdayDictOflistOfOpeningTimesAnyDay:
+    ) -> weekdayDictOfListOfTradingHoursAnyDay:
 
         weekly_hours_for_timezone = \
             self.ib_get_saved_weekly_trading_hours_for_timezone_of_contract(
@@ -150,7 +153,7 @@ class ibContractsClient(ibClient):
 
     def ib_get_saved_weekly_trading_hours_custom_for_contract(self,
                                   contract_object_with_ib_data: futuresContract
-                                  ) -> weekdayDictOflistOfOpeningTimesAnyDay:
+                                  ) -> weekdayDictOfListOfTradingHoursAnyDay:
 
         instrument_code = contract_object_with_ib_data.instrument_code
         all_saved_trading_hours = self.get_all_saved_weekly_trading_hours()
@@ -158,16 +161,16 @@ class ibContractsClient(ibClient):
 
         if specific_weekly_hours_for_contract is None:
             # use timezone ones - no warning necessary this is normal
-            empty_hours = weekdayDictOflistOfOpeningTimesAnyDay({})
+            empty_hours = weekdayDictOfListOfTradingHoursAnyDay({})
             return empty_hours
 
         return specific_weekly_hours_for_contract
 
     def ib_get_saved_weekly_trading_hours_for_timezone_of_contract(
                 self, contract_object_with_ib_data: futuresContract
-        ) -> weekdayDictOflistOfOpeningTimesAnyDay:
+        ) -> weekdayDictOfListOfTradingHoursAnyDay:
         specific_log = contract_object_with_ib_data.log(self.log)
-        empty_hours = weekdayDictOflistOfOpeningTimesAnyDay({})
+        empty_hours = weekdayDictOfListOfTradingHoursAnyDay({})
 
         try:
             time_zone_id = self.ib_get_timezoneid(contract_object_with_ib_data)
@@ -202,7 +205,7 @@ class ibContractsClient(ibClient):
 
         return time_zone_id
 
-    def get_all_saved_weekly_trading_hours(self) -> dictOfDictOfWeekdayOpeningTimes:
+    def get_all_saved_weekly_trading_hours(self) -> dictOfDictOfWeekdayTradingHours:
         return self.cache.get(self._get_all_saved_weekly_trading_hours_from_file)
 
     def _get_all_saved_weekly_trading_hours_from_file(self):
@@ -210,7 +213,7 @@ class ibContractsClient(ibClient):
             saved_hours = get_saved_trading_hours()
         except:
             self.log.critical("Saved trading hours file missing - will use only IB hours")
-            saved_hours = dictOfDictOfWeekdayOpeningTimes({})
+            saved_hours = dictOfDictOfWeekdayTradingHours({})
 
         return saved_hours
 

@@ -2,7 +2,8 @@ import datetime
 from dataclasses import dataclass
 from typing import List
 
-from syscore.dateutils import following_midnight_of_date, SECONDS_PER_HOUR
+from syscore.dateutils import following_midnight_of_date, SECONDS_PER_HOUR, \
+    following_one_second_before_midnight_of_datetime, preceeding_midnight_of_datetime
 from syscore.genutils import intersection_intervals
 
 
@@ -67,6 +68,15 @@ class listOfTradingHours(list):
     def __init__(self, list_of_times: List[tradingHours]):
         super().__init__(list_of_times)
 
+    def intersect_with_trading_hours(self, other_trading_hours: tradingHours) -> 'listOfTradingHours':#
+        intersected_list = []
+        for my_trading_hours in self:
+            intersection = my_trading_hours.intersect(other_trading_hours)
+            if intersection.not_zero_length():
+                intersected_list.append(intersection)
+
+        return listOfTradingHours(intersected_list)
+
     def remove_zero_length_from_opening_times(self):
         list_of_opening_times = [opening_time for opening_time in self
                                  if opening_time.not_zero_length()]
@@ -95,3 +105,16 @@ class listOfTradingHours(list):
 
         # market closed, we treat that as 'less than one hour left'
         return True
+
+
+def split_trading_hours_across_two_weekdays(opening_times: tradingHours) -> listOfTradingHours:
+    opening_time = opening_times.opening_time
+    closing_time = opening_times.closing_time
+
+    first_day_hours = tradingHours(opening_time,
+                               following_one_second_before_midnight_of_datetime(opening_time))
+
+    second_day_hours = tradingHours(preceeding_midnight_of_datetime(closing_time),
+                               closing_time)
+
+    return listOfTradingHours([first_day_hours, second_day_hours])
