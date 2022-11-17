@@ -8,7 +8,7 @@ from sysdata.config.production_config import get_production_config
 from sysdata.production.trading_hours import read_trading_hours
 
 IB_CONFIG_TRADING_HOURS_FILE = get_filename_for_package("sysbrokers.IB.ib_config_trading_hours.yaml")
-PRIVATE_CONFIG_TRADING_HOURS_FILE = get_full_path_for_config("private_config_trading_hours.yaml")
+PRIVATE_CONFIG_TRADING_HOURS_FILE = get_filename_for_package(get_full_path_for_config("private_config_trading_hours.yaml"))
 
 def get_saved_trading_hours():
     if does_file_exist(PRIVATE_CONFIG_TRADING_HOURS_FILE):
