@@ -108,11 +108,11 @@ class ibContractsClient(ibClient):
 
         try:
             saved_weekly_trading_hours = self.ib_get_saved_weekly_trading_hours_for_contract(contract_object_with_ib_data)
-        except Exception as e:
-            self.log.warn("Issue %s getting saved trading hours for %s, using IB hours" % (
-                str(e), str(contract_object_with_ib_data)))
+        except:
+            ## no saved hours, use IB
             return trading_hours_from_ib
 
+        ## OK use the intersection
         trading_hours = intersection_of_any_weekly_and_list_of_normal_trading_hours(trading_hours_from_ib,
                                                                                     saved_weekly_trading_hours)
 
@@ -139,13 +139,33 @@ class ibContractsClient(ibClient):
         self, contract_object_with_ib_data: futuresContract
     ) -> weekdayDictOfListOfTradingHoursAnyDay:
 
-        weekly_hours_for_timezone = \
-            self.ib_get_saved_weekly_trading_hours_for_timezone_of_contract(
-                contract_object_with_ib_data)
+        try:
+            weekly_hours_for_timezone = \
+                self.ib_get_saved_weekly_trading_hours_for_timezone_of_contract(
+                    contract_object_with_ib_data)
+        except missingData:
+            weekly_hours_for_timezone = None
 
-        specific_weekly_hours_for_contract = \
-            self.ib_get_saved_weekly_trading_hours_custom_for_contract(
-            contract_object_with_ib_data)
+        try:
+            specific_weekly_hours_for_contract = \
+                self.ib_get_saved_weekly_trading_hours_custom_for_contract(
+                contract_object_with_ib_data)
+        except missingData:
+            specific_weekly_hours_for_contract = None
+
+        specific_log = contract_object_with_ib_data.log(self.log)
+
+        if specific_weekly_hours_for_contract is None and weekly_hours_for_timezone is None:
+            specific_log.warn('No time zone or specific hours for contract %s, will use IB only' % str(contract_object_with_ib_data))
+            raise missingData
+
+        if specific_weekly_hours_for_contract is None:
+            specific_log.msg('No specific hours for contract %s, will use timezone and IB only' % str(contract_object_with_ib_data))
+            return weekly_hours_for_timezone
+
+        if weekly_hours_for_timezone is None:
+            specific_log.msg('No timezone hours for %s will use specific and IB only' % str(contract_object_with_ib_data))
+            return specific_weekly_hours_for_contract
 
         intersected_trading_hours = weekly_hours_for_timezone.intersect(specific_weekly_hours_for_contract)
 
@@ -160,9 +180,9 @@ class ibContractsClient(ibClient):
         specific_weekly_hours_for_contract = all_saved_trading_hours.get(instrument_code, None)
 
         if specific_weekly_hours_for_contract is None:
-            # use timezone ones - no warning necessary this is normal
+            # no warning necessary this is normal
             empty_hours = weekdayDictOfListOfTradingHoursAnyDay.create_empty()
-            return empty_hours
+            raise missingData
 
         return specific_weekly_hours_for_contract
 
@@ -170,24 +190,23 @@ class ibContractsClient(ibClient):
                 self, contract_object_with_ib_data: futuresContract
         ) -> weekdayDictOfListOfTradingHoursAnyDay:
         specific_log = contract_object_with_ib_data.log(self.log)
-        empty_hours = weekdayDictOfListOfTradingHoursAnyDay.create_empty()
 
         try:
             time_zone_id = self.ib_get_timezoneid(contract_object_with_ib_data)
         except missingData:
             # problem getting timezoneid
-            specific_log.warn("No time zone ID, can't get trading hours for timezone %s" % str(contract_object_with_ib_data))
-            return empty_hours
+            specific_log.warn("No time zone ID, can't get trading hours for timezone for %s" % str(contract_object_with_ib_data))
+            raise missingData
 
         all_saved_trading_hours = self.get_all_saved_weekly_trading_hours()
         weekly_hours_for_timezone = all_saved_trading_hours.get(time_zone_id,
                                                                 None)
 
         if weekly_hours_for_timezone is None:
-            # this means IB have changed something critical so we bork and alert
+            # this means IB have changed something critical or missing file so we bork and alert
             error_msg = "Check ib_config_trading_hours in sysbrokers/IB or private directory, hours for timezone %s not found!" % time_zone_id
             specific_log.log.critical(error_msg)
-            return empty_hours
+            raise missingData
 
         return weekly_hours_for_timezone
 
@@ -213,7 +232,7 @@ class ibContractsClient(ibClient):
             saved_hours = get_saved_trading_hours()
         except:
             self.log.critical("Saved trading hours file missing - will use only IB hours")
-            saved_hours = dictOfDictOfWeekdayTradingHours({})
+            return dictOfDictOfWeekdayTradingHours({})
 
         return saved_hours
 
