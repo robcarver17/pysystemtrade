@@ -242,7 +242,7 @@ class ibContractsClient(ibClient):
         )
         if ib_contract is missing_contract:
             specific_log.warn("Can't get tick size as contract missing")
-            return missing_contract
+            raise missingContract
 
         ib_contract_details = self.ib.reqContractDetails(ib_contract)[0]
 
@@ -253,7 +253,7 @@ class ibContractsClient(ibClient):
                 "%s when getting min tick size from %s!"
                 % (str(e), str(ib_contract_details))
             )
-            return missing_contract
+            raise missingContract
 
         return min_tick
 
