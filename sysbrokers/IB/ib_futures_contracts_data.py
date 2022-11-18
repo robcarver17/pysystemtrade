@@ -149,7 +149,7 @@ class ibFuturesContractData(brokerFuturesContractData):
             )
         except missingContract:
             new_log.msg("Can't resolve contract so can't find tick size")
-            return missing_contract
+            raise
 
         min_tick_size = self.ib_client.ib_get_min_tick_size(
             contract_object_with_ib_data
@@ -157,7 +157,7 @@ class ibFuturesContractData(brokerFuturesContractData):
 
         if min_tick_size is missing_contract:
             new_log.msg("No tick size found")
-            return missing_contract
+            raise missingContract
 
         return min_tick_size
 
