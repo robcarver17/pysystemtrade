@@ -33,7 +33,8 @@ def make_account_curve_plot(daily_pandl: pd.Series,
 def make_account_curve_plot_from_df(pandl_df: pd.DataFrame,
                             start_of_title: str = "",
                             start_date: datetime.datetime = arg_not_supplied,
-                            end_date: datetime.datetime = arg_not_supplied):
+                            end_date: datetime.datetime = arg_not_supplied,
+                            title_style: dict = None):
 
     curve_to_plot = pandl_df.resample("1B").sum()
     if start_date is not arg_not_supplied:
@@ -56,7 +57,7 @@ def make_account_curve_plot_from_df(pandl_df: pd.DataFrame,
                   str(ann_std.round(3).to_dict()),
                   str(ann_sr.round(2).to_dict()))
     curve_to_plot.cumsum().plot()
-    title(full_title)
+    title(full_title, fontdict=title_style)
 
 
 
