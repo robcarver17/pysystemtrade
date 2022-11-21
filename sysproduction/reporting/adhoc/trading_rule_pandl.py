@@ -52,8 +52,9 @@ def trading_rule_pandl_adhoc_report(dict_of_rule_groups: dict,
                 dict_of_rule_groups=dict_of_rule_groups,
                 data=data,
                 system = system,
-                                                      start_date=start_date,
-                                                      )
+                start_date=start_date,
+                period_label=period
+            )
 
             report_output.append(figure_object)
 
@@ -67,7 +68,8 @@ def get_figure_for_rule_group(rule_group: str,
       data: dataBlob,
       system: System,
       dict_of_rule_groups: dict,
-      start_date: datetime.datetime):
+      start_date: datetime.datetime,
+      period_label: str):
 
     rules = dict_of_rule_groups[rule_group]
     pandl_by_rule = dict([
@@ -78,9 +80,12 @@ def get_figure_for_rule_group(rule_group: str,
     concat_pd_by_rule.columns = rules
 
     pdf_output = PdfOutputWithTempFileName(data)
-    make_account_curve_plot_from_df(concat_pd_by_rule,
-                                    start_of_title="Total p&l",
-                                    start_date=start_date)
+    make_account_curve_plot_from_df(
+        concat_pd_by_rule,
+        start_of_title=f"Total Trading Rule P&L for period '{period_label}'",
+        start_date=start_date,
+        title_style={'size': 6}
+    )
 
     figure_object = pdf_output.save_chart_close_and_return_figure()
 

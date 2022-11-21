@@ -66,7 +66,7 @@ def _get_previous_date_from_period_with_char_number(period: str,
 
     type_of_offset = period[-1]
     try:
-        number_offset = int(period[:1])
+        number_offset = int(period[:-1])
     except:
         raise Exception("Offset %s not in pattern numberLetter eg 7D for 7 days")
 
