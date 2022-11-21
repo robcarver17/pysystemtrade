@@ -1,6 +1,7 @@
 from copy import copy
 from dataclasses import dataclass
 
+from syscore.exceptions import missingContract
 from syscore.objects import (
     arg_not_supplied,
     missing_order,
@@ -229,8 +230,9 @@ class Algo(object):
     ) -> float:
         contract = contract_order.futures_contract
 
-        min_tick = self.data_broker.get_min_tick_size_for_contract(contract)
-        if min_tick is missing_contract:
+        try:
+            min_tick = self.data_broker.get_min_tick_size_for_contract(contract)
+        except missingContract:
             log = contract_order.log_with_attributes(self.data.log)
             log.warn(
                 "Couldn't find min tick size for %s, not rounding limit price %f"

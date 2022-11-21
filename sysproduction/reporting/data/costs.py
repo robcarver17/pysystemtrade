@@ -4,6 +4,7 @@ import datetime
 import numpy as np
 import pandas as pd
 
+from syscore.exceptions import missingContract
 from syscore.genutils import progressBar
 from syscore.objects import missing_data, missing_contract
 
@@ -138,8 +139,9 @@ def get_tick_value_for_instrument_code(instrument_code: str,
 
     futures_contract= futuresContract(instrument_code, contract_id)
 
-    tick_value = broker_data.broker_futures_contract_data.get_min_tick_size_for_contract(futures_contract)
-    if tick_value is missing_contract:
+    try:
+        tick_value = broker_data.broker_futures_contract_data.get_min_tick_size_for_contract(futures_contract)
+    except missingContract:
         return np.nan
 
     return tick_value

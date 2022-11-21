@@ -90,14 +90,11 @@ class ibFuturesContractData(brokerFuturesContractData):
         log = futures_contract.specific_log(self.log)
         if futures_contract.is_spread_contract():
             log.warn("Can't find expiry for multiple leg contract here")
-            return missing_contract
+            raise missingContract
 
-        try:
-            contract_object_with_ib_data = self.get_contract_object_with_IB_data(
-                futures_contract
-            )
-        except missingContract:
-            return missing_contract
+        contract_object_with_ib_data = self.get_contract_object_with_IB_data(
+            futures_contract
+        )
 
         expiry_date = contract_object_with_ib_data.expiry_date
 
@@ -152,7 +149,7 @@ class ibFuturesContractData(brokerFuturesContractData):
             )
         except missingContract:
             new_log.msg("Can't resolve contract so can't find tick size")
-            return missing_contract
+            raise
 
         min_tick_size = self.ib_client.ib_get_min_tick_size(
             contract_object_with_ib_data
@@ -160,7 +157,7 @@ class ibFuturesContractData(brokerFuturesContractData):
 
         if min_tick_size is missing_contract:
             new_log.msg("No tick size found")
-            return missing_contract
+            raise missingContract
 
         return min_tick_size
 
