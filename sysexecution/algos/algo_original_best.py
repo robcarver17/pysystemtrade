@@ -1,7 +1,9 @@
 """
 This is the original 'best execution' algo I used in my legacy system
 """
-from syscore.objects import missing_order
+from typing import Union
+
+from syscore.objects import missing_order, market_closed
 
 from sysdata.data_blob import dataBlob
 from sysexecution.algos.algo import Algo, limit_price_from_offside_price
@@ -16,8 +18,8 @@ from sysexecution.algos.common_functions import (
 )
 from sysexecution.tick_data import tickerObject, analysisTick
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
-from sysexecution.orders.broker_orders import market_order_type, limit_order_type
-from sysexecution.orders.contract_orders import contractOrder, best_order_type
+from sysexecution.orders.broker_orders import market_order_type, limit_order_type, brokerOrder
+from sysexecution.orders.contract_orders import best_order_type, contractOrder
 
 from syslogdiag.logger import logger
 
@@ -30,6 +32,9 @@ from sysproduction.data.broker import dataBroker
 # delay times
 PASSIVE_TIME_OUT = 300
 TOTAL_TIME_OUT = 600
+
+# Don't trade with an algo in last 30 minutes
+HOURS_BEFORE_MARKET_CLOSE_TO_SWITCH_TO_MARKET = 0.5
 
 # imbalance
 # if more than 5 times on the bid (if we're buying) than the offer, AND less than three times our quantity on the offer,
@@ -98,7 +103,10 @@ class algoOriginalBest(Algo):
         ticker_object = self.data_broker.get_ticker_object_for_order(
             cut_down_contract_order
         )
-        okay_to_do_limit_trade = limit_trade_viable(ticker_object, log=log)
+        okay_to_do_limit_trade = limit_trade_viable(ticker_object = ticker_object,
+                                                    data = data,
+                                                    order=cut_down_contract_order,
+                                                    log=log)
 
         if okay_to_do_limit_trade:
 
@@ -160,7 +168,9 @@ class algoOriginalBest(Algo):
                 else:
                     # passive limit trade
                     reason_to_switch = reason_to_switch_to_aggressive(
-                        broker_order_with_controls_and_order_id, log=log
+                        data = data,
+                        broker_order_with_controls=broker_order_with_controls_and_order_id,
+                        log=log
                     )
                     need_to_switch = required_to_switch_to_aggressive(reason_to_switch)
 
@@ -200,14 +210,23 @@ class algoOriginalBest(Algo):
         return broker_order_with_controls_and_order_id
 
 
-def limit_trade_viable(ticker_object: tickerObject, log) -> bool:
+def limit_trade_viable(data: dataBlob,
+                       order: contractOrder,
+                        ticker_object: tickerObject,
+                       log: logger) -> bool:
+
     # no point doing limit order if we've got imbalanced size issues, as we'd
     # switch to aggressive immediately
     if adverse_size_issue(ticker_object, wait_for_valid_tick=True, log=log):
         log.msg("Limit trade not viable")
         return False
 
-    # might be other reasons...
+    # or if not enough time left
+    if is_market_about_to_close(data,
+            order = order):
+
+        log.msg("Market about to close or stack handler nearly finished - doing market order")
+        return False
 
     return True
 
@@ -250,8 +269,9 @@ def file_log_report_limit_order(
     log.msg(log_report)
 
 
-def reason_to_switch_to_aggressive(
-    broker_order_with_controls: orderWithControls, log: logger
+def reason_to_switch_to_aggressive(data: dataBlob,
+    broker_order_with_controls: orderWithControls,
+                                   log: logger
 ) -> str:
     ticker_object = broker_order_with_controls.ticker
 
@@ -260,6 +280,10 @@ def reason_to_switch_to_aggressive(
     )
     adverse_price = ticker_object.adverse_price_movement_vs_reference()
     adverse_size = adverse_size_issue(ticker_object, wait_for_valid_tick=False, log=log)
+
+    market_about_to_close = is_market_about_to_close(data = data,
+                                                     order=broker_order_with_controls,
+                                                     log=log)
 
     if too_much_time:
         return (
@@ -273,8 +297,26 @@ def reason_to_switch_to_aggressive(
             "Imbalance ratio of %f exceeds threshold"
             % ticker_object.latest_imbalance_ratio()
         )
+    elif market_about_to_close:
+        return ("Market is closing soon or stack handler will end soon")
 
     return no_need_to_switch
+
+def is_market_about_to_close(data: dataBlob,
+            order: Union[brokerOrder, contractOrder, orderWithControls],
+                             log: logger
+                         ) -> bool:
+    data_broker = dataBroker(data)
+    short_of_time = data_broker.less_than_N_hours_of_trading_left_for_contract(
+        order.futures_contract,
+        N_hours=HOURS_BEFORE_MARKET_CLOSE_TO_SWITCH_TO_MARKET,
+    )
+
+    if short_of_time is market_closed:
+        log.warn("Market has closed for active limit order %s!" % str(order))
+        return True
+
+    return short_of_time
 
 
 def required_to_switch_to_aggressive(reason):

@@ -5,7 +5,7 @@ from typing import List
 from syscore.dateutils import following_midnight_of_date, SECONDS_PER_HOUR, \
     following_one_second_before_midnight_of_datetime, preceeding_midnight_of_datetime
 from syscore.genutils import intersection_intervals
-
+from syscore.objects import market_closed
 
 @dataclass()
 class tradingHours():
@@ -24,10 +24,21 @@ class tradingHours():
         else:
             return False
 
+
+    def less_than_N_hours_left(self, N_hours: float = 1.0) -> bool:
+        hours_left = self.hours_left_before_market_close()
+        if hours_left is market_closed:
+            return market_closed
+
+        if hours_left < N_hours:
+            return True
+        else:
+            return False
+
     def hours_left_before_market_close(self) -> float:
         if not self.okay_to_trade_now():
             # market closed
-            return 0
+            return market_closed
 
         datetime_now = datetime.datetime.now()
         time_left = self.closing_time - datetime_now
@@ -36,12 +47,6 @@ class tradingHours():
 
         return hours_left
 
-    def less_than_N_hours_left(self, N_hours: float = 1.0) -> bool:
-        hours_left = self.hours_left_before_market_close()
-        if hours_left < N_hours:
-            return True
-        else:
-            return False
 
     def intersect(self, open_time: 'tradingHours') -> 'tradingHours':
         self_as_list = self.as_list()
@@ -95,7 +100,9 @@ class listOfTradingHours(list):
         for check_period in self:
             if check_period.okay_to_trade_now():
                 # market is open, but for how long?
-                if check_period.less_than_N_hours_left(N_hours=N_hours):
+                less_than_N_hours_left = check_period.less_than_N_hours_left(N_hours=N_hours)
+
+                if less_than_N_hours_left:
                     return True
                 else:
                     return False
@@ -103,8 +110,7 @@ class listOfTradingHours(list):
                 # move on to next period
                 continue
 
-        # market closed, we treat that as 'less than one hour left'
-        return True
+        return market_closed
 
 
 def split_trading_hours_across_two_weekdays(opening_times: tradingHours) -> listOfTradingHours:

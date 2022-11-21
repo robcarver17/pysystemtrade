@@ -85,6 +85,10 @@ class orderWithControls(object):
         return self._order
 
     @property
+    def futures_contract(self):
+        return self.order.futures_contract
+
+    @property
     def datetime_order_submitted(self):
         return self._date_submitted
 
