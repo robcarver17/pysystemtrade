@@ -70,15 +70,15 @@ class ibContractsClient(ibClient):
             specific_log.warn("Can only find expiry for single leg contract!")
             raise missingContract
 
-        ibcontract = self.ib_futures_contract(
-            futures_contract_with_ib_data,
-            allow_expired=allow_expired,
-            always_return_single_leg=True,
-        )
-
-        if ibcontract is missing_contract:
+        try:
+            ibcontract = self.ib_futures_contract(
+                futures_contract_with_ib_data,
+                allow_expired=allow_expired,
+                always_return_single_leg=True,
+            )
+        except missingContract:
             specific_log.warn("Contract is missing can't get expiry")
-            raise missingContract
+            raise
 
         expiry_date = ibcontract.lastTradeDateOrContractMonth
 
@@ -235,12 +235,13 @@ class ibContractsClient(ibClient):
         self, contract_object_with_ib_data: futuresContract
     ) -> float:
         specific_log = contract_object_with_ib_data.specific_log(self.log)
-        ib_contract = self.ib_futures_contract(
-            contract_object_with_ib_data, always_return_single_leg=True
-        )
-        if ib_contract is missing_contract:
+        try:
+            ib_contract = self.ib_futures_contract(
+                contract_object_with_ib_data, always_return_single_leg=True
+            )
+        except missingContract:
             specific_log.warn("Can't get tick size as contract missing")
-            raise missingContract
+            raise
 
         ib_contract_details = self.ib.reqContractDetails(ib_contract)[0]
 
@@ -258,12 +259,13 @@ class ibContractsClient(ibClient):
     def ib_get_price_magnifier(self, contract_object_with_ib_data: futuresContract
     ) -> float:
         specific_log = contract_object_with_ib_data.specific_log(self.log)
-        ib_contract = self.ib_futures_contract(
-            contract_object_with_ib_data, always_return_single_leg=True
-        )
-        if ib_contract is missing_contract:
+        try:
+            ib_contract = self.ib_futures_contract(
+                contract_object_with_ib_data, always_return_single_leg=True
+            )
+        except missingContract:
             specific_log.warn("Can't get price magnifier as contract missing")
-            raise missingContract
+            raise
 
         ib_contract_details = self.ib.reqContractDetails(ib_contract)[0]
 
@@ -284,12 +286,13 @@ class ibContractsClient(ibClient):
         self, contract_object_with_ib_data: futuresContract
     ):
         specific_log = contract_object_with_ib_data.specific_log(self.log)
-        ib_contract = self.ib_futures_contract(
-            contract_object_with_ib_data, always_return_single_leg=True
-        )
-        if ib_contract is missing_contract:
+        try:
+            ib_contract = self.ib_futures_contract(
+                contract_object_with_ib_data, always_return_single_leg=True
+            )
+        except missingContract:
             specific_log.warn("Can't get trading hours as contract is missing")
-            raise missingContract
+            raise
 
         # returns a list but should only have one element
         ib_contract_details_list = self.ib.reqContractDetails(ib_contract)
@@ -486,7 +489,7 @@ class ibContractsClient(ibClient):
                 "%s could not resolve contracts: %s"
                 % (str(futures_instrument_with_ib_data), exception.args[0])
             )
-            return missing_contract
+            raise missingContract
 
         return resolved_contract
 
