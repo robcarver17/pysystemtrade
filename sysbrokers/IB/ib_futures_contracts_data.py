@@ -171,13 +171,13 @@ class ibFuturesContractData(brokerFuturesContractData):
             new_log.msg("Can't resolve contract so can't find tick size")
             raise
 
-        price_magnifier = self.ib_client.ib_get_price_magnifier(
-            contract_object_with_ib_data
-        )
-
-        if price_magnifier is missing_contract:
+        try:
+            price_magnifier = self.ib_client.ib_get_price_magnifier(
+                contract_object_with_ib_data
+            )
+        except missingContract:
             new_log.msg("No contract found")
-            raise missingContract
+            raise
 
         return price_magnifier
 
