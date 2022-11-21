@@ -153,8 +153,6 @@ class ibContractsClient(ibClient):
         except missingData:
             specific_weekly_hours_for_contract = None
 
-        specific_log = contract_object_with_ib_data.log(self.log)
-
         if specific_weekly_hours_for_contract is None and weekly_hours_for_timezone is None:
             raise missingData
 

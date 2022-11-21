@@ -21,6 +21,8 @@ locked_order = named_object("locked order")
 duplicate_order = named_object("duplicate order")
 zero_order = named_object("zero order")
 
+market_closed = named_object("market closed")
+
 fill_exceeds_trade = named_object("fill too big for trade")
 
 order_is_in_status_finished = named_object("order status is modification finished")

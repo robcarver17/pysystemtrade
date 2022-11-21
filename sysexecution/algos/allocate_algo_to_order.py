@@ -23,8 +23,6 @@ DEFAULT_ALGO = MARKET_ALGO = "sysexecution.algos.algo_market.algoMarket"
 ORIGINAL_BEST = "sysexecution.algos.algo_original_best.algoOriginalBest"
 LIMIT_ALGO = "sysexecution.algos.algo_limit_orders.algoLimit"
 
-# Don't trade with an algo in last 30 minutes
-HOURS_BEFORE_MARKET_CLOSE_TO_SWITCH_TO_MARKET = 0.5
 
 list_of_algos = [MARKET_ALGO, ORIGINAL_BEST]
 
@@ -110,18 +108,9 @@ def allocate_for_best_execution_no_limit(
 ) -> contractOrder:
     # in the future could be randomized...
     log = contract_order.log_with_attributes(data.log)
-    data_broker = dataBroker(data)
-    short_of_time = data_broker.less_than_N_hours_of_trading_left_for_contract(
-        contract_order.futures_contract,
-        N_hours=HOURS_BEFORE_MARKET_CLOSE_TO_SWITCH_TO_MARKET,
-    )
 
-    if short_of_time:
-        log.warn("Short of time, so allocating to algo_market")
-        contract_order.algo_to_use = MARKET_ALGO
-    else:
-        log.msg("'Best' order so allocating to original_best")
-        contract_order.algo_to_use = ORIGINAL_BEST
+    log.msg("'Best' order so allocating to original_best")
+    contract_order.algo_to_use = ORIGINAL_BEST
 
     return contract_order
 

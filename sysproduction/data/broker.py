@@ -15,7 +15,8 @@ from syscore.objects import (
     arg_not_supplied,
     missing_order,
     missing_contract,
-    missing_data
+    missing_data,
+    market_closed
 )
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
@@ -180,11 +181,14 @@ class dataBroker(productionDataLayerGeneric):
             ## irespective of instrument traded
             return True
 
-        result = self.broker_futures_contract_data.less_than_N_hours_of_trading_left_for_contract(
+        less_than_N_hours_of_trading_left = self.broker_futures_contract_data.less_than_N_hours_of_trading_left_for_contract(
             contract, N_hours=N_hours
         )
 
-        return result
+        if less_than_N_hours_of_trading_left is market_closed:
+            return market_closed
+
+        return less_than_N_hours_of_trading_left
 
     def is_contract_okay_to_trade(self, contract: futuresContract) -> bool:
         check_open = self.broker_futures_contract_data.is_contract_okay_to_trade(

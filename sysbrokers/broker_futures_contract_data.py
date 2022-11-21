@@ -1,5 +1,6 @@
 from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
 from syscore.exceptions import missingContract
+from syscore.objects import market_closed
 from sysdata.futures.contracts import futuresContractData
 
 from sysobjects.contract_dates_and_expiries import expiryDate
@@ -41,8 +42,14 @@ class brokerFuturesContractData(futuresContractData):
             trading_hours = self.get_trading_hours_for_contract(contract_object)
         except missingContract:
             return False
-        else:
-            return trading_hours.less_than_N_hours_left(N_hours=N_hours)
+
+        less_than_N_hours_of_trading_left_for_contract = \
+            trading_hours.less_than_N_hours_left(N_hours=N_hours)
+
+        if less_than_N_hours_of_trading_left_for_contract is market_closed:
+            return market_closed
+
+        return less_than_N_hours_of_trading_left_for_contract
 
     def get_trading_hours_for_contract(self, futures_contract: futuresContract) -> \
             listOfTradingHours:
