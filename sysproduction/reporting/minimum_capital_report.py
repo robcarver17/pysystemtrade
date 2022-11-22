@@ -7,8 +7,8 @@ from sysproduction.reporting.api import reportingApi
 HEADER_TEXT = body_text("The following report calculates the minimum capital for a single contract as follows:\n" +
                         'A- point_size_base: Futures multiplier in base (account currency) = multiplier * fx rate \n' +
                         'B- price: Price\n' +
-                        'C- annual_perc_stdev: Annual standard deviation in percentage terms (100 = 100%%)\n' +
-                        'D- risk_target: Risk target in percentage terms (20 = 20%%)\n' +
+                        'C- annual_perc_stdev: Annual standard deviation in percentage terms (100 = 100%)\n' +
+                        'D- risk_target: Risk target in percentage terms (20 = 20%)\n' +
                         'E- minimum_capital_one_contract:  Minimum capital to hold a single contract on a standalone basis = A * B * C / D \n' +
                         'F- minimum_position_contracts: Minimum position we want to hold for an average sized forecast\n' +
                         'G- instrument_weight: Proportion of capital allocated to instrument \n' +
