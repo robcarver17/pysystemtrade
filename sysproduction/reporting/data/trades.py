@@ -32,11 +32,15 @@ def create_raw_slippage_df(broker_orders):
     raw_slippage_data_as_list = [
         raw_slippage_row(broker_orders.iloc[irow]) for irow in range(len(broker_orders))
     ]
-    raw_slippage_df = pd.concat(raw_slippage_data_as_list, axis=1)
-    raw_slippage_df = raw_slippage_df.transpose()
-    raw_slippage_df.index = broker_orders.index
+    if len(raw_slippage_data_as_list) > 0:
+        raw_slippage_df = pd.concat(raw_slippage_data_as_list, axis=1)
+        raw_slippage_df = raw_slippage_df.transpose()
+        raw_slippage_df.index = broker_orders.index
+        result = raw_slippage_df
+    else:
+        result = pd.DataFrame(columns=NEW_ORDER_ROW_COLS + NEW_ORDER_ROW_INDEX_COLS)
 
-    return raw_slippage_df
+    return result
 
 
 def get_tuple_object_from_order_id(data, order_id):
@@ -86,6 +90,26 @@ tradesData = namedtuple(
     ],
 )
 
+NEW_ORDER_ROW_COLS = [
+    "instrument_code",
+    "strategy_name",
+    "trade",
+    "parent_reference_price",
+    "parent_limit_price",
+    "mid_price",
+    "side_price",
+    "offside_price",
+    "limit_price",
+    "filled_price",
+]
+NEW_ORDER_ROW_INDEX_COLS = [
+    "delay",
+    "bid_ask",
+    "execution",
+    "versus_limit",
+    "versus_parent_limit",
+    "total_trading",
+]
 
 def raw_slippage_row(order_row):
     (
@@ -97,20 +121,7 @@ def raw_slippage_row(order_row):
         total_trading,
     ) = price_calculations_for_order_row(order_row)
     new_order_row = copy(order_row)
-    new_order_row = new_order_row[
-        [
-            "instrument_code",
-            "strategy_name",
-            "trade",
-            "parent_reference_price",
-            "parent_limit_price",
-            "mid_price",
-            "side_price",
-            "offside_price",
-            "limit_price",
-            "filled_price",
-        ]
-    ]
+    new_order_row = new_order_row[NEW_ORDER_ROW_COLS]
     new_order_row = new_order_row.append(
         pd.Series(
             [
@@ -121,14 +132,7 @@ def raw_slippage_row(order_row):
                 versus_parent_limit,
                 total_trading,
             ],
-            index=[
-                "delay",
-                "bid_ask",
-                "execution",
-                "versus_limit",
-                "versus_parent_limit",
-                "total_trading",
-            ],
+            index=NEW_ORDER_ROW_INDEX_COLS,
         )
     )
 

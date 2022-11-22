@@ -881,7 +881,7 @@ class reportingApi(object):
         )
 
         combined_df_costs_as_formatted_table = table(
-            "Check of slippage", combined_df_costs
+            "Check of slippage, in price units", combined_df_costs
         )
 
         return combined_df_costs_as_formatted_table
