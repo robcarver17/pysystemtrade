@@ -277,7 +277,7 @@ You need to:
     - [Initialise the spot FX data in MongoDB from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
     - Update the FX price data in MongoDB using interactive brokers: command line:`. /home/your_user_name/pysystemtrade/sysproduction/linux/scripts/update_fx_prices`
 - Instrument configuration:
-    - Set up futures instrument configuration using this script [instruments_csv_mongo.py](/sysinit/futures/instruments_csv_mongo.py).
+    - Set up futures instrument configuration using this script [repocsv_instrument_config.py](/sysinit/futures/repocsv_instrument_config.py).
 - Futures contract prices:
     - [You must have a source of individual futures prices, then backfill them into the Arctic database](/docs/data.md#get_historical_data).
 - Roll calendars:
@@ -1497,7 +1497,22 @@ This will also check for 'spikes', unusually large movements in price either whe
 
 The threshold for spikes is set in the default.yaml file, or overidden in the private config .yaml file, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=8`, then a price change larger than 4 units will trigger a spike.
 
+In order for this step to work, you'll need an active IB market data subscription for the instruments you wish to trade. I detailed 
+my own market data subscriptions on [my blog](https://qoppac.blogspot.com/2021/05/adding-new-instruments-or-how-i-learned.html), 
+reproduced here:
 
+|            Name             | Cost per month |
+|:---------------------------:|:--------------:|
+|          Cboe One           |    USD 1.00    |
+|        CFE Enhanced         |    USD 4.50    | 
+|         Eurex Core          |    EUR 8.75    | 
+|     Eurex Retail Europe     |    EUR 2.00    | 
+|    Euronext Data Bundle     |    EUR 3.00    | 
+|    Korea Stock Exchange     |    USD 2.00    | 
+|     Singapore Exchange      |    SGD 2.00    |
+|       Osaka Exchange        |    JPY 200     |
+
+More details and latest prices on the [Interactive Brokers site](https://www.interactivebrokers.com/en/index.php?f=14193)
 
 ### Update multiple and adjusted prices (Daily)
 

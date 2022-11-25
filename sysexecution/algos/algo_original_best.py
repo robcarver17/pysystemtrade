@@ -223,7 +223,7 @@ def limit_trade_viable(data: dataBlob,
 
     # or if not enough time left
     if is_market_about_to_close(data,
-            order = order):
+            order = order, log=log):
 
         log.msg("Market about to close or stack handler nearly finished - doing market order")
         return False

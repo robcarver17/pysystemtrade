@@ -63,7 +63,7 @@ account_curve_report_config
 
 
 def interactive_diagnostics():
-    print("\n\n INTERACTIVE DIAGONSTICS\n\n")
+    print("\n\n INTERACTIVE DIAGNOSTICS\n\n")
     set_pd_print_options()
     with dataBlob(log_name="Interactive-Diagnostics") as data:
         menu = run_interactive_menu(
@@ -72,17 +72,17 @@ def interactive_diagnostics():
             exit_option=-1,
             another_menu=-2,
         )
-    still_running = True
-    while still_running:
-        option_chosen = menu.propose_options_and_get_input()
-        if option_chosen == -1:
-            print("FINISHED")
-            return None
-        if option_chosen == -2:
-            continue
+        still_running = True
+        while still_running:
+            option_chosen = menu.propose_options_and_get_input()
+            if option_chosen == -1:
+                print("FINISHED")
+                return None
+            if option_chosen == -2:
+                continue
 
-        method_chosen = dict_of_functions[option_chosen]
-        method_chosen(data)
+            method_chosen = dict_of_functions[option_chosen]
+            method_chosen(data)
 
 
 top_level_menu_of_options = {
