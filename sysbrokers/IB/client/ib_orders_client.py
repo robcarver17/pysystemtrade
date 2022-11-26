@@ -4,6 +4,8 @@ from ib_insync.order import (
     Trade as ibTrade,
     Order as ibOrder,
 )
+
+from syscore.exceptions import missingContract
 from syscore.objects import arg_not_supplied, missing_order, missing_contract
 from sysbrokers.IB.client.ib_contracts_client import ibContractsClient
 from sysbrokers.IB.ib_translate_broker_order_objects import (
@@ -95,12 +97,13 @@ class ibOrdersClient(ibContractsClient):
         :return: brokers trade object
 
         """
-        ibcontract_with_legs = self.ib_futures_contract_with_legs(
-            futures_contract_with_ib_data=futures_contract_with_ib_data,
-            trade_list_for_multiple_legs=trade_list,
-        )
 
-        if ibcontract_with_legs is missing_contract:
+        try:
+            ibcontract_with_legs = self.ib_futures_contract_with_legs(
+                futures_contract_with_ib_data=futures_contract_with_ib_data,
+                trade_list_for_multiple_legs=trade_list,
+            )
+        except missingContract:
             return missing_order
 
         ibcontract = ibcontract_with_legs.ibcontract
