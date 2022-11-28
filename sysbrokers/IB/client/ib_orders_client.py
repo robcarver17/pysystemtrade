@@ -6,7 +6,7 @@ from ib_insync.order import (
 )
 
 from syscore.exceptions import missingContract
-from syscore.objects import arg_not_supplied, missing_order, missing_contract
+from syscore.objects import arg_not_supplied, missing_order
 from sysbrokers.IB.client.ib_contracts_client import ibContractsClient
 from sysbrokers.IB.ib_translate_broker_order_objects import (
     tradeWithContract,
