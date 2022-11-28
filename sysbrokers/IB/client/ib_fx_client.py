@@ -8,6 +8,7 @@ from sysbrokers.IB.ib_positions import (
     resolveBS,
 )
 from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract
+from syscore.exceptions import missingContract
 
 from syscore.objects import arg_not_supplied, missing_contract, missing_data
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
@@ -40,8 +41,9 @@ class ibFxClient(ibPriceClient):
         :return: broker order object
         """
 
-        ibcontract = self.ib_spotfx_contract(ccy1, ccy2=ccy2)
-        if ibcontract is missing_contract:
+        try:
+            ibcontract = self.ib_spotfx_contract(ccy1, ccy2=ccy2)
+        except missingContract:
             return missing_contract
 
         ib_order = self._create_fx_market_order_for_submission(
@@ -80,9 +82,9 @@ class ibFxClient(ibPriceClient):
         ccy_code = ccy1 + ccy2
         log = self.log.setup(currency_code=ccy_code)
 
-        ibcontract = self.ib_spotfx_contract(ccy1, ccy2=ccy2)
-
-        if ibcontract is missing_contract:
+        try:
+            ibcontract = self.ib_spotfx_contract(ccy1, ccy2=ccy2)
+        except missingContract:
             log.warn("Can't find IB contract for %s%s" % (ccy1, ccy2))
             return missing_data
 
