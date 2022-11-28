@@ -75,8 +75,11 @@ def relative_volume_in_forward_contract_versus_price(
 ) -> float:
 
     volumes = relative_volume_in_forward_contract_and_price(data, instrument_code)
+    required_volume = volumes[1]
+    if np.isnan(required_volume):
+        required_volume = 0
 
-    return volumes[1]
+    return required_volume
 
 
 def relative_volume_in_forward_contract_and_price(
@@ -87,6 +90,7 @@ def relative_volume_in_forward_contract_and_price(
     forward_contract_id = c_data.get_forward_contract_id(instrument_code)
     current_contract = c_data.get_priced_contract_id(instrument_code)
     v_data = diagVolumes(data)
+    ## normalises so first contract as volume of 1
     volumes = v_data.get_normalised_smoothed_volumes_of_contract_list(
         instrument_code, [current_contract, forward_contract_id]
     )
@@ -100,9 +104,12 @@ def volume_contracts_in_forward_contract(
     c_data = dataContracts(data)
     forward_contract_id = c_data.get_forward_contract_id(instrument_code)
     v_data = diagVolumes(data)
-    volumes = v_data.get_smoothed_volume_for_contract(instrument_code, forward_contract_id)
+    volume = v_data.get_smoothed_volume_for_contract(instrument_code, forward_contract_id)
 
-    return volumes
+    if np.isnan(volume):
+        volume = 0
+
+    return volume
 
 
 
