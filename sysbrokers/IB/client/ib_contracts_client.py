@@ -3,7 +3,6 @@ from ib_insync import Contract
 
 from syscore.cache import Cache
 from syscore.exceptions import missingData, missingContract
-from syscore.objects import missing_contract
 from sysbrokers.IB.client.ib_client import ibClient
 from sysbrokers.IB.ib_instruments import (
     ib_futures_instrument_just_symbol,
