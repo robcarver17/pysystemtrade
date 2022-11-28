@@ -552,7 +552,7 @@ You can also run the script with `ADD_EXTRA_DATA = False, ADD_TO_CSV = True`. Th
 If you want your data to update:
 
 - [Ensure you are sampling all the contracts you want to sample](/docs/production.md#update-sampled-contracts-daily)
-- [Update the individual contract data]/docs/production.md#update-futures-contract-historical-price-data-daily)
+- [Update the individual contract data](/docs/production.md#update-futures-contract-historical-price-data-daily)
 - [Update multiple and adjusted prices](/docs/production.md#update-multiple-and-adjusted-prices-daily)
 
 These will be run daily if you're using the pysystemtrade production environment, and have set your [scheduler](/docs/production.md#scheduling) up to do `run_daily_price_updates`. But it's worth running them manually just the once (in the above order), especially after you've added data for a new market.
