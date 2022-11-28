@@ -75,10 +75,10 @@ def nice_format_min_capital_table(min_capital_pd: pd.DataFrame) -> pd.DataFrame:
     return min_capital_pd
 
 def nice_format_roll_table(roll_table: pd.DataFrame) -> pd.DataFrame:
-    roll_table.volume_priced = roll_table.volume_priced.astype(float)
-    roll_table.volume_priced = roll_table.volume_priced.round(3)
-    roll_table.volume_fwd = roll_table.volume_fwd.astype(float)
-    roll_table.volume_fwd = roll_table.volume_fwd.round(3)
+    roll_table.relative_volume_fwd = roll_table.relative_volume_fwd.astype(float)
+    roll_table.relative_volume_fwd = roll_table.relative_volume_fwd.round(3)
+    roll_table.contract_volume_fwd = roll_table.contract_volume_fwd.astype(int)
+
     return roll_table
 
 def nice_format_slippage_table(slippage_table: pd.DataFrame) -> pd.DataFrame:

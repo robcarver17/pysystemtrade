@@ -197,7 +197,7 @@ def from_key_to_freq_and_contract(keyname):
         contract_str = first_split[1]
 
     contract_str_split = contract_str.split(".")
-    futures_contract = futuresContract.from_two_strings(contract_str_split[0],
+    futures_contract = futuresContract(contract_str_split[0],
                                        contract_str_split[1])
 
     return frequency, futures_contract
