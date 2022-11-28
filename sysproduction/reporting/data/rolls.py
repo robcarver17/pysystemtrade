@@ -35,9 +35,10 @@ def get_roll_data_for_instrument(instrument_code, data):
     contract_priced = c_data.get_priced_contract_id(instrument_code)
     contract_fwd = c_data.get_forward_contract_id(instrument_code)
 
-    volumes = relative_volume_in_forward_contract_and_price(data, instrument_code)
-    volume_priced = volumes[0]
-    volume_fwd = volumes[1]
+    relative_volumes = relative_volume_in_forward_contract_and_price(data, instrument_code)
+    relative_volume_fwd = relative_volumes[1]
+
+    contract_volume_fwd = volume_contracts_in_forward_contract(data, instrument_code)
 
     # length to expiries / length to suggested roll
 
@@ -62,8 +63,8 @@ def get_roll_data_for_instrument(instrument_code, data):
         contract_priced=contract_priced,
         contract_fwd=contract_fwd,
         position_priced=position_priced,
-        volume_priced=volume_priced,
-        volume_fwd=volume_fwd,
+        relative_volume_fwd = relative_volume_fwd,
+        contract_volume_fwd = contract_volume_fwd
     )
 
     return results_dict_code
@@ -91,6 +92,18 @@ def relative_volume_in_forward_contract_and_price(
     )
 
     return volumes
+
+def volume_contracts_in_forward_contract(
+    data: dataBlob, instrument_code: str
+) -> float:
+
+    c_data = dataContracts(data)
+    forward_contract_id = c_data.get_forward_contract_id(instrument_code)
+    v_data = diagVolumes(data)
+    volumes = v_data.get_smoothed_volume_for_contract(instrument_code, forward_contract_id)
+
+    return volumes
+
 
 
 class rollingAdjustedAndMultiplePrices(object):
