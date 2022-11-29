@@ -6,7 +6,6 @@ import pandas as pd
 
 from syscore.exceptions import missingContract
 from syscore.genutils import progressBar
-from syscore.objects import missing_data, missing_contract
 
 from sysdata.data_blob import dataBlob
 

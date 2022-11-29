@@ -1,5 +1,5 @@
 from syscore.exceptions import missingContract
-from syscore.objects import missing_contract, success
+from syscore.objects import success
 
 from sysobjects.contract_dates_and_expiries import contractDate, expiryDate
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
