@@ -86,7 +86,7 @@ class ibPriceClient(ibContractsClient):
                 "Can't find matching IB contract for %s"
                 % str(contract_object_with_ib_data)
             )
-            return missing_contract
+            raise
 
         self.ib.reqMktData(ibcontract, "", False, False)
         ticker = self.ib.ticker(ibcontract)
