@@ -380,9 +380,6 @@ def label_up_contracts_with_date_list(
 
     contract_names = []
     for contract in contract_date_list:
-        if contract is missing_contract:
-            contract_names.append("")
-            continue
 
         if contract == price_contract_date:
             suffix = PRICE_SUFFIX
