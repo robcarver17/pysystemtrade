@@ -44,7 +44,7 @@ from sysobjects.production.roll_state import (
 )
 from sysobjects.contracts import futuresContract
 
-from sysproduction.data.contracts import missing_contract
+from syscore.objects import missing_contract
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
 
