@@ -44,7 +44,6 @@ from sysobjects.production.roll_state import (
 )
 from sysobjects.contracts import futuresContract
 
-from sysproduction.data.contracts import missing_contract
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
 
@@ -184,8 +183,6 @@ class diagPositions(productionDataLayerGeneric):
 
     def get_position_for_contract(self, contract: futuresContract) -> float:
 
-        if contract is missing_contract:
-            return 0.0
         position = (
             self.db_contract_position_data.get_current_position_for_contract_object(
                 contract
