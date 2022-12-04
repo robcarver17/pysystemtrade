@@ -542,8 +542,7 @@ class reportingApi(object):
     def _roll_data_as_pd(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):
         roll_data_dict = self.roll_data_dict_for_instrument_code(instrument_code)
 
-        result_pd = pd.DataFrame(roll_data_dict)
-        result_pd = result_pd.transpose()
+        result_pd = pd.DataFrame.from_dict(roll_data_dict, orient='index')
 
         result_pd = result_pd.sort_values("roll_expiry")
 

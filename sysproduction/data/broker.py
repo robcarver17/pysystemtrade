@@ -15,7 +15,6 @@ from syscore.exceptions import missingContract
 from syscore.objects import (
     arg_not_supplied,
     missing_order,
-    missing_contract,
     missing_data,
     market_closed
 )

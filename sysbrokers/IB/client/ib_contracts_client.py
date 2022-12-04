@@ -3,7 +3,6 @@ from ib_insync import Contract
 
 from syscore.cache import Cache
 from syscore.exceptions import missingData, missingContract
-from syscore.objects import missing_contract
 from sysbrokers.IB.client.ib_client import ibClient
 from sysbrokers.IB.ib_instruments import (
     ib_futures_instrument_just_symbol,
@@ -513,11 +512,11 @@ class ibContractsClient(ibClient):
                 "Got multiple contracts for %s when only expected a single contract: Check contract date"
                 % str(ibcontract_pattern)
             )
-            return missing_contract
+            raise missingContract
 
         if len(contract_chain) == 0:
             log.warn("Failed to resolve contract %s" % str(ibcontract_pattern))
-            return missing_contract
+            raise missingContract
 
         resolved_contract = contract_chain[0]
 
@@ -529,7 +528,7 @@ class ibContractsClient(ibClient):
         try:
             contract_idx = conId_list.index(conId)
         except ValueError:
-            return missing_contract
+            raise missingContract
 
         required_contract = contract_chain[contract_idx]
 

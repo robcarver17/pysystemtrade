@@ -3,7 +3,7 @@ import datetime
 
 from dataclasses import dataclass
 
-from syscore.objects import arg_not_supplied, missing_contract
+from syscore.objects import arg_not_supplied
 
 from syslogdiag.logger import logger
 
@@ -235,11 +235,7 @@ class futuresContract(object):
         ]
 
         for contract_index, expiry_date in enumerate(new_expiries):
-            if expiry_date is missing_contract:
-                ## whole thing is buggered
-                return missing_contract
-            else:
-                self.update_nth_expiry_date(contract_index, expiry_date)
+            self.update_nth_expiry_date(contract_index, expiry_date)
 
         return self
 

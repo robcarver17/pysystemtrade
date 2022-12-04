@@ -7,7 +7,6 @@ from syscore.objects import (
     no_order_id,
     no_children,
     no_parent,
-    missing_contract,
     rolling_cant_trade,
     ROLL_PSEUDO_STRATEGY,
     missing_order,

@@ -11,7 +11,7 @@ from sysbrokers.IB.client.ib_contracts_client import ibContractsClient
 from sysbrokers.IB.ib_positions import resolveBS_for_list
 from syscore.exceptions import missingContract
 
-from syscore.objects import missing_contract, missing_data
+from syscore.objects import missing_data
 from syscore.dateutils import (
     adjust_timestamp_to_include_notional_close_and_time_offset,
     strip_timezone_fromdatetime,
@@ -86,7 +86,7 @@ class ibPriceClient(ibContractsClient):
                 "Can't find matching IB contract for %s"
                 % str(contract_object_with_ib_data)
             )
-            return missing_contract
+            raise
 
         self.ib.reqMktData(ibcontract, "", False, False)
         ticker = self.ib.ticker(ibcontract)
@@ -115,7 +115,7 @@ class ibPriceClient(ibContractsClient):
                 "Can't find matching IB contract for %s"
                 % str(contract_object_with_ib_data)
             )
-            return missing_contract
+            raise
 
         self.ib.cancelMktData(ibcontract)
 
