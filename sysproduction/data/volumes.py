@@ -63,8 +63,6 @@ class diagVolumes(productionDataLayerGeneric):
         self, instrument_code: str, contract_date_str: str
     ) -> float:
 
-        if contract_date_str is missing_contract:
-            return 0.0
         contract = futuresContract(instrument_code, contract_date_str)
         volumes = self.get_daily_volumes_for_contract(contract)
         final_volume = get_smoothed_volume_ignoring_old_data(volumes)
