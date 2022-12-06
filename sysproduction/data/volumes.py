@@ -1,6 +1,6 @@
 import datetime as datetime
 import pandas as pd
-from syscore.objects import missing_contract, arg_not_supplied, missing_data
+from syscore.objects import missing_data
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
