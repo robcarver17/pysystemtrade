@@ -3,7 +3,7 @@ This is the original 'best execution' algo I used in my legacy system
 """
 from typing import Union
 
-from syscore.objects import missing_order, market_closed
+from syscore.objects import missing_order, market_closed, missing_data
 
 from sysdata.data_blob import dataBlob
 from sysexecution.algos.algo import Algo, limit_price_from_offside_price
@@ -336,6 +336,12 @@ def adverse_size_issue(
         )
     else:
         current_tick_analysis = ticker_object.current_tick_analysis
+
+    ## FIXME: REFACTOR SO DEALS WITH EXCEPTIONS
+    if current_tick_analysis is missing_data:
+        ## serious problem with data, return True so switch to market order
+        ## most likely case is order will be cancelled which is fine
+        return True
 
     latest_imbalance_ratio_exceeded = _is_imbalance_ratio_exceeded(
         current_tick_analysis, log=log
