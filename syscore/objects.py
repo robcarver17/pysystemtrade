@@ -13,7 +13,6 @@ class named_object:
         return self._name
 
 
-missing_contract = named_object("missing contract")
 missing_instrument = named_object("missing instrument")
 
 missing_order = named_object("missing order")
