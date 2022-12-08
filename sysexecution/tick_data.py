@@ -1,10 +1,10 @@
 from copy import copy
 import numpy as np
-import datetime
 import pandas as pd
 from collections import namedtuple
 
 from syscore.genutils import quickTimer
+from syscore.exceptions import missingData
 from syscore.objects import arg_not_supplied, missing_data
 
 TICK_REQUIRED_COLUMNS = ["priceAsk", "priceBid", "sizeAsk", "sizeBid"]

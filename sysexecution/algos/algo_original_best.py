@@ -3,7 +3,7 @@ This is the original 'best execution' algo I used in my legacy system
 """
 from typing import Union
 
-from syscore.objects import missing_order, market_closed
+from syscore.objects import missing_order, market_closed, missing_data
 
 from sysdata.data_blob import dataBlob
 from sysexecution.algos.algo import Algo, limit_price_from_offside_price
@@ -107,6 +107,11 @@ class algoOriginalBest(Algo):
                                                     data = data,
                                                     order=cut_down_contract_order,
                                                     log=log)
+
+        ## REFACTOR WITH EXCEPTIONS
+        if okay_to_do_limit_trade is missing_data:
+            ## Safer not to trade at all
+            return missing_order
 
         if okay_to_do_limit_trade:
 
@@ -217,7 +222,12 @@ def limit_trade_viable(data: dataBlob,
 
     # no point doing limit order if we've got imbalanced size issues, as we'd
     # switch to aggressive immediately
-    if adverse_size_issue(ticker_object, wait_for_valid_tick=True, log=log):
+    raise_adverse_size_issue = adverse_size_issue(ticker_object, wait_for_valid_tick=True, log=log)
+    ## REFACTOR WITH EXCEPTIONS
+    if raise_adverse_size_issue is missing_data:
+        return missing_data
+
+    if raise_adverse_size_issue:
         log.msg("Limit trade not viable")
         return False
 
@@ -279,7 +289,12 @@ def reason_to_switch_to_aggressive(data: dataBlob,
         broker_order_with_controls.seconds_since_submission() > PASSIVE_TIME_OUT
     )
     adverse_price = ticker_object.adverse_price_movement_vs_reference()
+
     adverse_size = adverse_size_issue(ticker_object, wait_for_valid_tick=False, log=log)
+    # REFACTOR FOR EXCEPTIONS
+    if adverse_size is missing_data:
+        adverse_size = True
+
 
     market_about_to_close = is_market_about_to_close(data = data,
                                                      order=broker_order_with_controls,
@@ -336,6 +351,12 @@ def adverse_size_issue(
         )
     else:
         current_tick_analysis = ticker_object.current_tick_analysis
+
+    ## FIXME: REFACTOR SO DEALS WITH EXCEPTIONS
+    if current_tick_analysis is missing_data:
+        ## serious problem with data, return True so switch to market order
+        ## most likely case is order will be cancelled which is fine
+        return missing_data
 
     latest_imbalance_ratio_exceeded = _is_imbalance_ratio_exceeded(
         current_tick_analysis, log=log
