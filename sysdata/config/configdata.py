@@ -99,10 +99,10 @@ class Config(object):
         return result
 
     def get_element_or_missing_data(self, element_name):
-        return self.get_element(element_name, missing_data)
+        return self.get_element(element_name, default=missing_data)
 
     def get_element_or_arg_not_supplied(self, element_name):
-        return self.get_element(element_name, arg_not_supplied)
+        return self.get_element(element_name, default=arg_not_supplied)
 
     def __repr__(self):
         elements = self.elements
