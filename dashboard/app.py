@@ -306,9 +306,7 @@ def strategy():
 
 def visible_on_lan() -> bool:
     config = get_control_config()
-    visible = config.get_element_or_missing_data("dashboard_visible_on_lan")
-    if visible is missing_data:
-        return False
+    visible = config.get_element_or_default("dashboard_visible_on_lan", default="False")
 
     visible = str2Bool(visible)
 
