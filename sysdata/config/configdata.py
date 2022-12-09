@@ -97,10 +97,7 @@ class Config(object):
 
     def get_element(self, element_name, default=None):
         if default is None:
-            try:
-                result = getattr(self, element_name)
-            except AttributeError as error:
-                raise missingData from error
+            result = getattr(self, element_name)
         else:
             result = getattr(self, element_name, default)
         return result
