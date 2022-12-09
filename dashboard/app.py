@@ -1,7 +1,6 @@
 from flask import Flask, g, render_template, request
 from werkzeug.local import LocalProxy
 
-from syscore.objects import missing_data
 from syscore.genutils import str2Bool
 
 from syscontrol.list_running_pids import describe_trading_server_login_data
