@@ -95,18 +95,22 @@ class Config(object):
                 elements.append(element_name)
                 self._elements = elements
 
-    def get_element(self, element_name, default=None):
-        if default is None:
+    def get_element(self, element_name):
+        try:
             result = getattr(self, element_name)
-        else:
-            result = getattr(self, element_name, default)
+        except AttributeError:
+            raise missingData("Missing config element %s" % element_name)
+        return result
+
+    def get_element_or_default(self, element_name, default):
+        result = getattr(self, element_name, default)
         return result
 
     def get_element_or_missing_data(self, element_name):
-        return self.get_element(element_name, default=missing_data)
+        return self.get_element_or_default(element_name, missing_data)
 
     def get_element_or_arg_not_supplied(self, element_name):
-        return self.get_element(element_name, default=arg_not_supplied)
+        return self.get_element_or_default(element_name, arg_not_supplied)
 
     def __repr__(self):
         elements = self.elements

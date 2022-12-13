@@ -20,7 +20,7 @@ def get_broker_class_list(data: dataBlob):
     """
     config = data.config
 
-    broker_factory_func = config.get_element('broker_factory_func', default=get_ib_class_list)
+    broker_factory_func = config.get_element_or_default('broker_factory_func', get_ib_class_list)
 
     get_class_list = resolve_function(broker_factory_func)
 
