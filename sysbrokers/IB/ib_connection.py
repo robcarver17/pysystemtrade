@@ -8,7 +8,8 @@ import time
 from ib_insync import IB
 
 from sysbrokers.IB.ib_connection_defaults import ib_defaults
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.exceptions import missingData
+from syscore.objects import arg_not_supplied
 
 from syslogdiag.log_to_screen import logtoscreen
 
@@ -57,12 +58,11 @@ class connectionIB(object):
 
         ib = IB()
 
-        if account is arg_not_supplied:
-            ## not passed get from config
-            account = get_broker_account()
-
-        ## that may still return missing data...
-        if account is missing_data:
+        try:
+            if account is arg_not_supplied:
+                ## not passed get from config
+                account = get_broker_account()
+        except missingData:
             self.log.error(
                 "Broker account ID not found in private config - may cause issues"
             )
@@ -108,5 +108,5 @@ class connectionIB(object):
 
 def get_broker_account() -> str:
     production_config = get_production_config()
-    account_id = production_config.get_element_or_missing_data("broker_account")
+    account_id = production_config.get_element("broker_account")
     return account_id
