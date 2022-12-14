@@ -1,7 +1,6 @@
 from flask import Flask, g, render_template, request
 from werkzeug.local import LocalProxy
 
-from syscore.objects import missing_data
 from syscore.genutils import str2Bool
 
 from syscontrol.list_running_pids import describe_trading_server_login_data
@@ -306,9 +305,7 @@ def strategy():
 
 def visible_on_lan() -> bool:
     config = get_control_config()
-    visible = config.get_element_or_missing_data("dashboard_visible_on_lan")
-    if visible is missing_data:
-        return False
+    visible = config.get_element_or_default("dashboard_visible_on_lan", False)
 
     visible = str2Bool(visible)
 
