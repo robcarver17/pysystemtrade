@@ -237,13 +237,13 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
 
         new_log = contract_object_with_ib_broker_config.log(self.log)
 
-        price_data = self.ib_client.broker_get_historical_futures_data_for_contract(
-            contract_object_with_ib_broker_config,
-            bar_freq=freq,
-            allow_expired=allow_expired,
-        )
-
-        if price_data is missing_data:
+        try:
+            price_data = self.ib_client.broker_get_historical_futures_data_for_contract(
+                contract_object_with_ib_broker_config,
+                bar_freq=freq,
+                allow_expired=allow_expired,
+            )
+        except missingData:
             new_log.warn(
                 "Something went wrong getting IB price data for %s"
                 % str(contract_object_with_ib_broker_config)
