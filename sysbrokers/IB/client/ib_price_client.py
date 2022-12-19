@@ -9,9 +9,8 @@ from ib_insync import util
 from sysbrokers.IB.client.ib_client import PACING_INTERVAL_SECONDS
 from sysbrokers.IB.client.ib_contracts_client import ibContractsClient
 from sysbrokers.IB.ib_positions import resolveBS_for_list
-from syscore.exceptions import missingContract
+from syscore.exceptions import missingContract, missingData
 
-from syscore.objects import missing_data
 from syscore.dateutils import (
     adjust_timestamp_to_include_notional_close_and_time_offset,
     strip_timezone_fromdatetime,
@@ -60,7 +59,7 @@ class ibPriceClient(ibContractsClient):
                 "Can't resolve IB contract %s"
                 % str(contract_object_with_ib_broker_config)
             )
-            return missing_data
+            raise missingData
 
         price_data = self._get_generic_data_for_contract(
             ibcontract, log=specific_log, bar_freq=bar_freq, whatToShow=whatToShow
@@ -178,7 +177,7 @@ class ibPriceClient(ibContractsClient):
             )
         except Exception as exception:
             log.warn(exception)
-            return missing_data
+            raise missingData
 
         price_data_raw = self._ib_get_historical_data_of_duration_and_barSize(
             ibcontract,
@@ -200,7 +199,7 @@ class ibPriceClient(ibContractsClient):
 
         if price_data_raw is None:
             log.warn("No price data from IB")
-            return missing_data
+            raise missingData
 
         price_data_as_df = price_data_raw[["open", "high", "low", "close", "volume"]]
 
