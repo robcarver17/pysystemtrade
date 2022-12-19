@@ -1,3 +1,4 @@
+from syscore.exceptions import missingData
 from sysdata.data_blob import dataBlob
 from sysbrokers.IB.ib_futures_contract_price_data import (
     ibFuturesContractPriceData,
@@ -38,10 +39,14 @@ def seed_price_data_for_contract(data: dataBlob, contract: futuresContract):
 
     date_str = contract.contract_date.date_str[:6]
     new_contract = futuresContract(contract.instrument, date_str)
-    prices = data.broker_futures_contract_price.get_prices_at_frequency_for_potentially_expired_contract_object(
-        new_contract
-    )
-    if prices is missing_data or len(prices) == 0:
+    try:
+        prices = data.broker_futures_contract_price.get_prices_at_frequency_for_potentially_expired_contract_object(
+            new_contract
+        )
+    except missingData:
+        prices = []
+
+    if len(prices) == 0:
         print("No data!")
     else:
         ## If you want to modify this script so it updates existing prices

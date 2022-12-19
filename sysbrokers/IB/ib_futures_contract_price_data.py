@@ -1,5 +1,5 @@
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ, MIXED_FREQ
-from syscore.exceptions import missingContract
+from syscore.exceptions import missingContract, missingData
 from syscore.objects import missing_data, failure
 
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
@@ -174,11 +174,12 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
 
         ## Override this because don't want to check for existing data first
 
-        prices =  self._get_prices_at_frequency_for_contract_object_no_checking(
-            futures_contract_object=contract_object,
-            frequency=frequency
-        )
-        if prices is missing_data:
+        try:
+            prices =  self._get_prices_at_frequency_for_contract_object_no_checking(
+                futures_contract_object=contract_object,
+                frequency=frequency
+            )
+        except missingData:
             if return_empty:
                 return futuresContractPrices.create_empty()
             else:
@@ -217,7 +218,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
             )
         except missingContract:
             new_log.warn("Can't get data for %s" % str(futures_contract_object))
-            return missing_data
+            raise missingData
 
         price_data = self._get_prices_at_frequency_for_ibcontract_object_no_checking(
             contract_object_with_ib_broker_config,
