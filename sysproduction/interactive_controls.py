@@ -993,9 +993,8 @@ def delete_instrument_from_prices(data: dataBlob):
     update_prices.delete_merged_contract_prices_for_instrument_code(instrument_code, are_you_sure=True)
     update_prices.delete_multiple_prices(instrument_code, are_you_sure=True)
     update_prices.delete_adjusted_prices(instrument_code, are_you_sure=True)
-
-    spreads_data = spreadsForInstrumentData(data)
-    spreads_data.delete_spreads(instrument_code, are_you_sure=True)
+    
+    update_prices.delete_spreads(instrument_code, are_you_sure=True)
 
     data_contracts= dataContracts(data)
     data_contracts.delete_all_contracts_for_instrument(instrument_code, are_you_sure=True)
