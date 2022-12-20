@@ -325,7 +325,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 contract_object_with_ib_data
             )
         except missingContract:
-            return missing_data
+            raise missingData
 
         tick_data_as_df = from_ib_bid_ask_tick_data_to_dataframe(tick_data)
 
