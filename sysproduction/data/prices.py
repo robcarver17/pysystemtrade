@@ -195,6 +195,9 @@ class diagPrices(productionDataLayerGeneric):
     def get_list_of_instruments_with_spread_data(self) -> list:
         return self.db_spreads_for_instrument_data.get_list_of_instruments()
 
+    def delete_spreads(self, instrument_code: str, are_you_sure: bool = False):
+        return self.db_spreads_for_instrument_data.delete_spreads(instrument_code, are_you_sure)
+
     @property
     def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:
         return self.data.db_futures_adjusted_prices
