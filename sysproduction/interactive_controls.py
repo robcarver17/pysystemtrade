@@ -972,9 +972,10 @@ def check_price_multipliers_consistent_for_instrument(data: dataBlob,
 
 def delete_instrument_from_prices(data: dataBlob):
     exit_code=""
-    instrument_code = get_valid_instrument_code_from_user(
-        allow_all=False, source = "single", allow_exit=True,
-    exit_code=exit_code)
+    # instrument_code = get_valid_instrument_code_from_user(
+    #     allow_all=False, source = "single", allow_exit=True,
+    # exit_code=exit_code)
+    instrument_code = "LUMBER"
 
     if instrument_code == exit_code:
         return False
