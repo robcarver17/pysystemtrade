@@ -1,6 +1,5 @@
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ, MIXED_FREQ
 from syscore.exceptions import missingContract, missingData
-from syscore.objects import missing_data, failure
 
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
