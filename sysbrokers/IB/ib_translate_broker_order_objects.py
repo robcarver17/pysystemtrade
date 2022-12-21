@@ -7,6 +7,7 @@ from dateutil.tz import tz
 from ib_insync import Trade as ibTrade
 from sysbrokers.IB.ib_contracts import ibcontractWithLegs
 from sysbrokers.broker_trade import brokerTrade
+from syscore.exceptions import missingData
 from syscore.objects import missing_order, arg_not_supplied, missing_data
 from sysexecution.orders.base_orders import resolve_multi_leg_price_to_single_price
 
@@ -90,9 +91,9 @@ class ibBrokerOrder(brokerOrder):
 
             total_qty = tradeQuantity(total_qty_list)
 
-        fill_totals = extract_totals_from_fill_data(extracted_trade_data.fills)
-
-        if fill_totals is missing_data:
+        try:
+            fill_totals = extract_totals_from_fill_data(extracted_trade_data.fills)
+        except missingData:
             fill_datetime = None
             fill = total_qty.zero_version()
             filled_price_list = []
@@ -214,7 +215,7 @@ def extract_totals_from_fill_data(list_of_fills):
 
     if len(list_of_fills) == 0:
         # broker_clientid, broker_tempid, filled_price_dict, fill_datetime, commission_list, signed_qty_dict
-        return missing_data
+        raise missingData
 
     fill_data_by_contract = {}
     for contractid in unique_contract_id_list:
