@@ -10,7 +10,7 @@ from sysbrokers.broker_capital_data import brokerCapitalData
 from sysbrokers.broker_contract_position_data import brokerContractPositionData
 from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
-from syscore.exceptions import missingContract
+from syscore.exceptions import missingContract, missingData
 
 from syscore.objects import (
     arg_not_supplied,
@@ -124,13 +124,14 @@ class dataBroker(productionDataLayerGeneric):
             cleaning_config = arg_not_supplied
     ) -> futuresContractPrices:
 
-        broker_prices_raw = \
-                self.get_prices_at_frequency_for_contract_object(contract_object=contract_object,
-                                                         frequency = frequency)
-        daily_data = frequency is DAILY_PRICE_FREQ
-        if broker_prices_raw is missing_data:
+        try:
+            broker_prices_raw = \
+                    self.get_prices_at_frequency_for_contract_object(contract_object=contract_object,
+                                                             frequency = frequency)
+        except missingData:
             return missing_data
 
+        daily_data = frequency is DAILY_PRICE_FREQ
         broker_prices = apply_price_cleaning(data = self.data,
                                              daily_data=daily_data,
                                              broker_prices_raw = broker_prices_raw,
@@ -369,7 +370,11 @@ class dataBroker(productionDataLayerGeneric):
         :return: tuple: side_price, mid_price OR missing_data
         """
 
-        tick_data = self.get_recent_bid_ask_tick_data_for_contract_object(contract)
+        try:
+            tick_data = self.get_recent_bid_ask_tick_data_for_contract_object(contract)
+        except missingData:
+            tick_data = missing_data
+
         analysis_of_tick_data = analyse_tick_data_frame(
             tick_data, qty, forward_fill=True, replace_qty_nans=True
         )
