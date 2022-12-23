@@ -15,7 +15,7 @@ class strategyRunner:
         self._process_name = process_name
 
         self._strategy_method = get_strategy_method(
-            self.data, self.strategy_name, self.process_name, self.function_name
+            self.data, self._strategy_name, self._process_name, self._function_name
         )
 
     @property
@@ -33,10 +33,6 @@ class strategyRunner:
     @property
     def strategy_method(self):
         return self._strategy_method
-
-    @strategy_method.setter
-    def strategy_method(self, new_object):
-        self._strategy_method = new_object
 
     def run_strategy_method(self):
         method = self.strategy_method
