@@ -3,7 +3,6 @@ import subprocess
 
 from syscore.exceptions import missingData
 from sysdata.config.production_config import get_production_config
-from syscore.objects import missing_data
 
 ## IF THIS FILE IS MOVED, NEED TO UPDATE THE NEXT LINE
 ## WARNING ONLY WORKS ON LINUX??
