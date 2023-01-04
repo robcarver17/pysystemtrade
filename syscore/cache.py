@@ -6,6 +6,7 @@ There is the caching in the base system, but that's special uses decorators etc
 Here's a more general one
 """
 from syscore.exceptions import missingData
+from syscore.objects import missing_data
 
 
 class Cache(object):
@@ -33,9 +34,8 @@ class Cache(object):
         self.store[key] = value
 
     def _get_from_store(self, key: str):
-        try:
-            return self.store.get(key)
-        except KeyError:
+        value = self.store.get(key, missing_data)
+        if value is missing_data:
             raise missingData("Missing cache element %s" % key)
 
     @property
