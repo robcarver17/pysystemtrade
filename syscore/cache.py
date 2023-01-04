@@ -37,6 +37,7 @@ class Cache(object):
         value = self.store.get(key, missing_data)
         if value is missing_data:
             raise missingData("Missing cache element %s" % key)
+        return value
 
     @property
     def store(self) -> dict:
