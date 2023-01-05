@@ -5,8 +5,9 @@ There is the caching in the base system, but that's special uses decorators etc
 
 Here's a more general one
 """
-
+from syscore.exceptions import missingData
 from syscore.objects import missing_data
+
 
 class Cache(object):
     def __init__(self, parent_object):
@@ -16,8 +17,9 @@ class Cache(object):
     def get(self, function_instance, *args, **kwargs):
         function_name = function_instance.__name__
         key = _get_key(function_name, args, kwargs)
-        value_from_store = self._get_from_store(key)
-        if value_from_store is missing_data:
+        try:
+            value_from_store = self._get_from_store(key)
+        except missingData:
             value_from_store = self._calculate_and_store(key, function_instance, *args, **kwargs)
 
         return value_from_store
@@ -32,7 +34,10 @@ class Cache(object):
         self.store[key] = value
 
     def _get_from_store(self, key: str):
-        return self.store.get(key, missing_data)
+        value = self.store.get(key, missing_data)
+        if value is missing_data:
+            raise missingData("Missing cache element %s" % key)
+        return value
 
     @property
     def store(self) -> dict:
