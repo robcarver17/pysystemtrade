@@ -19,6 +19,7 @@ from syscore.pdutils import set_pd_print_options
 from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
 from sysproduction.data.broker import dataBroker
+from sysproduction.data.contracts import dataContracts
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.contracts import (
     get_valid_instrument_code_and_contractid_from_user,
@@ -194,6 +195,8 @@ def spawn_contracts_from_instrument_orders(data):
 
 def create_balance_trade(data):
     data_broker = dataBroker(data)
+    data_contracts = dataContracts(data)
+
     default_account = data_broker.get_broker_account()
 
     print(
@@ -205,10 +208,14 @@ def create_balance_trade(data):
     print("Or perhaps you are trading manually")
     print("Trades have to be attributed to a strategy (even roll trades)")
     strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
-    instrument_code, contract_date = get_valid_instrument_code_and_contractid_from_user(
+    instrument_code, contract_date_yyyy_mm = get_valid_instrument_code_and_contractid_from_user(
         data
     )
     fill_qty = get_and_convert("Quantity ", type_expected=int, allow_default=False)
+
+    ## We get from database, not broker, in case contract has expired
+    contract_date = data_contracts.get_actual_expiry(instrument_code,
+                                                     contract_date_yyyy_mm)
 
     default_price = default_price_for_contract(data, futuresContract(instrument_code, contract_date))
     filled_price = get_and_convert(

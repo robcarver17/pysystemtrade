@@ -70,13 +70,43 @@ def generate_fitting_dates(
     if 'rolling' then use rollyears variable
     """
 
+    start_date, end_date = _get_start_and_end_date(data)
+
+    periods = generate_fitting_dates_given_start_and_end_date(
+        start_date=start_date,
+        end_date=end_date,
+        date_method=date_method,
+        rollyears=rollyears,
+        interval_frequency=interval_frequency
+    )
+
+    return periods
+
+
+
+def generate_fitting_dates_given_start_and_end_date(
+    start_date: datetime.datetime,
+        end_date: datetime.datetime,
+    date_method: str,
+    rollyears: int = 20,
+    interval_frequency: str = "12M",
+) -> listOfFittingDates:
+    """
+    generate a list 4 tuples, one element for each year in the data
+    each tuple contains [fit_start, fit_end, period_start, period_end] datetime objects
+    the last period will be a 'stub' if we haven't got an exact number of years
+
+    date_method can be one of 'in_sample', 'expanding', 'rolling'
+
+    if 'rolling' then use rollyears variable
+    """
+
     if date_method not in POSSIBLE_DATE_METHODS:
         raise Exception(
             "don't recognise date_method %s should be one of %s"
             % (date_method, str(POSSIBLE_DATE_METHODS))
         )
 
-    start_date, end_date = _get_start_and_end_date(data)
 
     # now generate the dates we use to fit
     if date_method == IN_SAMPLE:
@@ -109,6 +139,7 @@ def generate_fitting_dates(
     )
 
     return listOfFittingDates(periods)
+
 
 
 def _get_start_and_end_date(data):
