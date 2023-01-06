@@ -9,6 +9,7 @@ import calendar
 import pandas as pd
 import numpy as np
 
+from syscore.exceptions import missingData
 from syscore.objects import missing_data, arg_not_supplied
 
 """
@@ -137,6 +138,9 @@ def from_config_frequency_pandas_resample(freq: Frequency) -> str:
     }
     resample_string = LOOKUP_TABLE.get(freq, missing_data)
 
+    if resample_string is missing_data:
+        raise missingData("Resample frequency %s is not supported" % freq)
+
     return resample_string
 
 
@@ -154,6 +158,9 @@ def from_frequency_to_times_per_year(freq: Frequency) -> float:
         Frequency.Second: SECONDS_IN_YEAR,
     }
     times_per_year = LOOKUP_TABLE.get(freq, missing_data)
+
+    if times_per_year is missing_data:
+        raise missingData("Frequency %s is not supported" % freq)
 
     return float(times_per_year)
 
@@ -173,6 +180,9 @@ def from_config_frequency_to_frequency(freq_as_str: str) -> Frequency:
     }
 
     frequency = LOOKUP_TABLE.get(freq_as_str, missing_data)
+
+    if frequency is missing_data:
+        raise missingData("Frequency %s is not supported" % freq_as_str)
 
     return frequency
 

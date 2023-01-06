@@ -2,6 +2,7 @@ import datetime
 
 import numpy as np
 
+from syscore.exceptions import missingData
 from syscore.objects import arg_not_supplied, missing_data
 from syscore.dateutils import Frequency, from_config_frequency_to_frequency, n_days_ago
 
@@ -65,11 +66,11 @@ class diagPrices(productionDataLayerGeneric):
         intraday_frequency_as_str = config.get_element_or_missing_data(
             "intraday_frequency"
         )
-        intraday_frequency = from_config_frequency_to_frequency(
-            intraday_frequency_as_str
-        )
-
-        if intraday_frequency is missing_data:
+        try:
+            intraday_frequency = from_config_frequency_to_frequency(
+                intraday_frequency_as_str
+            )
+        except missingData:
             error_msg = (
                 "Intraday frequency of %s is not recognised as a valid frequency"
                 % str(intraday_frequency)
