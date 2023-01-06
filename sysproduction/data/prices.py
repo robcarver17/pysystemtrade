@@ -298,6 +298,9 @@ class updatePrices(productionDataLayerGeneric):
             instrument_code, spread=spread
         )
 
+    def delete_spreads(self, instrument_code: str, are_you_sure: bool = False):
+        self.db_spreads_for_instrument_data.delete_spreads(instrument_code, are_you_sure=are_you_sure)
+
     @property
     def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:
         return self.data.db_futures_adjusted_prices

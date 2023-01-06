@@ -3,11 +3,12 @@ import pandas as pd
 
 from sysbrokers.IB.client.ib_fx_client import ibFxClient
 from sysbrokers.broker_fx_prices_data import brokerFxPricesData
+from syscore.exceptions import missingData
 
 from sysobjects.spot_fx_prices import fxPrices
 from syslogdiag.log_to_screen import logtoscreen
 from syscore.fileutils import get_filename_for_package
-from syscore.objects import missing_instrument, missing_file, missing_data
+from syscore.objects import missing_instrument, missing_file
 
 IB_CCY_CONFIG_FILE = get_filename_for_package("sysbrokers.IB.ib_config_spot_FX.csv")
 
@@ -88,9 +89,9 @@ class ibFxPricesData(brokerFxPricesData):
         ccy1 = ib_config_for_code.ccy1
         ccy2 = ib_config_for_code.ccy2
 
-        raw_fx_prices = self.ib_client.broker_get_daily_fx_data(ccy1, ccy2)
-
-        if raw_fx_prices is missing_data:
+        try:
+            raw_fx_prices = self.ib_client.broker_get_daily_fx_data(ccy1, ccy2)
+        except missingData:
             return pd.Series()
         raw_fx_prices_as_series = raw_fx_prices["FINAL"]
 

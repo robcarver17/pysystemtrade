@@ -1,5 +1,5 @@
 from copy import copy
-from syscore.objects import resolve_function, missing_data
+from syscore.objects import resolve_function
 from sysdata.data_blob import dataBlob
 from sysproduction.data.control_process import get_strategy_class_object_config
 
@@ -10,10 +10,13 @@ class strategyRunner:
         self, data: dataBlob, strategy_name: str, process_name: str, function_name: str
     ):
         self.data = data
-        self._object_store = missing_data
         self._strategy_name = strategy_name
         self._function_name = function_name
         self._process_name = process_name
+
+        self._strategy_method = get_strategy_method(
+            self.data, self._strategy_name, self._process_name, self._function_name
+        )
 
     @property
     def strategy_name(self):
@@ -28,27 +31,13 @@ class strategyRunner:
         return self._process_name
 
     @property
-    def object_store(self):
-        return self._object_store
-
-    @object_store.setter
-    def object_store(self, new_object):
-        self._object_store = new_object
+    def strategy_method(self):
+        return self._strategy_method
 
     def run_strategy_method(self):
-        method = self.get_strategy_method()
+        method = self.strategy_method
         # no arguments. no return. no explanations
         method()
-
-    def get_strategy_method(self):
-        method = self._object_store
-        if method is missing_data:
-            method = get_strategy_method(
-                self.data, self.strategy_name, self.process_name, self.function_name
-            )
-            self.object_store = method
-
-        return method
 
 
 def get_strategy_method(

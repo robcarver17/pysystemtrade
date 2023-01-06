@@ -8,9 +8,9 @@ from sysbrokers.IB.ib_positions import (
     resolveBS,
 )
 from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract
-from syscore.exceptions import missingContract
+from syscore.exceptions import missingContract, missingData
 
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 
 
@@ -83,7 +83,7 @@ class ibFxClient(ibPriceClient):
             ibcontract = self.ib_spotfx_contract(ccy1, ccy2=ccy2)
         except missingContract:
             log.warn("Can't find IB contract for %s%s" % (ccy1, ccy2))
-            return missing_data
+            raise missingData
 
         # uses parent class ibClientPrices
         fx_data = self._get_generic_data_for_contract(

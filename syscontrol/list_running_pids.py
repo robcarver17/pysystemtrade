@@ -1,7 +1,8 @@
 import psutil
 import subprocess
+
+from syscore.exceptions import missingData
 from sysdata.config.production_config import get_production_config
-from syscore.objects import missing_data
 
 ## IF THIS FILE IS MOVED, NEED TO UPDATE THE NEXT LINE
 ## WARNING ONLY WORKS ON LINUX??
@@ -10,8 +11,9 @@ DECODE_STR = "utf-8"
 
 
 def describe_trading_server_login_data() -> str:
-    login_data = get_trading_server_login_data()
-    if login_data is missing_data:
+    try:
+        login_data = get_trading_server_login_data()
+    except missingData:
         return "localhost"
     trading_server_username, trading_server_ip, trading_server_ssh_port = login_data
     host_description = "%s@%s port %s" % (
@@ -24,8 +26,9 @@ def describe_trading_server_login_data() -> str:
 
 
 def list_of_all_running_pids():
-    trading_server_login_data = get_trading_server_login_data()
-    if trading_server_login_data is missing_data:
+    try:
+        trading_server_login_data = get_trading_server_login_data()
+    except missingData:
         pid_list = local_list_of_all_running_pids()
     else:
         pid_list = remote_list_of_running_pids(trading_server_login_data)
@@ -35,11 +38,9 @@ def list_of_all_running_pids():
 
 def get_trading_server_login_data():
     production_config = get_production_config()
-    trading_server_ip = production_config.get_element_or_missing_data(
+    trading_server_ip = production_config.get_element(
         "trading_server_ip"
     )
-    if trading_server_ip is missing_data:
-        return missing_data
 
     trading_server_username = production_config.trading_server_username
     trading_server_ssh_port = production_config.trading_server_ssh_port
