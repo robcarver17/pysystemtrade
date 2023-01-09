@@ -2,6 +2,7 @@ from collections import namedtuple
 
 import pandas as pd
 
+from syscore.exceptions import missingData
 from syscore.genutils import transfer_object_attributes
 from syscore.objects import missing_data
 from syscore.pdutils import make_df_from_list_of_named_tuple, sort_df_ignoring_missing
@@ -303,8 +304,15 @@ def get_control_data_for_single_ordinary_method(data, method_name_and_process):
     method, process_name = method_name_and_process
     data_control = diagControlProcess(data)
 
-    last_start = data_control.when_method_last_started(process_name, method)
-    last_end = data_control.when_method_last_ended(process_name, method)
+    try:
+        last_start = data_control.when_method_last_started(process_name, method)
+    except missingData:
+        last_start = missing_data
+
+    try:
+        last_end = data_control.when_method_last_ended(process_name, method)
+    except missingData:
+        last_end = missing_data
 
     currently_running = data_control.method_currently_running(process_name, method)
 
