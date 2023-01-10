@@ -42,6 +42,8 @@ black path/to/module.py
 Or, get your IDE or editor to automatically re-format files as you save. Configuration
 instructions [here](https://black.readthedocs.io/en/stable/integrations/editors.html)
 
+Note for pycharm users: The blackd plugin requires a blackd daemon to be running; add it to your crontab.
+
 Or, configure your local git install to automatically check and fix your code
 as you commit. Configuration instructions 
 [here](https://black.readthedocs.io/en/stable/integrations/source_version_control.html)
