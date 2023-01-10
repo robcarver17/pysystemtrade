@@ -38,7 +38,7 @@ class pandlCalculationWithFills(pandlCalculation):
         price: pd.Series,
         positions: pd.Series,
         fills: listOfFills,
-        **kwargs
+        **kwargs,
     ):
 
         merged_prices = merge_fill_prices_with_prices(price, fills)
@@ -91,17 +91,14 @@ class pandlCalculationWithFills(pandlCalculation):
 
         return positions
 
-
     def _calculate_and_set_prices_from_fills_and_input_prices(self) -> pd.Series:
 
         ## this will be set in the parent __init__
         passed_prices = self._price
-        merged_price = merge_fill_prices_with_prices(passed_prices,
-                                                     self.fills)
+        merged_price = merge_fill_prices_with_prices(passed_prices, self.fills)
         self._calculated_price = merged_price
 
         return merged_price
-
 
 
 def merge_fill_prices_with_prices(
@@ -113,7 +110,7 @@ def merge_fill_prices_with_prices(
     prices_to_use = pd.concat(
         [prices, unique_trades_as_pd_df.price], axis=1, join="outer"
     )
-    prices_to_use.columns = ['price', 'fill_price']
+    prices_to_use.columns = ["price", "fill_price"]
 
     # Where no fill price available, use price
     prices_to_use = prices_to_use.fillna(axis=1, method="ffill")
@@ -141,7 +138,7 @@ def unique_trades_df(trade_df: pd.DataFrame) -> pd.DataFrame:
 def infer_positions_from_fills(fills: listOfFills) -> pd.Series:
     date_index = [fill.date for fill in fills]
     qty_trade = [fill.qty for fill in fills]
-    trade_series = pd.Series(qty_trade, index = date_index)
+    trade_series = pd.Series(qty_trade, index=date_index)
     trade_series = trade_series.sort_index()
     position_series = trade_series.cumsum()
 

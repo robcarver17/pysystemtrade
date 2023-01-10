@@ -1,4 +1,3 @@
-
 """
 Minimum viable system
 
@@ -22,7 +21,7 @@ from systems.accounts.accounts_stage import Account
 
 
 def basic_futures_system(
-        data,
+    data,
     config=arg_not_supplied,
     trading_rules=arg_not_supplied,
     log_level="on",
@@ -51,6 +50,7 @@ def basic_futures_system(
 
     return system
 
+
 def basic_csv_futures_system(
     data=arg_not_supplied,
     config=arg_not_supplied,
@@ -61,10 +61,9 @@ def basic_csv_futures_system(
     if data is arg_not_supplied:
         data = csvFuturesSimData()
 
-    system = basic_futures_system(data,
-                                  config=config,
-                                  trading_rules=trading_rules,
-                                  log_level=log_level)
+    system = basic_futures_system(
+        data, config=config, trading_rules=trading_rules, log_level=log_level
+    )
     return system
 
 
@@ -78,9 +77,7 @@ def basic_db_futures_system(
     if data is arg_not_supplied:
         data = dbFuturesSimData()
 
-    system = basic_futures_system(data,
-                                  config=config,
-                                  trading_rules=trading_rules,
-                                  log_level=log_level)
+    system = basic_futures_system(
+        data, config=config, trading_rules=trading_rules, log_level=log_level
+    )
     return system
-

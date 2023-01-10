@@ -80,6 +80,7 @@ def get_overrides_in_db_as_df(data):
 
     return pdf
 
+
 def get_all_overrides_as_df(data):
     diag_overrides = diagOverrides(data)
     all_overrides = diag_overrides.get_dict_of_all_overrides_with_reasons()

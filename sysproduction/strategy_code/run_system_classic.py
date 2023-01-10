@@ -59,9 +59,9 @@ class runSystemClassic(object):
         )
 
         function_to_call_on_update = self.function_to_call_on_update
-        function_to_call_on_update(data=data,
-                                   strategy_name =strategy_name,
-                                   system = system)
+        function_to_call_on_update(
+            data=data, strategy_name=strategy_name, system=system
+        )
 
         store_backtest_state(data, system, strategy_name=strategy_name)
 
@@ -76,7 +76,9 @@ class runSystemClassic(object):
         strategy_name = self.strategy_name
 
         capital_data = dataCapital(data)
-        notional_trading_capital = capital_data.get_current_capital_for_strategy(strategy_name)
+        notional_trading_capital = capital_data.get_current_capital_for_strategy(
+            strategy_name
+        )
         if notional_trading_capital is missing_data:
             # critical log will send email
             error_msg = (
@@ -88,14 +90,18 @@ class runSystemClassic(object):
         currency_data = dataCurrency(data)
         base_currency = currency_data.get_base_currency()
 
-        self.data.log.msg("Using capital of %s %.2f" % (base_currency, notional_trading_capital))
+        self.data.log.msg(
+            "Using capital of %s %.2f" % (base_currency, notional_trading_capital)
+        )
 
         return base_currency, notional_trading_capital
 
     # DO NOT CHANGE THE NAME OF THIS FUNCTION; IT IS HARDCODED INTO CONFIGURATION FILES
     # BECAUSE IT IS ALSO USED TO LOAD BACKTESTS
     def system_method(
-        self, notional_trading_capital: float = arg_not_supplied, base_currency: str = arg_not_supplied
+        self,
+        notional_trading_capital: float = arg_not_supplied,
+        base_currency: str = arg_not_supplied,
     ) -> System:
         data = self.data
         backtest_config_filename = self.backtest_config_filename

@@ -56,6 +56,7 @@ header = namedtuple("header", "Heading")
 body_text = namedtuple("bodytext", "Text")
 figure = namedtuple("figure", "pdf_filename")
 
+
 def get_methods(a_stage_object) -> list:
     dir_list = dir(a_stage_object)
 

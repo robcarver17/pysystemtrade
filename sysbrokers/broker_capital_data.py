@@ -16,7 +16,7 @@ class brokerCapitalData(capitalData):
     ) -> listOfCurrencyValues:
         raise NotImplementedError
 
-    def get_excess_liquidity_value_across_currency(self,
-                                                   account_id: str = arg_not_supplied
-                                                   )-> listOfCurrencyValues:
+    def get_excess_liquidity_value_across_currency(
+        self, account_id: str = arg_not_supplied
+    ) -> listOfCurrencyValues:
         raise NotImplementedError

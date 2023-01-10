@@ -18,8 +18,7 @@ class positionLimit(object):
     def __repr__(self):
         return "Position limit for %s is %s" % (str(self.key), str(self.position_limit))
 
-    def minimum_position_limit(self,
-                               other_position_limit) -> int:
+    def minimum_position_limit(self, other_position_limit) -> int:
         if other_position_limit.no_limit:
             return self.position_limit
 
@@ -42,7 +41,7 @@ class positionLimit(object):
 
     @property
     def no_limit(self):
-        return self.position_limit==NO_LIMIT
+        return self.position_limit == NO_LIMIT
 
 
 class positionLimitForInstrument(positionLimit):

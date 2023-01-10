@@ -15,11 +15,16 @@ from sysobjects.production.capital import (
 
 GLOBAL_CAPITAL_DICT_KEY = "__global_capital"
 CURRENT_CAPITAL_LABEL = "Actual"
-MAX_CAPITAL_LABEL= "Max"
+MAX_CAPITAL_LABEL = "Max"
 ACC_CAPITAL_LABEL = "Accumulated"
 BROKER_CAPITAL_LABEL = "Broker"
-ALL_LABELS = [CURRENT_CAPITAL_LABEL, MAX_CAPITAL_LABEL,
-              ACC_CAPITAL_LABEL, BROKER_CAPITAL_LABEL]
+ALL_LABELS = [
+    CURRENT_CAPITAL_LABEL,
+    MAX_CAPITAL_LABEL,
+    ACC_CAPITAL_LABEL,
+    BROKER_CAPITAL_LABEL,
+]
+
 
 class capitalData(baseData):
     ## TOTAL CAPITAL
@@ -32,7 +37,7 @@ class capitalData(baseData):
         return float(pd_series[-1])
 
     def get_current_broker_account_value(self) -> float:
-        pd_series =self.get_broker_account_value_pd_series()
+        pd_series = self.get_broker_account_value_pd_series()
         if pd_series is missing_data:
             return missing_data
 
@@ -48,10 +53,9 @@ class capitalData(baseData):
     def get_current_pandl_account(self) -> float:
         pd_series = self.get_profit_and_loss_account_pd_series()
         if pd_series is missing_data:
-                    return missing_data
+            return missing_data
 
         return float(pd_series[-1])
-
 
     def get_total_capital_pd_series(self) -> pd.Series:
         all_capital_series = self.get_df_of_all_global_capital()
@@ -81,14 +85,14 @@ class capitalData(baseData):
 
         return all_capital_series[ACC_CAPITAL_LABEL]
 
-
-    def add_global_capital_entries(self,
-                                   total_current_capital: float = arg_not_supplied,
-                                   acc_pandl: float = arg_not_supplied,
-                                   broker_account_value: float = arg_not_supplied,
-                                   maximum_capital: float = arg_not_supplied,
-                                   date: datetime.datetime = arg_not_supplied
-                                   ):
+    def add_global_capital_entries(
+        self,
+        total_current_capital: float = arg_not_supplied,
+        acc_pandl: float = arg_not_supplied,
+        broker_account_value: float = arg_not_supplied,
+        maximum_capital: float = arg_not_supplied,
+        date: datetime.datetime = arg_not_supplied,
+    ):
         if date is arg_not_supplied:
             date = datetime.datetime.now()
 
@@ -111,7 +115,7 @@ class capitalData(baseData):
         cap_entry_dict[BROKER_CAPITAL_LABEL] = broker_account_value
         cap_entry_dict[MAX_CAPITAL_LABEL] = maximum_capital
 
-        new_capital_row = pd.DataFrame(cap_entry_dict, index = [date])
+        new_capital_row = pd.DataFrame(cap_entry_dict, index=[date])
 
         capital_df = self.get_df_of_all_global_capital()
         if capital_df is missing_data:
@@ -122,16 +126,16 @@ class capitalData(baseData):
 
         self.update_df_of_all_global_capital(ffill_updated_capital_df)
 
-    def create_initial_capital(self,
-                                   total_current_capital: float,
-                                   broker_account_value: float,
-                                   maximum_capital: float,
-                                   acc_pandl: float =0,
-                                   date: datetime.datetime = arg_not_supplied
-                                   ):
+    def create_initial_capital(
+        self,
+        total_current_capital: float,
+        broker_account_value: float,
+        maximum_capital: float,
+        acc_pandl: float = 0,
+        date: datetime.datetime = arg_not_supplied,
+    ):
         if date is arg_not_supplied:
             date = datetime.datetime.now()
-
 
         cap_entry_dict = {}
         cap_entry_dict[CURRENT_CAPITAL_LABEL] = total_current_capital
@@ -139,46 +143,44 @@ class capitalData(baseData):
         cap_entry_dict[BROKER_CAPITAL_LABEL] = broker_account_value
         cap_entry_dict[MAX_CAPITAL_LABEL] = maximum_capital
 
-        new_capital_row = pd.DataFrame(cap_entry_dict, index = [date])
+        new_capital_row = pd.DataFrame(cap_entry_dict, index=[date])
 
         self.update_df_of_all_global_capital(new_capital_row)
 
+    def delete_recent_capital(self, last_date: datetime.datetime):
+        self.delete_recent_capital_for_strategy(
+            GLOBAL_CAPITAL_DICT_KEY, last_date=last_date
+        )
 
-    def delete_recent_capital(
-        self, last_date: datetime.datetime
-    ):
-        self.delete_recent_capital_for_strategy(GLOBAL_CAPITAL_DICT_KEY,
-                                                last_date=last_date)
+    def delete_all_global_capital(self, are_you_really_sure=False):
 
-    def delete_all_global_capital(
-            self, are_you_really_sure=False
-    ):
-
-        self.delete_all_capital_for_strategy(GLOBAL_CAPITAL_DICT_KEY,
-                                             are_you_really_sure=are_you_really_sure)
+        self.delete_all_capital_for_strategy(
+            GLOBAL_CAPITAL_DICT_KEY, are_you_really_sure=are_you_really_sure
+        )
 
     def get_df_of_all_global_capital(self) -> pd.DataFrame:
         ## ignore warning- for global we pass a Frame not a Series
-        capital_df =  self.get_capital_pd_df_for_strategy(GLOBAL_CAPITAL_DICT_KEY)
+        capital_df = self.get_capital_pd_df_for_strategy(GLOBAL_CAPITAL_DICT_KEY)
 
         return capital_df
 
-    def update_df_of_all_global_capital(self,
-                                        updated_capital_series: pd.DataFrame):
+    def update_df_of_all_global_capital(self, updated_capital_series: pd.DataFrame):
 
         ## ignore warning - for global we pass a Frame not a Series
-        self.update_capital_pd_df_for_strategy(GLOBAL_CAPITAL_DICT_KEY, updated_capital_series)
-
+        self.update_capital_pd_df_for_strategy(
+            GLOBAL_CAPITAL_DICT_KEY, updated_capital_series
+        )
 
     ## STRATEGY CAPITAL
     def get_current_capital_for_strategy(self, strategy_name: str) -> float:
         capital_series = self.get_capital_pd_df_for_strategy(strategy_name)
         return float(capital_series.iloc[-1, 0])
 
-    def update_capital_value_for_strategy(self,
+    def update_capital_value_for_strategy(
+        self,
         strategy_name: str,
         new_capital_value: float,
-        date: datetime.datetime = arg_not_supplied
+        date: datetime.datetime = arg_not_supplied,
     ):
         assert strategy_name is not GLOBAL_CAPITAL_DICT_KEY
 
@@ -194,7 +196,6 @@ class capitalData(baseData):
         updated_capital_df = updated_capital_series.to_frame()
 
         self.update_capital_pd_df_for_strategy(strategy_name, updated_capital_df)
-
 
     def delete_recent_capital_for_strategy(
         self, strategy_name: str, last_date: datetime.datetime
@@ -213,7 +214,6 @@ class capitalData(baseData):
         else:
             raise Exception("Have to be sure to delete capital")
 
-
     def get_list_of_strategies_with_capital(self) -> list:
         list_of_strategies = self._get_list_of_strategies_with_capital_including_total()
         try:
@@ -229,13 +229,13 @@ class capitalData(baseData):
     def get_capital_pd_df_for_strategy(self, strategy_name: str) -> pd.DataFrame:
         raise NotImplementedError
 
-    def _delete_all_capital_for_strategy_no_checking(
-        self, strategy_name: str
-    ):
+    def _delete_all_capital_for_strategy_no_checking(self, strategy_name: str):
 
         raise NotImplementedError
 
-    def update_capital_pd_df_for_strategy(self, strategy_name: str, updated_capital_df: pd.DataFrame):
+    def update_capital_pd_df_for_strategy(
+        self, strategy_name: str, updated_capital_df: pd.DataFrame
+    ):
 
         raise NotImplementedError
 
@@ -249,6 +249,7 @@ def df_to_series(x: pd.DataFrame) -> pd.Series:
         y = x.squeeze()
 
     return y
+
 
 class totalCapitalCalculationData(object):
     """
@@ -315,7 +316,7 @@ class totalCapitalCalculationData(object):
     def get_current_total_capital(self):
         return self.capital_data.get_current_total_capital()
 
-    def get_current_broker_account(self)->float:
+    def get_current_broker_account(self) -> float:
         return self.capital_data.get_current_broker_account_value()
 
     def get_current_maximum_capital(self) -> float:
@@ -324,7 +325,7 @@ class totalCapitalCalculationData(object):
     def get_total_capital(self) -> pd.Series:
         return self.capital_data.get_total_capital_pd_series()
 
-    def get_current_accumulated_pandl(self) ->float:
+    def get_current_accumulated_pandl(self) -> float:
         return self.capital_data.get_current_pandl_account()
 
     def get_profit_and_loss_account(self) -> pd.Series():
@@ -369,11 +370,7 @@ class totalCapitalCalculationData(object):
     ) -> totalCapitalUpdater:
 
         calc_method = self.calc_method
-        prev_broker_account_value = (
-            self._get_prev_broker_account_value(
-
-            )
-        )
+        prev_broker_account_value = self._get_prev_broker_account_value()
         if prev_broker_account_value is missing_data:
             raise Exception("No previous broker account value can't update capital")
 
@@ -387,14 +384,12 @@ class totalCapitalCalculationData(object):
             prev_maximum_capital=prev_maximum_capital,
             prev_broker_account_value=prev_broker_account_value,
             calc_method=calc_method,
-            prev_pandl_cum_acc=prev_pandl_cum_acc
+            prev_pandl_cum_acc=prev_pandl_cum_acc,
         )
 
         return capital_updater
 
-    def _get_prev_broker_account_value(
-        self
-    ) -> float:
+    def _get_prev_broker_account_value(self) -> float:
         prev_broker_account_value = self.capital_data.get_current_broker_account_value()
 
         return prev_broker_account_value
@@ -411,12 +406,14 @@ class totalCapitalCalculationData(object):
         new_broker_account_value = capital_updater.new_broker_account_value
         new_acc_pandl = capital_updater.new_acc_pandl
 
-        self.modify_account_values(broker_account_value=new_broker_account_value,
-                                   total_capital=new_total_capital,
-                                   maximum_capital=new_maximum_capital,
-                                   acc_pandl=new_acc_pandl,
-                                   date=date,
-                                   are_you_sure=True)
+        self.modify_account_values(
+            broker_account_value=new_broker_account_value,
+            total_capital=new_total_capital,
+            maximum_capital=new_maximum_capital,
+            acc_pandl=new_acc_pandl,
+            date=date,
+            are_you_sure=True,
+        )
 
     def adjust_broker_account_for_delta(self, delta_value: float):
         """
@@ -438,10 +435,9 @@ class totalCapitalCalculationData(object):
         broker_account_value = prev_broker_account_value + delta_value
 
         # Update broker account value
-        self.modify_account_values(broker_account_value = broker_account_value,
-                                   are_you_sure=True)
-
-
+        self.modify_account_values(
+            broker_account_value=broker_account_value, are_you_sure=True
+        )
 
     def modify_account_values(
         self,
@@ -450,7 +446,7 @@ class totalCapitalCalculationData(object):
         maximum_capital: float = arg_not_supplied,
         acc_pandl: float = arg_not_supplied,
         date: datetime.datetime = arg_not_supplied,
-        are_you_sure: bool = False
+        are_you_sure: bool = False,
     ):
         """
         Allow any account valuation to be modified
@@ -464,12 +460,13 @@ class totalCapitalCalculationData(object):
         if date is arg_not_supplied:
             date = datetime.datetime.now()
 
-        self.capital_data.add_global_capital_entries(total_current_capital=total_capital,
-                                                     maximum_capital=maximum_capital,
-                                                     acc_pandl=acc_pandl,
-                                                     broker_account_value=broker_account_value,
-                                                     date=date)
-
+        self.capital_data.add_global_capital_entries(
+            total_current_capital=total_capital,
+            maximum_capital=maximum_capital,
+            acc_pandl=acc_pandl,
+            broker_account_value=broker_account_value,
+            date=date,
+        )
 
     def create_initial_capital(
         self,
@@ -506,11 +503,13 @@ class totalCapitalCalculationData(object):
 
         date = datetime.datetime.now()
 
-        self.capital_data.create_initial_capital(total_current_capital=total_capital,
-                                                     maximum_capital=maximum_capital,
-                                                     acc_pandl = acc_pandl,
-                                                     broker_account_value=broker_account_value,
-                                                     date=date)
+        self.capital_data.create_initial_capital(
+            total_current_capital=total_capital,
+            maximum_capital=maximum_capital,
+            acc_pandl=acc_pandl,
+            broker_account_value=broker_account_value,
+            date=date,
+        )
 
     def delete_recent_capital(
         self, last_date: datetime.datetime, are_you_sure: bool = False
@@ -528,5 +527,6 @@ class totalCapitalCalculationData(object):
         self.capital_data.delete_recent_capital(last_date=last_date)
 
     def delete_all_global_capital(self, are_you_really_sure: bool = False):
-        self.capital_data.delete_all_global_capital(are_you_really_sure=are_you_really_sure)
-
+        self.capital_data.delete_all_global_capital(
+            are_you_really_sure=are_you_really_sure
+        )

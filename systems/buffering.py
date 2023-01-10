@@ -6,10 +6,10 @@ from syslogdiag.logger import logger
 from syslogdiag.log_to_screen import logtoscreen
 from syscore.objects import arg_not_supplied
 
+
 def calculate_actual_buffers(
-            buffers: pd.DataFrame,
-            cap_multiplier: pd.Series
-    ) -> pd.DataFrame:
+    buffers: pd.DataFrame, cap_multiplier: pd.Series
+) -> pd.DataFrame:
     """
     Used when rescaling capital for accumulation
     """
@@ -22,6 +22,7 @@ def calculate_actual_buffers(
 
     return actual_buffers_for_position
 
+
 def apply_buffers_to_position(position: pd.Series, buffer: pd.Series) -> pd.DataFrame:
     top_position = position.ffill() + buffer.ffill()
     bottom_position = position.ffill() - buffer.ffill()
@@ -31,13 +32,16 @@ def apply_buffers_to_position(position: pd.Series, buffer: pd.Series) -> pd.Data
 
     return pos_buffers
 
-def calculate_buffers(instrument_code: str,
-                      position: pd.Series,
-                      config: Config,
-                      vol_scalar: pd.Series,
-                      instr_weights: pd.DataFrame = arg_not_supplied,
-                      idm: pd.Series = arg_not_supplied,
-                      log: logger = logtoscreen("")) -> pd.Series:
+
+def calculate_buffers(
+    instrument_code: str,
+    position: pd.Series,
+    config: Config,
+    vol_scalar: pd.Series,
+    instr_weights: pd.DataFrame = arg_not_supplied,
+    idm: pd.Series = arg_not_supplied,
+    log: logger = logtoscreen(""),
+) -> pd.Series:
 
     log.msg(
         "Calculating buffers for %s" % instrument_code,
@@ -56,11 +60,13 @@ def calculate_buffers(instrument_code: str,
         else:
             instr_weight_this_code = instr_weights[instrument_code]
 
-        buffer = get_forecast_method_buffer(instr_weight_this_code=instr_weight_this_code,
-                                            vol_scalar=vol_scalar,
-                                            idm=idm,
-                                            position=position,
-                                            config=config)
+        buffer = get_forecast_method_buffer(
+            instr_weight_this_code=instr_weight_this_code,
+            vol_scalar=vol_scalar,
+            idm=idm,
+            position=position,
+            config=config,
+        )
 
     elif buffer_method == "position":
         log.msg(
@@ -68,34 +74,28 @@ def calculate_buffers(instrument_code: str,
             instrument_code=instrument_code,
         )
 
-        buffer = get_position_method_buffer(config=config,
-                                                 position=position)
+        buffer = get_position_method_buffer(config=config, position=position)
     elif buffer_method == "none":
         log.msg(
             "None method, no buffering for %s" % instrument_code,
             instrument_code=instrument_code,
         )
 
-        buffer = get_buffer_if_not_buffering(
-                                                  position=position)
+        buffer = get_buffer_if_not_buffering(position=position)
     else:
-        log.critical(
-            "Buffer method %s not recognised - not buffering" % buffer_method
-        )
-        buffer = get_buffer_if_not_buffering(
-                                                  position=position)
+        log.critical("Buffer method %s not recognised - not buffering" % buffer_method)
+        buffer = get_buffer_if_not_buffering(position=position)
 
     return buffer
 
 
 def get_forecast_method_buffer(
-                            position: pd.Series,
-                            vol_scalar: pd.Series,
-                            config: Config,
-                            instr_weight_this_code: pd.Series = arg_not_supplied,
-                            idm: pd.Series = arg_not_supplied,
-
-    ) -> pd.Series:
+    position: pd.Series,
+    vol_scalar: pd.Series,
+    config: Config,
+    instr_weight_this_code: pd.Series = arg_not_supplied,
+    idm: pd.Series = arg_not_supplied,
+) -> pd.Series:
     """
     Gets the buffers for positions, using proportion of average forecast method
 
@@ -105,7 +105,6 @@ def get_forecast_method_buffer(
 
     :returns: Tx1 pd.DataFrame
     """
-
 
     buffer_size = config.buffer_size
 
@@ -121,9 +120,9 @@ def get_forecast_method_buffer(
 
 
 def get_position_method_buffer(
-                               position: pd.Series,
-                               config: Config,
-                               ) -> pd.Series:
+    position: pd.Series,
+    config: Config,
+) -> pd.Series:
     """
     Gets the buffers for positions, using proportion of position method
 
@@ -147,10 +146,6 @@ def get_buffer_if_not_buffering(position: pd.Series) -> pd.Series:
     return buffer
 
 
-
-
-
-
 def _calculate_forecast_buffer_method(
     position: pd.Series,
     buffer_size: float,
@@ -162,7 +157,9 @@ def _calculate_forecast_buffer_method(
     if instr_weight_this_code is arg_not_supplied:
         instr_weight_this_code_indexed = 1.0
     else:
-        instr_weight_this_code_indexed = instr_weight_this_code.reindex(position.index).ffill()
+        instr_weight_this_code_indexed = instr_weight_this_code.reindex(
+            position.index
+        ).ffill()
 
     if idm is arg_not_supplied:
         idm_indexed = 1.0
@@ -171,7 +168,9 @@ def _calculate_forecast_buffer_method(
 
     vol_scalar_indexed = vol_scalar.reindex(position.index).ffill()
 
-    average_position = abs(vol_scalar_indexed * instr_weight_this_code_indexed * idm_indexed)
+    average_position = abs(
+        vol_scalar_indexed * instr_weight_this_code_indexed * idm_indexed
+    )
 
     buffer = average_position * buffer_size
 

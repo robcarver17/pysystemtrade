@@ -22,7 +22,7 @@ class exponentialCorrelation(exponentialEstimator):
         length_adjustment: int = 1,
         shrinkage_parameter: float = 0.0,
         offdiag: float = 0.99,
-        **_ignored_kwargs
+        **_ignored_kwargs,
     ):
 
         super().__init__(
@@ -34,7 +34,7 @@ class exponentialCorrelation(exponentialEstimator):
             length_adjustment=length_adjustment,
             shrinkage_parameter=shrinkage_parameter,
             offdiag=offdiag,
-            **_ignored_kwargs
+            **_ignored_kwargs,
         )
 
     def perform_calculations(
@@ -42,7 +42,7 @@ class exponentialCorrelation(exponentialEstimator):
         data_for_correlation: pd.DataFrame,
         adjusted_lookback=500,
         adjusted_min_periods=20,
-        **other_kwargs
+        **other_kwargs,
     ):
 
         correlation_calculations = exponentialCorrelationResults(
@@ -146,7 +146,7 @@ class exponentialCorrelationResults(object):
         data_for_correlation,
         ew_lookback: int = 250,
         min_periods: int = 20,
-        **_ignored_kwargs
+        **_ignored_kwargs,
     ):
 
         columns = data_for_correlation.columns

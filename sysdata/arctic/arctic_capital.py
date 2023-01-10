@@ -37,14 +37,11 @@ class arcticCapitalData(capitalData):
 
         return pd_series
 
-    def _delete_all_capital_for_strategy_no_checking(
-        self, strategy_name: str
-    ):
+    def _delete_all_capital_for_strategy_no_checking(self, strategy_name: str):
 
         self.arctic.delete(strategy_name)
 
-
-    def update_capital_pd_df_for_strategy(self, strategy_name: str, updated_capital_df: pd.DataFrame):
+    def update_capital_pd_df_for_strategy(
+        self, strategy_name: str, updated_capital_df: pd.DataFrame
+    ):
         self.arctic.write(strategy_name, updated_capital_df)
-
-

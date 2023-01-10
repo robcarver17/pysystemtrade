@@ -46,7 +46,6 @@ class csvFuturesContractPriceData(futuresContractPriceData):
     def __repr__(self):
         return "csvFuturesContractPricesData accessing %s" % self._datapath
 
-
     def _get_merged_prices_for_contract_object_no_checking(
         self, futures_contract_object: futuresContract
     ) -> futuresContractPrices:
@@ -57,14 +56,17 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         :return: data
         """
 
-        return self._get_prices_at_frequency_for_contract_object_no_checking(futures_contract_object=futures_contract_object,
-                                                                             frequency=MIXED_FREQ)
+        return self._get_prices_at_frequency_for_contract_object_no_checking(
+            futures_contract_object=futures_contract_object, frequency=MIXED_FREQ
+        )
 
-    def _get_prices_at_frequency_for_contract_object_no_checking \
-                    (self, futures_contract_object: futuresContract, frequency: Frequency) -> futuresContractPrices:
+    def _get_prices_at_frequency_for_contract_object_no_checking(
+        self, futures_contract_object: futuresContract, frequency: Frequency
+    ) -> futuresContractPrices:
 
-        keyname = self._keyname_given_contract_object_and_freq(futures_contract_object,
-                                                               frequency=frequency)
+        keyname = self._keyname_given_contract_object_and_freq(
+            futures_contract_object, frequency=frequency
+        )
         filename = self._filename_given_key_name(keyname)
         config = self.config
 
@@ -101,7 +103,6 @@ class csvFuturesContractPriceData(futuresContractPriceData):
 
         return instrpricedata
 
-
     def _write_merged_prices_for_contract_object_no_checking(
         self,
         futures_contract_object: futuresContract,
@@ -115,25 +116,26 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         :param futures_price_data: futuresContractPriceData
         :return: None
         """
-        self._write_prices_at_frequency_for_contract_object_no_checking(futures_contract_object=futures_contract_object,
-                                                                        futures_price_data=futures_price_data,
-                                                                        frequency=MIXED_FREQ,
-                                                                        )
+        self._write_prices_at_frequency_for_contract_object_no_checking(
+            futures_contract_object=futures_contract_object,
+            futures_price_data=futures_price_data,
+            frequency=MIXED_FREQ,
+        )
 
     def _write_prices_at_frequency_for_contract_object_no_checking(
         self,
         futures_contract_object: futuresContract,
         futures_price_data: futuresContractPrices,
-        frequency: Frequency
+        frequency: Frequency,
     ):
 
-        keyname = self._keyname_given_contract_object_and_freq(futures_contract_object,
-                                                               frequency=frequency)
+        keyname = self._keyname_given_contract_object_and_freq(
+            futures_contract_object, frequency=frequency
+        )
         filename = self._filename_given_key_name(keyname)
         futures_price_data.to_csv(
             filename, index_label=self.config.input_date_index_name
         )
-
 
     def _delete_merged_prices_for_contract_object_with_no_checks_be_careful(
         self, futures_contract_object: futuresContract
@@ -143,29 +145,29 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         )
 
     def _delete_prices_at_frequency_for_contract_object_with_no_checks_be_careful(
-        self, futures_contract_object: futuresContract,
-            frequency: Frequency
+        self, futures_contract_object: futuresContract, frequency: Frequency
     ):
         raise NotImplementedError(
             "You can't delete futures prices stored as a csv - Add to overwrite existing data, or delete file manually"
         )
 
+    def has_merged_price_data_for_contract(
+        self, contract_object: futuresContract
+    ) -> bool:
+        return self.has_price_data_for_contract_at_frequency(
+            contract_object, frequency=MIXED_FREQ
+        )
 
-    def has_merged_price_data_for_contract(self, contract_object: futuresContract) -> bool:
-        return self.has_price_data_for_contract_at_frequency(contract_object,
-                                                             frequency=MIXED_FREQ)
-
-    def has_price_data_for_contract_at_frequency(self,
-                                                 contract_object: futuresContract,
-                                                 frequency: Frequency) -> bool:
+    def has_price_data_for_contract_at_frequency(
+        self, contract_object: futuresContract, frequency: Frequency
+    ) -> bool:
         if (
-            self._keyname_given_contract_object_and_freq(contract_object,
-                                                         frequency=frequency)
+            self._keyname_given_contract_object_and_freq(
+                contract_object, frequency=frequency
+            )
             in self._all_keynames_in_library()
         ):
             return True
-
-
 
     def get_contracts_with_merged_price_data(self) -> listOfFuturesContracts:
         """
@@ -175,22 +177,23 @@ class csvFuturesContractPriceData(futuresContractPriceData):
 
         return self.get_contracts_with_price_data_for_frequency(frequency=MIXED_FREQ)
 
-    def get_contracts_with_price_data_for_frequency(self,
-                                                    frequency: Frequency) -> listOfFuturesContracts:
+    def get_contracts_with_price_data_for_frequency(
+        self, frequency: Frequency
+    ) -> listOfFuturesContracts:
 
-        list_of_contract_and_freq_tuples = self._get_contract_freq_tuples_with_price_data()
+        list_of_contract_and_freq_tuples = (
+            self._get_contract_freq_tuples_with_price_data()
+        )
 
-        list_of_contracts = [futuresContract(contract_freq_tuple[1],
-                                            contract_freq_tuple[2])
-                            for contract_freq_tuple in
-                                    list_of_contract_and_freq_tuples
-                            if contract_freq_tuple[0]==frequency]
+        list_of_contracts = [
+            futuresContract(contract_freq_tuple[1], contract_freq_tuple[2])
+            for contract_freq_tuple in list_of_contract_and_freq_tuples
+            if contract_freq_tuple[0] == frequency
+        ]
 
         list_of_contracts = listOfFuturesContracts(list_of_contracts)
 
         return list_of_contracts
-
-
 
     def _get_contract_freq_tuples_with_price_data(self) -> list:
         """
@@ -200,14 +203,14 @@ class csvFuturesContractPriceData(futuresContractPriceData):
 
         all_keynames = self._all_keynames_in_library()
         list_of_contract_and_freq_tuples = [
-            self._contract_tuple_and_freq_given_keyname(keyname) for keyname in all_keynames
+            self._contract_tuple_and_freq_given_keyname(keyname)
+            for keyname in all_keynames
         ]
 
         return list_of_contract_and_freq_tuples
 
     def _keyname_given_contract_object_and_freq(
-        self, futures_contract_object: futuresContract,
-            frequency: Frequency
+        self, futures_contract_object: futuresContract, frequency: Frequency
     ) -> str:
         """
         We could do this using the .ident() method of instrument_object, but this way we keep control inside this class
@@ -218,13 +221,12 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         if frequency is MIXED_FREQ:
             frequency_str = ""
         else:
-            frequency_str = frequency.name+"/"
+            frequency_str = frequency.name + "/"
 
         instrument_str = str(futures_contract_object.instrument)
         date_str = str(futures_contract_object.date_str)
 
         return "%s%s_%s" % (frequency_str, instrument_str, date_str)
-
 
     def _contract_tuple_and_freq_given_keyname(self, keyname: str) -> tuple:
         """
@@ -236,7 +238,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         :return: tuple instrument_code, contract_date
         """
         first_split_keyname_as_list = keyname.split("/")
-        if len(first_split_keyname_as_list)==2:
+        if len(first_split_keyname_as_list) == 2:
             ## has frequency
             frequency = Frequency[first_split_keyname_as_list[0]]
             residual_keyname = first_split_keyname_as_list[1]
@@ -285,4 +287,3 @@ class csvFuturesContractPriceData(futuresContractPriceData):
     @property
     def datapath(self):
         return self._datapath
-

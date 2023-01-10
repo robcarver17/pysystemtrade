@@ -6,7 +6,7 @@ from syscore.interactive import (
     get_and_convert,
     run_interactive_menu,
     print_menu_and_get_response,
-true_if_answer_is_yes
+    true_if_answer_is_yes,
 )
 from syscore.algos import magnitude
 from syscore.pdutils import set_pd_print_options
@@ -14,9 +14,13 @@ from syscore.dateutils import CALENDAR_DAYS_IN_YEAR, DAILY_PRICE_FREQ
 from syscore.genutils import round_significant_figures
 from syscore.objects import missing_data
 
-from sysinit.futures.repocsv_instrument_config import copy_instrument_config_from_csv_to_mongo
+from sysinit.futures.repocsv_instrument_config import (
+    copy_instrument_config_from_csv_to_mongo,
+)
 from sysinit.futures.safely_modify_roll_parameters import safely_modify_roll_parameters
-from sysinit.futures.roll_parameters_csv_mongo import copy_roll_parameters_from_csv_to_mongo
+from sysinit.futures.roll_parameters_csv_mongo import (
+    copy_roll_parameters_from_csv_to_mongo,
+)
 
 from sysdata.data_blob import dataBlob
 from sysobjects.contracts import futuresContract
@@ -26,7 +30,7 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 from sysproduction.backup_arctic_to_csv import (
     get_data_and_create_csv_directories,
     backup_instrument_data,
-    backup_roll_parameters
+    backup_roll_parameters,
 )
 from sysproduction.data.controls import (
     diagOverrides,
@@ -42,17 +46,25 @@ from sysproduction.data.control_process import dataControlProcess, diagControlPr
 from sysproduction.data.prices import (
     get_valid_instrument_code_from_user,
     get_list_of_instruments,
-    diagPrices, updatePrices, spreadsForInstrumentData
+    diagPrices,
+    updatePrices,
+    spreadsForInstrumentData,
 )
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.instruments import dataInstruments
 from sysproduction.reporting.data.risk import get_risk_data_for_instrument
-from sysproduction.reporting.data.volume import get_best_average_daily_volume_for_instrument
+from sysproduction.reporting.data.volume import (
+    get_best_average_daily_volume_for_instrument,
+)
 
 from sysproduction.reporting.api import reportingApi
 
 # could get from config, but might be different by system
-from sysproduction.reporting.data.constants import MAX_VS_AVERAGE_FORECAST, RISK_TARGET_ASSUMED, MAX_PROPORTION_OF_VOLUME
+from sysproduction.reporting.data.constants import (
+    MAX_VS_AVERAGE_FORECAST,
+    RISK_TARGET_ASSUMED,
+    MAX_PROPORTION_OF_VOLUME,
+)
 
 
 @dataclass()
@@ -95,7 +107,7 @@ top_level_menu_of_options = {
     3: "Broker client IDS",
     4: "Process control and monitoring",
     5: "Update configuration",
-    6: "Deletion"
+    6: "Deletion",
 }
 
 nested_menu_of_options = {
@@ -137,11 +149,9 @@ nested_menu_of_options = {
         53: "Copy roll parameters config from DB to .csv",
         54: "Copy roll parameters config from .csv to DB",
         55: "Safe modify of roll parameters configuration",
-        56: "Check price multipliers are consistent"
+        56: "Check price multipliers are consistent",
     },
-    6: {
-        60: "Delete instrument from price tables"
-    }
+    6: {60: "Delete instrument from price tables"},
 }
 
 
@@ -232,7 +242,9 @@ def reset_limit_for_instrument_strategy(data):
             instrument_strategy=instrument_strategy, period_days=period_days
         )
 
+
 from sysproduction.reporting.data.constants import MAX_POSITION_TRADED_DAILY
+
 
 def auto_populate_limits(data: dataBlob):
     instrument_list = get_list_of_instruments(data)
@@ -250,15 +262,13 @@ def auto_populate_limits(data: dataBlob):
         set_trade_limit_for_instrument(
             data,
             instrument_code=instrument_code,
-            auto_parameters = auto_parameters,
+            auto_parameters=auto_parameters,
             trade_multiplier=trade_multiplier,
             period_days=period_days,
-
         )
         for instrument_code in instrument_list
     ]
     return None
-
 
 
 def set_trade_limit_for_instrument(
@@ -266,16 +276,16 @@ def set_trade_limit_for_instrument(
     instrument_code: str,
     trade_multiplier: float,
     period_days: int,
-    auto_parameters: parametersForAutoPopulation
+    auto_parameters: parametersForAutoPopulation,
 ):
 
     trade_limits = dataTradeLimits(data)
     new_limit = calc_trade_limit_for_instrument(
         data,
         instrument_code=instrument_code,
-        auto_parameters = auto_parameters,
+        auto_parameters=auto_parameters,
         trade_multiplier=trade_multiplier,
-        period_days=period_days
+        period_days=period_days,
     )
     if np.isnan(new_limit):
         print("Can't calculate trade limit for %s, not setting" % instrument_code)
@@ -293,13 +303,10 @@ def calc_trade_limit_for_instrument(
     instrument_code: str,
     trade_multiplier: float,
     period_days: int,
-    auto_parameters: parametersForAutoPopulation
-
+    auto_parameters: parametersForAutoPopulation,
 ):
     standard_position = get_maximum_position_at_max_forecast(
-        data,
-        instrument_code=instrument_code,
-        auto_parameters = auto_parameters
+        data, instrument_code=instrument_code, auto_parameters=auto_parameters
     )
     if np.isnan(standard_position):
         return np.nan
@@ -311,12 +318,20 @@ def calc_trade_limit_for_instrument(
     return standard_trade_int
 
 
-from sysproduction.reporting.data.constants import IDM_ASSUMED, INSTRUMENT_WEIGHT_ASSUMED, RAW_MAX_LEVERAGE, MAX_RISK_EXPOSURE_ONE_INSTRUMENT
+from sysproduction.reporting.data.constants import (
+    IDM_ASSUMED,
+    INSTRUMENT_WEIGHT_ASSUMED,
+    RAW_MAX_LEVERAGE,
+    MAX_RISK_EXPOSURE_ONE_INSTRUMENT,
+)
+
 
 def get_auto_population_parameters() -> parametersForAutoPopulation:
     print("Enter parameters to estimate typical position sizes")
     notional_risk_target = get_and_convert(
-        "Notional risk target (% per year, 0.25 = 25%%)", type_expected=float, default_value=RISK_TARGET_ASSUMED/100.0
+        "Notional risk target (% per year, 0.25 = 25%%)",
+        type_expected=float,
+        default_value=RISK_TARGET_ASSUMED / 100.0,
     )
     approx_IDM = get_and_convert(
         "Approximate IDM", type_expected=float, default_value=IDM_ASSUMED
@@ -335,51 +350,54 @@ def get_auto_population_parameters() -> parametersForAutoPopulation:
     max_proportion_risk_one_contract = get_and_convert(
         "Maximum proportion of risk in a single instrument (0.1 = 10%%)",
         type_expected=float,
-        default_value=MAX_RISK_EXPOSURE_ONE_INSTRUMENT
+        default_value=MAX_RISK_EXPOSURE_ONE_INSTRUMENT,
     )
 
     max_proportion_of_volume = get_and_convert(
         "Maximum proportion of volume for expiry with largest volume (0.1 = 10%)",
         type_expected=float,
-        default_value=MAX_PROPORTION_OF_VOLUME
+        default_value=MAX_PROPORTION_OF_VOLUME,
     )
 
-    auto_parameters = parametersForAutoPopulation(raw_max_leverage = raw_max_leverage,
-                   max_vs_average_forecast = MAX_VS_AVERAGE_FORECAST,
-                   notional_risk_target =notional_risk_target,
-                   approx_IDM = approx_IDM,
-                    max_proportion_risk_one_contract=max_proportion_risk_one_contract,
-                   notional_instrument_weight = notional_instrument_weight,
-                    max_proportion_of_volume = max_proportion_of_volume )
+    auto_parameters = parametersForAutoPopulation(
+        raw_max_leverage=raw_max_leverage,
+        max_vs_average_forecast=MAX_VS_AVERAGE_FORECAST,
+        notional_risk_target=notional_risk_target,
+        approx_IDM=approx_IDM,
+        max_proportion_risk_one_contract=max_proportion_risk_one_contract,
+        notional_instrument_weight=notional_instrument_weight,
+        max_proportion_of_volume=max_proportion_of_volume,
+    )
 
     return auto_parameters
 
 
 def get_maximum_position_at_max_forecast(
-    data: dataBlob,
-    instrument_code: str,
-    auto_parameters: parametersForAutoPopulation
+    data: dataBlob, instrument_code: str, auto_parameters: parametersForAutoPopulation
 ) -> float:
 
     risk_data = get_risk_data_for_instrument(data, instrument_code)
-    position_for_risk = get_standardised_position_for_risk(risk_data,
-                                                           auto_parameters = auto_parameters)
+    position_for_risk = get_standardised_position_for_risk(
+        risk_data, auto_parameters=auto_parameters
+    )
     position_with_leverage = get_maximum_position_given_leverage_limit(
-                        risk_data,
-                        auto_parameters = auto_parameters
-                        )
-
-    position_for_concentration = get_maximum_position_given_risk_concentration_limit(
-        risk_data,
-        auto_parameters=auto_parameters
+        risk_data, auto_parameters=auto_parameters
     )
 
-    position_for_volume = get_max_position_give_volume_limit(data,
-                                                             instrument_code=instrument_code,
-                                                             auto_parameters=auto_parameters)
+    position_for_concentration = get_maximum_position_given_risk_concentration_limit(
+        risk_data, auto_parameters=auto_parameters
+    )
 
-    standard_position = min(position_for_risk, position_with_leverage, position_for_concentration, position_for_volume)
+    position_for_volume = get_max_position_give_volume_limit(
+        data, instrument_code=instrument_code, auto_parameters=auto_parameters
+    )
 
+    standard_position = min(
+        position_for_risk,
+        position_with_leverage,
+        position_for_concentration,
+        position_for_volume,
+    )
 
     print(
         "Standardised maximum position for %s is %.1f, minimum of %.1f (risk), %.1f (leverage), %.1f (concentration), and %1.f (volume)"
@@ -389,23 +407,23 @@ def get_maximum_position_at_max_forecast(
             position_for_risk,
             position_with_leverage,
             position_for_concentration,
-            position_for_volume
+            position_for_volume,
         )
     )
 
     return standard_position
 
 
-
-
-
-def get_standardised_position_for_risk(risk_data: dict,
-                        auto_parameters: parametersForAutoPopulation) -> float:
+def get_standardised_position_for_risk(
+    risk_data: dict, auto_parameters: parametersForAutoPopulation
+) -> float:
 
     capital = risk_data["capital"]
     annual_risk_per_contract = risk_data["annual_risk_per_contract"]
     if np.isnan(annual_risk_per_contract):
-        print("No estimated risk for contract, can't calculate standard position - returning zero")
+        print(
+            "No estimated risk for contract, can't calculate standard position - returning zero"
+        )
         return 0
 
     max_forecast_ratio = auto_parameters.max_vs_average_forecast
@@ -413,23 +431,36 @@ def get_standardised_position_for_risk(risk_data: dict,
     instr_weight = auto_parameters.notional_instrument_weight
     risk_target = auto_parameters.notional_risk_target
 
-    standard_position = abs(max_forecast_ratio *             \
-                        capital * idm      *             \
-                        instr_weight * risk_target /     \
-                        (annual_risk_per_contract))
+    standard_position = abs(
+        max_forecast_ratio
+        * capital
+        * idm
+        * instr_weight
+        * risk_target
+        / (annual_risk_per_contract)
+    )
 
-    print("Standard position = %.2f = (Max / Average forecast) * Capital * IDM * instrument weight * risk target / Annual cash risk per contract "  % (
-      standard_position
-    ))
-    print("                  = (%.1f) * %.0f * %.2f * %.3f * %.3f / %.2f" %
-          (max_forecast_ratio, capital, idm, instr_weight, risk_target, annual_risk_per_contract))
+    print(
+        "Standard position = %.2f = (Max / Average forecast) * Capital * IDM * instrument weight * risk target / Annual cash risk per contract "
+        % (standard_position)
+    )
+    print(
+        "                  = (%.1f) * %.0f * %.2f * %.3f * %.3f / %.2f"
+        % (
+            max_forecast_ratio,
+            capital,
+            idm,
+            instr_weight,
+            risk_target,
+            annual_risk_per_contract,
+        )
+    )
 
     return standard_position
 
 
 def get_maximum_position_given_leverage_limit(
-    risk_data: dict,
-        auto_parameters: parametersForAutoPopulation
+    risk_data: dict, auto_parameters: parametersForAutoPopulation
 ) -> float:
     notional_exposure_per_contract = risk_data["contract_exposure"]
     capital = risk_data["capital"]
@@ -439,26 +470,34 @@ def get_maximum_position_given_leverage_limit(
     max_position = abs(max_exposure / notional_exposure_per_contract)
     round_max_position = int(np.floor(max_position))
 
-    print("Max position with leverage = %.2f (%d) = Max exposure / Notional per contract = %0.f / %1.f" %
-          (max_position, round_max_position, max_exposure, notional_exposure_per_contract))
+    print(
+        "Max position with leverage = %.2f (%d) = Max exposure / Notional per contract = %0.f / %1.f"
+        % (
+            max_position,
+            round_max_position,
+            max_exposure,
+            notional_exposure_per_contract,
+        )
+    )
 
-    print("(Max exposure = Capital * Maximum leverage = %.0f * %.2f" % (
-        capital, max_leverage
-    ))
+    print(
+        "(Max exposure = Capital * Maximum leverage = %.0f * %.2f"
+        % (capital, max_leverage)
+    )
 
     return round_max_position
 
+
 def get_maximum_position_given_risk_concentration_limit(
-    risk_data: dict,
-        auto_parameters: parametersForAutoPopulation
+    risk_data: dict, auto_parameters: parametersForAutoPopulation
 ) -> float:
 
-    ccy_risk_per_contract = abs(risk_data['annual_risk_per_contract'])
+    ccy_risk_per_contract = abs(risk_data["annual_risk_per_contract"])
     if np.isnan(ccy_risk_per_contract):
         print("Can't get risk per contract, Max position exposure limit will be zero")
         return 0
 
-    capital = risk_data['capital']
+    capital = risk_data["capital"]
     risk_target = auto_parameters.notional_risk_target
     cash_risk_capital = capital * risk_target
 
@@ -469,30 +508,46 @@ def get_maximum_position_given_risk_concentration_limit(
     position_limit = abs(risk_budget_this_contract / ccy_risk_per_contract)
     round_position_limit = int(np.floor(position_limit))
 
-    print("Max position exposure limit = %.2f (%d) = Risk budget / CCy risk per contract = %.1f / %.1f"
-          % (position_limit, round_position_limit, risk_budget_this_contract, ccy_risk_per_contract))
-    print("(Risk budget = Cash risk capital * max proportion of risk = %.0f * %.3f)" %
-          (cash_risk_capital, max_proportion_risk_one_contract))
-    print("(Cash risk capital = Capital * Risk target = %0.f * %.3f" %
-          (capital, risk_target))
+    print(
+        "Max position exposure limit = %.2f (%d) = Risk budget / CCy risk per contract = %.1f / %.1f"
+        % (
+            position_limit,
+            round_position_limit,
+            risk_budget_this_contract,
+            ccy_risk_per_contract,
+        )
+    )
+    print(
+        "(Risk budget = Cash risk capital * max proportion of risk = %.0f * %.3f)"
+        % (cash_risk_capital, max_proportion_risk_one_contract)
+    )
+    print(
+        "(Cash risk capital = Capital * Risk target = %0.f * %.3f"
+        % (capital, risk_target)
+    )
 
     return round_position_limit
 
-def get_max_position_give_volume_limit(data: dataBlob,
-                                        instrument_code: str,
-                                       auto_parameters: parametersForAutoPopulation) -> float:
+
+def get_max_position_give_volume_limit(
+    data: dataBlob, instrument_code: str, auto_parameters: parametersForAutoPopulation
+) -> float:
 
     max_proportion_of_volume = auto_parameters.max_proportion_of_volume
-    volume_for_instrument = get_best_average_daily_volume_for_instrument(data, instrument_code)
+    volume_for_instrument = get_best_average_daily_volume_for_instrument(
+        data, instrument_code
+    )
     if np.isnan(volume_for_instrument):
         print("No volume data available!! Assuming no constraint on liquidity")
         return 999999999
 
     volume_limit = max_proportion_of_volume * volume_for_instrument
-    print("Volume is %d and we are happy to do %.1f%% of that, i.e. %f" % (volume_for_instrument,
-                                                                         max_proportion_of_volume*100,
-                                                                         volume_limit))
+    print(
+        "Volume is %d and we are happy to do %.1f%% of that, i.e. %f"
+        % (volume_for_instrument, max_proportion_of_volume * 100, volume_limit)
+    )
     return volume_limit
+
 
 def view_position_limit(data):
 
@@ -566,9 +621,7 @@ def auto_populate_position_limits(data: dataBlob):
     auto_parameters = get_auto_population_parameters()
     [
         set_position_limit_for_instrument(
-            data,
-            instrument_code=instrument_code,
-            auto_parameters = auto_parameters
+            data, instrument_code=instrument_code, auto_parameters=auto_parameters
         )
         for instrument_code in instrument_list
     ]
@@ -576,16 +629,15 @@ def auto_populate_position_limits(data: dataBlob):
 
 
 def set_position_limit_for_instrument(
-    data, instrument_code: str,
-        auto_parameters: parametersForAutoPopulation
+    data, instrument_code: str, auto_parameters: parametersForAutoPopulation
 ):
 
     data_position_limits = dataPositionLimits(data)
-    existing_position_limit = data_position_limits._get_position_limit_object_for_instrument(instrument_code)
+    existing_position_limit = (
+        data_position_limits._get_position_limit_object_for_instrument(instrument_code)
+    )
     max_position_int = get_max_rounded_position_for_instrument(
-        data,
-        instrument_code=instrument_code,
-        auto_parameters = auto_parameters
+        data, instrument_code=instrument_code, auto_parameters=auto_parameters
     )
 
     if np.isnan(max_position_int):
@@ -594,24 +646,25 @@ def set_position_limit_for_instrument(
             % instrument_code
         )
     else:
-        print("Update limit for %s from %s to %d" %
-              (instrument_code,
-               str(existing_position_limit.position_limit),
-               max_position_int))
+        print(
+            "Update limit for %s from %s to %d"
+            % (
+                instrument_code,
+                str(existing_position_limit.position_limit),
+                max_position_int,
+            )
+        )
         data_position_limits.set_abs_position_limit_for_instrument(
             instrument_code, max_position_int
         )
 
 
 def get_max_rounded_position_for_instrument(
-    data, instrument_code: str,
-        auto_parameters: parametersForAutoPopulation
+    data, instrument_code: str, auto_parameters: parametersForAutoPopulation
 ):
 
     max_position = get_maximum_position_at_max_forecast(
-        data,
-        instrument_code=instrument_code,
-        auto_parameters = auto_parameters
+        data, instrument_code=instrument_code, auto_parameters=auto_parameters
     )
     if np.isnan(max_position):
         return np.nan
@@ -838,7 +891,9 @@ def get_list_of_changes_to_make_to_slippage(
         if mult_factor > 1:
             print("ALL VALUES MULTIPLIED BY %f INCLUDING INPUTS!!!!" % mult_factor)
 
-        suggested_estimate_multiplied = round_significant_figures(suggested_estimate * mult_factor,2)
+        suggested_estimate_multiplied = round_significant_figures(
+            suggested_estimate * mult_factor, 2
+        )
         configured_estimate_multiplied = configured * mult_factor
 
         print(pd_row * mult_factor)
@@ -854,8 +909,8 @@ def get_list_of_changes_to_make_to_slippage(
             print("Same as configured, do nothing...")
             continue
         if estimate_to_use_with_mult != suggested_estimate_multiplied:
-            difference = (
-                abs((estimate_to_use_with_mult / suggested_estimate_multiplied) - 1.0)
+            difference = abs(
+                (estimate_to_use_with_mult / suggested_estimate_multiplied) - 1.0
             )
             if difference > 0.5:
                 ans = input(
@@ -919,6 +974,7 @@ def backup_instrument_data_to_csv(data: dataBlob):
     )
     backup_instrument_data(backup_data)
 
+
 def backup_roll_parameters_data_to_csv(data: dataBlob):
     backup_data = get_data_and_create_csv_directories("")
 
@@ -928,14 +984,16 @@ def backup_roll_parameters_data_to_csv(data: dataBlob):
     )
     backup_roll_parameters(backup_data)
 
+
 def check_price_multipliers_consistent(data: dataBlob):
-    list_of_instruments = get_list_of_instruments(data,
-                                                  "single")
+    list_of_instruments = get_list_of_instruments(data, "single")
     for instrument_code in list_of_instruments:
         check_price_multipliers_consistent_for_instrument(data, instrument_code)
 
-def check_price_multipliers_consistent_for_instrument(data: dataBlob,
-                                                      instrument_code: str):
+
+def check_price_multipliers_consistent_for_instrument(
+    data: dataBlob, instrument_code: str
+):
 
     print("Checking %s" % instrument_code)
     data_broker = dataBroker(data)
@@ -944,42 +1002,61 @@ def check_price_multipliers_consistent_for_instrument(data: dataBlob,
 
     point_size_from_instrument_config = diag_instruments.get_point_size(instrument_code)
 
-    ib_config_for_instrument = data_broker.broker_futures_instrument_data.get_instrument_data(instrument_code)
+    ib_config_for_instrument = (
+        data_broker.broker_futures_instrument_data.get_instrument_data(instrument_code)
+    )
 
     contract_id_priced_contract = data_contracts.get_priced_contract_id(instrument_code)
     priced_contract = futuresContract(instrument_code, contract_id_priced_contract)
-    contract_price_magnifier_from_ib = data_broker.broker_futures_contract_data.get_price_magnifier_for_contract(priced_contract)
+    contract_price_magnifier_from_ib = (
+        data_broker.broker_futures_contract_data.get_price_magnifier_for_contract(
+            priced_contract
+        )
+    )
 
     ib_configured_multiplier = ib_config_for_instrument.ib_data.ibMultiplier
     ib_configured_price_magnifier = ib_config_for_instrument.ib_data.priceMagnifier
-    ib_configured_effective_multiplier = ib_config_for_instrument.ib_data.effective_multiplier
+    ib_configured_effective_multiplier = (
+        ib_config_for_instrument.ib_data.effective_multiplier
+    )
 
-    if contract_price_magnifier_from_ib!=ib_configured_price_magnifier:
-        print("Configured price magnifier of %s is different from value returned by IB of %s, for %s!" %
-              (str(ib_configured_price_magnifier),
-               str(contract_price_magnifier_from_ib),
-               instrument_code))
+    if contract_price_magnifier_from_ib != ib_configured_price_magnifier:
+        print(
+            "Configured price magnifier of %s is different from value returned by IB of %s, for %s!"
+            % (
+                str(ib_configured_price_magnifier),
+                str(contract_price_magnifier_from_ib),
+                instrument_code,
+            )
+        )
 
-    if ib_configured_effective_multiplier!=point_size_from_instrument_config:
-        print("IB configured effective multiplier of %s (equal to multiplier %s x magnifier %s) is different from instrument configuration value of %s for %s" % \
-              (str(ib_configured_effective_multiplier),
-               str(ib_configured_multiplier),
-               str(ib_configured_price_magnifier),
-               str(point_size_from_instrument_config),
-               instrument_code))
+    if ib_configured_effective_multiplier != point_size_from_instrument_config:
+        print(
+            "IB configured effective multiplier of %s (equal to multiplier %s x magnifier %s) is different from instrument configuration value of %s for %s"
+            % (
+                str(ib_configured_effective_multiplier),
+                str(ib_configured_multiplier),
+                str(ib_configured_price_magnifier),
+                str(point_size_from_instrument_config),
+                instrument_code,
+            )
+        )
 
     return None
 
+
 def delete_instrument_from_prices(data: dataBlob):
-    exit_code=""
+    exit_code = ""
     instrument_code = get_valid_instrument_code_from_user(
-        allow_all=False, source = "single", allow_exit=True,
-    exit_code=exit_code)
+        allow_all=False, source="single", allow_exit=True, exit_code=exit_code
+    )
 
     if instrument_code == exit_code:
         return False
 
-    sure = true_if_answer_is_yes("Note that this will only delete price data and contract data. Won't delete configuration, position, or order data related to an instrument. Are you REALLY sure about this???")
+    sure = true_if_answer_is_yes(
+        "Note that this will only delete price data and contract data. Won't delete configuration, position, or order data related to an instrument. Are you REALLY sure about this???"
+    )
     if not sure:
         return False
 
@@ -988,16 +1065,25 @@ def delete_instrument_from_prices(data: dataBlob):
     daily_frequency = DAILY_PRICE_FREQ
 
     update_prices = updatePrices(data)
-    update_prices.delete_contract_prices_at_frequency_for_instrument_code(instrument_code, frequency=intraday_frequency, are_you_sure=True)
-    update_prices.delete_contract_prices_at_frequency_for_instrument_code(instrument_code, frequency=daily_frequency, are_you_sure=True)
-    update_prices.delete_merged_contract_prices_for_instrument_code(instrument_code, are_you_sure=True)
+    update_prices.delete_contract_prices_at_frequency_for_instrument_code(
+        instrument_code, frequency=intraday_frequency, are_you_sure=True
+    )
+    update_prices.delete_contract_prices_at_frequency_for_instrument_code(
+        instrument_code, frequency=daily_frequency, are_you_sure=True
+    )
+    update_prices.delete_merged_contract_prices_for_instrument_code(
+        instrument_code, are_you_sure=True
+    )
     update_prices.delete_multiple_prices(instrument_code, are_you_sure=True)
     update_prices.delete_adjusted_prices(instrument_code, are_you_sure=True)
-    
+
     update_prices.delete_spreads(instrument_code, are_you_sure=True)
 
-    data_contracts= dataContracts(data)
-    data_contracts.delete_all_contracts_for_instrument(instrument_code, are_you_sure=True)
+    data_contracts = dataContracts(data)
+    data_contracts.delete_all_contracts_for_instrument(
+        instrument_code, are_you_sure=True
+    )
+
 
 def not_defined(data):
     print("\n\nFunction not yet defined\n\n")
@@ -1034,10 +1120,8 @@ dict_of_functions = {
     54: copy_roll_parameters_from_csv_to_mongo,
     55: safely_modify_roll_parameters,
     56: check_price_multipliers_consistent,
-    60: delete_instrument_from_prices
-
-
+    60: delete_instrument_from_prices,
 }
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     interactive_controls()

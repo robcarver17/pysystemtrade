@@ -11,13 +11,22 @@ from sysdata.data_blob import dataBlob
 
 
 from sysobjects.production.tradeable_object import instrumentStrategy
-from sysproduction.data.risk import get_correlation_matrix_for_instrument_returns, \
-    get_annualised_stdev_perc_of_instruments, get_current_annualised_perc_stdev_for_instrument, \
-    get_current_daily_perc_stdev_for_instrument, get_daily_ts_stdev_of_prices, get_exposure_per_contract_base_currency, \
-    get_base_currency_point_size_per_contract
+from sysproduction.data.risk import (
+    get_correlation_matrix_for_instrument_returns,
+    get_annualised_stdev_perc_of_instruments,
+    get_current_annualised_perc_stdev_for_instrument,
+    get_current_daily_perc_stdev_for_instrument,
+    get_daily_ts_stdev_of_prices,
+    get_exposure_per_contract_base_currency,
+    get_base_currency_point_size_per_contract,
+)
 from sysproduction.data.instruments import diagInstruments
-from sysproduction.reporting.data.constants import RISK_TARGET_ASSUMED, INSTRUMENT_WEIGHT_ASSUMED, IDM_ASSUMED, \
-    MIN_CONTRACTS_HELD
+from sysproduction.reporting.data.constants import (
+    RISK_TARGET_ASSUMED,
+    INSTRUMENT_WEIGHT_ASSUMED,
+    IDM_ASSUMED,
+    MIN_CONTRACTS_HELD,
+)
 
 from sysquant.estimators.covariance import (
     get_annualised_risk,
@@ -29,10 +38,15 @@ from sysquant.optimisation.weights import portfolioWeights
 
 from sysproduction.data.capital import dataCapital, dataMargin, capital_for_strategy
 from sysproduction.data.positions import diagPositions
-from sysproduction.data.prices import get_list_of_instruments, get_current_price_of_instrument, diagPrices
+from sysproduction.data.prices import (
+    get_list_of_instruments,
+    get_current_price_of_instrument,
+    diagPrices,
+)
 
 
 ## only used for reporting purposes
+
 
 def get_margin_usage(data) -> float:
     capital = get_current_capital(data)
@@ -41,10 +55,12 @@ def get_margin_usage(data) -> float:
 
     return margin_usage
 
+
 def get_current_capital(data) -> float:
     data_capital = dataCapital(data)
     capital = data_capital.get_current_total_capital()
     return capital
+
 
 def get_current_margin(data) -> float:
     data_margin = dataMargin(data)
@@ -52,31 +68,38 @@ def get_current_margin(data) -> float:
 
     return margin
 
-def minimum_capital_table(data,
-                          only_held_instruments=False,
-                          risk_target =RISK_TARGET_ASSUMED,
-                          min_contracts_held =MIN_CONTRACTS_HELD,
-                          idm =IDM_ASSUMED,
-                          instrument_weight =INSTRUMENT_WEIGHT_ASSUMED
-                          ) -> pd.DataFrame:
 
-    instrument_risk_table = get_instrument_risk_table(data,
-                                                      only_held_instruments=only_held_instruments)
+def minimum_capital_table(
+    data,
+    only_held_instruments=False,
+    risk_target=RISK_TARGET_ASSUMED,
+    min_contracts_held=MIN_CONTRACTS_HELD,
+    idm=IDM_ASSUMED,
+    instrument_weight=INSTRUMENT_WEIGHT_ASSUMED,
+) -> pd.DataFrame:
 
-    min_capital_pd = from_risk_table_to_min_capital(instrument_risk_table,
-                                                 risk_target=risk_target,
-                                                    min_contracts_held=min_contracts_held,
-                                                    idm=idm,
-                                                    instrument_weight=instrument_weight)
+    instrument_risk_table = get_instrument_risk_table(
+        data, only_held_instruments=only_held_instruments
+    )
+
+    min_capital_pd = from_risk_table_to_min_capital(
+        instrument_risk_table,
+        risk_target=risk_target,
+        min_contracts_held=min_contracts_held,
+        idm=idm,
+        instrument_weight=instrument_weight,
+    )
 
     return min_capital_pd
 
-def from_risk_table_to_min_capital(instrument_risk_table: pd.DataFrame,
-                                   risk_target =RISK_TARGET_ASSUMED,
-                                   min_contracts_held=MIN_CONTRACTS_HELD,
-                                   idm=IDM_ASSUMED,
-                                   instrument_weight=INSTRUMENT_WEIGHT_ASSUMED
-                                   ) -> pd.DataFrame:
+
+def from_risk_table_to_min_capital(
+    instrument_risk_table: pd.DataFrame,
+    risk_target=RISK_TARGET_ASSUMED,
+    min_contracts_held=MIN_CONTRACTS_HELD,
+    idm=IDM_ASSUMED,
+    instrument_weight=INSTRUMENT_WEIGHT_ASSUMED,
+) -> pd.DataFrame:
 
     base_multiplier = instrument_risk_table.point_size_base
     price = instrument_risk_table.price
@@ -86,36 +109,45 @@ def from_risk_table_to_min_capital(instrument_risk_table: pd.DataFrame,
     ## risk target is 20 = 20, so divide by 100
     ## These two effects cancel
 
-    single_contract_min_capital = base_multiplier * price * ann_perc_stdev / \
-                         (risk_target)
+    single_contract_min_capital = (
+        base_multiplier * price * ann_perc_stdev / (risk_target)
+    )
 
-    min_capital_series = min_contracts_held * single_contract_min_capital / \
-                         (idm * instrument_weight )
+    min_capital_series = (
+        min_contracts_held * single_contract_min_capital / (idm * instrument_weight)
+    )
 
     instrument_list = instrument_risk_table.index
     instrument_count = len(instrument_list)
 
-    min_capital_pd = pd.concat([base_multiplier,
-                                price,
-                                ann_perc_stdev,
-                                pd.Series([risk_target]*instrument_count, index = instrument_list),
-                                single_contract_min_capital,
-                                pd.Series([min_contracts_held] * instrument_count, index=instrument_list),
-                                pd.Series([instrument_weight] * instrument_count, index=instrument_list),
-                                pd.Series([idm] * instrument_count, index=instrument_list),
-                                min_capital_series], axis=1)
-    min_capital_pd.columns = ['point_size_base',
-                              'price',
-                              'annual_perc_stdev',
-                              'risk_target',
-                              'minimum_capital_one_contract',
-                              'minimum_position_contracts',
-                              'instrument_weight',
-                              'IDM',
-                              'minimum_capital'
-                              ]
+    min_capital_pd = pd.concat(
+        [
+            base_multiplier,
+            price,
+            ann_perc_stdev,
+            pd.Series([risk_target] * instrument_count, index=instrument_list),
+            single_contract_min_capital,
+            pd.Series([min_contracts_held] * instrument_count, index=instrument_list),
+            pd.Series([instrument_weight] * instrument_count, index=instrument_list),
+            pd.Series([idm] * instrument_count, index=instrument_list),
+            min_capital_series,
+        ],
+        axis=1,
+    )
+    min_capital_pd.columns = [
+        "point_size_base",
+        "price",
+        "annual_perc_stdev",
+        "risk_target",
+        "minimum_capital_one_contract",
+        "minimum_position_contracts",
+        "instrument_weight",
+        "IDM",
+        "minimum_capital",
+    ]
 
     return min_capital_pd
+
 
 def get_instrument_risk_table(data, only_held_instruments=True):
     ## INSTRUMENT RISK (daily %, annual %, return space daily and annual, base currency per contract daily and annual, positions)
@@ -144,7 +176,7 @@ def get_risk_data_for_instrument(data, instrument_code):
     annual_price_stdev = daily_price_stdev * ROOT_BDAYS_INYEAR
     price = get_current_price_of_instrument(data, instrument_code)
     daily_perc_stdev100 = (
-            get_current_daily_perc_stdev_for_instrument(data, instrument_code) * 100
+        get_current_daily_perc_stdev_for_instrument(data, instrument_code) * 100
     )
     annual_perc_stdev100 = daily_perc_stdev100 * ROOT_BDAYS_INYEAR
     point_size_base = get_base_currency_point_size_per_contract(data, instrument_code)
@@ -183,7 +215,7 @@ class portfolioRisks(object):
         loadings_as_dict = calculate_dict_of_beta_loadings_by_asset_class_given_weights(
             weights=self.weights,
             dict_of_betas=self.dict_of_betas,
-            dict_of_asset_classes=self.dict_of_asset_classes_for_instruments
+            dict_of_asset_classes=self.dict_of_asset_classes_for_instruments,
         )
 
         return pd.Series(loadings_as_dict)
@@ -204,30 +236,33 @@ class portfolioRisks(object):
         cmatrix = self.correlation_matrix
         std_dev = self.stdev
 
-        risk_pd_series = get_pd_series_of_risk_by_asset_class(asset_classes=asset_classes,
-                                                              weights=weights,
-                                                              cmatrix=cmatrix,
-                                                              stdev=std_dev)
+        risk_pd_series = get_pd_series_of_risk_by_asset_class(
+            asset_classes=asset_classes, weights=weights, cmatrix=cmatrix, stdev=std_dev
+        )
 
         return risk_pd_series
 
     @property
     def dict_of_asset_classes_for_instruments(self) -> dict:
-        asset_classes = get_dict_of_asset_classes_for_instrument_list(self.data, self.instrument_list)
+        asset_classes = get_dict_of_asset_classes_for_instrument_list(
+            self.data, self.instrument_list
+        )
         return asset_classes
 
     @property
     def correlation_matrix(self) -> correlationEstimate:
         instrument_list = self.instrument_list
-        cmatrix = get_correlation_matrix_for_instrument_returns(self.data,
-                                                                instrument_list)
+        cmatrix = get_correlation_matrix_for_instrument_returns(
+            self.data, instrument_list
+        )
 
         return cmatrix
 
     @property
     def stdev(self) -> stdevEstimates:
-        stdev = get_annualised_stdev_perc_of_instruments(self.data,
-                                                         self.instrument_list)
+        stdev = get_annualised_stdev_perc_of_instruments(
+            self.data, self.instrument_list
+        )
         return stdev
 
     @property
@@ -242,78 +277,95 @@ class portfolioRisks(object):
 
     @property
     def dict_of_betas(self) -> dict:
-        return dict_of_beta_by_instrument(perc_returns=self.recent_perc_returns,
-                                          dict_of_asset_classes=self.dict_of_asset_classes_for_instruments,
-                                          equally_weighted_returns_across_asset_classes=self.equally_weighted_returns_across_asset_classes)
+        return dict_of_beta_by_instrument(
+            perc_returns=self.recent_perc_returns,
+            dict_of_asset_classes=self.dict_of_asset_classes_for_instruments,
+            equally_weighted_returns_across_asset_classes=self.equally_weighted_returns_across_asset_classes,
+        )
 
     @property
     def recent_perc_returns(self) -> pd.DataFrame:
         perc_returns = last_years_perc_returns_for_list_of_instruments(
-            data=self.data,
-            list_of_instruments=self.instrument_list
+            data=self.data, list_of_instruments=self.instrument_list
         )
         return perc_returns
 
     @property
     def equally_weighted_returns_across_asset_classes(self):
-        return get_equally_weighted_returns_across_asset_classes(dict_of_asset_classes=self.dict_of_asset_classes_for_instruments,
-                                                                 perc_returns=self.recent_perc_returns,
-                                                                 )
+        return get_equally_weighted_returns_across_asset_classes(
+            dict_of_asset_classes=self.dict_of_asset_classes_for_instruments,
+            perc_returns=self.recent_perc_returns,
+        )
 
     @property
     def data(self):
         return self._data
 
-def get_pd_series_of_risk_by_asset_class(asset_classes: dict,
-                                         weights: portfolioWeights,
-                                         cmatrix: correlationEstimate,
-                                         stdev: stdevEstimates) -> pd.Series:
+
+def get_pd_series_of_risk_by_asset_class(
+    asset_classes: dict,
+    weights: portfolioWeights,
+    cmatrix: correlationEstimate,
+    stdev: stdevEstimates,
+) -> pd.Series:
 
     unique_asset_classes = list(set(list(asset_classes.values())))
     unique_asset_classes.sort()
 
-    list_of_risks = [get_risk_for_asset_class(asset_class,
-                                              asset_classes=asset_classes,
-                                              weights=weights,
-                                              cmatrix=cmatrix,
-                                              stdev=stdev)
+    list_of_risks = [
+        get_risk_for_asset_class(
+            asset_class,
+            asset_classes=asset_classes,
+            weights=weights,
+            cmatrix=cmatrix,
+            stdev=stdev,
+        )
+        for asset_class in unique_asset_classes
+    ]
 
-                     for asset_class in unique_asset_classes]
-
-    risk_as_series = pd.Series(list_of_risks,
-                               index = unique_asset_classes)
+    risk_as_series = pd.Series(list_of_risks, index=unique_asset_classes)
 
     return risk_as_series
 
-def get_risk_for_asset_class(asset_class: str,
-        asset_classes: dict,
-                                         weights: portfolioWeights,
-                                         cmatrix: correlationEstimate,
-                                         stdev: stdevEstimates) -> float:
 
-    instruments_in_asset_class = [instrument_code for
-                                  instrument_code, instrument_asset_class
-                                  in asset_classes.items()
-                                  if instrument_asset_class == asset_class]
+def get_risk_for_asset_class(
+    asset_class: str,
+    asset_classes: dict,
+    weights: portfolioWeights,
+    cmatrix: correlationEstimate,
+    stdev: stdevEstimates,
+) -> float:
+
+    instruments_in_asset_class = [
+        instrument_code
+        for instrument_code, instrument_asset_class in asset_classes.items()
+        if instrument_asset_class == asset_class
+    ]
     asset_class_weights = weights.subset(instruments_in_asset_class)
     asset_class_cmatrix = cmatrix.subset(instruments_in_asset_class)
     asset_class_stdev = stdev.subset(instruments_in_asset_class)
 
-    risk = get_annualised_risk(std_dev=asset_class_stdev,
-                               cmatrix=asset_class_cmatrix,
-                               weights=asset_class_weights)
+    risk = get_annualised_risk(
+        std_dev=asset_class_stdev,
+        cmatrix=asset_class_cmatrix,
+        weights=asset_class_weights,
+    )
 
     return risk
 
-def get_dict_of_asset_classes_for_instrument_list(data,
-                                                  instrument_list: list) -> dict:
+
+def get_dict_of_asset_classes_for_instrument_list(data, instrument_list: list) -> dict:
 
     diag_instruments = diagInstruments(data)
     asset_classes = dict(
-        [(instrument_code, diag_instruments.get_asset_class(instrument_code))
-                    for instrument_code in instrument_list])
+        [
+            (instrument_code, diag_instruments.get_asset_class(instrument_code))
+            for instrument_code in instrument_list
+        ]
+    )
 
     return asset_classes
+
 
 def get_perc_of_capital_position_size_all_strategies(data) -> portfolioWeights:
 
@@ -431,8 +483,9 @@ def get_correlation_matrix_all_instruments(data) -> correlationEstimate:
 
     return cmatrix
 
+
 def cluster_correlation_matrix(cmatrix: correlationEstimate) -> correlationEstimate:
-    cluster_size = min(5, int(cmatrix.size/3))
+    cluster_size = min(5, int(cmatrix.size / 3))
     new_order = assets_in_cluster_order(cmatrix, cluster_size=cluster_size)
     cmatrix = cmatrix.list_in_key_order(new_order)
 
@@ -599,139 +652,154 @@ def sorted_clean_df(df_of_risk, sortby="risk"):
 def get_asset_classes_for_instrument_list(data, instrument_codes: list) -> dict:
     diag_instruments = diagInstruments(data)
 
-    dict_of_asset_classes = dict([
-        (instrument_code,
-         diag_instruments.get_asset_class(instrument_code))
-
-        for instrument_code in instrument_codes
-    ])
+    dict_of_asset_classes = dict(
+        [
+            (instrument_code, diag_instruments.get_asset_class(instrument_code))
+            for instrument_code in instrument_codes
+        ]
+    )
 
     return dict_of_asset_classes
 
 
 def calculate_dict_of_beta_loadings_by_asset_class_given_weights(
-                        weights: portfolioWeights,
-                        dict_of_betas: dict,
-                        dict_of_asset_classes: dict
-                                        ) -> dict:
+    weights: portfolioWeights, dict_of_betas: dict, dict_of_asset_classes: dict
+) -> dict:
 
-    dict_of_beta_loadings_per_instrument = calculate_dict_of_beta_loadings_per_instrument(
-        dict_of_betas=dict_of_betas, weights=weights
+    dict_of_beta_loadings_per_instrument = (
+        calculate_dict_of_beta_loadings_per_instrument(
+            dict_of_betas=dict_of_betas, weights=weights
+        )
     )
 
     beta_loadings_across_asset_classes = calculate_beta_loadings_across_asset_classes(
         dict_of_asset_classes=dict_of_asset_classes,
-        dict_of_beta_loadings_per_instrument=dict_of_beta_loadings_per_instrument
+        dict_of_beta_loadings_per_instrument=dict_of_beta_loadings_per_instrument,
     )
 
     return beta_loadings_across_asset_classes
 
 
 def calculate_dict_of_beta_loadings_per_instrument(
-        dict_of_betas: dict,
-    weights: portfolioWeights
-        ) -> dict:
+    dict_of_betas: dict, weights: portfolioWeights
+) -> dict:
 
     list_of_instruments = dict_of_betas.keys()
 
-    dict_of_beta_loadings_per_instrument =\
-         dict([
-             (instrument_code,
-              dict_of_betas[instrument_code] * weights[instrument_code])
-             for instrument_code in list_of_instruments
-         ])
+    dict_of_beta_loadings_per_instrument = dict(
+        [
+            (instrument_code, dict_of_betas[instrument_code] * weights[instrument_code])
+            for instrument_code in list_of_instruments
+        ]
+    )
 
     return dict_of_beta_loadings_per_instrument
 
 
 def calculate_beta_loadings_across_asset_classes(
-                                            dict_of_asset_classes: dict,
-                                           dict_of_beta_loadings_per_instrument: dict
-                                            ) -> dict:
+    dict_of_asset_classes: dict, dict_of_beta_loadings_per_instrument: dict
+) -> dict:
 
     list_of_asset_classes = list(set(list(dict_of_asset_classes.values())))
-    beta_loadings_across_asset_classes = dict([
-        (asset_class,
-         calculate_beta_loading_for_asset_class(asset_class=asset_class,
-                                                dict_of_asset_classes=dict_of_asset_classes,
-                                                dict_of_beta_loadings_per_instrument=dict_of_beta_loadings_per_instrument))
-        for asset_class in list_of_asset_classes
-    ])
+    beta_loadings_across_asset_classes = dict(
+        [
+            (
+                asset_class,
+                calculate_beta_loading_for_asset_class(
+                    asset_class=asset_class,
+                    dict_of_asset_classes=dict_of_asset_classes,
+                    dict_of_beta_loadings_per_instrument=dict_of_beta_loadings_per_instrument,
+                ),
+            )
+            for asset_class in list_of_asset_classes
+        ]
+    )
 
     return beta_loadings_across_asset_classes
 
 
-def calculate_beta_loading_for_asset_class(asset_class: str,
-                                           dict_of_asset_classes: dict,
-                                           dict_of_beta_loadings_per_instrument: dict
-                                           ) -> dict:
+def calculate_beta_loading_for_asset_class(
+    asset_class: str,
+    dict_of_asset_classes: dict,
+    dict_of_beta_loadings_per_instrument: dict,
+) -> dict:
 
-    relevant_instruments = [instrument_code for
-                            instrument_code, asset_class_for_instrument in
-                            dict_of_asset_classes.items()
-                            if asset_class == asset_class_for_instrument and instrument_code in dict_of_beta_loadings_per_instrument]
+    relevant_instruments = [
+        instrument_code
+        for instrument_code, asset_class_for_instrument in dict_of_asset_classes.items()
+        if asset_class == asset_class_for_instrument
+        and instrument_code in dict_of_beta_loadings_per_instrument
+    ]
 
-    relevant_beta_loads = np.array([
-        dict_of_beta_loadings_per_instrument[instrument_code]
-        for instrument_code in relevant_instruments
-    ])
+    relevant_beta_loads = np.array(
+        [
+            dict_of_beta_loadings_per_instrument[instrument_code]
+            for instrument_code in relevant_instruments
+        ]
+    )
 
     return np.nansum(relevant_beta_loads)
 
 
-def get_beta_for_instrument_list(data: dataBlob,
-                            dict_of_asset_classes: dict,
-                                 index_risk: float = arg_not_supplied):
+def get_beta_for_instrument_list(
+    data: dataBlob, dict_of_asset_classes: dict, index_risk: float = arg_not_supplied
+):
 
     list_of_instruments = list(dict_of_asset_classes.keys())
-    perc_returns = last_years_perc_returns_for_list_of_instruments(data=data,
-                                                                   list_of_instruments=list_of_instruments)
-    equally_weighted_returns_across_asset_classes = get_equally_weighted_returns_across_asset_classes(
+    perc_returns = last_years_perc_returns_for_list_of_instruments(
+        data=data, list_of_instruments=list_of_instruments
+    )
+    equally_weighted_returns_across_asset_classes = (
+        get_equally_weighted_returns_across_asset_classes(
+            dict_of_asset_classes=dict_of_asset_classes,
+            perc_returns=perc_returns,
+            index_risk=index_risk,
+        )
+    )
+    dict_of_betas = dict_of_beta_by_instrument(
         dict_of_asset_classes=dict_of_asset_classes,
         perc_returns=perc_returns,
-        index_risk = index_risk
+        equally_weighted_returns_across_asset_classes=equally_weighted_returns_across_asset_classes,
     )
-    dict_of_betas = dict_of_beta_by_instrument(dict_of_asset_classes=dict_of_asset_classes,
-                                               perc_returns=perc_returns,
-                                               equally_weighted_returns_across_asset_classes=equally_weighted_returns_across_asset_classes)
 
     return dict_of_betas
 
 
-def last_years_perc_returns_for_list_of_instruments(data: dataBlob,
-                            list_of_instruments: list) -> pd.DataFrame:
+def last_years_perc_returns_for_list_of_instruments(
+    data: dataBlob, list_of_instruments: list
+) -> pd.DataFrame:
     diag_prices = diagPrices(data)
     adj_prices_as_dict = dict(
-        (instrument_code,
-         diag_prices.get_adjusted_prices(instrument_code))
+        (instrument_code, diag_prices.get_adjusted_prices(instrument_code))
         for instrument_code in list_of_instruments
     )
 
     adj_prices_as_df = pd.concat(adj_prices_as_dict, axis=1)
     adj_prices_as_df.columns = list_of_instruments
     daily_adj_prices_as_df = prices_to_daily_prices(adj_prices_as_df)
-    last_year_daily_adj_prices_as_df = daily_adj_prices_as_df[n_days_ago(365):]
-    perc_returns = (last_year_daily_adj_prices_as_df - last_year_daily_adj_prices_as_df.shift(1)) / last_year_daily_adj_prices_as_df.shift(1)
+    last_year_daily_adj_prices_as_df = daily_adj_prices_as_df[n_days_ago(365) :]
+    perc_returns = (
+        last_year_daily_adj_prices_as_df - last_year_daily_adj_prices_as_df.shift(1)
+    ) / last_year_daily_adj_prices_as_df.shift(1)
 
     return perc_returns
 
 
 def get_equally_weighted_returns_across_asset_classes(
-                                                      dict_of_asset_classes: dict,
-                                                      perc_returns: pd.DataFrame,
-                                                        index_risk: float = arg_not_supplied
-                                                      ) -> pd.DataFrame:
+    dict_of_asset_classes: dict,
+    perc_returns: pd.DataFrame,
+    index_risk: float = arg_not_supplied,
+) -> pd.DataFrame:
 
     list_of_asset_classes = list(set(list(dict_of_asset_classes.values())))
 
     results_as_list = [
-         get_equally_weighted_returns_for_asset_class(
-             asset_class=asset_class,
-             dict_of_asset_classes=dict_of_asset_classes,
-             perc_returns=perc_returns,
-             index_risk = index_risk
-             )
-
+        get_equally_weighted_returns_for_asset_class(
+            asset_class=asset_class,
+            dict_of_asset_classes=dict_of_asset_classes,
+            perc_returns=perc_returns,
+            index_risk=index_risk,
+        )
         for asset_class in list_of_asset_classes
     ]
 
@@ -742,25 +810,33 @@ def get_equally_weighted_returns_across_asset_classes(
 
 
 def get_equally_weighted_returns_for_asset_class(
-                                        asset_class: str,
-                                        dict_of_asset_classes: dict,
-                                        perc_returns: pd.DataFrame,
-                                        index_risk: float = arg_not_supplied) -> pd.Series:
+    asset_class: str,
+    dict_of_asset_classes: dict,
+    perc_returns: pd.DataFrame,
+    index_risk: float = arg_not_supplied,
+) -> pd.Series:
 
-    instruments_in_asset_class = [instrument for
-                                  instrument, asset_class_for_instrument in
-                                  dict_of_asset_classes.items()
-                                  if asset_class == asset_class_for_instrument]
+    instruments_in_asset_class = [
+        instrument
+        for instrument, asset_class_for_instrument in dict_of_asset_classes.items()
+        if asset_class == asset_class_for_instrument
+    ]
     perc_returns_for_asset_class = perc_returns[instruments_in_asset_class]
-    ew_index_returns = calculate_equal_returns_to_avg_vol(perc_returns_for_asset_class, index_risk=index_risk)
+    ew_index_returns = calculate_equal_returns_to_avg_vol(
+        perc_returns_for_asset_class, index_risk=index_risk
+    )
 
     return ew_index_returns
 
-def calculate_equal_returns_to_avg_vol(perc_returns_for_asset_class: pd.DataFrame,
-                                       index_risk: float = arg_not_supplied) -> pd.Series:
+
+def calculate_equal_returns_to_avg_vol(
+    perc_returns_for_asset_class: pd.DataFrame, index_risk: float = arg_not_supplied
+) -> pd.Series:
 
     std_by_instrument = perc_returns_for_asset_class.std(axis=0)
-    perc_returns_for_asset_class_vol_norm = perc_returns_for_asset_class / std_by_instrument
+    perc_returns_for_asset_class_vol_norm = (
+        perc_returns_for_asset_class / std_by_instrument
+    )
     avg_vol_norm_perc_returns = perc_returns_for_asset_class_vol_norm.mean(axis=1)
 
     if index_risk is arg_not_supplied:
@@ -769,44 +845,53 @@ def calculate_equal_returns_to_avg_vol(perc_returns_for_asset_class: pd.DataFram
         asset_class_return_index = avg_vol_norm_perc_returns * avg_std
     else:
         ## normalise to provided index_risk; 20 = 20% per year
-        index_risk_as_daily =  index_risk / (ROOT_BDAYS_INYEAR * 100)
+        index_risk_as_daily = index_risk / (ROOT_BDAYS_INYEAR * 100)
         asset_class_return_index = avg_vol_norm_perc_returns * index_risk_as_daily
 
     return asset_class_return_index
 
-def dict_of_beta_by_instrument(dict_of_asset_classes: dict,
-                               perc_returns: pd.DataFrame,
-                       equally_weighted_returns_across_asset_classes: pd.DataFrame) -> dict:
+
+def dict_of_beta_by_instrument(
+    dict_of_asset_classes: dict,
+    perc_returns: pd.DataFrame,
+    equally_weighted_returns_across_asset_classes: pd.DataFrame,
+) -> dict:
 
     list_of_instruments = list(set(list(dict_of_asset_classes.keys())))
-    dict_of_betas:Dict[str, float] = {}
+    dict_of_betas: Dict[str, float] = {}
     for instrument_code in list_of_instruments:
-        beta = beta_for_instrument(instrument_code=instrument_code,
-                             perc_returns=perc_returns,
-                             dict_of_asset_classes=dict_of_asset_classes,
-                             equally_weighted_returns_across_asset_classes=equally_weighted_returns_across_asset_classes)
+        beta = beta_for_instrument(
+            instrument_code=instrument_code,
+            perc_returns=perc_returns,
+            dict_of_asset_classes=dict_of_asset_classes,
+            equally_weighted_returns_across_asset_classes=equally_weighted_returns_across_asset_classes,
+        )
         if beta is not None:
             dict_of_betas[instrument_code] = beta
     return dict_of_betas
 
 
-def beta_for_instrument(instrument_code: str,
-                        dict_of_asset_classes: dict,
-                        perc_returns: pd.DataFrame,
-
-    equally_weighted_returns_across_asset_classes: pd.DataFrame) -> Union[None, float]:
+def beta_for_instrument(
+    instrument_code: str,
+    dict_of_asset_classes: dict,
+    perc_returns: pd.DataFrame,
+    equally_weighted_returns_across_asset_classes: pd.DataFrame,
+) -> Union[None, float]:
 
     asset_class = dict_of_asset_classes[instrument_code]
     perc_returns_for_instrument = perc_returns[instrument_code]
-    perc_returns_for_asset_class = equally_weighted_returns_across_asset_classes[asset_class]
+    perc_returns_for_asset_class = equally_weighted_returns_across_asset_classes[
+        asset_class
+    ]
 
-    both_returns = pd.concat([perc_returns_for_instrument,
-                              perc_returns_for_asset_class], axis=1)
-    both_returns.columns = ['y', 'x']
+    both_returns = pd.concat(
+        [perc_returns_for_instrument, perc_returns_for_asset_class], axis=1
+    )
+    both_returns.columns = ["y", "x"]
     both_returns = both_returns.dropna()
     if not both_returns.empty:
 
-        reg_result = sm.ols(formula = "y ~ x", data = both_returns).fit()
+        reg_result = sm.ols(formula="y ~ x", data=both_returns).fit()
         beta = reg_result.params.x
 
         return beta

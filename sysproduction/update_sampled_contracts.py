@@ -404,14 +404,12 @@ def unsample_contracts(instrument_code: str, data: dataBlob):
         check_and_update_sampling_status(
             contract=contract,
             data=data,
-            contract_chain=get_contract_chain(data, instrument_code)
+            contract_chain=get_contract_chain(data, instrument_code),
         )
 
 
 def check_and_update_sampling_status(
-    contract: futuresContract,
-    data: dataBlob,
-    contract_chain: listOfFuturesContracts
+    contract: futuresContract, data: dataBlob, contract_chain: listOfFuturesContracts
 ):
 
     unsample = False
@@ -436,6 +434,5 @@ def check_and_update_sampling_status(
         )
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     update_sampled_contracts()

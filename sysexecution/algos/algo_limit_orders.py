@@ -29,15 +29,16 @@ class algoLimit(Algo):
 
     def submit_trade(self) -> orderWithControls:
         contract_order = self.contract_order
-        self.data.log.msg("Submitting limit order for %s, limit price %f"  % (
-            str(contract_order),
-            contract_order.limit_price
-        ))
+        self.data.log.msg(
+            "Submitting limit order for %s, limit price %f"
+            % (str(contract_order), contract_order.limit_price)
+        )
         broker_order_with_controls = (
             self.get_and_submit_broker_order_for_contract_order(
-                contract_order, order_type=limit_order_type,
-                input_limit_price = contract_order.limit_price,
-                limit_price_from=limit_price_from_input
+                contract_order,
+                order_type=limit_order_type,
+                input_limit_price=contract_order.limit_price,
+                limit_price_from=limit_price_from_input,
             )
         )
 
@@ -47,4 +48,3 @@ class algoLimit(Algo):
         self, broker_order_with_controls: orderWithControls
     ) -> orderWithControls:
         raise Exception("Limit order shouldn't be managed")
-

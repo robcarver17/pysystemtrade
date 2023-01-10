@@ -75,5 +75,5 @@ def report_fx_data_spike(data: dataBlob, fx_code: str):
         data.log.warn("Couldn't send email about price spike")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     update_fx_prices()

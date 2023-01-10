@@ -102,7 +102,9 @@ class simData(baseData):
         """
         return self._get_daily_prices_for_directional_instrument(instrument_code)
 
-    def _get_daily_prices_for_directional_instrument(self, instrument_code: str) -> pd.Series:
+    def _get_daily_prices_for_directional_instrument(
+        self, instrument_code: str
+    ) -> pd.Series:
         """
         Gets daily prices
 
@@ -119,11 +121,12 @@ class simData(baseData):
 
         return dailyprice
 
-
     def hourly_prices(self, instrument_code: str) -> pd.Series:
         return self._get_hourly_prices_for_directional_instrument(instrument_code)
 
-    def _get_hourly_prices_for_directional_instrument(self, instrument_code: str) -> pd.Series:
+    def _get_hourly_prices_for_directional_instrument(
+        self, instrument_code: str
+    ) -> pd.Series:
         instrprice = self.get_raw_price(instrument_code)
         if len(instrprice) == 0:
             raise Exception("No adjusted hourly prices for %s" % instrument_code)

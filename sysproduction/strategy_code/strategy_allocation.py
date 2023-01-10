@@ -35,8 +35,8 @@ from sysproduction.data.strategies import get_list_of_strategies_from_config
 
 def weighted_strategy_allocation(
     data: dataBlob,
-        capital_to_allocate: float,
-        strategy_weights: dict = arg_not_supplied
+    capital_to_allocate: float,
+    strategy_weights: dict = arg_not_supplied,
 ):
     """
     Used to allocate capital to strategies

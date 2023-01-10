@@ -12,7 +12,7 @@ class pandlCalculationWithoutPositions(pandlCalculationWithGenericCosts):
         capital: pd.Series,
     ):
 
-        super().__init__(price=pd.Series(dtype='float64'), capital=capital)
+        super().__init__(price=pd.Series(dtype="float64"), capital=capital)
 
         self._pandl_in_base_currency = pandl_in_base_currency
         self._costs_pandl_in_base_currency = costs_pandl_in_base_currency

@@ -56,7 +56,7 @@ class contractOrder(Order):
         inter_spread_order: bool = False,
         algo_to_use: str = "",
         reference_of_controlling_algo: str = None,
-        **kwargs_ignored
+        **kwargs_ignored,
     ):
         """
         :param args: Either a single argument 'strategy/instrument/contract_order_id' str, or strategy, instrument, contract_order_id; followed by trade
@@ -131,7 +131,7 @@ class contractOrder(Order):
             children=children,
             active=active,
             order_type=order_type,
-            **order_info
+            **order_info,
         )
 
     @classmethod
@@ -164,7 +164,7 @@ class contractOrder(Order):
             fill_datetime=fill_datetime,
             filled_price=filled_price,
             order_type=order_type,
-            **order_info
+            **order_info,
         )
 
         return order

@@ -9,7 +9,11 @@ from syscore.objects import body_text, ALL_ROLL_INSTRUMENTS
 from sysproduction.reporting.api import reportingApi
 
 
-def roll_report(data, instrument_code=ALL_ROLL_INSTRUMENTS, reporting_api: Optional[reportingApi]=None):
+def roll_report(
+    data,
+    instrument_code=ALL_ROLL_INSTRUMENTS,
+    reporting_api: Optional[reportingApi] = None,
+):
     """
     Get some roll info. For all markets which are:
 
@@ -51,5 +55,5 @@ def roll_report(data, instrument_code=ALL_ROLL_INSTRUMENTS, reporting_api: Optio
     return formatted_output
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     roll_report()

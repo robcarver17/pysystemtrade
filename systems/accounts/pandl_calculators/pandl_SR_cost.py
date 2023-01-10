@@ -17,7 +17,7 @@ class pandlCalculationWithSRCosts(pandlCalculationWithGenericCosts):
         SR_cost: float,
         average_position: pd.Series,
         daily_returns_volatility: pd.Series = arg_not_supplied,
-        **kwargs
+        **kwargs,
     ):
         ## Is SR_cost a negative number?
         super().__init__(*args, **kwargs)

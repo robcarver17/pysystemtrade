@@ -12,7 +12,7 @@ from syscore.pdutils import (
     from_scalar_values_to_ts,
     listOfDataFrames,
     weights_sum_to_one,
-    reindex_last_monthly_include_first_date
+    reindex_last_monthly_include_first_date,
 )
 
 from sysdata.config.configdata import Config
@@ -151,7 +151,8 @@ class ForecastCombine(SystemStage):
 
         smoothed_daily_forecast_weights = self.get_forecast_weights(instrument_code)
         smoothed_forecast_weights = smoothed_daily_forecast_weights.reindex(
-            forecasts.index, method="ffill")
+            forecasts.index, method="ffill"
+        )
 
         weighted_forecasts = smoothed_forecast_weights * forecasts
 
@@ -175,7 +176,9 @@ class ForecastCombine(SystemStage):
         )
 
         # change rows so weights add to one
-        smoothed_normalised_daily_weights = weights_sum_to_one(smoothed_daily_forecast_weights)
+        smoothed_normalised_daily_weights = weights_sum_to_one(
+            smoothed_daily_forecast_weights
+        )
 
         # still daily
 
@@ -451,7 +454,6 @@ class ForecastCombine(SystemStage):
             for rule_variation_name in rule_variation_list
         ]
 
-
         forecasts = pd.concat(forecasts, axis=1)
 
         forecasts.columns = rule_variation_list
@@ -459,7 +461,6 @@ class ForecastCombine(SystemStage):
         forecasts = forecasts.ffill()
 
         return forecasts
-
 
     @property
     def raw_data_stage(self):
@@ -523,7 +524,6 @@ class ForecastCombine(SystemStage):
         forecast_weights_cheap_rules_only = self._remove_expensive_rules_from_weights(
             instrument_code, forecast_weights
         )
-
 
         return forecast_weights_cheap_rules_only
 
@@ -607,7 +607,7 @@ class ForecastCombine(SystemStage):
             returns_pre_processor,
             asset_name=instrument_code,
             log=self.log,
-            **weighting_params
+            **weighting_params,
         )
 
         return weight_func
@@ -788,9 +788,10 @@ class ForecastCombine(SystemStage):
         ]
 
         if len(cheap_rule_list) == 0:
-            error_msg = \
-                "No rules are cheap enough for %s with threshold %.3f SR units! Raise threshold (system.config.forecast_weight_estimate['ceiling_cost_SR']), add rules, or drop instrument." \
+            error_msg = (
+                "No rules are cheap enough for %s with threshold %.3f SR units! Raise threshold (system.config.forecast_weight_estimate['ceiling_cost_SR']), add rules, or drop instrument."
                 % (instrument_code, ceiling_cost_SR)
+            )
             self.log.critical(error_msg)
             raise Exception(error_msg)
 
@@ -935,10 +936,11 @@ class ForecastCombine(SystemStage):
         )
 
         ## Should be monthly for consistency, but span all data
-        monthly_forecast_weights = reindex_last_monthly_include_first_date(forecast_weights)
+        monthly_forecast_weights = reindex_last_monthly_include_first_date(
+            forecast_weights
+        )
 
         return monthly_forecast_weights
-
 
     @diagnostic()
     def _get_fixed_forecast_weights_as_dict(self, instrument_code: str) -> dict:

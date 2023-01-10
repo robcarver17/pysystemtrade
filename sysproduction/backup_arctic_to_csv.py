@@ -53,6 +53,7 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 from sysproduction.data.directories import get_csv_backup_directory, get_csv_dump_dir
 from sysproduction.data.strategies import get_list_of_strategies
 
+
 def backup_arctic_to_csv():
     data = dataBlob(log_name="backup_arctic_to_csv")
     backup_object = backupArcticToCsv(data)
@@ -191,36 +192,40 @@ def backup_futures_contract_prices_for_instrument_to_csv(
 
 
 def backup_futures_contract_prices_for_contract_to_csv(
-        data: dataBlob, futures_contract: futuresContract
-        ):
-        if futures_contract.days_since_expiry()>CALENDAR_DAYS_IN_YEAR:
-            ## Almost certainly expired, skip
-            data.log.msg("Skipping expired contract %s" % str(futures_contract))
+    data: dataBlob, futures_contract: futuresContract
+):
+    if futures_contract.days_since_expiry() > CALENDAR_DAYS_IN_YEAR:
+        ## Almost certainly expired, skip
+        data.log.msg("Skipping expired contract %s" % str(futures_contract))
 
-            return None
+        return None
 
-        arctic_data = data.arctic_futures_contract_price.get_merged_prices_for_contract_object(
+    arctic_data = (
+        data.arctic_futures_contract_price.get_merged_prices_for_contract_object(
             futures_contract
         )
+    )
 
-        csv_data = data.csv_futures_contract_price.get_merged_prices_for_contract_object(
-            futures_contract
-        )
+    csv_data = data.csv_futures_contract_price.get_merged_prices_for_contract_object(
+        futures_contract
+    )
 
-        if check_df_equals(arctic_data, csv_data):
-            # No update needed, move on
-            data.log.msg("No prices backup needed for %s" % str(futures_contract))
-        else:
-            # Write backup
-            try:
-                data.csv_futures_contract_price.write_merged_prices_for_contract_object(
-                    futures_contract,
-                    arctic_data,
-                    ignore_duplication=True,
-                )
-                data.log.msg("Written backup .csv of prices for %s" % str(futures_contract))
-            except BaseException:
-                data.log.warn("Problem writing .csv of prices for %s" % str(futures_contract))
+    if check_df_equals(arctic_data, csv_data):
+        # No update needed, move on
+        data.log.msg("No prices backup needed for %s" % str(futures_contract))
+    else:
+        # Write backup
+        try:
+            data.csv_futures_contract_price.write_merged_prices_for_contract_object(
+                futures_contract,
+                arctic_data,
+                ignore_duplication=True,
+            )
+            data.log.msg("Written backup .csv of prices for %s" % str(futures_contract))
+        except BaseException:
+            data.log.warn(
+                "Problem writing .csv of prices for %s" % str(futures_contract)
+            )
 
 
 # fx
@@ -402,7 +407,9 @@ def backup_historical_orders(data):
 
 def backup_capital(data):
     strategy_capital_dict = get_dict_of_strategy_capital(data)
-    capital_data_df = add_total_capital_to_strategy_capital_dict_return_df(data, strategy_capital_dict)
+    capital_data_df = add_total_capital_to_strategy_capital_dict_return_df(
+        data, strategy_capital_dict
+    )
     capital_data_df = capital_data_df.ffill()
 
     data.csv_capital.write_backup_df_of_all_capital(capital_data_df)
@@ -412,23 +419,25 @@ def get_dict_of_strategy_capital(data: dataBlob) -> dict:
     strategy_list = get_list_of_strategies(data)
     strategy_capital_data = dict()
     for strategy_name in strategy_list:
-        strategy_capital_data[strategy_name] = data.arctic_capital.get_capital_pd_df_for_strategy(
+        strategy_capital_data[
             strategy_name
-        )
+        ] = data.arctic_capital.get_capital_pd_df_for_strategy(strategy_name)
 
     return strategy_capital_data
 
-def add_total_capital_to_strategy_capital_dict_return_df(data: dataBlob,
-                                          capital_data: dict) -> pd.DataFrame:
+
+def add_total_capital_to_strategy_capital_dict_return_df(
+    data: dataBlob, capital_data: dict
+) -> pd.DataFrame:
 
     strategy_capital_as_df = pd.concat(capital_data, axis=1)
     total_capital = data.arctic_capital.get_df_of_all_global_capital()
-    capital_data = pd.concat([strategy_capital_as_df, total_capital],
-                                       axis=1)
+    capital_data = pd.concat([strategy_capital_as_df, total_capital], axis=1)
 
     capital_data = capital_data.ffill()
 
-    return  capital_data
+    return capital_data
+
 
 def backup_optimal_positions(data):
 
@@ -466,11 +475,14 @@ def backup_roll_state_data(data):
     data.csv_roll_state.write_all_instrument_data(roll_state_df)
     data.log.msg("Backed up roll state")
 
+
 def backup_roll_parameters(data):
     instrument_list = data.mongo_roll_parameters.get_list_of_instruments()
     roll_parameters_list = []
     for instrument_code in instrument_list:
-        roll_parameters_as_dict = data.mongo_roll_parameters.get_roll_parameters(instrument_code).as_dict()
+        roll_parameters_as_dict = data.mongo_roll_parameters.get_roll_parameters(
+            instrument_code
+        ).as_dict()
         roll_parameters_list.append(roll_parameters_as_dict)
 
     roll_parameters_df = pd.DataFrame(roll_parameters_list, index=instrument_list)
@@ -499,5 +511,5 @@ def backup_csv_dump(data):
     os.system("rsync -av %s %s" % (source_path, destination_path))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     backup_arctic_to_csv()

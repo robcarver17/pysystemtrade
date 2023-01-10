@@ -43,28 +43,37 @@ def get_configured_spread_cost_for_instrument(data, instrument_code):
     return meta_data.Slippage
 
 
-def get_SR_cost_calculation_for_instrument(data: dataBlob,
-                                           instrument_code: str,
-                                           include_commission: bool = True,
-                                           include_spread: bool = True):
+def get_SR_cost_calculation_for_instrument(
+    data: dataBlob,
+    instrument_code: str,
+    include_commission: bool = True,
+    include_spread: bool = True,
+):
 
-    percentage_cost = get_percentage_cost_for_instrument(data, instrument_code,
-                                                         include_spread=include_spread,
-                                                         include_commission=include_commission)
+    percentage_cost = get_percentage_cost_for_instrument(
+        data,
+        instrument_code,
+        include_spread=include_spread,
+        include_commission=include_commission,
+    )
     avg_annual_vol_perc = get_percentage_ann_stdev(data, instrument_code)
 
     # cost per round trip
     SR_cost = 2.0 * percentage_cost / avg_annual_vol_perc
 
-    return dict(percentage_cost = percentage_cost,
-                avg_annual_vol_perc = avg_annual_vol_perc,
-        SR_cost=SR_cost)
+    return dict(
+        percentage_cost=percentage_cost,
+        avg_annual_vol_perc=avg_annual_vol_perc,
+        SR_cost=SR_cost,
+    )
 
 
-def get_percentage_cost_for_instrument(data: dataBlob,
-                                       instrument_code: str,
-                                       include_spread: bool = True,
-                                       include_commission: bool = True):
+def get_percentage_cost_for_instrument(
+    data: dataBlob,
+    instrument_code: str,
+    include_spread: bool = True,
+    include_commission: bool = True,
+):
     diag_instruments = diagInstruments(data)
     costs_object = diag_instruments.get_cost_object(instrument_code)
     if not include_spread and not include_commission:
@@ -97,38 +106,42 @@ def get_percentage_ann_stdev(data, instrument_code):
     return perc
 
 
-def adjust_df_costs_show_ticks(data: dataBlob,
-                               combined_df_costs: pd.DataFrame) -> pd.DataFrame:
+def adjust_df_costs_show_ticks(
+    data: dataBlob, combined_df_costs: pd.DataFrame
+) -> pd.DataFrame:
 
     tick_adjusted_df_costs = copy(combined_df_costs)
     list_of_instrument_codes = list(tick_adjusted_df_costs.index)
     series_of_tick_values = get_series_of_tick_values(data, list_of_instrument_codes)
 
-    to_divide = ['bid_ask_trades', 'total_trades', 'bid_ask_sampled',
-       'estimate', 'Configured',
-       ]
+    to_divide = [
+        "bid_ask_trades",
+        "total_trades",
+        "bid_ask_sampled",
+        "estimate",
+        "Configured",
+    ]
     for col_name in to_divide:
-        tick_adjusted_df_costs[col_name] = tick_adjusted_df_costs[col_name] / series_of_tick_values
+        tick_adjusted_df_costs[col_name] = (
+            tick_adjusted_df_costs[col_name] / series_of_tick_values
+        )
 
     return tick_adjusted_df_costs
 
-def get_series_of_tick_values(data: dataBlob,
-                            list_of_instrument_codes: list) -> dict:
+
+def get_series_of_tick_values(data: dataBlob, list_of_instrument_codes: list) -> dict:
 
     list_of_tick_values = [
-         get_tick_value_for_instrument_code(instrument_code=instrument_code,
-                                            data=data)
+        get_tick_value_for_instrument_code(instrument_code=instrument_code, data=data)
         for instrument_code in list_of_instrument_codes
     ]
 
-    series_of_ticks = pd.Series(list_of_tick_values,
-                                index = list_of_instrument_codes)
+    series_of_ticks = pd.Series(list_of_tick_values, index=list_of_instrument_codes)
 
     return series_of_ticks
 
 
-def get_tick_value_for_instrument_code(instrument_code: str,
-                                       data: dataBlob) -> float:
+def get_tick_value_for_instrument_code(instrument_code: str, data: dataBlob) -> float:
     broker_data = dataBroker(data)
     contract_data = dataContracts()
     try:
@@ -136,14 +149,19 @@ def get_tick_value_for_instrument_code(instrument_code: str,
     except AttributeError:
         return np.nan
 
-    futures_contract= futuresContract(instrument_code, contract_id)
+    futures_contract = futuresContract(instrument_code, contract_id)
 
     try:
-        tick_value = broker_data.broker_futures_contract_data.get_min_tick_size_for_contract(futures_contract)
+        tick_value = (
+            broker_data.broker_futures_contract_data.get_min_tick_size_for_contract(
+                futures_contract
+            )
+        )
     except missingContract:
         return np.nan
 
     return tick_value
+
 
 def get_combined_df_of_costs(
     data: dataBlob, start_date: datetime.datetime, end_date: datetime.datetime
@@ -170,9 +188,9 @@ def get_combined_df_of_costs(
         configured_costs=configured_costs,
     )
 
-    perc_difference = 100.0* ((
-        estimate_with_data.estimate - configured_costs
-    ) / configured_costs)
+    perc_difference = 100.0 * (
+        (estimate_with_data.estimate - configured_costs) / configured_costs
+    )
 
     all_together = pd.concat(
         [combined, estimate_with_data, configured_costs, perc_difference], axis=1
@@ -230,7 +248,7 @@ def best_estimate_from_cost_data(
     )
     weight_on_config[weight_on_config.isna()] = 0.0
     weight_on_config[all_weights.configured.isna()] = 0.0
-    weight_on_config[all_weights.configured==0] = 0.0
+    weight_on_config[all_weights.configured == 0] = 0.0
 
     weight_all = weight_on_samples + weight_on_trades + weight_on_config
     weight_all[weight_all == 0.0] = np.nan
@@ -323,10 +341,9 @@ def get_average_half_spread_by_instrument_from_raw_slippage(
     return average_half_spread_by_code
 
 
-def get_table_of_SR_costs(data,
-                          include_commission: bool = True,
-                          include_spread: bool = True
-                          ):
+def get_table_of_SR_costs(
+    data, include_commission: bool = True, include_spread: bool = True
+):
     diag_prices = diagPrices(data)
     list_of_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
 
@@ -334,9 +351,12 @@ def get_table_of_SR_costs(data,
     p = progressBar(len(list_of_instruments))
     SR_costs = {}
     for instrument_code in list_of_instruments:
-        SR_costs[instrument_code] = get_SR_cost_calculation_for_instrument(data, instrument_code,
-                                                                           include_spread=include_spread,
-                                                                           include_commission=include_commission)
+        SR_costs[instrument_code] = get_SR_cost_calculation_for_instrument(
+            data,
+            instrument_code,
+            include_spread=include_spread,
+            include_commission=include_commission,
+        )
         p.iterate()
 
     p.finished()

@@ -12,7 +12,7 @@ class genericOptimiser(object):
         returns_pre_processor: returnsPreProcessor,
         asset_name: str = SINGLE_NAME,
         log: logger = logtoscreen("optimiser"),
-        **weighting_params
+        **weighting_params,
     ):
 
         net_returns = returns_pre_processor.get_net_returns(asset_name)

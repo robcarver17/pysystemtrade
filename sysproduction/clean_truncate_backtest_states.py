@@ -29,5 +29,5 @@ class cleanTruncateBacktestStates:
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     clean_truncate_backtest_states()

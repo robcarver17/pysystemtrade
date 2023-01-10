@@ -12,12 +12,7 @@ from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
 from syscore.exceptions import missingContract, missingData
 
-from syscore.objects import (
-    arg_not_supplied,
-    missing_order,
-    missing_data,
-    market_closed
-)
+from syscore.objects import arg_not_supplied, missing_order, missing_data, market_closed
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
 
@@ -93,7 +88,9 @@ class dataBroker(productionDataLayerGeneric):
     ## Methods
 
     def get_list_of_contract_dates_for_instrument_code(self, instrument_code: str):
-        return self.broker_futures_contract_data.get_list_of_contract_dates_for_instrument_code(instrument_code)
+        return self.broker_futures_contract_data.get_list_of_contract_dates_for_instrument_code(
+            instrument_code
+        )
 
     def broker_fx_balances(self) -> dict:
         account_id = self.get_broker_account()
@@ -120,22 +117,26 @@ class dataBroker(productionDataLayerGeneric):
             )
 
     def get_cleaned_prices_at_frequency_for_contract_object(
-        self, contract_object: futuresContract, frequency: Frequency,
-            cleaning_config = arg_not_supplied
+        self,
+        contract_object: futuresContract,
+        frequency: Frequency,
+        cleaning_config=arg_not_supplied,
     ) -> futuresContractPrices:
 
         try:
-            broker_prices_raw = \
-                    self.get_prices_at_frequency_for_contract_object(contract_object=contract_object,
-                                                             frequency = frequency)
+            broker_prices_raw = self.get_prices_at_frequency_for_contract_object(
+                contract_object=contract_object, frequency=frequency
+            )
         except missingData:
             return missing_data
 
         daily_data = frequency is DAILY_PRICE_FREQ
-        broker_prices = apply_price_cleaning(data = self.data,
-                                             daily_data=daily_data,
-                                             broker_prices_raw = broker_prices_raw,
-                                             cleaning_config = cleaning_config)
+        broker_prices = apply_price_cleaning(
+            data=self.data,
+            daily_data=daily_data,
+            broker_prices_raw=broker_prices_raw,
+            cleaning_config=cleaning_config,
+        )
 
         return broker_prices
 
@@ -143,9 +144,9 @@ class dataBroker(productionDataLayerGeneric):
         self, contract_object: futuresContract, frequency: Frequency
     ) -> futuresContractPrices:
 
-        return self.broker_futures_contract_price_data.get_prices_at_frequency_for_contract_object(contract_object,
-                                                                                                   frequency,
-                                                                                                   return_empty=False)
+        return self.broker_futures_contract_price_data.get_prices_at_frequency_for_contract_object(
+            contract_object, frequency, return_empty=False
+        )
 
     def get_recent_bid_ask_tick_data_for_contract_object(
         self, contract: futuresContract
@@ -166,7 +167,9 @@ class dataBroker(productionDataLayerGeneric):
             instrument_code
         )
 
-    def get_brokers_instrument_with_metadata(self, instrument_code: str) -> futuresInstrumentWithMetaData:
+    def get_brokers_instrument_with_metadata(
+        self, instrument_code: str
+    ) -> futuresInstrumentWithMetaData:
         return self.broker_futures_instrument_data.get_instrument_data(instrument_code)
 
     def less_than_N_hours_of_trading_left_for_contract(
@@ -203,7 +206,9 @@ class dataBroker(productionDataLayerGeneric):
         )
         return result
 
-    def get_trading_hours_for_contract(self, contract: futuresContract) -> listOfTradingHours:
+    def get_trading_hours_for_contract(
+        self, contract: futuresContract
+    ) -> listOfTradingHours:
         result = self.broker_futures_contract_data.get_trading_hours_for_contract(
             contract
         )
@@ -541,7 +546,9 @@ class dataBroker(productionDataLayerGeneric):
         currency_data = dataCurrency(self.data)
         account_id = self.get_broker_account()
         values_across_accounts = (
-            self.broker_capital_data.get_excess_liquidity_value_across_currency(account_id)
+            self.broker_capital_data.get_excess_liquidity_value_across_currency(
+                account_id
+            )
         )
 
         # This assumes that each account only reports either in one currency or
@@ -553,5 +560,3 @@ class dataBroker(productionDataLayerGeneric):
         )
 
         return total_account_value_in_base_currency
-
-

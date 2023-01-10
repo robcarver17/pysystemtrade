@@ -230,13 +230,14 @@ class rollParameters(object):
         return self._approx_expiry_offset
 
     def __eq__(self, other):
-        return  (self.hold_rollcycle == other.hold_rollcycle) &\
-                (self.priced_rollcycle == self.priced_rollcycle) &\
-                (self.global_rollcycle == other.global_rollcycle) &\
-                (self.roll_offset_day == other.roll_offset_day) &\
-                (self.carry_offset == other.carry_offset) & \
-                (self.approx_expiry_offset == other.approx_expiry_offset)
-
+        return (
+            (self.hold_rollcycle == other.hold_rollcycle)
+            & (self.priced_rollcycle == self.priced_rollcycle)
+            & (self.global_rollcycle == other.global_rollcycle)
+            & (self.roll_offset_day == other.roll_offset_day)
+            & (self.carry_offset == other.carry_offset)
+            & (self.approx_expiry_offset == other.approx_expiry_offset)
+        )
 
     def __repr__(self):
         dict_rep = self.as_dict()

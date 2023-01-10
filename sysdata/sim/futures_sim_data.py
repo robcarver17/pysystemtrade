@@ -236,7 +236,6 @@ class futuresSimData(simData):
     def get_roll_parameters(self, instrument_code: str) -> rollParameters:
         raise NotImplementedError
 
-
     def get_instrument_object_with_meta_data(
         self, instrument_code: str
     ) -> futuresInstrumentWithMetaData:

@@ -12,7 +12,10 @@ from sysproduction.data.prices import (
     get_valid_instrument_code_from_user,
 )
 from sysdata.tools.cleaner import interactively_get_config_overrides_for_cleaning
-from sysproduction.update_historical_prices import update_historical_prices_for_instrument
+from sysproduction.update_historical_prices import (
+    update_historical_prices_for_instrument,
+)
+
 
 def interactive_manual_check_historical_prices():
     """
@@ -37,11 +40,12 @@ def interactive_manual_check_historical_prices():
             else:
                 check_instrument_ok_for_broker(data, instrument_code)
                 data.log.label(instrument_code=instrument_code)
-                update_historical_prices_for_instrument(instrument_code=instrument_code,
-                                                        cleaning_config=cleaning_config,
-                                                        data = data,
-                                                        interactive_mode=True)
-
+                update_historical_prices_for_instrument(
+                    instrument_code=instrument_code,
+                    cleaning_config=cleaning_config,
+                    data=data,
+                    interactive_mode=True,
+                )
 
     return success
 
@@ -54,5 +58,5 @@ def check_instrument_ok_for_broker(data: dataBlob, instrument_code: str):
         raise Exception()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     interactive_manual_check_historical_prices()

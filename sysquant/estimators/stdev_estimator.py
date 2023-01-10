@@ -6,7 +6,7 @@ from syscore.algos import apply_with_min_periods
 from syscore.pdutils import (
     how_many_times_a_year_is_pd_frequency,
     get_max_index_before_datetime,
-get_row_of_df_aligned_to_weights_as_dict
+    get_row_of_df_aligned_to_weights_as_dict,
 )
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR
 
@@ -36,28 +36,33 @@ class stdevEstimates(dict, Estimate):
     def list_of_keys(self) -> list:
         return list(self.keys())
 
+
 class seriesOfStdevEstimates(pd.DataFrame):
     def get_stdev_on_date(self, relevant_date: datetime.datetime) -> stdevEstimates:
-        if relevant_date<self.index[0]:
-            stdev_as_dict = get_row_of_df_aligned_to_weights_as_dict(df=self,
-                                                         relevant_date=self.index[0])
+        if relevant_date < self.index[0]:
+            stdev_as_dict = get_row_of_df_aligned_to_weights_as_dict(
+                df=self, relevant_date=self.index[0]
+            )
 
         else:
-            stdev_as_dict = get_row_of_df_aligned_to_weights_as_dict(df=self,
-                                                         relevant_date=relevant_date)
+            stdev_as_dict = get_row_of_df_aligned_to_weights_as_dict(
+                df=self, relevant_date=relevant_date
+            )
         return stdevEstimates(stdev_as_dict)
 
-    def shocked(self, shock_quantile = .99, roll_years = 10, bfill=True):
+    def shocked(self, shock_quantile=0.99, roll_years=10, bfill=True):
         min_periods = int(np.ceil(2 / shock_quantile))
         roll_bus_days = int(roll_years * BUSINESS_DAYS_IN_YEAR)
         align_daily = self.resample("1B").ffill()
-        shocked = align_daily.rolling(roll_bus_days,
-                                      min_periods=min_periods).quantile(shock_quantile)
+        shocked = align_daily.rolling(roll_bus_days, min_periods=min_periods).quantile(
+            shock_quantile
+        )
         if bfill:
             shocked = shocked.bfill()
         align_shocked = shocked.reindex(self.index).ffill()
 
         return seriesOfStdevEstimates(align_shocked)
+
 
 class exponentialStdev(exponentialEstimator):
     def __init__(
@@ -67,7 +72,7 @@ class exponentialStdev(exponentialEstimator):
         min_periods: int = 20,
         length_adjustment: int = 1,
         frequency: str = "W",
-        **_ignored_kwargs
+        **_ignored_kwargs,
     ):
 
         super().__init__(
@@ -76,7 +81,7 @@ class exponentialStdev(exponentialEstimator):
             min_periods=min_periods,
             length_adjustment=length_adjustment,
             frequency=frequency,
-            **_ignored_kwargs
+            **_ignored_kwargs,
         )
 
     @property
@@ -88,7 +93,7 @@ class exponentialStdev(exponentialEstimator):
         data_for_stdev: pd.DataFrame,
         adjusted_lookback=500,
         adjusted_min_periods=20,
-        **other_kwargs
+        **other_kwargs,
     ) -> pd.DataFrame:
 
         stdev_calculations = exponential_std_deviation(
@@ -120,7 +125,7 @@ def exponential_std_deviation(
     data_for_stdev: pd.DataFrame,
     ew_lookback: int = 250,
     min_periods: int = 20,
-    **_ignored_kwargs
+    **_ignored_kwargs,
 ) -> pd.DataFrame:
 
     exponential_stdev = data_for_stdev.ewm(
@@ -160,7 +165,7 @@ def stdev_estimator_for_subperiod(
     fit_period: fitDates,
     min_periods: int = 20,
     frequency: str = "W",
-    **_ignored_kwargs
+    **_ignored_kwargs,
 ) -> stdevEstimates:
     subperiod_data = data_for_stdev[fit_period.fit_start : fit_period.fit_end]
 
@@ -208,4 +213,4 @@ def annualise_stdev_estimate(stdev: stdevEstimates, frequency: str) -> stdevEsti
 def annualised_stdev(stdev_value: float, frequency: str):
     how_many_times_a_year = how_many_times_a_year_is_pd_frequency(frequency)
 
-    return stdev_value * (how_many_times_a_year ** 0.5)
+    return stdev_value * (how_many_times_a_year**0.5)

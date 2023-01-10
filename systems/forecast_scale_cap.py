@@ -276,7 +276,7 @@ class ForecastScaleCap(SystemStage):
         scaling_factor = scalar_function(
             cs_forecasts,
             target_abs_forecast=target_abs_forecast,
-            **forecast_scalar_config
+            **forecast_scalar_config,
         )
 
         return scaling_factor

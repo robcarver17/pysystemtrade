@@ -8,7 +8,7 @@ from syscore.pdutils import (
     from_dict_of_values_to_df,
     from_scalar_values_to_ts,
     get_row_of_df_aligned_to_weights_as_dict,
-weights_sum_to_one
+    weights_sum_to_one,
 )
 from syscore.objects import resolve_function, missing_data, arg_not_supplied
 from syscore.genutils import str2Bool
@@ -26,7 +26,10 @@ from sysquant.estimators.covariance import (
     covariance_from_stdev_and_correlation,
 )
 from sysquant.estimators.turnover import turnoverDataAcrossSubsystems
-from sysquant.portfolio_risk import calc_portfolio_risk_series, calc_sum_annualised_risk_given_portfolio_weights
+from sysquant.portfolio_risk import (
+    calc_portfolio_risk_series,
+    calc_sum_annualised_risk_given_portfolio_weights,
+)
 from sysquant.optimisation.pre_processing import returnsPreProcessor
 from sysquant.optimisation.weights import portfolioWeights, seriesOfPortfolioWeights
 
@@ -35,7 +38,11 @@ from sysquant.returns import (
     returnsForOptimisationWithCosts,
 )
 
-from systems.buffering import calculate_buffers, calculate_actual_buffers, apply_buffers_to_position
+from systems.buffering import (
+    calculate_buffers,
+    calculate_actual_buffers,
+    apply_buffers_to_position,
+)
 from systems.stage import SystemStage
 from systems.system_cache import input, dont_cache, diagnostic, output
 from systems.positionsizing import PositionSizing
@@ -150,16 +157,17 @@ class Portfolios(SystemStage):
         idm = self.get_instrument_diversification_multiplier()
         instr_weights = self.get_instrument_weights()
 
-        buffer = calculate_buffers(instrument_code=instrument_code,
-                                   position=position,
-                                   log=log,
-                                   config = config,
-                                   idm = idm,
-                                   instr_weights=instr_weights,
-                                   vol_scalar = vol_scalar)
+        buffer = calculate_buffers(
+            instrument_code=instrument_code,
+            position=position,
+            log=log,
+            config=config,
+            idm=idm,
+            instr_weights=instr_weights,
+            vol_scalar=vol_scalar,
+        )
 
         return buffer
-
 
     ## notional position
     @output()
@@ -195,25 +203,29 @@ class Portfolios(SystemStage):
         )
 
         # same frequency as subsystem / forecasts
-        notional_position_without_risk_scalar = self.get_notional_position_before_risk_scaling(
-            instrument_code
+        notional_position_without_risk_scalar = (
+            self.get_notional_position_before_risk_scaling(instrument_code)
         )
 
         risk_scalar = self.get_risk_scalar()
         if type(risk_scalar) is pd.Series:
-            risk_scalar_reindex = risk_scalar.reindex(notional_position_without_risk_scalar.index)
-            notional_position = notional_position_without_risk_scalar * risk_scalar_reindex.ffill()
+            risk_scalar_reindex = risk_scalar.reindex(
+                notional_position_without_risk_scalar.index
+            )
+            notional_position = (
+                notional_position_without_risk_scalar * risk_scalar_reindex.ffill()
+            )
         else:
             notional_position = notional_position_without_risk_scalar
 
         return notional_position
 
-
     ## notional position
     @diagnostic()
-    def get_notional_position_before_risk_scaling(self, instrument_code: str) -> pd.Series:
-        """
-        """
+    def get_notional_position_before_risk_scaling(
+        self, instrument_code: str
+    ) -> pd.Series:
+        """ """
 
         # same frequency as subsystem / forecasts
         notional_position_without_idm = self.get_notional_position_without_idm(
@@ -228,8 +240,6 @@ class Portfolios(SystemStage):
 
         # same frequency as subsystem / forecasts
         return notional_position
-
-
 
     @diagnostic()
     def get_notional_position_without_idm(self, instrument_code: str) -> pd.Series:
@@ -423,7 +433,9 @@ class Portfolios(SystemStage):
             smooth_weighting
         ).mean()
 
-        normalised_smoothed_instrument_weights = weights_sum_to_one(smoothed_instrument_weights)
+        normalised_smoothed_instrument_weights = weights_sum_to_one(
+            smoothed_instrument_weights
+        )
 
         # daily
 
@@ -673,7 +685,7 @@ class Portfolios(SystemStage):
             pandl_across_subsystems,
             turnovers=turnovers,
             log=self.log,
-            **weighting_params
+            **weighting_params,
         )
 
         return returns_pre_processor
@@ -862,23 +874,29 @@ class Portfolios(SystemStage):
     @diagnostic()
     def get_risk_scalar(self) -> pd.Series:
 
-        risk_overlay_config = self.config.get_element_or_arg_not_supplied('risk_overlay')
+        risk_overlay_config = self.config.get_element_or_arg_not_supplied(
+            "risk_overlay"
+        )
         if risk_overlay_config is arg_not_supplied:
             self.log.msg("No risk overlay in config: won't apply risk scaling")
             return 1.0
 
         normal_risk = self.get_portfolio_risk_for_original_positions()
-        shocked_vol_risk = self.get_portfolio_risk_for_original_positions_with_shocked_vol()
+        shocked_vol_risk = (
+            self.get_portfolio_risk_for_original_positions_with_shocked_vol()
+        )
         sum_abs_risk = self.get_sum_annualised_risk_for_original_positions()
         leverage = self.get_leverage_for_original_position()
         percentage_vol_target = self.get_percentage_vol_target()
 
-        risk_scalar = get_risk_multiplier(risk_overlay_config = risk_overlay_config,
-                                     normal_risk=normal_risk,
-                                          shocked_vol_risk=shocked_vol_risk,
-                                          sum_abs_risk = sum_abs_risk,
-                                          leverage = leverage,
-                                          percentage_vol_target=percentage_vol_target)
+        risk_scalar = get_risk_multiplier(
+            risk_overlay_config=risk_overlay_config,
+            normal_risk=normal_risk,
+            shocked_vol_risk=shocked_vol_risk,
+            sum_abs_risk=sum_abs_risk,
+            leverage=leverage,
+            percentage_vol_target=percentage_vol_target,
+        )
 
         return risk_scalar
 
@@ -889,27 +907,24 @@ class Portfolios(SystemStage):
 
         return leverage
 
-
     @diagnostic()
     def get_sum_annualised_risk_for_original_positions(
-            self,
-            ) -> pd.Series:
+        self,
+    ) -> pd.Series:
         portfolio_weights = self.get_original_portfolio_weight_df()
-        return \
-            self.get_sum_annualised_risk_given_portfolio_weights(
-            portfolio_weights)
+        return self.get_sum_annualised_risk_given_portfolio_weights(portfolio_weights)
 
     def get_sum_annualised_risk_given_portfolio_weights(
         self,
-            portfolio_weights: seriesOfPortfolioWeights,
-        ) -> pd.Series:
+        portfolio_weights: seriesOfPortfolioWeights,
+    ) -> pd.Series:
 
         pd_of_stdev = self.get_stdev_df()
-        risk_series = calc_sum_annualised_risk_given_portfolio_weights(portfolio_weights=portfolio_weights,
-                                                 pd_of_stdev = pd_of_stdev)
+        risk_series = calc_sum_annualised_risk_given_portfolio_weights(
+            portfolio_weights=portfolio_weights, pd_of_stdev=pd_of_stdev
+        )
 
         return risk_series
-
 
     @diagnostic()
     def get_portfolio_risk_for_original_positions(self) -> pd.Series:
@@ -922,37 +937,32 @@ class Portfolios(SystemStage):
         return self.get_portfolio_risk_given_weights(weights, use_shocked_vol=True)
 
     def get_portfolio_risk_given_weights(
-        self, portfolio_weights: seriesOfPortfolioWeights,
-            use_shocked_vol = False
+        self, portfolio_weights: seriesOfPortfolioWeights, use_shocked_vol=False
     ) -> pd.Series:
 
         list_of_correlations = self.get_list_of_instrument_returns_correlations()
         pd_of_stdev = self.get_stdev_df(shocked=use_shocked_vol)
-        risk_series = calc_portfolio_risk_series(portfolio_weights=portfolio_weights,
-                                                 list_of_correlations=list_of_correlations,
-                                                 pd_of_stdev = pd_of_stdev)
+        risk_series = calc_portfolio_risk_series(
+            portfolio_weights=portfolio_weights,
+            list_of_correlations=list_of_correlations,
+            pd_of_stdev=pd_of_stdev,
+        )
 
         return risk_series
 
-    def get_stdev_df(
-        self,
-            shocked: bool = False
-    ) -> seriesOfStdevEstimates:
+    def get_stdev_df(self, shocked: bool = False) -> seriesOfStdevEstimates:
         if shocked:
             return self.get_shocked_df_of_perc_vol()
         else:
             return self.get_df_of_perc_vol()
 
     @diagnostic()
-    def get_shocked_df_of_perc_vol(
-        self
-    ) -> seriesOfStdevEstimates:
+    def get_shocked_df_of_perc_vol(self) -> seriesOfStdevEstimates:
 
         df_of_vol = self.get_df_of_perc_vol()
         shocked_df_of_vol = df_of_vol.shocked()
 
         return shocked_df_of_vol
-
 
     ## PORTFOLIO WEIGHTS
     def get_position_contracts_for_relevant_date(
@@ -968,13 +978,16 @@ class Portfolios(SystemStage):
 
         return position_contracts
 
-    def  get_covariance_matrix(
-        self, relevant_date: datetime.datetime = arg_not_supplied,
-            correlation_estimation_parameters = arg_not_supplied
+    def get_covariance_matrix(
+        self,
+        relevant_date: datetime.datetime = arg_not_supplied,
+        correlation_estimation_parameters=arg_not_supplied,
     ) -> covarianceEstimate:
 
-        correlation_estimate = self.get_correlation_matrix(relevant_date=relevant_date,
-                                                           correlation_estimation_parameters = correlation_estimation_parameters)
+        correlation_estimate = self.get_correlation_matrix(
+            relevant_date=relevant_date,
+            correlation_estimation_parameters=correlation_estimation_parameters,
+        )
         stdev_estimate = self.get_stdev_estimate(relevant_date=relevant_date)
 
         covariance = covariance_from_stdev_and_correlation(
@@ -984,10 +997,13 @@ class Portfolios(SystemStage):
         return covariance
 
     def get_correlation_matrix(
-        self, relevant_date: datetime.datetime = arg_not_supplied,
-            correlation_estimation_parameters: dict = arg_not_supplied
+        self,
+        relevant_date: datetime.datetime = arg_not_supplied,
+        correlation_estimation_parameters: dict = arg_not_supplied,
     ) -> correlationEstimate:
-        list_of_correlations = self.get_list_of_instrument_returns_correlations(correlation_estimation_parameters = correlation_estimation_parameters)
+        list_of_correlations = self.get_list_of_instrument_returns_correlations(
+            correlation_estimation_parameters=correlation_estimation_parameters
+        )
         try:
             correlation_matrix = (
                 list_of_correlations.most_recent_correlation_before_date(relevant_date)
@@ -1001,8 +1017,9 @@ class Portfolios(SystemStage):
         return correlation_matrix
 
     @diagnostic(not_pickable=True)
-    def get_list_of_instrument_returns_correlations(self,
-                                                    correlation_estimation_parameters: dict = arg_not_supplied) -> CorrelationList:
+    def get_list_of_instrument_returns_correlations(
+        self, correlation_estimation_parameters: dict = arg_not_supplied
+    ) -> CorrelationList:
         config = self.config
         if correlation_estimation_parameters is arg_not_supplied:
             # Get some useful stuff from the config
@@ -1127,7 +1144,10 @@ class Portfolios(SystemStage):
         instrument_list = self.get_instrument_list()
         values_as_dict = dict(
             [
-                (instrument_code, self.get_notional_position_before_risk_scaling(instrument_code))
+                (
+                    instrument_code,
+                    self.get_notional_position_before_risk_scaling(instrument_code),
+                )
                 for instrument_code in instrument_list
             ]
         )
@@ -1144,7 +1164,9 @@ class Portfolios(SystemStage):
     def get_portfolio_weight_series_from_contract_positions(
         self, instrument_code: str
     ) -> pd.Series:
-        contract_positions = self.get_notional_position_before_risk_scaling(instrument_code)
+        contract_positions = self.get_notional_position_before_risk_scaling(
+            instrument_code
+        )
         per_contract_value_as_proportion_of_capital = (
             self.get_per_contract_value_as_proportion_of_capital(instrument_code)
         )
@@ -1227,7 +1249,6 @@ class Portfolios(SystemStage):
     def data(self):
         return self.parent.data
 
-
     @property
     def accounts_stage(self):
         accounts_stage = getattr(self.parent, "accounts", missing_data)
@@ -1254,6 +1275,7 @@ def get_portfolio_weights_from_contract_positions(
     weights_as_proportion_of_capital = contract_positions * aligned_values
 
     return weights_as_proportion_of_capital
+
 
 if __name__ == "__main__":
     import doctest

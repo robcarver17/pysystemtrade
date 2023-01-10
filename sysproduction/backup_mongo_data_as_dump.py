@@ -49,5 +49,5 @@ def backup_mongo_dump(data):
     os.system("rsync -av %s %s" % (source_path, destination_path))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     backup_mongo_data_as_dump()

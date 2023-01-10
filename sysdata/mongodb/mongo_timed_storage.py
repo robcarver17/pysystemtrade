@@ -27,7 +27,9 @@ class mongoListOfEntriesData(listOfEntriesData):
     def _data_name(self) -> str:
         raise NotImplementedError("Need to inherit for a specific data type")
 
-    def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen("mongoStrategyCapitalData")):
+    def __init__(
+        self, mongo_db=arg_not_supplied, log=logtoscreen("mongoStrategyCapitalData")
+    ):
 
         super().__init__(log=log)
         self._mongo_data = mongoDataWithMultipleKeys(

@@ -29,7 +29,7 @@ class portfolioOptimiser:
         net_returns: returnsForOptimisation,
         log: logger = logtoscreen("optimiser"),
         method="handcraft",
-        **weighting_args
+        **weighting_args,
     ):
 
         self._net_returns = net_returns

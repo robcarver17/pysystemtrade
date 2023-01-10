@@ -31,5 +31,5 @@ def get_list_of_timer_functions_for_backup():
     return list_of_timer_names_and_functions
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_backups()

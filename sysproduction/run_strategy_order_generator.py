@@ -51,5 +51,5 @@ def get_list_of_strategy_order_timer_functions_for_strategies(data):
     return list_of_timer_names_and_functions
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_strategy_order_generator()

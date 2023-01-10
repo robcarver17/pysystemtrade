@@ -15,7 +15,7 @@ class totalCapitalUpdater(object):
         prev_maximum_capital: float,
         prev_broker_account_value: float,
         prev_pandl_cum_acc: float,
-        calc_method: str
+        calc_method: str,
     ):
 
         self._new_broker_account_value = new_broker_account_value
@@ -188,6 +188,7 @@ class totalCapitalUpdater(object):
 
         self._new_maximum_capital = new_maximum_capital
         self._new_total_capital = new_total_capital
+
 
 class LargeCapitalChange(ValueError):
     pass

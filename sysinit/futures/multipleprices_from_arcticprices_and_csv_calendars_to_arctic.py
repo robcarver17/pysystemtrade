@@ -77,12 +77,12 @@ def process_multiple_prices_all_instruments(
 
 def process_multiple_prices_single_instrument(
     instrument_code,
-    target_instrument_code = arg_not_supplied,
+    target_instrument_code=arg_not_supplied,
     adjust_calendar_to_prices=True,
     csv_multiple_data_path=arg_not_supplied,
     csv_roll_data_path=arg_not_supplied,
-    roll_parameters = arg_not_supplied,
-    roll_calendar = arg_not_supplied,
+    roll_parameters=arg_not_supplied,
+    roll_calendar=arg_not_supplied,
     ADD_TO_ARCTIC=True,
     ADD_TO_CSV=False,
 ):
@@ -97,7 +97,9 @@ def process_multiple_prices_single_instrument(
     ) = _get_data_inputs(csv_roll_data_path, csv_multiple_data_path)
 
     dict_of_futures_contract_prices = (
-        arctic_individual_futures_prices.get_merged_prices_for_instrument(instrument_code)
+        arctic_individual_futures_prices.get_merged_prices_for_instrument(
+            instrument_code
+        )
     )
     dict_of_futures_contract_closing_prices = (
         dict_of_futures_contract_prices.final_prices()

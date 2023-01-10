@@ -1,8 +1,12 @@
 import datetime
 from copy import copy
 
-from syscore.dateutils import n_days_ago, calculate_start_and_end_dates, get_date_from_period_and_end_date
-from syscore.genutils import named_tuple_as_dict, override_tuple_fields,str2Bool
+from syscore.dateutils import (
+    n_days_ago,
+    calculate_start_and_end_dates,
+    get_date_from_period_and_end_date,
+)
+from syscore.genutils import named_tuple_as_dict, override_tuple_fields, str2Bool
 from syscore.objects import arg_not_supplied
 
 
@@ -11,15 +15,18 @@ def get_field_names_for_named_tuple(named_tuple_instance):
     for key_name in original_tuple_as_dict.keys():
         original_tuple_entry = original_tuple_as_dict[key_name]
         original_tuple_entry_class = original_tuple_entry.__class__
-        input_result = get_and_convert(key_name,
-                                       default_value=original_tuple_entry,
-                                       type_expected=original_tuple_entry_class)
+        input_result = get_and_convert(
+            key_name,
+            default_value=original_tuple_entry,
+            type_expected=original_tuple_entry_class,
+        )
 
         original_tuple_as_dict[key_name] = input_result
 
     new_tuple = override_tuple_fields(named_tuple_instance, original_tuple_as_dict)
 
     return new_tuple
+
 
 def get_and_convert(
     prompt, type_expected=int, allow_default=True, default_value=0, default_str=None
@@ -160,13 +167,12 @@ def print_menu_and_get_response(menu_of_options, default_option=None, default_st
     return ans
 
 
-def true_if_answer_is_yes(prompt="",
-                          allow_empty_to_return_none=False) -> bool:
+def true_if_answer_is_yes(prompt="", allow_empty_to_return_none=False) -> bool:
     invalid = True
     while invalid:
         x = input(prompt)
         if allow_empty_to_return_none:
-            if x=="":
+            if x == "":
                 return None
 
         x = x.lower()
@@ -179,15 +185,17 @@ def true_if_answer_is_yes(prompt="",
 
 def get_report_dates():
 
-    end_date= arg_not_supplied
+    end_date = arg_not_supplied
     start_date = arg_not_supplied
     start_period = arg_not_supplied
     end_period = arg_not_supplied
 
-    input_end_date = get_datetime_input("End date for report?\n",
-                                  allow_default=True,
-                                  allow_period=True,
-                                  allow_calendar_days=True)
+    input_end_date = get_datetime_input(
+        "End date for report?\n",
+        allow_default=True,
+        allow_period=True,
+        allow_calendar_days=True,
+    )
 
     if type(input_end_date) is int:
         ## calendar days
@@ -201,11 +209,11 @@ def get_report_dates():
         raise Exception("Don't recognise %s" % str(input_end_date))
 
     input_start_date = get_datetime_input(
-                                "Start date for report? \n",
-                                    allow_default=False,
-                                    allow_period=True,
-                                    allow_calendar_days=True
-                                )
+        "Start date for report? \n",
+        allow_default=False,
+        allow_period=True,
+        allow_calendar_days=True,
+    )
 
     if type(input_start_date) is int:
         ## calendar days
@@ -219,19 +227,21 @@ def get_report_dates():
         raise Exception("Don't recognise %s" % str(input_start_date))
 
     start_date, end_date = calculate_start_and_end_dates(
-        calendar_days_back = arg_not_supplied,
-        end_date = end_date,
-        start_date = start_date,
-        start_period= start_period,
-        end_period = end_period)
+        calendar_days_back=arg_not_supplied,
+        end_date=end_date,
+        start_date=start_date,
+        start_period=start_period,
+        end_period=end_period,
+    )
 
     return start_date, end_date
 
 
 def get_datetime_input(
-    prompt: str, allow_default: bool = True,
+    prompt: str,
+    allow_default: bool = True,
     allow_calendar_days: bool = False,
-    allow_period: bool = False
+    allow_period: bool = False,
 ):
     invalid_input = True
     input_str = (
@@ -273,14 +283,12 @@ def get_datetime_input(
             pass
 
 
-
 def resolve_datetime_input_str(ans):
-        if len(ans) == 10:
-            return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d")
-        elif len(ans) == 19:
-            return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d %H:%M:%S")
-        else:
-            # problems formatting will also raise value error
-            raise ValueError
-        return return_datetime
-
+    if len(ans) == 10:
+        return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d")
+    elif len(ans) == 19:
+        return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d %H:%M:%S")
+    else:
+        # problems formatting will also raise value error
+        raise ValueError
+    return return_datetime

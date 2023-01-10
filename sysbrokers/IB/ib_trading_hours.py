@@ -2,13 +2,19 @@ import datetime
 from ib_insync import ContractDetails as ibContractDetails
 
 from sysdata.config.private_directory import get_full_path_for_private_config
-from sysobjects.production.trading_hours.trading_hours import tradingHours, listOfTradingHours
+from sysobjects.production.trading_hours.trading_hours import (
+    tradingHours,
+    listOfTradingHours,
+)
 from syscore.fileutils import does_file_exist
 from sysdata.config.production_config import get_production_config
 from sysdata.production.trading_hours import read_trading_hours
 
 IB_CONFIG_TRADING_HOURS_FILE = "sysbrokers.IB.ib_config_trading_hours.yaml"
-PRIVATE_CONFIG_TRADING_HOURS_FILE = get_full_path_for_private_config("private_config_trading_hours.yaml")
+PRIVATE_CONFIG_TRADING_HOURS_FILE = get_full_path_for_private_config(
+    "private_config_trading_hours.yaml"
+)
+
 
 def get_saved_trading_hours():
     if does_file_exist(PRIVATE_CONFIG_TRADING_HOURS_FILE):
@@ -16,15 +22,17 @@ def get_saved_trading_hours():
     else:
         return read_trading_hours(IB_CONFIG_TRADING_HOURS_FILE)
 
-def get_trading_hours_from_contract_details(ib_contract_details: ibContractDetails) -> listOfTradingHours:
+
+def get_trading_hours_from_contract_details(
+    ib_contract_details: ibContractDetails,
+) -> listOfTradingHours:
     try:
         time_zone_id = ib_contract_details.timeZoneId
         time_zone_adjustment = get_time_difference(time_zone_id)
 
         trading_hours_string = ib_contract_details.tradingHours
         list_of_open_times = parse_trading_hours_string(
-            trading_hours_string,
-            adjustment_hours=time_zone_adjustment
+            trading_hours_string, adjustment_hours=time_zone_adjustment
         )
     except Exception as e:
         raise e
@@ -35,17 +43,15 @@ def get_trading_hours_from_contract_details(ib_contract_details: ibContractDetai
 NO_ADJUSTMENTS = 0, 0
 CLOSED_ALL_DAY = object()
 
+
 def parse_trading_hours_string(
     trading_hours_string: str,
     adjustment_hours: int = 0,
-    ) -> listOfTradingHours:
+) -> listOfTradingHours:
 
     day_by_day = trading_hours_string.split(";")
     list_of_open_times = [
-        parse_trading_for_day(
-            string_for_day,
-            adjustment_hours=adjustment_hours
-        )
+        parse_trading_for_day(string_for_day, adjustment_hours=adjustment_hours)
         for string_for_day in day_by_day
     ]
 
@@ -59,9 +65,8 @@ def parse_trading_hours_string(
 
 
 def parse_trading_for_day(
-    string_for_day: str,
-    adjustment_hours: int = 0
-    ) -> tradingHours:
+    string_for_day: str, adjustment_hours: int = 0
+) -> tradingHours:
 
     start_and_end = string_for_day.split("-")
     if len(start_and_end) == 1:
@@ -87,13 +92,15 @@ def parse_trading_for_day(
     return tradingHours(start_dt, end_dt)
 
 
-def parse_phrase(phrase: str, adjustment_hours: int = 0, additional_adjust: int = 0)\
-        -> datetime.datetime:
+def parse_phrase(
+    phrase: str, adjustment_hours: int = 0, additional_adjust: int = 0
+) -> datetime.datetime:
     total_adjustment = adjustment_hours + additional_adjust
     original_time = datetime.datetime.strptime(phrase, "%Y%m%d:%H%M")
     adjustment = datetime.timedelta(hours=total_adjustment)
 
     return original_time + adjustment
+
 
 def get_GMT_offset_hours():
     # this needs to be in private_config.YAML
@@ -105,6 +112,7 @@ def get_GMT_offset_hours():
     except:
         raise Exception("Default is zero, have it in private_config")
     return GMT_offset_hours
+
 
 def get_time_difference(time_zone_id: str) -> int:
     # Doesn't deal with DST. We will be conservative and only trade 1 hour

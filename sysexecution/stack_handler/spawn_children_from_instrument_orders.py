@@ -230,7 +230,6 @@ def get_required_contract_trade_for_instrument(
         )
         return [contractIdAndTrade(current_contract, trade)]
 
-
     elif diag_positions.is_roll_state_passive(instrument_code):
         # no log as function does it
         list_of_child_contract_dates_and_trades = passive_roll_child_order(
@@ -538,13 +537,13 @@ def calculate_adjusted_price_for_a_direct_child_order(
 
     child_contract_date = child_order.contract_date_key
 
-    adjusted_price =\
-        modify_price_when_contract_has_changed(data=data,
-                                               instrument_code=instrument_code,
-                                               original_contract_date=original_contract_date,
-                                               new_contract_date=child_contract_date,
-                                               original_price=original_price,
-                                               )
+    adjusted_price = modify_price_when_contract_has_changed(
+        data=data,
+        instrument_code=instrument_code,
+        original_contract_date=original_contract_date,
+        new_contract_date=child_contract_date,
+        original_price=original_price,
+    )
 
     return adjusted_price
 

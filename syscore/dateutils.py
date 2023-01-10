@@ -19,13 +19,13 @@ First some constants
 CALENDAR_DAYS_IN_YEAR = 365.25
 
 BUSINESS_DAYS_IN_YEAR = 256.0
-ROOT_BDAYS_INYEAR = BUSINESS_DAYS_IN_YEAR ** 0.5
+ROOT_BDAYS_INYEAR = BUSINESS_DAYS_IN_YEAR**0.5
 
 WEEKS_IN_YEAR = CALENDAR_DAYS_IN_YEAR / 7.0
-ROOT_WEEKS_IN_YEAR = WEEKS_IN_YEAR ** 0.5
+ROOT_WEEKS_IN_YEAR = WEEKS_IN_YEAR**0.5
 
 MONTHS_IN_YEAR = 12.0
-ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR ** 0.5
+ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR**0.5
 
 APPROX_DAYS_IN_MONTH = CALENDAR_DAYS_IN_YEAR / MONTHS_IN_YEAR
 
@@ -45,25 +45,29 @@ UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
 
 MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
 
-def get_date_from_period_and_end_date(period: str,
-                                      end_date = arg_not_supplied) -> datetime.datetime:
+
+def get_date_from_period_and_end_date(
+    period: str, end_date=arg_not_supplied
+) -> datetime.datetime:
     if end_date is arg_not_supplied:
         end_date = datetime.datetime.now()
 
-    if period=="YTD":
+    if period == "YTD":
         return calculate_starting_day_of_current_year(end_date)
-    elif period=="MTD":
+    elif period == "MTD":
         return calculate_starting_day_of_current_month(end_date)
-    elif period=="QTD":
+    elif period == "QTD":
         return calculate_starting_day_of_current_quarter(end_date)
-    elif period=="TAX":
+    elif period == "TAX":
         return calculate_starting_day_of_current_uk_tax_year(end_date)
 
-    offset_date =  _get_previous_date_from_period_with_char_number(period, end_date)
+    offset_date = _get_previous_date_from_period_with_char_number(period, end_date)
     return offset_date
 
-def _get_previous_date_from_period_with_char_number(period: str,
-                          end_date: datetime.datetime) -> datetime.datetime:
+
+def _get_previous_date_from_period_with_char_number(
+    period: str, end_date: datetime.datetime
+) -> datetime.datetime:
 
     type_of_offset = period[-1]
     try:
@@ -71,46 +75,49 @@ def _get_previous_date_from_period_with_char_number(period: str,
     except:
         raise Exception("Offset %s not in pattern numberLetter eg 7D for 7 days")
 
-    if type_of_offset=="M":
-        offset_date = end_date+pd.DateOffset(months=-number_offset)
-    elif type_of_offset=="D":
-        offset_date = end_date+pd.DateOffset(days = -number_offset)
-    elif type_of_offset=="W":
-        offset_date = end_date + pd.DateOffset(days=-number_offset*7)
-    elif type_of_offset=="B":
-        offset_date = end_date+pd.tseries.offsets.BDay(-number_offset)
-    elif type_of_offset=="Y":
-        offset_date = end_date+pd.DateOffset(years = -number_offset)
+    if type_of_offset == "M":
+        offset_date = end_date + pd.DateOffset(months=-number_offset)
+    elif type_of_offset == "D":
+        offset_date = end_date + pd.DateOffset(days=-number_offset)
+    elif type_of_offset == "W":
+        offset_date = end_date + pd.DateOffset(days=-number_offset * 7)
+    elif type_of_offset == "B":
+        offset_date = end_date + pd.tseries.offsets.BDay(-number_offset)
+    elif type_of_offset == "Y":
+        offset_date = end_date + pd.DateOffset(years=-number_offset)
     else:
-        raise Exception("Type of offset %s not recognised must be one of BDMYW" % type_of_offset)
+        raise Exception(
+            "Type of offset %s not recognised must be one of BDMYW" % type_of_offset
+        )
 
     return offset_date
 
-def calculate_starting_day_of_current_year(end_date) -> datetime.datetime:
-    return datetime.datetime(year=end_date.year,
-                             month=1,
-                             day=1)
 
-def calculate_starting_day_of_current_uk_tax_year(end_date: datetime.datetime) -> datetime.datetime:
+def calculate_starting_day_of_current_year(end_date) -> datetime.datetime:
+    return datetime.datetime(year=end_date.year, month=1, day=1)
+
+
+def calculate_starting_day_of_current_uk_tax_year(
+    end_date: datetime.datetime,
+) -> datetime.datetime:
     current_month = end_date.month
     current_day = end_date.day
     current_year = end_date.year
-    if current_month<5 and current_day<6:
-        return datetime.datetime(year=current_year-1, month=4, day=6)
+    if current_month < 5 and current_day < 6:
+        return datetime.datetime(year=current_year - 1, month=4, day=6)
     else:
-        return datetime.datetime(year = current_year, month=4, day=6)
+        return datetime.datetime(year=current_year, month=4, day=6)
+
 
 def calculate_starting_day_of_current_month(end_date) -> datetime.datetime:
-    return datetime.datetime(year = end_date.year, month = end_date.month, day=1)
+    return datetime.datetime(year=end_date.year, month=end_date.month, day=1)
+
 
 def calculate_starting_day_of_current_quarter(end_date):
     current_month = end_date.month
-    current_quarter = int(np.ceil(current_month/3))
-    start_month_of_quarter = ((current_quarter -1)*3)+1
-    return datetime.datetime(year = end_date.year,
-                             month = start_month_of_quarter,
-                             day=1)
-
+    current_quarter = int(np.ceil(current_month / 3))
+    start_month_of_quarter = ((current_quarter - 1) * 3) + 1
+    return datetime.datetime(year=end_date.year, month=start_month_of_quarter, day=1)
 
 
 Frequency = Enum(
@@ -122,6 +129,7 @@ BUSINESS_DAY_FREQ = Frequency.BDay
 HOURLY_FREQ = Frequency.Hour
 
 MIXED_FREQ = Frequency.Mixed
+
 
 def from_config_frequency_pandas_resample(freq: Frequency) -> str:
     LOOKUP_TABLE = {
@@ -438,21 +446,23 @@ def generate_equal_dates_within_year(
     return all_dates
 
 
-def get_approx_vol_scalar_for_period(start_date:datetime.datetime,
-                              end_date = datetime.datetime) -> float:
+def get_approx_vol_scalar_for_period(
+    start_date: datetime.datetime, end_date=datetime.datetime
+) -> float:
     time_between = end_date - start_date
-    seconds_between= time_between.total_seconds()
+    seconds_between = time_between.total_seconds()
     days_between = seconds_between / SECONDS_PER_DAY
 
-    return days_between**.5
+    return days_between**0.5
 
 
 def calculate_start_and_end_dates(
-        calendar_days_back = arg_not_supplied,
-        end_date: datetime.datetime = arg_not_supplied,
-        start_date: datetime.datetime = arg_not_supplied,
-        start_period: str = arg_not_supplied,
-        end_period: str = arg_not_supplied) -> tuple:
+    calendar_days_back=arg_not_supplied,
+    end_date: datetime.datetime = arg_not_supplied,
+    start_date: datetime.datetime = arg_not_supplied,
+    start_period: str = arg_not_supplied,
+    end_period: str = arg_not_supplied,
+) -> tuple:
 
     ## DO THE END DATE FIRST
     ## First preference is to use period
@@ -472,7 +482,9 @@ def calculate_start_and_end_dates(
         if start_date is arg_not_supplied:
             ## no period or calendar days, use passed date
             if calendar_days_back is arg_not_supplied:
-                raise Exception("Have to specify one of calendar days back, start period or start date!")
+                raise Exception(
+                    "Have to specify one of calendar days back, start period or start date!"
+                )
             else:
                 ## Calendar days
                 start_date = n_days_ago(calendar_days_back, end_date)
@@ -493,19 +505,18 @@ def time_to_string(time: datetime.time):
 def time_from_string(time_string: str):
     split_string = time_string.split(":")
 
-    return datetime.time(int(split_string[0]),
-                         int(split_string[1]))
+    return datetime.time(int(split_string[0]), int(split_string[1]))
 
 
-MIDNIGHT = datetime.time(0,0)
+MIDNIGHT = datetime.time(0, 0)
 
 
 def preceeding_midnight_of_datetime(some_datetime: datetime.datetime):
-    return datetime.datetime.combine(some_datetime.date(), datetime.time(0,0))
+    return datetime.datetime.combine(some_datetime.date(), datetime.time(0, 0))
 
 
 def preceeding_midnight_of_date(some_date: datetime.date):
-    return datetime.datetime.combine(some_date, datetime.time(0,0))
+    return datetime.datetime.combine(some_date, datetime.time(0, 0))
 
 
 def following_one_second_before_midnight_of_datetime(some_datetime: datetime.datetime):
@@ -513,4 +524,6 @@ def following_one_second_before_midnight_of_datetime(some_datetime: datetime.dat
 
 
 def following_midnight_of_date(some_date: datetime.date):
-    return following_one_second_before_midnight_of_datetime(preceeding_midnight_of_date(some_date))
+    return following_one_second_before_midnight_of_datetime(
+        preceeding_midnight_of_date(some_date)
+    )

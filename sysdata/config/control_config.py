@@ -13,7 +13,7 @@ def get_control_config() -> Config:
     try:
         control_config = Config(
             private_filename=private_control_path,
-            default_filename=DEFAULT_CONTROL_CONFIG_FILE
+            default_filename=DEFAULT_CONTROL_CONFIG_FILE,
         )
         control_config.fill_with_defaults()
 

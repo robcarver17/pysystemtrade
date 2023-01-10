@@ -2,7 +2,8 @@ from enum import Enum
 from syscore.objects import named_object
 
 RollState = Enum(
-    "RollState", ("No_Roll", "Passive", "Force", "Force_Outright", "Roll_Adjusted", "Close")
+    "RollState",
+    ("No_Roll", "Passive", "Force", "Force_Outright", "Roll_Adjusted", "Close"),
 )
 
 no_roll_state = RollState.No_Roll
@@ -17,7 +18,7 @@ roll_explanations = {
     RollState.Force: "Force the contract to roll ASAP using spread order",
     RollState.Force_Outright: "Force the contract to roll ASAP using two outright orders",
     RollState.Roll_Adjusted: "Roll adjusted prices from existing priced to new forward contract (after adjusted prices have been changed, will automatically move state to no roll",
-    RollState.Close: "Close position in near contract by setting position limit to zero"
+    RollState.Close: "Close position in near contract by setting position limit to zero",
 }
 
 
@@ -68,10 +69,9 @@ def allowable_roll_state_from_current_and_position(
         Force_Outright0=["Roll_Adjusted", "Passive"],
         Force_Outright1=["Force", "Force_Outright", "Passive", "No_Roll", "Close"],
         Close0=["Roll_Adjusted", "Passive"],
-        Close1=["Close" ,"Force", "Force_Outright", "Passive", "No_Roll"],
+        Close1=["Close", "Force", "Force_Outright", "Passive", "No_Roll"],
         Roll_Adjusted0=["No_Roll"],
         Roll_Adjusted1=["Roll_Adjusted"],
-
     )
 
     status_plus_position = complete_roll_state(current_roll_state, priced_position)

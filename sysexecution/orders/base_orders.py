@@ -63,7 +63,7 @@ class Order(object):
         children: list = no_children,
         active: bool = True,
         order_type: orderType = orderType("market"),
-        **order_info
+        **order_info,
     ):
         """
 
@@ -121,17 +121,20 @@ class Order(object):
             active_str = " INACTIVE"
         else:
             active_str = ""
-        return "(Order ID:%s) Type %s for %s, qty %s, fill %s@ price, %s Parent:%s Children:%s%s%s" % (
-            str(self.order_id),
-            str(self._order_type),
-            str(self.key),
-            str(self.trade),
-            str(self.fill),
-            str(self.filled_price),
-            str(self.parent),
-            str(self.children),
-            lock_str,
-            active_str,
+        return (
+            "(Order ID:%s) Type %s for %s, qty %s, fill %s@ price, %s Parent:%s Children:%s%s%s"
+            % (
+                str(self.order_id),
+                str(self._order_type),
+                str(self.key),
+                str(self.trade),
+                str(self.fill),
+                str(self.filled_price),
+                str(self.parent),
+                str(self.children),
+                lock_str,
+                active_str,
+            )
         )
 
     @property
@@ -420,7 +423,7 @@ class Order(object):
             children=children,
             active=active,
             order_type=order_type,
-            **order_info
+            **order_info,
         )
 
         return order

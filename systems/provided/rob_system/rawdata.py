@@ -241,7 +241,7 @@ class myFuturesRawData(RawData):
         instrument_code,
         factor_name="skew",
         demean_method="average_factor_value_for_instrument",
-        **kwargs
+        **kwargs,
     ):
         """
         :param instrument_code: str

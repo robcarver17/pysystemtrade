@@ -35,5 +35,5 @@ def risk_report(data: dataBlob = arg_not_supplied):
     return formatted_output
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     risk_report()

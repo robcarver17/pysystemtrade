@@ -30,7 +30,7 @@ def optimiser_for_method(
     weights_with_estimates_for_valid_data = call_optimiser(
         method,
         estimates_with_only_valid_data=estimates_with_only_valid_data,
-        **weighting_args
+        **weighting_args,
     )
 
     weights_for_valid_data = weights_with_estimates_for_valid_data.weights

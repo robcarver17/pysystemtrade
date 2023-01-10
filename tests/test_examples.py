@@ -19,7 +19,6 @@ from systems.provided.futures_chapter15.basesystem import (
 )
 
 
-
 @pytest.fixture()
 def data():
     data = csvFuturesSimData()

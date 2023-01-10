@@ -9,8 +9,8 @@ TEMPORARY_CLOSE_COLLECTION = "temporary_close_collection"
 KEY = "instrument_code"
 POSITION_LIMIT_FIELD = "position_limit"
 
-class mongoTemporaryCloseData(temporaryCloseData):
 
+class mongoTemporaryCloseData(temporaryCloseData):
     def __init__(
         self, mongo_db=arg_not_supplied, log=logtoscreen("mongotemporaryCloseData")
     ):
@@ -30,21 +30,23 @@ class mongoTemporaryCloseData(temporaryCloseData):
     def get_list_of_instruments(self):
         return self.mongo_data.get_list_of_keys()
 
-    def get_stored_position_limit_for_instrument(self, instrument_code: str) -> positionLimitForInstrument:
+    def get_stored_position_limit_for_instrument(
+        self, instrument_code: str
+    ) -> positionLimitForInstrument:
         result_dict = self.mongo_data.get_result_dict_for_key(instrument_code)
         if result_dict is missing_data:
             return missing_data
 
-        return positionLimitForInstrument(instrument_code,
-                                          result_dict[POSITION_LIMIT_FIELD])
-
-    def _add_stored_position_limit_without_checking(self, position_limit_for_instrument: positionLimitForInstrument):
-        data_dict = {POSITION_LIMIT_FIELD:position_limit_for_instrument.position_limit}
-        instrument_code = position_limit_for_instrument.key
-        self.mongo_data.add_data(
-            instrument_code, data_dict, allow_overwrite=True
+        return positionLimitForInstrument(
+            instrument_code, result_dict[POSITION_LIMIT_FIELD]
         )
 
+    def _add_stored_position_limit_without_checking(
+        self, position_limit_for_instrument: positionLimitForInstrument
+    ):
+        data_dict = {POSITION_LIMIT_FIELD: position_limit_for_instrument.position_limit}
+        instrument_code = position_limit_for_instrument.key
+        self.mongo_data.add_data(instrument_code, data_dict, allow_overwrite=True)
 
     def does_instrument_have_position_limit_stored(self, instrument_code) -> bool:
         list_of_keys = self.get_list_of_instruments()
