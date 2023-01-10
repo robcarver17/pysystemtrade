@@ -160,7 +160,7 @@ class portfolioWeights(dict):
 
         variance = weights_np.dot(corr_np).dot(weights_np)
 
-        risk = variance ** 0.5
+        risk = variance**0.5
 
         return risk
 

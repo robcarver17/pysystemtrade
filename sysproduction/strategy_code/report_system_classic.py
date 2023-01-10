@@ -526,14 +526,17 @@ def risk_scaling_string(backtest) -> str:
         )
     )
 
-    scaling_str = "Risk overlay \n Config %s \n Percentage vol target %.1f \n Normal risk %.1f Shocked risk %.1f \n Sum abs risk %.1f Leverage %.2f \n Risk scalar %.2f" % (
-        str(risk_overlay_config),
-        percentage_vol_target,
-        normal_risk_final,
-        shocked_vol_risk_final,
-        sum_abs_risk_final,
-        leverage_final,
-        risk_scalar_final,
+    scaling_str = (
+        "Risk overlay \n Config %s \n Percentage vol target %.1f \n Normal risk %.1f Shocked risk %.1f \n Sum abs risk %.1f Leverage %.2f \n Risk scalar %.2f"
+        % (
+            str(risk_overlay_config),
+            percentage_vol_target,
+            normal_risk_final,
+            shocked_vol_risk_final,
+            sum_abs_risk_final,
+            leverage_final,
+            risk_scalar_final,
+        )
     )
 
     return scaling_str
