@@ -267,14 +267,11 @@ class instrumentCosts(object):
         )
 
     def __repr__(self):
-        return (
-            "instrumentCosts slippage %f block_commission %f percentage cost %f per trade commission %f "
-            % (
-                self.price_slippage,
-                self.value_of_block_commission,
-                self.percentage_cost,
-                self.value_of_pertrade_commission,
-            )
+        return "instrumentCosts slippage %f block_commission %f percentage cost %f per trade commission %f " % (
+            self.price_slippage,
+            self.value_of_block_commission,
+            self.percentage_cost,
+            self.value_of_pertrade_commission,
         )
 
     def commission_only(self):

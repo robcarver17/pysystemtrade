@@ -236,8 +236,8 @@ def calculate_omega_difference(
 ):
 
     omega_one_asset = std / (years_of_data) ** 0.5
-    omega_variance_difference = 2 * (omega_one_asset**2) * (1 - avg_correlation)
-    omega_difference = omega_variance_difference**0.5
+    omega_variance_difference = 2 * (omega_one_asset ** 2) * (1 - avg_correlation)
+    omega_difference = omega_variance_difference ** 0.5
 
     return omega_difference
 

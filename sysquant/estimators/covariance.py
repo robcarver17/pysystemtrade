@@ -61,7 +61,7 @@ def get_annualised_risk(
     sigma = sigma_from_corr_and_std(std_dev_as_np, cmatrix_as_np)
 
     portfolio_variance = weights_as_np.dot(sigma).dot(weights_as_np.transpose())
-    portfolio_std = portfolio_variance**0.5
+    portfolio_std = portfolio_variance ** 0.5
 
     return portfolio_std
 

@@ -382,8 +382,8 @@ def calculate_confident_mean_difference(
 
 def calculate_omega_difference(std, years_of_data, avg_correlation):
     omega_one_asset = std / (years_of_data) ** 0.5
-    omega_variance_difference = 2 * (omega_one_asset**2) * (1 - avg_correlation)
-    omega_difference = omega_variance_difference**0.5
+    omega_variance_difference = 2 * (omega_one_asset ** 2) * (1 - avg_correlation)
+    omega_difference = omega_variance_difference ** 0.5
 
     return omega_difference
 
@@ -441,7 +441,7 @@ class Portfolio:
         self.instrument_returns = instrument_returns
         self.instruments = list(instrument_returns.columns)
         self.corr_matrix = calc_correlation(instrument_returns)
-        self.vol_vector = np.array(instrument_returns.std() * (WEEKS_IN_YEAR**0.5))
+        self.vol_vector = np.array(instrument_returns.std() * (WEEKS_IN_YEAR ** 0.5))
         self.returns_vector = np.array(instrument_returns.mean() * WEEKS_IN_YEAR)
         self.sharpe_ratio = self.returns_vector / self.vol_vector
 
@@ -816,7 +816,7 @@ class Portfolio:
         return portfolio_returns
 
     def _calculate_portfolio_returns_std(self):
-        return self.portfolio_returns.std() * (WEEKS_IN_YEAR**0.5)
+        return self.portfolio_returns.std() * (WEEKS_IN_YEAR ** 0.5)
 
     def _calculate_diversification_mult(self):
         """
@@ -1004,18 +1004,18 @@ class Portfolio:
         # formula from
         # https://qoppac.blogspot.com/2018/12/portfolio-construction-through_7.html
         a_value = (
-            (high_vol_std**2)
-            + (low_vol_std**2)
+            (high_vol_std ** 2)
+            + (low_vol_std ** 2)
             - (2 * high_vol_std * low_vol_std * correlation)
         )
         b_value = (2 * high_vol_std * low_vol_std * correlation) - 2 * (
-            low_vol_std**2
+            low_vol_std ** 2
         )
-        c_value = (low_vol_std**2) - (risk_target_std**2)
+        c_value = (low_vol_std ** 2) - (risk_target_std ** 2)
 
         # standard formula for solving a quadratic
         high_cash_weight = (
-            -b_value + (((b_value**2) - (4 * a_value * c_value)) ** 0.5)
+            -b_value + (((b_value ** 2) - (4 * a_value * c_value)) ** 0.5)
         ) / (2 * a_value)
 
         try:

@@ -19,13 +19,13 @@ First some constants
 CALENDAR_DAYS_IN_YEAR = 365.25
 
 BUSINESS_DAYS_IN_YEAR = 256.0
-ROOT_BDAYS_INYEAR = BUSINESS_DAYS_IN_YEAR**0.5
+ROOT_BDAYS_INYEAR = BUSINESS_DAYS_IN_YEAR ** 0.5
 
 WEEKS_IN_YEAR = CALENDAR_DAYS_IN_YEAR / 7.0
-ROOT_WEEKS_IN_YEAR = WEEKS_IN_YEAR**0.5
+ROOT_WEEKS_IN_YEAR = WEEKS_IN_YEAR ** 0.5
 
 MONTHS_IN_YEAR = 12.0
-ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR**0.5
+ROOT_MONTHS_IN_YEAR = MONTHS_IN_YEAR ** 0.5
 
 APPROX_DAYS_IN_MONTH = CALENDAR_DAYS_IN_YEAR / MONTHS_IN_YEAR
 
@@ -453,7 +453,7 @@ def get_approx_vol_scalar_for_period(
     seconds_between = time_between.total_seconds()
     days_between = seconds_between / SECONDS_PER_DAY
 
-    return days_between**0.5
+    return days_between ** 0.5
 
 
 def calculate_start_and_end_dates(
