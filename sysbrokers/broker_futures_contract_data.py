@@ -34,7 +34,6 @@ class brokerFuturesContractData(futuresContractData):
 
         return trading_hours.okay_to_trade_now()
 
-
     def less_than_N_hours_of_trading_left_for_contract(
         self, contract_object: futuresContract, N_hours: float = 1.0
     ) -> bool:
@@ -43,18 +42,19 @@ class brokerFuturesContractData(futuresContractData):
         except missingContract:
             return False
 
-        less_than_N_hours_of_trading_left_for_contract = \
+        less_than_N_hours_of_trading_left_for_contract = (
             trading_hours.less_than_N_hours_left(N_hours=N_hours)
+        )
 
         if less_than_N_hours_of_trading_left_for_contract is market_closed:
             return market_closed
 
         return less_than_N_hours_of_trading_left_for_contract
 
-    def get_trading_hours_for_contract(self, futures_contract: futuresContract) -> \
-            listOfTradingHours:
+    def get_trading_hours_for_contract(
+        self, futures_contract: futuresContract
+    ) -> listOfTradingHours:
         raise NotImplementedError
-
 
     def get_list_of_contract_dates_for_instrument_code(self, instrument_code: str):
         raise NotImplementedError("Consider implementing for consistent interface")

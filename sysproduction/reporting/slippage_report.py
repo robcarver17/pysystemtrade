@@ -6,20 +6,21 @@ from syscore.objects import arg_not_supplied, body_text
 from sysproduction.reporting.api import reportingApi
 
 SLIPPAGE_REPORT_TEXT = body_text(
-    "Slippage calculations: First three columns are slippage (mid to executed price) from 3 sources:\n"+
-    "- bid_ask_trades: The difference between the mid price and bid/ask price when a trade is entered\n"+
-    "- total_trades: The difference between the mid price and actual fill price when a trade occurs\n"+
-    "- bid_ask_sampled: The difference between mid and bid/ask when a regular sample is taken, not when trading\n"+
-    "\nThe following three columns show how our estimate of slippage is calculated using weights\n"+
-    "- weight_trades: Weighting given to trades (most conservative of bid_ask_trades and total_trades)\n"+
-    "- weight_samples: Weighting given to samples\n"+
-    "- weight_config: Weighting given to current configured value\n"+
-    "\nThe weights vary depending on how many trades and samples we have\n"+
-    "\nFinally we have:\n"+
-    "- The estimate based on the calculations above\n"+
-    "- The current configured value\n"+
-    "- The % difference between these values (estimate and configured). Positive means the estimate is higher (costs not conservative enough)"
+    "Slippage calculations: First three columns are slippage (mid to executed price) from 3 sources:\n"
+    + "- bid_ask_trades: The difference between the mid price and bid/ask price when a trade is entered\n"
+    + "- total_trades: The difference between the mid price and actual fill price when a trade occurs\n"
+    + "- bid_ask_sampled: The difference between mid and bid/ask when a regular sample is taken, not when trading\n"
+    + "\nThe following three columns show how our estimate of slippage is calculated using weights\n"
+    + "- weight_trades: Weighting given to trades (most conservative of bid_ask_trades and total_trades)\n"
+    + "- weight_samples: Weighting given to samples\n"
+    + "- weight_config: Weighting given to current configured value\n"
+    + "\nThe weights vary depending on how many trades and samples we have\n"
+    + "\nFinally we have:\n"
+    + "- The estimate based on the calculations above\n"
+    + "- The current configured value\n"
+    + "- The % difference between these values (estimate and configured). Positive means the estimate is higher (costs not conservative enough)"
 )
+
 
 def slippage_report(
     data: dataBlob = arg_not_supplied,
@@ -51,5 +52,5 @@ def slippage_report(
     return formatted_output
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     slippage_report()

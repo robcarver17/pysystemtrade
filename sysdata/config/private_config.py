@@ -8,7 +8,7 @@ import yaml
 PRIVATE_CONFIG_FILE = "private_config.yaml"
 
 
-def get_private_config_as_dict(filename:str = arg_not_supplied) -> dict:
+def get_private_config_as_dict(filename: str = arg_not_supplied) -> dict:
     if filename is arg_not_supplied:
         filename = get_full_path_for_private_config(PRIVATE_CONFIG_FILE)
     if not does_file_exist(filename):
@@ -24,4 +24,3 @@ def get_private_config_as_dict(filename:str = arg_not_supplied) -> dict:
         private_dict = yaml.load(file_to_parse, Loader=yaml.FullLoader)
 
     return private_dict
-

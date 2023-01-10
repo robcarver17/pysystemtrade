@@ -29,7 +29,7 @@ limit_price_from_offside_price = "offside_price"
 sources_of_limit_price = [
     limit_price_from_offside_price,
     limit_price_from_side_price,
-    limit_price_from_input
+    limit_price_from_input,
 ]
 
 

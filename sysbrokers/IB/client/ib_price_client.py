@@ -37,7 +37,7 @@ class ibPriceClient(ibContractsClient):
         self,
         contract_object_with_ib_broker_config: futuresContract,
         bar_freq: Frequency = DAILY_PRICE_FREQ,
-            whatToShow="TRADES",
+        whatToShow="TRADES",
         allow_expired=False,
     ) -> pd.DataFrame:
         """

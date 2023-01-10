@@ -9,6 +9,7 @@ from syscore.objects import arg_not_supplied, missing_data
 
 TICK_REQUIRED_COLUMNS = ["priceAsk", "priceBid", "sizeAsk", "sizeBid"]
 
+
 class dataFrameOfRecentTicks(pd.DataFrame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -27,12 +28,11 @@ class dataFrameOfRecentTicks(pd.DataFrame):
 
     @classmethod
     def create_empty(dataFrameOfRecentTicks):
-        return dataFrameOfRecentTicks(pd.DataFrame(
-            columns = TICK_REQUIRED_COLUMNS
-        ))
+        return dataFrameOfRecentTicks(pd.DataFrame(columns=TICK_REQUIRED_COLUMNS))
 
     def is_empty(self) -> bool:
-        return len(self)==0
+        return len(self) == 0
+
 
 def analyse_tick_data_frame(
     tick_data: dataFrameOfRecentTicks,

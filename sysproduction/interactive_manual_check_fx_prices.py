@@ -78,5 +78,5 @@ def update_manual_check_fx_prices_for_code(fx_code: str, data: dataBlob):
     return success
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     interactive_manual_check_fx_prices()

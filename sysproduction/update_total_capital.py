@@ -43,9 +43,7 @@ class totalCapitalUpdate(object):
 
         log = data.log
 
-        margin_in_base_currency = (
-            broker_data.get_margin_used_in_base_currency()
-        )
+        margin_in_base_currency = broker_data.get_margin_used_in_base_currency()
         log.msg("Broker margin value is %f" % margin_in_base_currency)
 
         # Update total capital
@@ -84,5 +82,5 @@ class totalCapitalUpdate(object):
         log.msg("New capital is %f" % new_capital)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     update_total_capital()

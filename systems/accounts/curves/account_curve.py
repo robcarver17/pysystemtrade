@@ -51,7 +51,6 @@ class accountCurve(pd.Series):
             + "\n %s account curve; use object.stats() to see methods" % weight_comment
         )
 
-
     def weight(self, weight: pd.Series):
         pandl_calculator = self.pandl_calculator_with_costs
         weighted_pandl_calculator = pandl_calculator.weight(weight)
@@ -398,12 +397,14 @@ def quant_ratio_lower_curve(x: pd.Series):
     )
     return raw_ratio / NORMAL_DISTR_RATIO
 
+
 def quant_ratio_upper_curve(x: pd.Series):
     demeaned_x = demeaned_remove_zeros(x)
     raw_ratio = demeaned_x.quantile(1 - QUANT_PERCENTILE_EXTREME) / demeaned_x.quantile(
         1 - QUANT_PERCENTILE_STD
     )
     return raw_ratio / NORMAL_DISTR_RATIO
+
 
 def demeaned_remove_zeros(x: pd.Series) -> pd.Series:
     x[x == 0] = np.nan

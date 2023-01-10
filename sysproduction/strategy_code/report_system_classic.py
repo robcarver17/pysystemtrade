@@ -494,24 +494,49 @@ def calc_position_diags(portfolio_positions_df, subystem_positions_df):
 
     return average_position
 
+
 def risk_scaling_string(backtest) -> str:
     backtest_system_portfolio_stage = backtest.system.portfolio
-    normal_risk_final = backtest_system_portfolio_stage.get_portfolio_risk_for_original_positions().iloc[-1]*100.0
-    shocked_vol_risk_final = backtest_system_portfolio_stage.get_portfolio_risk_for_original_positions_with_shocked_vol().iloc[-1]*100.0
-    sum_abs_risk_final = backtest_system_portfolio_stage.get_sum_annualised_risk_for_original_positions().iloc[-1]*100.0
-    leverage_final = backtest_system_portfolio_stage.get_leverage_for_original_position().iloc[-1]
+    normal_risk_final = (
+        backtest_system_portfolio_stage.get_portfolio_risk_for_original_positions().iloc[
+            -1
+        ]
+        * 100.0
+    )
+    shocked_vol_risk_final = (
+        backtest_system_portfolio_stage.get_portfolio_risk_for_original_positions_with_shocked_vol().iloc[
+            -1
+        ]
+        * 100.0
+    )
+    sum_abs_risk_final = (
+        backtest_system_portfolio_stage.get_sum_annualised_risk_for_original_positions().iloc[
+            -1
+        ]
+        * 100.0
+    )
+    leverage_final = (
+        backtest_system_portfolio_stage.get_leverage_for_original_position().iloc[-1]
+    )
     percentage_vol_target = backtest_system_portfolio_stage.get_percentage_vol_target()
     risk_scalar_final = backtest_system_portfolio_stage.get_risk_scalar().iloc[-1]
-    risk_overlay_config = backtest_system_portfolio_stage.config.get_element_or_arg_not_supplied('risk_overlay')
+    risk_overlay_config = (
+        backtest_system_portfolio_stage.config.get_element_or_arg_not_supplied(
+            "risk_overlay"
+        )
+    )
 
-    scaling_str = "Risk overlay \n Config %s \n Percentage vol target %.1f \n Normal risk %.1f Shocked risk %.1f \n Sum abs risk %.1f Leverage %.2f \n Risk scalar %.2f" % \
-                    (str(risk_overlay_config),
-                    percentage_vol_target,
-                     normal_risk_final,
-                     shocked_vol_risk_final,
-                     sum_abs_risk_final,
-                     leverage_final,
-                     risk_scalar_final)
+    scaling_str = (
+        "Risk overlay \n Config %s \n Percentage vol target %.1f \n Normal risk %.1f Shocked risk %.1f \n Sum abs risk %.1f Leverage %.2f \n Risk scalar %.2f"
+        % (
+            str(risk_overlay_config),
+            percentage_vol_target,
+            normal_risk_final,
+            shocked_vol_risk_final,
+            sum_abs_risk_final,
+            leverage_final,
+            risk_scalar_final,
+        )
+    )
 
     return scaling_str
-

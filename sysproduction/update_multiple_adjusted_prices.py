@@ -217,5 +217,5 @@ def update_with_new_prices(
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     update_multiple_adjusted_prices()

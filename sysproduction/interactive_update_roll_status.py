@@ -7,7 +7,11 @@ NOTE: this does not update the roll calendar .csv files stored elsewhere. Under 
 from dataclasses import dataclass
 import numpy as np
 
-from syscore.interactive import print_menu_of_values_and_get_response, get_and_convert, true_if_answer_is_yes
+from syscore.interactive import (
+    print_menu_of_values_and_get_response,
+    get_and_convert,
+    true_if_answer_is_yes,
+)
 from syscore.objects import success, failure, status, named_object
 from syscore.text import landing_strip, print_with_landing_strips_around
 
@@ -21,7 +25,7 @@ from sysobjects.production.roll_state import (
     allowable_roll_state_from_current_and_position,
     RollState,
     no_roll_state,
-    roll_close_state
+    roll_close_state,
 )
 
 from sysproduction.reporting.report_configs import roll_report_config
@@ -265,7 +269,12 @@ def get_auto_roll_parameters() -> autoRollParameters:
     return auto_parameters
 
 
-STATE_OPTIONS = [RollState.Passive, RollState.Force, RollState.Force_Outright, RollState.Close]
+STATE_OPTIONS = [
+    RollState.Passive,
+    RollState.Force,
+    RollState.Force_Outright,
+    RollState.Close,
+]
 STATE_OPTIONS_AS_STR = [str(state) for state in STATE_OPTIONS]
 
 
@@ -399,7 +408,7 @@ def get_roll_state_required(roll_data: RollDataWithStateReporting) -> RollState:
                     roll_data.original_roll_status_as_string,
                     roll_state_required_as_str,
                 ),
-                allow_empty_to_return_none=True
+                allow_empty_to_return_none=True,
             )
             print("")
             if okay_to_change is None:
@@ -485,15 +494,24 @@ def modify_roll_state(
     if roll_state_required is roll_close_state:
         roll_state_is_now_closing(data, instrument_code)
 
+
 def roll_state_was_closed_now_something_else(data: dataBlob, instrument_code: str):
-    print("Roll state is no longer closed, so removing temporary position limit of zero")
+    print(
+        "Roll state is no longer closed, so removing temporary position limit of zero"
+    )
     data_position_limits = dataPositionLimits(data)
-    data_position_limits.reset_position_limit_for_instrument_to_original_value(instrument_code)
+    data_position_limits.reset_position_limit_for_instrument_to_original_value(
+        instrument_code
+    )
+
 
 def roll_state_is_now_closing(data: dataBlob, instrument_code: str):
     print("Roll state is Close, so setting temporary position limit of zero")
     data_position_limits = dataPositionLimits(data)
-    data_position_limits.temporarily_set_position_limit_to_zero_and_store_original_limit(instrument_code)
+    data_position_limits.temporarily_set_position_limit_to_zero_and_store_original_limit(
+        instrument_code
+    )
+
 
 def state_change_to_roll_adjusted_prices(
     data: dataBlob,
@@ -527,8 +545,7 @@ def state_change_to_roll_adjusted_prices(
 
 
 def roll_adjusted_and_multiple_prices(
-    data: dataBlob, instrument_code: str,
-        confirm_adjusted_price_change: bool = True
+    data: dataBlob, instrument_code: str, confirm_adjusted_price_change: bool = True
 ) -> status:
     """
     Roll multiple and adjusted prices
@@ -544,7 +561,7 @@ def roll_adjusted_and_multiple_prices(
     print("Rolling adjusted prices!")
     print("")
     rolling_adj_and_mult_object = get_roll_adjusted_multiple_prices_object(
-        data = data, instrument_code = instrument_code
+        data=data, instrument_code=instrument_code
     )
     if rolling_adj_and_mult_object is failure:
         print("Error when trying to calculate roll prices")
@@ -577,9 +594,10 @@ def roll_adjusted_and_multiple_prices(
 
     return success
 
-def get_roll_adjusted_multiple_prices_object(data: dataBlob,
-                                             instrument_code: str)\
-                                -> rollingAdjustedAndMultiplePrices:
+
+def get_roll_adjusted_multiple_prices_object(
+    data: dataBlob, instrument_code: str
+) -> rollingAdjustedAndMultiplePrices:
 
     ## returns failure if goes wrong
     try:
@@ -589,22 +607,26 @@ def get_roll_adjusted_multiple_prices_object(data: dataBlob,
         ## We do this as getting the object doesn't guarantee it works
         _unused_ = rolling_adj_and_mult_object.updated_multiple_prices
 
-
     except Exception as e:
         print("Error %s when trying to calculate roll prices" % str(e))
         ## Possibly forward fill
-        rolling_adj_and_mult_object = \
-            _get_roll_adjusted_multiple_prices_object_ffill_option(data, instrument_code)
+        rolling_adj_and_mult_object = (
+            _get_roll_adjusted_multiple_prices_object_ffill_option(
+                data, instrument_code
+            )
+        )
 
     return rolling_adj_and_mult_object
 
-def _get_roll_adjusted_multiple_prices_object_ffill_option(data: dataBlob,
-                                                 instrument_code: str) \
-            -> rollingAdjustedAndMultiplePrices:
+
+def _get_roll_adjusted_multiple_prices_object_ffill_option(
+    data: dataBlob, instrument_code: str
+) -> rollingAdjustedAndMultiplePrices:
 
     ## returns failure if goes wrong
-    try_forward_fill = \
-        true_if_answer_is_yes("Do you want to try forward filling prices first (less accurate, but guarantees roll)? [y/n]")
+    try_forward_fill = true_if_answer_is_yes(
+        "Do you want to try forward filling prices first (less accurate, but guarantees roll)? [y/n]"
+    )
 
     if not try_forward_fill:
         print("OK, nothing I can do")
@@ -618,12 +640,14 @@ def _get_roll_adjusted_multiple_prices_object_ffill_option(data: dataBlob,
         _unused_ = rolling_adj_and_mult_object.updated_multiple_prices
 
     except Exception as e:
-        print("Error %s when trying to calculate roll prices, even when forward filling" % str(e))
+        print(
+            "Error %s when trying to calculate roll prices, even when forward filling"
+            % str(e)
+        )
         return failure
 
     return rolling_adj_and_mult_object
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     interactive_update_roll_status()
-

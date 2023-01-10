@@ -179,8 +179,7 @@ def adjust_weights_for_SR_on_handcrafted_portfolio(
 
 def create_sub_portfolios_from_portfolio(handcraft_portfolio: handcraftPortfolio):
 
-    clusters_as_names = \
-        cluster_correlation_matrix(handcraft_portfolio.correlation)
+    clusters_as_names = cluster_correlation_matrix(handcraft_portfolio.correlation)
 
     sub_portfolios = create_sub_portfolios_given_clusters(
         clusters_as_names, handcraft_portfolio

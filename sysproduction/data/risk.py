@@ -7,22 +7,31 @@ from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
 from syscore.objects import arg_not_supplied, resolve_function, missing_data
 from syscore.pdutils import prices_to_daily_prices
 from sysproduction.data.instruments import diagInstruments
-from sysproduction.data.prices import get_current_price_of_instrument, get_price_series, get_current_price_series
+from sysproduction.data.prices import (
+    get_current_price_of_instrument,
+    get_price_series,
+    get_current_price_series,
+)
 from sysproduction.data.capital import capital_for_strategy
 from sysquant.estimators.correlations import correlationEstimate
-from sysquant.estimators.covariance import covarianceEstimate, covariance_from_stdev_and_correlation
+from sysquant.estimators.covariance import (
+    covarianceEstimate,
+    covariance_from_stdev_and_correlation,
+)
 from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.fitting_dates import IN_SAMPLE
 
 
 def get_covariance_matrix_for_instrument_returns(
-    data, list_of_instruments: list,
-    passed_correlation_estimation_parameters: dict = arg_not_supplied
+    data,
+    list_of_instruments: list,
+    passed_correlation_estimation_parameters: dict = arg_not_supplied,
 ) -> covarianceEstimate:
 
     corr_matrix = get_correlation_matrix_for_instrument_returns(
-        data, list_of_instruments,
-        passed_correlation_estimation_parameters = passed_correlation_estimation_parameters
+        data,
+        list_of_instruments,
+        passed_correlation_estimation_parameters=passed_correlation_estimation_parameters,
     )
 
     stdev_estimate = get_annualised_stdev_perc_of_instruments(
@@ -36,13 +45,15 @@ def get_covariance_matrix_for_instrument_returns(
 
 
 def get_correlation_matrix_for_instrument_returns(
-    data, list_of_instruments: list,
-    passed_correlation_estimation_parameters: dict = arg_not_supplied
+    data,
+    list_of_instruments: list,
+    passed_correlation_estimation_parameters: dict = arg_not_supplied,
 ) -> correlationEstimate:
 
     list_of_correlations = _replicate_creation_of_correlation_list_in_sim(
-        data, list_of_instruments,
-        passed_correlation_estimation_parameters = passed_correlation_estimation_parameters
+        data,
+        list_of_instruments,
+        passed_correlation_estimation_parameters=passed_correlation_estimation_parameters,
     )
 
     correlation_matrix = list_of_correlations.most_recent_correlation_before_date()
@@ -50,15 +61,19 @@ def get_correlation_matrix_for_instrument_returns(
     return correlation_matrix
 
 
-def _replicate_creation_of_correlation_list_in_sim(data,
-                                                   list_of_instruments: list,
-                                                   passed_correlation_estimation_parameters: dict = arg_not_supplied):
+def _replicate_creation_of_correlation_list_in_sim(
+    data,
+    list_of_instruments: list,
+    passed_correlation_estimation_parameters: dict = arg_not_supplied,
+):
 
     ## double coding but too complex to do differently
 
     returns_as_pd = get_perc_returns_across_instruments(data, list_of_instruments)
-    corr_func, correlation_estimation_parameters = get_corr_params_and_func(data,
-                                                                 passed_correlation_estimation_parameters = passed_correlation_estimation_parameters)
+    corr_func, correlation_estimation_parameters = get_corr_params_and_func(
+        data,
+        passed_correlation_estimation_parameters=passed_correlation_estimation_parameters,
+    )
 
     return corr_func(returns_as_pd, **correlation_estimation_parameters)
 
@@ -116,11 +131,14 @@ def get_daily_ts_stdev_perc_of_prices(data, instrument_code: str) -> pd.Series:
     return perc_vol
 
 
-def get_corr_params_and_func(data,
-                             passed_correlation_estimation_parameters: dict = arg_not_supplied) -> tuple:
+def get_corr_params_and_func(
+    data, passed_correlation_estimation_parameters: dict = arg_not_supplied
+) -> tuple:
     if passed_correlation_estimation_parameters is arg_not_supplied:
         config = data.config
-        corr_params = config.get_element_or_missing_data("instrument_returns_correlation")
+        corr_params = config.get_element_or_missing_data(
+            "instrument_returns_correlation"
+        )
     else:
         corr_params = passed_correlation_estimation_parameters
 

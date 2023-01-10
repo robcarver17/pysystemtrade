@@ -26,27 +26,31 @@ class ibInstrumentConfigData:
         return self.ibMultiplier / self.priceMagnifier
 
     def __repr__(self):
-        return "symbol='%s', exchange='%s', currency='%s', ibMultiplier='%s', priceMagnifier='%.2f', " \
-               "ignoreWeekly='%s', effective_multiplier='%.2f'" % \
-              (self.symbol,
-               self.exchange,
-               self.currency,
-               self.ibMultiplier,
-               self.priceMagnifier,
-               self.ignoreWeekly,
-               self.effective_multiplier)
+        return (
+            "symbol='%s', exchange='%s', currency='%s', ibMultiplier='%s', priceMagnifier='%.2f', "
+            "ignoreWeekly='%s', effective_multiplier='%.2f'"
+            % (
+                self.symbol,
+                self.exchange,
+                self.currency,
+                self.ibMultiplier,
+                self.priceMagnifier,
+                self.ignoreWeekly,
+                self.effective_multiplier,
+            )
+        )
 
     def as_dict(self):
         return dict(
-            symbol = self.symbol,
-        exchange = self.exchange,
-        currency = self.currency,
-        ibMultiplier= self.ibMultiplier,
-        priceMagnifier = self.priceMagnifier,
-        ignoreWeekly = self.ignoreWeekly,
-        effective_multiplier = self.effective_multiplier
-
+            symbol=self.symbol,
+            exchange=self.exchange,
+            currency=self.currency,
+            ibMultiplier=self.ibMultiplier,
+            priceMagnifier=self.priceMagnifier,
+            ignoreWeekly=self.ignoreWeekly,
+            effective_multiplier=self.effective_multiplier,
         )
+
 
 @dataclass
 class futuresInstrumentWithIBConfigData(object):
@@ -65,6 +69,7 @@ class futuresInstrumentWithIBConfigData(object):
     ## FIXME make it look like a standard instrument, but we don't officially inherit... not sure why?
     def meta_data(self):
         return self.ib_data
+
 
 def ib_futures_instrument(
     futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,

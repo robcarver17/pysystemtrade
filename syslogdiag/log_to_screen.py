@@ -25,10 +25,7 @@ class logtoscreen(logger):
         log_level = self.logging_level
 
         log_entry = logEntry(
-            text,
-            msglevel=msglevel,
-            attributes=attributes,
-            log_id=log_id
+            text, msglevel=msglevel, attributes=attributes, log_id=log_id
         )
 
         if msglevel == 0:

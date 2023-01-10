@@ -27,7 +27,6 @@ def status_report(data: dataBlob = arg_not_supplied):
     formatted_output = []
     formatted_output.append(reporting_api.terse_header("Status report"))
     list_of_func_names = [
-
         "table_of_delayed_methods",
         "table_of_delayed_prices",
         "table_of_delayed_optimal",
@@ -35,7 +34,6 @@ def status_report(data: dataBlob = arg_not_supplied):
         "table_of_used_position_limits",
         "table_of_db_overrides",
         "body_text_of_position_locks",
-
         "table_of_last_price_updates",
         "table_of_last_optimal_position_updates",
         "table_of_trade_limits",
@@ -56,5 +54,5 @@ def status_report(data: dataBlob = arg_not_supplied):
     return formatted_output
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     status_report()

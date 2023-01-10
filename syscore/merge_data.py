@@ -71,13 +71,16 @@ class mergingDataWithStatus(object):
     def add_spike_date(self, spike_date: datetime.datetime):
         self._spike_date = spike_date
 
+
 VERY_BIG_NUMBER = 99999999.0
 
+
 def merge_newer_data(
-    old_data, new_data,
-        check_for_spike=True,
-        max_spike:float = VERY_BIG_NUMBER,
-        column_to_check=arg_not_supplied
+    old_data,
+    new_data,
+    check_for_spike=True,
+    max_spike: float = VERY_BIG_NUMBER,
+    column_to_check=arg_not_supplied,
 ):
     """
     Merge new data, with old data. Any new data that is older than the newest old data will be ignored
@@ -98,7 +101,7 @@ def merge_newer_data(
         merged_data_with_status = spike_check_merged_data(
             merged_data_with_status,
             column_to_check=column_to_check,
-            max_spike = max_spike
+            max_spike=max_spike,
         )
         if merged_data_with_status.spike_present:
             return spike_in_data
@@ -159,8 +162,8 @@ def _merge_newer_data_no_checks_if_both_old_and_new(
 
 def spike_check_merged_data(
     merged_data_with_status: mergingDataWithStatus,
-        column_to_check=arg_not_supplied,
-        max_spike: float = VERY_BIG_NUMBER
+    column_to_check=arg_not_supplied,
+    max_spike: float = VERY_BIG_NUMBER,
 ) -> mergingDataWithStatus:
 
     merge_status = merged_data_with_status.status
@@ -177,9 +180,10 @@ def spike_check_merged_data(
         first_date_in_new_data = merged_data_with_status.first_date
 
     spike_date = _first_spike_in_data(
-        merged_data, first_date_in_new_data,
-        max_spike = max_spike,
-        column_to_check=column_to_check
+        merged_data,
+        first_date_in_new_data,
+        max_spike=max_spike,
+        column_to_check=column_to_check,
     )
 
     merged_data_with_status.add_spike_date(spike_date)
@@ -188,9 +192,10 @@ def spike_check_merged_data(
 
 
 def _first_spike_in_data(
-    merged_data, first_date_in_new_data=None,
-        column_to_check=arg_not_supplied,
-        max_spike: float = VERY_BIG_NUMBER
+    merged_data,
+    first_date_in_new_data=None,
+    column_to_check=arg_not_supplied,
+    max_spike: float = VERY_BIG_NUMBER,
 ):
     """
     Checks to see if any data after last_date_in_old_data has spikes
@@ -204,8 +209,9 @@ def _first_spike_in_data(
         change_in_avg_units, first_date_in_new_data=first_date_in_new_data
     )
 
-    first_spike = _check_for_spikes_in_change_in_avg_units(change_in_avg_units_to_check,
-                                                           max_spike = max_spike)
+    first_spike = _check_for_spikes_in_change_in_avg_units(
+        change_in_avg_units_to_check, max_spike=max_spike
+    )
 
     return first_spike
 
@@ -268,8 +274,9 @@ def _get_change_in_avg_units_to_check(
     return change_in_avg_units_to_check
 
 
-def _check_for_spikes_in_change_in_avg_units(change_in_avg_units_to_check: pd.Series,
-                                             max_spike: float = VERY_BIG_NUMBER):
+def _check_for_spikes_in_change_in_avg_units(
+    change_in_avg_units_to_check: pd.Series, max_spike: float = VERY_BIG_NUMBER
+):
 
     if any(change_in_avg_units_to_check > max_spike):
         first_spike = change_in_avg_units_to_check.index[

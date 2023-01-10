@@ -40,7 +40,6 @@ def ewmac_forecast_with_defaults(price, Lfast=32, Lslow=128):
     return ans
 
 
-
 def ewmac_forecast_with_defaults_no_vol(price, vol, Lfast=16, Lslow=32):
     """
     ONLY USED FOR EXAMPLES
@@ -168,6 +167,6 @@ def ewmac_calc_vol(price, Lfast, Lslow, vol_days=35):
     # directly
 
     vol = robust_vol_calc(price, vol_days)
-    forecast = ewmac(price, vol, Lfast , Lslow)
+    forecast = ewmac(price, vol, Lfast, Lslow)
 
     return forecast

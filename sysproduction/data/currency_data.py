@@ -128,5 +128,3 @@ def get_valid_fx_code_from_user(
         fx_code = print_menu_of_values_and_get_response(all_fx_codes)
 
     return fx_code
-
-

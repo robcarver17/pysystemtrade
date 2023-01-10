@@ -45,5 +45,5 @@ class runReport(object):
         run_report(self.config, data=self.data)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_reports()

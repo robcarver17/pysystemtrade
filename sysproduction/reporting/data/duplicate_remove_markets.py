@@ -5,7 +5,12 @@ from dataclasses import dataclass
 from syscore.objects import missing_data, named_object
 from sysdata.config.instruments import generate_matching_duplicate_dict
 from sysdata.config.production_config import get_production_config
-from sysproduction.reporting.data.constants import MAX_SR_COST, MIN_VOLUME_CONTRACTS_DAILY, MIN_VOLUME_RISK_DAILY, BAD_THRESHOLD
+from sysproduction.reporting.data.constants import (
+    MAX_SR_COST,
+    MIN_VOLUME_CONTRACTS_DAILY,
+    MIN_VOLUME_RISK_DAILY,
+    BAD_THRESHOLD,
+)
 
 from sysproduction.reporting.reporting_functions import table
 
@@ -13,10 +18,10 @@ from sysproduction.reporting.data.costs import (
     get_table_of_SR_costs,
 )
 from sysproduction.reporting.data.volume import get_liquidity_data_df
-from sysproduction.reporting.data.risk import (
-    get_instrument_risk_table)
+from sysproduction.reporting.data.risk import get_instrument_risk_table
 
 CHANGE_FLAG = "** CHANGE ** "
+
 
 @dataclass()
 class parametersForAutoPopulation:
@@ -25,6 +30,7 @@ class parametersForAutoPopulation:
     notional_risk_target: float
     approx_IDM: float
     notional_instrument_weight: float
+
 
 @dataclass()
 class RemoveMarketData:
@@ -42,7 +48,10 @@ class RemoveMarketData:
 
     @property
     def str_existing_markets_to_remove(self) -> str:
-        return "Following should be removed from trading (add to config.bad_markets) [%f threshold]: %s " % (BAD_THRESHOLD, str(self.existing_markets_to_remove()))
+        return (
+            "Following should be removed from trading (add to config.bad_markets) [%f threshold]: %s "
+            % (BAD_THRESHOLD, str(self.existing_markets_to_remove()))
+        )
 
     def existing_markets_to_remove(self) -> list:
         existing_bad_markets = self.existing_bad_markets
@@ -56,7 +65,10 @@ class RemoveMarketData:
 
     @property
     def str_removed_markets_addback(self) -> str:
-        return "Following should be allowed to trade (delete from config.bad_markets) [%f threshold]: %s" % (BAD_THRESHOLD, str(self.removed_markets_addback()))
+        return (
+            "Following should be allowed to trade (delete from config.bad_markets) [%f threshold]: %s"
+            % (BAD_THRESHOLD, str(self.removed_markets_addback()))
+        )
 
     def removed_markets_addback(self) -> list:
         existing_bad_markets = self.existing_bad_markets
@@ -64,26 +76,38 @@ class RemoveMarketData:
         ## To be allowed to trade an existing bad market must be well above the threshold for not being a bad market
         bad_markets = self.bad_markets(apply_higher_threshold=True)
 
-        removed_bad_markets = list(set(existing_bad_markets).difference(set(bad_markets)))
+        removed_bad_markets = list(
+            set(existing_bad_markets).difference(set(bad_markets))
+        )
 
         return removed_bad_markets
 
-    def bad_markets(self,
-                    apply_higher_threshold = False,
-                    apply_lower_threshold = False) -> list:
+    def bad_markets(
+        self, apply_higher_threshold=False, apply_lower_threshold=False
+    ) -> list:
 
-        threshold_factor = calculate_threshold_factor(apply_lower_threshold = apply_lower_threshold,
-                                                      apply_higher_threshold = apply_higher_threshold)
+        threshold_factor = calculate_threshold_factor(
+            apply_lower_threshold=apply_lower_threshold,
+            apply_higher_threshold=apply_higher_threshold,
+        )
 
-        expensive = self.expensive_markets(threshold_factor = threshold_factor)
-        not_enough_trading_risk = self.markets_without_enough_volume_risk(threshold_factor = threshold_factor)
-        not_enough_trading_contracts = self.markets_without_enough_volume_contracts(threshold_factor = threshold_factor)
-        too_safe = self.too_safe_markets(threshold_factor = threshold_factor)
+        expensive = self.expensive_markets(threshold_factor=threshold_factor)
+        not_enough_trading_risk = self.markets_without_enough_volume_risk(
+            threshold_factor=threshold_factor
+        )
+        not_enough_trading_contracts = self.markets_without_enough_volume_contracts(
+            threshold_factor=threshold_factor
+        )
+        too_safe = self.too_safe_markets(threshold_factor=threshold_factor)
 
-        bad_markets = list(set(expensive
-                               + not_enough_trading_risk
-                               + not_enough_trading_contracts
-                               + too_safe))
+        bad_markets = list(
+            set(
+                expensive
+                + not_enough_trading_risk
+                + not_enough_trading_contracts
+                + too_safe
+            )
+        )
         bad_markets.sort()
 
         return bad_markets
@@ -92,7 +116,7 @@ class RemoveMarketData:
     def str_expensive_markets(self) -> str:
         return "Markets too expensive (%s): %s" % (
             self.reason_expensive_markets(),
-            str(self.expensive_markets())
+            str(self.expensive_markets()),
         )
 
     def reason_expensive_markets(self) -> str:
@@ -117,9 +141,8 @@ class RemoveMarketData:
     def str_markets_without_enough_volume_risk(self) -> str:
         return "Markets not enough risk volume (%s): %s" % (
             self.reason_markets_without_enough_volume_risk(),
-            str(self.markets_without_enough_volume_risk())
+            str(self.markets_without_enough_volume_risk()),
         )
-
 
     def reason_markets_without_enough_volume_risk(self) -> str:
         return "Volume in $m ann. risk per day < %.2f" % self.min_volume_risk
@@ -133,7 +156,9 @@ class RemoveMarketData:
 
         min_volume_risk = self.min_volume_risk * threshold_factor
         liquidity_data = self.liquidity_data
-        not_enough_trading_risk = list(liquidity_data[liquidity_data.risk < min_volume_risk].index)
+        not_enough_trading_risk = list(
+            liquidity_data[liquidity_data.risk < min_volume_risk].index
+        )
         not_enough_trading_risk.sort()
 
         return not_enough_trading_risk
@@ -142,19 +167,20 @@ class RemoveMarketData:
     def str_markets_without_enough_volume_contracts(self) -> str:
         return "Markets not enough contract volume (%s): %s" % (
             self.reason_markets_without_enough_volume_contracts(),
-            str(self.markets_without_enough_volume_contracts())
+            str(self.markets_without_enough_volume_contracts()),
         )
 
     def reason_markets_without_enough_volume_contracts(self) -> str:
         return "Volume in contracts per day < %d" % int(self.min_volume_contracts)
 
-    def markets_without_enough_volume_contracts(self, threshold_factor: float = 1.0) -> list:
+    def markets_without_enough_volume_contracts(
+        self, threshold_factor: float = 1.0
+    ) -> list:
         ## Threshold
         ## If larger than 1, applied higher threshold: it will be easier to be a bad market, harder not to be
         ## If less than 1, applied lower threshold: it will be harder to be a bad market, easier not to be
 
         ## Higher min_contracts means it is easier to be a bad market
-
 
         liquidity_data = self.liquidity_data
         min_contracts = self.min_volume_contracts * threshold_factor
@@ -169,7 +195,7 @@ class RemoveMarketData:
     def str_too_safe_markets(self) -> str:
         return "Markets too safe (%s): %s" % (
             self.reason_too_safe_markets(),
-            str(self.too_safe_markets())
+            str(self.too_safe_markets()),
         )
 
     def reason_too_safe_markets(self) -> str:
@@ -190,47 +216,54 @@ class RemoveMarketData:
         return too_safe
 
     @property
-    def str_explain_safety(self)-> str:
+    def str_explain_safety(self) -> str:
         auto_parameters = self.auto_parameters
-        str1="(Minimum standard deviation %.3f calculated as follows: " % self.min_ann_perc_std
-        str2="= max_vs_average_forecast * approx_IDM * notional_instrument_weight * notional_risk_target /  raw_max_leverage"
-        str3="= %.1f * %.2f * %.3f * %.3f / %2f" %\
-        (auto_parameters.max_vs_average_forecast,
-               auto_parameters.approx_IDM,
-               auto_parameters.notional_instrument_weight,
-               auto_parameters.notional_risk_target,
-               auto_parameters.raw_max_leverage)
+        str1 = (
+            "(Minimum standard deviation %.3f calculated as follows: "
+            % self.min_ann_perc_std
+        )
+        str2 = "= max_vs_average_forecast * approx_IDM * notional_instrument_weight * notional_risk_target /  raw_max_leverage"
+        str3 = "= %.1f * %.2f * %.3f * %.3f / %2f" % (
+            auto_parameters.max_vs_average_forecast,
+            auto_parameters.approx_IDM,
+            auto_parameters.notional_instrument_weight,
+            auto_parameters.notional_risk_target,
+            auto_parameters.raw_max_leverage,
+        )
 
-        return  str1+str2+str3
+        return str1 + str2 + str3
 
     @property
     def min_ann_perc_std(self) -> float:
-        min_ann_perc_std = from_auto_parameters_to_min_ann_perc_std(self.auto_parameters)
+        min_ann_perc_std = from_auto_parameters_to_min_ann_perc_std(
+            self.auto_parameters
+        )
         return min_ann_perc_std
+
 
 def get_remove_market_data(data) -> RemoveMarketData:
     existing_bad_markets = get_existing_bad_markets(data)
 
-    max_cost, min_volume_contracts, min_volume_risk, \
-             = get_bad_market_filter_parameters()
+    (
+        max_cost,
+        min_volume_contracts,
+        min_volume_risk,
+    ) = get_bad_market_filter_parameters()
 
     auto_parameters = get_auto_population_parameters()
     SR_costs, liquidity_data, risk_data = get_data_for_markets(data)
 
-
     return RemoveMarketData(
-        SR_costs = SR_costs,
-        liquidity_data = liquidity_data,
-        risk_data = risk_data,
-        max_cost = max_cost,
+        SR_costs=SR_costs,
+        liquidity_data=liquidity_data,
+        risk_data=risk_data,
+        max_cost=max_cost,
         min_volume_risk=min_volume_risk,
         min_volume_contracts=min_volume_contracts,
         existing_bad_markets=existing_bad_markets,
-        auto_parameters=auto_parameters
+        auto_parameters=auto_parameters,
+    )
 
-
-
-        )
 
 def get_list_of_duplicate_market_tables(data):
     filters = get_bad_market_filter_parameters()
@@ -243,14 +276,16 @@ def get_list_of_duplicate_market_tables(data):
 
     return duplicates
 
-def text_suggest_changes_to_duplicate_markets(list_of_duplicate_market_tables: list) -> str:
-    suggest_changes = [
-        dup_table.Heading for dup_table in
-        list_of_duplicate_market_tables
-        if CHANGE_FLAG in dup_table.Heading
 
+def text_suggest_changes_to_duplicate_markets(
+    list_of_duplicate_market_tables: list,
+) -> str:
+    suggest_changes = [
+        dup_table.Heading
+        for dup_table in list_of_duplicate_market_tables
+        if CHANGE_FLAG in dup_table.Heading
     ]
-    if len(suggest_changes)==0:
+    if len(suggest_changes) == 0:
         return "No changes to duplicate markets required"
 
     suggest_changes = "\n".join(suggest_changes)
@@ -258,34 +293,45 @@ def text_suggest_changes_to_duplicate_markets(list_of_duplicate_market_tables: l
     return suggest_changes
 
 
+from sysproduction.reporting.data.constants import (
+    RISK_TARGET_ASSUMED,
+    IDM_ASSUMED,
+    MAX_VS_AVERAGE_FORECAST,
+    INSTRUMENT_WEIGHT_ASSUMED,
+    RAW_MAX_LEVERAGE,
+)
 
-from sysproduction.reporting.data.constants import RISK_TARGET_ASSUMED, IDM_ASSUMED, MAX_VS_AVERAGE_FORECAST, INSTRUMENT_WEIGHT_ASSUMED, RAW_MAX_LEVERAGE
 
 def get_auto_population_parameters() -> parametersForAutoPopulation:
-    notional_risk_target = RISK_TARGET_ASSUMED/100.0
+    notional_risk_target = RISK_TARGET_ASSUMED / 100.0
     approx_IDM = IDM_ASSUMED
-    notional_instrument_weight= INSTRUMENT_WEIGHT_ASSUMED
-    raw_max_leverage= RAW_MAX_LEVERAGE
+    notional_instrument_weight = INSTRUMENT_WEIGHT_ASSUMED
+    raw_max_leverage = RAW_MAX_LEVERAGE
     max_vs_average_forecast = MAX_VS_AVERAGE_FORECAST
 
     # because we multiply by eg 2, need to half this
-    auto_parameters = parametersForAutoPopulation(raw_max_leverage = raw_max_leverage,
-                   max_vs_average_forecast = max_vs_average_forecast,
-                   notional_risk_target =notional_risk_target,
-                   approx_IDM = approx_IDM,
-                   notional_instrument_weight = notional_instrument_weight)
+    auto_parameters = parametersForAutoPopulation(
+        raw_max_leverage=raw_max_leverage,
+        max_vs_average_forecast=max_vs_average_forecast,
+        notional_risk_target=notional_risk_target,
+        approx_IDM=approx_IDM,
+        notional_instrument_weight=notional_instrument_weight,
+    )
 
     return auto_parameters
 
 
-
-def from_auto_parameters_to_min_ann_perc_std(auto_parameters: parametersForAutoPopulation) -> float:
-    return 100*auto_parameters.max_vs_average_forecast *         \
-            auto_parameters.approx_IDM *                     \
-            auto_parameters.notional_instrument_weight *     \
-            auto_parameters.notional_risk_target /           \
-            auto_parameters.raw_max_leverage
-
+def from_auto_parameters_to_min_ann_perc_std(
+    auto_parameters: parametersForAutoPopulation,
+) -> float:
+    return (
+        100
+        * auto_parameters.max_vs_average_forecast
+        * auto_parameters.approx_IDM
+        * auto_parameters.notional_instrument_weight
+        * auto_parameters.notional_risk_target
+        / auto_parameters.raw_max_leverage
+    )
 
 
 def get_data_for_markets(data):
@@ -297,22 +343,19 @@ def get_data_for_markets(data):
     return SR_costs, liquidity_data, risk_data
 
 
-
-
 def get_existing_bad_markets(data):
     production_config = data.config
 
-    excluded_markets_config_element = production_config.get_element_or_missing_data("exclude_instrument_lists")
+    excluded_markets_config_element = production_config.get_element_or_missing_data(
+        "exclude_instrument_lists"
+    )
     if excluded_markets_config_element is missing_data:
         print("NO BAD MARKETS IN CONFIG!")
         existing_bad_markets = []
     else:
-        existing_bad_markets = \
-            excluded_markets_config_element.get('bad_markets', [])
+        existing_bad_markets = excluded_markets_config_element.get("bad_markets", [])
 
     return existing_bad_markets
-
-
 
 
 def table_of_duplicate_markets_for_dict_entry(
@@ -324,32 +367,30 @@ def table_of_duplicate_markets_for_dict_entry(
     all_markets = list(set(list(included + excluded)))
     mkt_data_for_duplicates = get_df_of_data_for_duplicate(mkt_data, all_markets)
     best_market = get_best_market(mkt_data_for_duplicates, filters)
-    current_list ="Current list of included markets %s, excluded markets %s"\
-        % (included, excluded)
+    current_list = "Current list of included markets %s, excluded markets %s" % (
+        included,
+        excluded,
+    )
 
-    suggested_list =\
-        "Best market %s, current included market(s) %s" % (best_market, str(included))
-
+    suggested_list = "Best market %s, current included market(s) %s" % (
+        best_market,
+        str(included),
+    )
 
     if best_market is no_good_markets:
         change_str = "No change - no good markets"
 
     elif len(included) > 1:
-        change_str = "%s Replace %s with %s" % (CHANGE_FLAG,
-                                                str(included),
-                                                best_market)
+        change_str = "%s Replace %s with %s" % (CHANGE_FLAG, str(included), best_market)
 
     elif best_market != included[0]:
-        change_str = "%s Replace %s with %s" % (CHANGE_FLAG,
-                                                included[0],
-                                                best_market)
+        change_str = "%s Replace %s with %s" % (CHANGE_FLAG, included[0], best_market)
     else:
         change_str = "No change required"
 
-    all_string = change_str+ " "+ current_list + " " + suggested_list
+    all_string = change_str + " " + current_list + " " + suggested_list
 
-    return table(Heading=all_string,
-                 Body = mkt_data_for_duplicates)
+    return table(Heading=all_string, Body=mkt_data_for_duplicates)
 
 
 def get_df_of_data_for_duplicate(mkt_data, all_markets: list) -> pd.DataFrame:
@@ -396,8 +437,6 @@ def get_market_data_for_duplicate(mkt_data, instrument_code: str):
     )
 
 
-
-
 def get_bad_market_filter_parameters():
     max_cost = MAX_SR_COST
     min_contracts = MIN_VOLUME_CONTRACTS_DAILY
@@ -405,8 +444,10 @@ def get_bad_market_filter_parameters():
 
     return max_cost, min_contracts, min_risk
 
-def calculate_threshold_factor(apply_lower_threshold: bool = False,
-                                apply_higher_threshold: bool = False) -> float:
+
+def calculate_threshold_factor(
+    apply_lower_threshold: bool = False, apply_higher_threshold: bool = False
+) -> float:
 
     ## The threshold factor is a number we apply
     ## To be stopped from trading an existing market must be well below the threshold for not being a bad market
@@ -420,13 +461,12 @@ def calculate_threshold_factor(apply_lower_threshold: bool = False,
         if apply_lower_threshold:
             raise Exception("Can't apply both thresholds together")
         else:
-            return 1+BAD_THRESHOLD
+            return 1 + BAD_THRESHOLD
 
     if apply_lower_threshold:
         if apply_higher_threshold:
             raise Exception("Can't apply both thresholds together")
         else:
-            return 1-BAD_THRESHOLD
+            return 1 - BAD_THRESHOLD
 
     return 1.0
-

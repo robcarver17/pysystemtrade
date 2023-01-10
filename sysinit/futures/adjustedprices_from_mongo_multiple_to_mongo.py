@@ -38,7 +38,7 @@ def process_adjusted_prices_all_instruments(
 def process_adjusted_prices_single_instrument(
     instrument_code,
     csv_adj_data_path=arg_not_supplied,
-    multiple_prices = arg_not_supplied,
+    multiple_prices=arg_not_supplied,
     ADD_TO_ARCTIC=True,
     ADD_TO_CSV=False,
 ):

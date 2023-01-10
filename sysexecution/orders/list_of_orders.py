@@ -51,13 +51,12 @@ class listOfOrders(list):
                 trade=trade_list,
                 fill=fill_list,
                 price=price_list,
-                limit = limit_list
+                limit=limit_list,
             ),
             index=id_list,
         )
 
         return pd_df
-
 
     def list_of_filled_price(self) -> list:
         list_of_filled_price = [order.filled_price for order in self]

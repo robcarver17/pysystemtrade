@@ -75,8 +75,10 @@ class genericBlobUsingFuturesSimData(futuresSimData):
         all_instrument_data = (
             self.db_futures_instrument_data.get_all_instrument_data_as_df()
         )
-        instrument_list= self.get_instrument_list()
-        all_instrument_data = all_instrument_data[all_instrument_data.index.isin(instrument_list)]
+        instrument_list = self.get_instrument_list()
+        all_instrument_data = all_instrument_data[
+            all_instrument_data.index.isin(instrument_list)
+        ]
 
         return all_instrument_data
 

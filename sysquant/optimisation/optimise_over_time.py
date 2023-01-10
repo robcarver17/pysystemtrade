@@ -10,6 +10,7 @@ from sysquant.returns import returnsForOptimisation
 
 from multiprocessing import Pool
 
+
 class optimiseWeightsOverTime(object):
     def __init__(
         self,
@@ -28,8 +29,8 @@ class optimiseWeightsOverTime(object):
         self._fit_dates = fit_dates
         self._optimiser = optimiser_for_one_period
         self.n_threads = None
-        if 'n_threads' in kwargs:
-            self.n_threads = kwargs['n_threads']
+        if "n_threads" in kwargs:
+            self.n_threads = kwargs["n_threads"]
 
     @property
     def fit_dates(self) -> listOfFittingDates:
@@ -42,11 +43,11 @@ class optimiseWeightsOverTime(object):
     def weights(self) -> pd.DataFrame:
         fit_dates = self.fit_dates
         optimiser = self.optimiser
-       
+
         progress = progressBar(len(fit_dates), "Optimising weights")
-        
+
         weight_list = []
-        
+
         # Now for each time period, estimate weights
         if self.n_threads is None:
             for fit_period in fit_dates:
@@ -55,11 +56,13 @@ class optimiseWeightsOverTime(object):
                 progress.iterate()
         else:
             with Pool(self.n_threads) as p:
-                for i, weight_dict in enumerate(p.imap(optimiser.calculate_weights_for_period, fit_dates), 1):
+                for i, weight_dict in enumerate(
+                    p.imap(optimiser.calculate_weights_for_period, fit_dates), 1
+                ):
                     weight_list.append(weight_dict)
                     print(i)
-                    progress.iterate()                  
-                   
+                    progress.iterate()
+
         weight_index = fit_dates.list_of_starting_periods()
         weights = pd.DataFrame(weight_list, index=weight_index)
         weights.sort_index(ascending=True, inplace=True)

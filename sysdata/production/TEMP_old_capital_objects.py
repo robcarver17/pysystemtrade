@@ -7,15 +7,12 @@ from syscore.pdutils import uniquets
 
 from sysdata.data_blob import dataBlob
 from sysdata.production.capital import capitalEntry, capitalForStrategy
-from sysdata.production.timed_storage import (
-    listOfEntriesData
-)
+from sysdata.production.timed_storage import listOfEntriesData
 
 from sysobjects.production.capital import (
     LIST_OF_COMPOUND_METHODS,
     totalCapitalUpdater,
 )
-
 
 
 ## All capital is stored by strategy, but some 'strategies' actually relate to the total global account
@@ -110,9 +107,9 @@ class capitalData(listOfEntriesData):
         return current_capital_entry
 
     def update_broker_account_value(
-        self, new_capital_value: float,
-            date: datetime.datetime = arg_not_supplied,
-
+        self,
+        new_capital_value: float,
+        date: datetime.datetime = arg_not_supplied,
     ):
         ## Update account value but also propogate
         if date is arg_not_supplied:
@@ -121,7 +118,6 @@ class capitalData(listOfEntriesData):
         self.update_capital_value_for_strategy(
             BROKER_ACCOUNT_VALUE, new_capital_value, date=date
         )
-
 
     def update_profit_and_loss_account(
         self, new_capital_value: float, date: datetime.datetime = arg_not_supplied
@@ -247,6 +243,7 @@ class capitalData(listOfEntriesData):
                     strategy_name, are_you_sure=are_you_sure
                 )
 
+
 from sysdata.mongodb.mongo_timed_storage import mongoListOfEntriesData
 
 CAPITAL_COLLECTION = "capital"
@@ -266,7 +263,6 @@ class mongoCapitalData(capitalData, mongoListOfEntriesData):
     @property
     def _data_name(self):
         return "mongoStrategyCapitalData"
-
 
 
 class totalCapitalCalculationData(object):
@@ -338,7 +334,6 @@ class totalCapitalCalculationData(object):
 
     def get_total_capital(self) -> pd.Series:
         return self.capital_data.get_total_capital_pd_series()
-
 
     def get_profit_and_loss_account(self) -> pd.Series():
         return self.capital_data.get_profit_and_loss_account_pd_series()
@@ -481,10 +476,9 @@ class totalCapitalCalculationData(object):
         broker_account_value = prev_broker_account_value + delta_value
 
         # Update broker account value
-        self.modify_account_values(broker_account_value = broker_account_value,
-                                   propagate=True, are_you_sure=True)
-
-
+        self.modify_account_values(
+            broker_account_value=broker_account_value, propagate=True, are_you_sure=True
+        )
 
     def modify_account_values(
         self,
@@ -494,7 +488,7 @@ class totalCapitalCalculationData(object):
         acc_pandl: float = arg_not_supplied,
         date: datetime.datetime = arg_not_supplied,
         are_you_sure: bool = False,
-        propagate: bool = True
+        propagate: bool = True,
     ):
         """
         Allow any account valuation to be modified
@@ -544,9 +538,7 @@ class totalCapitalCalculationData(object):
 
     def propagate_broker_account(self, date):
         broker_account_value = self.capital_data.get_broker_account_value()
-        self.capital_data.update_broker_account_value(
-            broker_account_value, date=date
-        )
+        self.capital_data.update_broker_account_value(broker_account_value, date=date)
 
     def create_initial_capital(
         self,
@@ -625,12 +617,18 @@ def get_dict_of_capital_by_strategy():
     data.add_class_object(mongoCapitalData)
     old_data_capital = data.db_capital
     strategy_list = old_data_capital.get_list_of_strategies_with_capital()
-    dict_of_capital = dict([
-        (strategy_name, old_data_capital.get_capital_pd_series_for_strategy(strategy_name))
-        for strategy_name in strategy_list
-    ])
+    dict_of_capital = dict(
+        [
+            (
+                strategy_name,
+                old_data_capital.get_capital_pd_series_for_strategy(strategy_name),
+            )
+            for strategy_name in strategy_list
+        ]
+    )
 
     return dict_of_capital
+
 
 def get_old_capital():
     data = dataBlob()
@@ -642,15 +640,18 @@ def get_old_capital():
 
     return original_capital_pd
 
+
 def delete_old_total_capital():
     data = dataBlob()
     data.add_class_object(mongoCapitalData)
     old_data_capital = data.db_capital
-    old_data_capital.delete_all_special_capital_entries( are_you_really_sure=True)
+    old_data_capital.delete_all_special_capital_entries(are_you_really_sure=True)
+
 
 def delete_old_capital_for_strategy(strategy_name):
     data = dataBlob()
     data.add_class_object(mongoCapitalData)
     old_data_capital = data.db_capital
-    old_data_capital.delete_all_capital_for_strategy(strategy_name,
-                                                     are_you_really_sure=True)
+    old_data_capital.delete_all_capital_for_strategy(
+        strategy_name, are_you_really_sure=True
+    )

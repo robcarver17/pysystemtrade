@@ -322,12 +322,14 @@ class RawData(SystemStage):
         self, list_of_instruments: list
     ) -> pd.Series:
 
-        norm_returns = \
-            self._aggregate_daily_vol_normalised_returns_for_list_of_instruments(list_of_instruments)
+        norm_returns = (
+            self._aggregate_daily_vol_normalised_returns_for_list_of_instruments(
+                list_of_instruments
+            )
+        )
         norm_price = norm_returns.cumsum()
 
         return norm_price
-
 
     @diagnostic()
     def _by_asset_class_daily_vol_normalised_price_for_asset_class(
@@ -344,7 +346,9 @@ class RawData(SystemStage):
             asset_class
         )
 
-        norm_price = self._daily_vol_normalised_price_for_list_of_instruments(instruments_in_asset_class)
+        norm_price = self._daily_vol_normalised_price_for_list_of_instruments(
+            instruments_in_asset_class
+        )
 
         return norm_price
 
@@ -366,9 +370,11 @@ class RawData(SystemStage):
 
         # Align for an easy life
         # As usual forward fill at last moment
-        normalised_price_for_asset_class_aligned = normalised_price_for_asset_class.reindex(
-            normalised_price_this_instrument.index
-        ).ffill()
+        normalised_price_for_asset_class_aligned = (
+            normalised_price_for_asset_class.reindex(
+                normalised_price_this_instrument.index
+            ).ffill()
+        )
 
         return normalised_price_for_asset_class_aligned
 

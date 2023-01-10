@@ -24,7 +24,6 @@ from sysdata.production.position_limits import (
     positionLimitData,
     positionLimitForInstrument,
     positionLimitForStrategyInstrument,
-
 )
 
 
@@ -180,7 +179,9 @@ class dataTradeLimits(productionDataLayerGeneric):
             instrument_strategy, period_days
         )
 
+
 OVERRIDE_REASON_IN_DATABASE = "in database"
+
 
 class diagOverrides(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
@@ -192,7 +193,9 @@ class diagOverrides(productionDataLayerGeneric):
         return self.data.db_override
 
     def get_dict_of_all_overrides_with_reasons(self) -> dict:
-        all_overrides_in_db_with_reason = self.get_dict_of_all_overrides_in_db_with_reasons()
+        all_overrides_in_db_with_reason = (
+            self.get_dict_of_all_overrides_in_db_with_reasons()
+        )
         all_overrides_in_config = self.get_dict_of_all_overrides_in_config()
         all_overrides = {**all_overrides_in_db_with_reason, **all_overrides_in_config}
 
@@ -208,7 +211,6 @@ class diagOverrides(productionDataLayerGeneric):
         )
 
         return all_overrides_in_db_with_reason
-
 
     def get_cumulative_override_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
@@ -411,8 +413,7 @@ class updateOverrides(productionDataLayerGeneric):
 
 class dataPositionLimits(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data: dataBlob) -> dataBlob:
-        data.add_class_list([mongoPositionLimitData,
-                              mongoTemporaryCloseData])
+        data.add_class_list([mongoPositionLimitData, mongoTemporaryCloseData])
         return data
 
     @property
@@ -472,16 +473,19 @@ class dataPositionLimits(productionDataLayerGeneric):
 
         ## FIXME: THIS WON'T WORK IF THERE ARE MULTIPLE STRATEGIES TRADING AN INSTRUMENT
 
-        limit_for_instrument = \
-            self._get_position_limit_object_for_instrument(instrument_strategy.instrument_code)
+        limit_for_instrument = self._get_position_limit_object_for_instrument(
+            instrument_strategy.instrument_code
+        )
 
-        limit_for_instrument_strategy = \
+        limit_for_instrument_strategy = (
             self._get_position_limit_object_for_instrument_strategy(instrument_strategy)
+        )
 
-        minimum_limit_contracts = limit_for_instrument.minimum_position_limit(limit_for_instrument_strategy)
+        minimum_limit_contracts = limit_for_instrument.minimum_position_limit(
+            limit_for_instrument_strategy
+        )
 
         return minimum_limit_contracts
-
 
     def _get_limit_and_position_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
@@ -528,7 +532,6 @@ class dataPositionLimits(productionDataLayerGeneric):
 
         # Ignore warning instrumentOrder inherits from Order
         return max_order_ok_against_instrument
-
 
     def _get_limit_and_position_for_instrument(
         self, instrument_code: str
@@ -641,24 +644,39 @@ class dataPositionLimits(productionDataLayerGeneric):
 
     ## Temporary limits used by roll code
 
-    def temporarily_set_position_limit_to_zero_and_store_original_limit(self, instrument_code):
+    def temporarily_set_position_limit_to_zero_and_store_original_limit(
+        self, instrument_code
+    ):
         original_limit = self._get_position_limit_object_for_instrument(instrument_code)
         self.db_temporary_close_data.add_stored_position_limit(original_limit)
         self.set_abs_position_limit_for_instrument(instrument_code, 0)
 
-        self.log.msg("Temporarily setting position limit, was %s, now zero" % (str(original_limit)))
+        self.log.msg(
+            "Temporarily setting position limit, was %s, now zero"
+            % (str(original_limit))
+        )
 
     def reset_position_limit_for_instrument_to_original_value(self, instrument_code):
-        original_limit= self.db_temporary_close_data.get_stored_position_limit_for_instrument(instrument_code)
+        original_limit = (
+            self.db_temporary_close_data.get_stored_position_limit_for_instrument(
+                instrument_code
+            )
+        )
         if original_limit is missing_data:
             self.log.warn("No temporary position limit stored")
             return None
 
-        self.set_abs_position_limit_for_instrument(instrument_code,
-                                                   original_limit.position_limit)
+        self.set_abs_position_limit_for_instrument(
+            instrument_code, original_limit.position_limit
+        )
 
-        self.db_temporary_close_data.clear_stored_position_limit_for_instrument(instrument_code)
-        self.log.msg("Reset position limit from temporary zero limit, now %s" % str(original_limit))
+        self.db_temporary_close_data.clear_stored_position_limit_for_instrument(
+            instrument_code
+        )
+        self.log.msg(
+            "Reset position limit from temporary zero limit, now %s"
+            % str(original_limit)
+        )
 
     ## set limits
 

@@ -4,7 +4,11 @@ from syscore.objects import arg_not_supplied
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
-from sysdata.mongodb.mongo_roll_data import mongoRollParametersData, rollParameters, rollParametersData
+from sysdata.mongodb.mongo_roll_data import (
+    mongoRollParametersData,
+    rollParameters,
+    rollParametersData,
+)
 from sysobjects.roll_calendars import rollCalendar
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
 from sysproduction.data.prices import get_valid_instrument_code_from_user
@@ -18,11 +22,11 @@ Generate a 'best guess' roll calendar based on some price data for individual co
 def build_and_write_roll_calendar(
     instrument_code,
     output_datapath=arg_not_supplied,
-    write = True,
+    write=True,
     check_before_writing=True,
     input_prices=arg_not_supplied,
     roll_parameters_data: rollParametersData = arg_not_supplied,
-    roll_parameters: rollParameters=arg_not_supplied,
+    roll_parameters: rollParameters = arg_not_supplied,
 ):
 
     if output_datapath is arg_not_supplied:
@@ -48,7 +52,6 @@ def build_and_write_roll_calendar(
         instrument_code
     )
     dict_of_futures_contract_prices = dict_of_all_futures_contract_prices.final_prices()
-
 
     # might take a few seconds
     print("Prepping roll calendar... might take a few seconds")

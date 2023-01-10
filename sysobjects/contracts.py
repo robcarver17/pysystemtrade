@@ -7,7 +7,11 @@ from syscore.objects import arg_not_supplied
 
 from syslogdiag.logger import logger
 
-from sysobjects.contract_dates_and_expiries import contractDate, expiryDate, listOfContractDateStr
+from sysobjects.contract_dates_and_expiries import (
+    contractDate,
+    expiryDate,
+    listOfContractDateStr,
+)
 from sysobjects.instruments import futuresInstrument
 
 
@@ -210,7 +214,6 @@ class futuresContract(object):
         date_now = datetime.datetime.now().date()
         timedelta = expiry_date - date_now
         return timedelta.days
-
 
     def update_single_expiry_date(self, new_expiry_date: expiryDate):
         self.contract_date.update_single_expiry_date(new_expiry_date)

@@ -36,7 +36,8 @@ class ibClient(object):
 
         # means our first call won't be throttled for pacing
         self.last_historic_price_calltime = (
-            datetime.datetime.now() - datetime.timedelta(seconds=PACING_INTERVAL_SECONDS)
+            datetime.datetime.now()
+            - datetime.timedelta(seconds=PACING_INTERVAL_SECONDS)
         )
 
         # Add error handler

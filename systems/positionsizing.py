@@ -8,7 +8,11 @@ from sysdata.config.configdata import Config
 from sysdata.sim.sim_data import simData
 from sysquant.estimators.vol import robust_vol_calc
 
-from systems.buffering import calculate_buffers, calculate_actual_buffers, apply_buffers_to_position
+from systems.buffering import (
+    calculate_buffers,
+    calculate_actual_buffers,
+    apply_buffers_to_position,
+)
 from systems.stage import SystemStage
 from systems.system_cache import input, diagnostic, output
 from systems.forecast_combine import ForecastCombine
@@ -49,8 +53,7 @@ class PositionSizing(SystemStage):
         return "positionSize"
 
     @output()
-    def get_buffers_for_subsystem_position(self,
-                                           instrument_code: str) -> pd.Series:
+    def get_buffers_for_subsystem_position(self, instrument_code: str) -> pd.Series:
         """
         Get buffers for subsystem
 
@@ -64,8 +67,7 @@ class PositionSizing(SystemStage):
         return pos_buffers
 
     @diagnostic()
-    def get_subsystem_buffers(self, instrument_code: str)\
-            -> pd.Series:
+    def get_subsystem_buffers(self, instrument_code: str) -> pd.Series:
 
         position = self.get_subsystem_position(instrument_code)
 
@@ -73,11 +75,13 @@ class PositionSizing(SystemStage):
         log = self.log
         config = self.config
 
-        buffer = calculate_buffers(instrument_code=instrument_code,
-                                   position=position,
-                                   log=log,
-                                   config = config,
-                                   vol_scalar = vol_scalar)
+        buffer = calculate_buffers(
+            instrument_code=instrument_code,
+            position=position,
+            log=log,
+            config=config,
+            vol_scalar=vol_scalar,
+        )
 
         return buffer
 

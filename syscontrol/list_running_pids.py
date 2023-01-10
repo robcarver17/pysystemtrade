@@ -38,9 +38,7 @@ def list_of_all_running_pids():
 
 def get_trading_server_login_data():
     production_config = get_production_config()
-    trading_server_ip = production_config.get_element(
-        "trading_server_ip"
-    )
+    trading_server_ip = production_config.get_element("trading_server_ip")
 
     trading_server_username = production_config.trading_server_username
     trading_server_ssh_port = production_config.trading_server_ssh_port

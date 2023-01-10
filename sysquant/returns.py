@@ -58,7 +58,13 @@ class returnsForOptimisation(pd.DataFrame):
 
     def __reduce__(self):
         t = super().__reduce__()
-        t[2].update( {'_is_copy':self._is_copy, '_frequency':self._frequency, '_pooled_length':self._pooled_length } )
+        t[2].update(
+            {
+                "_is_copy": self._is_copy,
+                "_frequency": self._frequency,
+                "_pooled_length": self._pooled_length,
+            }
+        )
         return t[0], t[1], t[2]
 
     @property

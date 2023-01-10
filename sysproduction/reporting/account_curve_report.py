@@ -9,13 +9,14 @@ from sysdata.data_blob import dataBlob
 
 from sysproduction.reporting.api import reportingApi
 
-list_of_periods = ['YTD', '12M', '3Y', '5Y', '10Y','99Y']
+list_of_periods = ["YTD", "12M", "3Y", "5Y", "10Y", "99Y"]
 
 
-def account_curve_report(data: dataBlob = arg_not_supplied,
-                          start_date = arg_not_supplied,
-                          end_date = arg_not_supplied):
-
+def account_curve_report(
+    data: dataBlob = arg_not_supplied,
+    start_date=arg_not_supplied,
+    end_date=arg_not_supplied,
+):
 
     if data is arg_not_supplied:
         data = dataBlob()
@@ -27,20 +28,17 @@ def account_curve_report(data: dataBlob = arg_not_supplied,
     else:
         formatted_output = _account_curve_report_with_dates(reporting_api)
 
-
     return formatted_output
 
-def _account_curve_report_with_dates(
-        reporting_api: reportingApi
-) -> list:
+
+def _account_curve_report_with_dates(reporting_api: reportingApi) -> list:
 
     figure_object = reporting_api.figure_of_account_curve_using_dates()
 
     return [figure_object]
 
 
-def _account_curve_report_full(
-                                reporting_api: reportingApi) -> list:
+def _account_curve_report_full(reporting_api: reportingApi) -> list:
 
     formatted_output = []
 
@@ -53,5 +51,6 @@ def _account_curve_report_full(
 
     return formatted_output
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     account_curve_report()

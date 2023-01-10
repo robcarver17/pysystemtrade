@@ -28,5 +28,5 @@ def get_list_of_timer_functions_for_stack_handler():
     return list_of_timer_names_and_functions
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run_stack_handler()

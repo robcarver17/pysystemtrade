@@ -43,7 +43,6 @@ def generate_matching_duplicate_dict(config: Config):
     dict(copper = dict(included = ["COPPER"], excluded = ["COPPER_mini"]
     """
 
-
     duplicate_instruments_config = config.get_element_or_missing_data(
         "duplicate_instruments"
     )

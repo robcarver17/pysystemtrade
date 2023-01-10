@@ -155,18 +155,15 @@ class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
             self.optimised_position,
         )
 
-        weight_str = (
-            "Weights: Per contract %.3f Previous %.3f Optimum %.3f Limit %.3f Minimum %.3f Maximum %.3f Start %.3f Optimised %.3f"
-            % (
-                self.weight_per_contract,
-                self.previous_weight,
-                self.optimum_weight,
-                self.position_limit_weight,
-                self.minimum_weight,
-                self.maximum_weight,
-                self.start_weight,
-                self.optimised_weight,
-            )
+        weight_str = "Weights: Per contract %.3f Previous %.3f Optimum %.3f Limit %.3f Minimum %.3f Maximum %.3f Start %.3f Optimised %.3f" % (
+            self.weight_per_contract,
+            self.previous_weight,
+            self.optimum_weight,
+            self.position_limit_weight,
+            self.minimum_weight,
+            self.maximum_weight,
+            self.start_weight,
+            self.optimised_weight,
         )
 
         logic_str = ""

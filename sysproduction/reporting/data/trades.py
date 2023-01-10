@@ -111,6 +111,7 @@ NEW_ORDER_ROW_INDEX_COLS = [
     "total_trading",
 ]
 
+
 def raw_slippage_row(order_row):
     (
         delay,

@@ -8,11 +8,14 @@ from sysdata.data_blob import dataBlob
 
 from sysproduction.reporting.api import reportingApi
 
-LIQUIDITY_TEXT = body_text("This report reports on the liquidity of various futures contracts. \n"+
-                 "The volumes in contracts are for the expiry which currently has the highest volume, and are averaged over the last four weeks\n" +
-                 "The risk shown is the volume translated into risk in $million. We multiply the contracts by the risk per contract, as an annual $ amount\n" +
-                 "It's recommended that the minimum volume a retail trader considers is 100 contracts or $1.5m per day"+
-                 "(*) indicates a position currently held in my own trading system")
+LIQUIDITY_TEXT = body_text(
+    "This report reports on the liquidity of various futures contracts. \n"
+    + "The volumes in contracts are for the expiry which currently has the highest volume, and are averaged over the last four weeks\n"
+    + "The risk shown is the volume translated into risk in $million. We multiply the contracts by the risk per contract, as an annual $ amount\n"
+    + "It's recommended that the minimum volume a retail trader considers is 100 contracts or $1.5m per day"
+    + "(*) indicates a position currently held in my own trading system"
+)
+
 
 def liquidity_report(data: dataBlob = arg_not_supplied):
     if data is arg_not_supplied:
@@ -32,5 +35,5 @@ def liquidity_report(data: dataBlob = arg_not_supplied):
     return formatted_output
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     liquidity_report()

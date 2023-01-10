@@ -22,21 +22,32 @@ from syscore.exceptions import missingData
 from syscore.fileutils import get_filename_for_package
 from syscore.objects import missing_data, arg_not_supplied
 from sysdata.config.defaults import get_system_defaults_dict
-from sysdata.config.private_config import get_private_config_as_dict, PRIVATE_CONFIG_FILE
-from sysdata.config.private_directory import get_full_path_for_private_config, PRIVATE_CONFIG_DIR_ENV_VAR
+from sysdata.config.private_config import (
+    get_private_config_as_dict,
+    PRIVATE_CONFIG_FILE,
+)
+from sysdata.config.private_directory import (
+    get_full_path_for_private_config,
+    PRIVATE_CONFIG_DIR_ENV_VAR,
+)
 from syslogdiag.log_to_screen import logtoscreen
 from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
 
-RESERVED_NAMES = ["log", "_elements", "elements",
-                  "_default_filename",
-                  "_private_filename"]
+RESERVED_NAMES = [
+    "log",
+    "_elements",
+    "elements",
+    "_default_filename",
+    "_private_filename",
+]
 
 
 class Config(object):
     def __init__(
-        self, config_object=arg_not_supplied,
-            default_filename=arg_not_supplied,
-            private_filename = arg_not_supplied
+        self,
+        config_object=arg_not_supplied,
+        default_filename=arg_not_supplied,
+        private_filename=arg_not_supplied,
     ):
         """
         Config objects control the behaviour of systems
@@ -228,8 +239,12 @@ class Config(object):
         private_dict = self.private_config_dict
 
         ## order is - self (backtest filename), private, defaults
-        new_dict_with_private = fill_config_dict_with_defaults(self_as_dict, private_dict)
-        new_dict_with_defaults = fill_config_dict_with_defaults(new_dict_with_private, defaults_dict)
+        new_dict_with_private = fill_config_dict_with_defaults(
+            self_as_dict, private_dict
+        )
+        new_dict_with_defaults = fill_config_dict_with_defaults(
+            new_dict_with_private, defaults_dict
+        )
 
         self._create_config_from_dict(new_dict_with_defaults)
 
@@ -275,12 +290,15 @@ class Config(object):
 
 def default_config():
     if os.getenv(PRIVATE_CONFIG_DIR_ENV_VAR):
-        config = Config(private_filename=get_full_path_for_private_config(PRIVATE_CONFIG_FILE))
+        config = Config(
+            private_filename=get_full_path_for_private_config(PRIVATE_CONFIG_FILE)
+        )
     else:
         config = Config()
     config.fill_with_defaults()
 
     return config
+
 
 if __name__ == "__main__":
     import doctest

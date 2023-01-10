@@ -49,5 +49,5 @@ def trades_report(
     return formatted_output
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     trades_report()

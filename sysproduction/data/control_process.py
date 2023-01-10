@@ -30,7 +30,7 @@ class dataControlProcess(productionDataLayerGeneric):
     def db_control_process_data(self) -> controlProcessData:
         return self.data.db_control_process
 
-    def delete_control_for_process_name(self, process_name:str):
+    def delete_control_for_process_name(self, process_name: str):
         self.db_control_process_data.delete_control_for_process_name(process_name)
 
     def get_dict_of_control_processes(self):

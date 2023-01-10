@@ -115,7 +115,7 @@ class pandlCalculationWithCashCostsAndFills(
         fills_this_year = [
             Fill(date=date, qty=qty, price=notional_price)
             for date, qty in zip(date_list, average_holding_by_period)
-            if date<=last_date_with_positions
+            if date <= last_date_with_positions
         ]
 
         return fills_this_year

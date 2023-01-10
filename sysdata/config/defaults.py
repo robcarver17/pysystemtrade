@@ -27,7 +27,6 @@ def get_system_defaults_dict(filename: str = arg_not_supplied) -> dict:
     return default_dict
 
 
-
 if __name__ == "__main__":
     import doctest
 

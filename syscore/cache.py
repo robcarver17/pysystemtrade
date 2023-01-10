@@ -20,7 +20,9 @@ class Cache(object):
         try:
             value_from_store = self._get_from_store(key)
         except missingData:
-            value_from_store = self._calculate_and_store(key, function_instance, *args, **kwargs)
+            value_from_store = self._calculate_and_store(
+                key, function_instance, *args, **kwargs
+            )
 
         return value_from_store
 
@@ -46,6 +48,7 @@ class Cache(object):
     @property
     def parent(self):
         return self._parent
+
 
 def _get_key(function_name, tuple_of_args: tuple, dict_of_kwargs: dict) -> str:
     return "%s/%s/%s" % (str(function_name), str(tuple_of_args), str(dict_of_kwargs))

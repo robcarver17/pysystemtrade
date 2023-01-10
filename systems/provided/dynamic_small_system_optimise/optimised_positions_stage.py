@@ -59,7 +59,7 @@ class optimisedPositions(SystemStage):
             len(common_index),
             suffix="Optimising positions",
             show_timings=True,
-            show_each_time=True
+            show_each_time=True,
         )
         previous_optimal_positions = portfolioWeights.allzeros(self.instrument_list())
         position_list = []
@@ -191,7 +191,9 @@ class optimisedPositions(SystemStage):
         cost_per_notional_weight_as_proportion_of_capital = (
             self.get_cost_per_notional_weight_as_proportion_of_capital(instrument_code)
         )
-        deflated_cost = cost_per_notional_weight_as_proportion_of_capital * cost_deflator
+        deflated_cost = (
+            cost_per_notional_weight_as_proportion_of_capital * cost_deflator
+        )
 
         return deflated_cost
 
@@ -212,16 +214,22 @@ class optimisedPositions(SystemStage):
         return deflator
 
     @diagnostic()
-    def get_cost_per_notional_weight_as_proportion_of_capital(self, instrument_code) -> float:
+    def get_cost_per_notional_weight_as_proportion_of_capital(
+        self, instrument_code
+    ) -> float:
         cost_per_contract = self.get_cost_per_contract_in_base_ccy(instrument_code)
         cost_multiplier = self.cost_multiplier()
-        notional_value_per_contract_as_proportion_of_capital = self.get_current_contract_value_as_proportion_of_capital_for_instrument(instrument_code)
+        notional_value_per_contract_as_proportion_of_capital = (
+            self.get_current_contract_value_as_proportion_of_capital_for_instrument(
+                instrument_code
+            )
+        )
         capital = self.get_trading_capital()
         cost_per_notional_weight_as_proportion_of_capital = calculate_cost_per_notional_weight_as_proportion_of_capital(
-            cost_per_contract =cost_per_contract,
-            cost_multiplier = cost_multiplier,
-            notional_value_per_contract_as_proportion_of_capital = notional_value_per_contract_as_proportion_of_capital,
-            capital = capital
+            cost_per_contract=cost_per_contract,
+            cost_multiplier=cost_multiplier,
+            notional_value_per_contract_as_proportion_of_capital=notional_value_per_contract_as_proportion_of_capital,
+            capital=capital,
         )
 
         return cost_per_notional_weight_as_proportion_of_capital
@@ -229,7 +237,6 @@ class optimisedPositions(SystemStage):
     def cost_multiplier(self) -> float:
         cost_multiplier = float(self.config.small_system["cost_multiplier"])
         return cost_multiplier
-
 
     def get_cost_per_contract_in_base_ccy(self, instrument_code: str) -> float:
         raw_cost_data = self.get_raw_cost_data(instrument_code)
@@ -273,47 +280,53 @@ class optimisedPositions(SystemStage):
         corr_matrix = self.portfolio_stage.get_correlation_matrix(
             relevant_date=relevant_date
         )
-        corr_matrix = copy(corr_matrix.shrink_to_offdiag(shrinkage_corr=self.correlation_shrinkage,
-                                                         offdiag=0.0))
+        corr_matrix = copy(
+            corr_matrix.shrink_to_offdiag(
+                shrinkage_corr=self.correlation_shrinkage, offdiag=0.0
+            )
+        )
 
         return corr_matrix
 
     @property
     def correlation_shrinkage(self) -> float:
-        correlation_shrinkage = float(self.config.small_system['shrink_instrument_returns_correlation'])
+        correlation_shrinkage = float(
+            self.config.small_system["shrink_instrument_returns_correlation"]
+        )
         return correlation_shrinkage
 
     def get_stdev_estimate(
         self, relevant_date: datetime.datetime = arg_not_supplied
     ) -> stdevEstimates:
 
-        return self.portfolio_stage.get_stdev_estimate(
-            relevant_date=relevant_date
-        )
-
-
+        return self.portfolio_stage.get_stdev_estimate(relevant_date=relevant_date)
 
     def get_per_contract_value(
         self, relevant_date: datetime.datetime = arg_not_supplied
     ):
         return self.portfolio_stage.get_per_contract_value(relevant_date)
 
-    def get_current_contract_value_as_proportion_of_capital_for_instrument(self,
-                                                                           instrument_code: str) -> float:
+    def get_current_contract_value_as_proportion_of_capital_for_instrument(
+        self, instrument_code: str
+    ) -> float:
 
-        value_as_ts = self.get_contract_ts_value_as_proportion_of_capital_for_instrument(instrument_code)
+        value_as_ts = (
+            self.get_contract_ts_value_as_proportion_of_capital_for_instrument(
+                instrument_code
+            )
+        )
         return value_as_ts.ffill().iloc[-1]
 
-    def get_contract_ts_value_as_proportion_of_capital_for_instrument(self,
-                                                                           instrument_code: str) -> pd.Series:
+    def get_contract_ts_value_as_proportion_of_capital_for_instrument(
+        self, instrument_code: str
+    ) -> pd.Series:
 
-        return self.portfolio_stage.get_per_contract_value_as_proportion_of_capital(instrument_code)
-
+        return self.portfolio_stage.get_per_contract_value_as_proportion_of_capital(
+            instrument_code
+        )
 
     def get_per_contract_value_as_proportion_of_capital_df(self) -> pd.DataFrame:
-        return (
-            self.portfolio_stage.get_per_contract_value_as_proportion_of_capital_df()
-        )
+        return self.portfolio_stage.get_per_contract_value_as_proportion_of_capital_df()
 
     def instrument_list(self) -> list:
         return self.parent.get_instrument_list()
@@ -372,11 +385,16 @@ class optimisedPositions(SystemStage):
 
 
 def calculate_cost_per_notional_weight_as_proportion_of_capital(
-        notional_value_per_contract_as_proportion_of_capital: float,
-        cost_per_contract: float,
-        capital: float,
-        cost_multiplier: float = 1.0) -> float:
+    notional_value_per_contract_as_proportion_of_capital: float,
+    cost_per_contract: float,
+    capital: float,
+    cost_multiplier: float = 1.0,
+) -> float:
 
-    dollar_cost= cost_multiplier * cost_per_contract / notional_value_per_contract_as_proportion_of_capital
+    dollar_cost = (
+        cost_multiplier
+        * cost_per_contract
+        / notional_value_per_contract_as_proportion_of_capital
+    )
 
     return dollar_cost / capital

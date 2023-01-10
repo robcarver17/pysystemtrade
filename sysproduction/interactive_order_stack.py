@@ -49,10 +49,12 @@ from syscore.objects import arg_not_supplied
 
 from sysobjects.contracts import futuresContract
 
+
 def interactive_order_stack():
     # Avoids pressing enter when running from script
     ib_conn = arg_not_supplied
     interactive_order_stack_with_ib_conn(ib_conn)
+
 
 def interactive_order_stack_with_ib_conn(ib_conn: connectionIB = arg_not_supplied):
     with dataBlob(log_name="Interactive-Order-Stack", ib_conn=ib_conn) as data:
@@ -208,19 +210,25 @@ def create_balance_trade(data):
     print("Or perhaps you are trading manually")
     print("Trades have to be attributed to a strategy (even roll trades)")
     strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
-    instrument_code, contract_date_yyyy_mm = get_valid_instrument_code_and_contractid_from_user(
-        data
-    )
+    (
+        instrument_code,
+        contract_date_yyyy_mm,
+    ) = get_valid_instrument_code_and_contractid_from_user(data)
     fill_qty = get_and_convert("Quantity ", type_expected=int, allow_default=False)
 
     ## We get from database, not broker, in case contract has expired
-    contract_date = data_contracts.get_actual_expiry(instrument_code,
-                                                     contract_date_yyyy_mm)
+    contract_date = data_contracts.get_actual_expiry(
+        instrument_code, contract_date_yyyy_mm
+    )
 
-    default_price = default_price_for_contract(data, futuresContract(instrument_code, contract_date))
+    default_price = default_price_for_contract(
+        data, futuresContract(instrument_code, contract_date)
+    )
     filled_price = get_and_convert(
-        "Filled price", type_expected=float, allow_default=True,
-        default_value=default_price
+        "Filled price",
+        type_expected=float,
+        allow_default=True,
+        default_value=default_price,
     )
     fill_datetime = get_datetime_input("Fill datetime", allow_default=True)
     commission = get_and_convert(
@@ -258,6 +266,7 @@ def create_balance_trade(data):
 
     stack_handler.create_balance_trade(broker_order)
 
+
 def default_price_for_contract(data: dataBlob, futures_contract: futuresContract):
     diag_prices = diagPrices(data)
     default_prices = diag_prices.get_merged_prices_for_contract_object(futures_contract)
@@ -276,8 +285,10 @@ def create_instrument_balance_trade(data):
 
     default_price = default_price_for_instrument(data, instrument_code)
     filled_price = get_and_convert(
-        "Filled price", type_expected=float, allow_default=True,
-        default_value=default_price
+        "Filled price",
+        type_expected=float,
+        allow_default=True,
+        default_value=default_price,
     )
     fill_datetime = get_datetime_input("Fill datetime", allow_default=True)
 
@@ -289,7 +300,6 @@ def create_instrument_balance_trade(data):
         order_type=instrument_balance_order_type,
         filled_price=filled_price,
         fill_datetime=fill_datetime,
-
     )
 
     print(instrument_order)
@@ -301,9 +311,12 @@ def create_instrument_balance_trade(data):
 
     stack_handler.create_balance_instrument_trade(instrument_order)
 
+
 def default_price_for_instrument(data: dataBlob, instrument_code: str) -> float:
     diag_prices = diagPrices(data)
-    default_price = diag_prices.get_current_priced_contract_prices_for_instrument(instrument_code)
+    default_price = diag_prices.get_current_priced_contract_prices_for_instrument(
+        instrument_code
+    )
 
     return default_price.values[-1]
 

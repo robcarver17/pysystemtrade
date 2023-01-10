@@ -5,7 +5,9 @@ from syscore.genutils import progressBar
 
 from systems.stage import SystemStage
 from systems.portfolio import Portfolios
-from systems.provided.dynamic_small_system_optimise.optimised_positions_stage import optimisedPositions
+from systems.provided.dynamic_small_system_optimise.optimised_positions_stage import (
+    optimisedPositions,
+)
 from systems.system_cache import diagnostic
 
 from syscore.objects import arg_not_supplied
@@ -13,6 +15,7 @@ from syscore.pdutils import listOfDataFrames, get_row_of_df_aligned_to_weights_a
 
 
 from sysquant.optimisation.weights import seriesOfPortfolioWeights
+
 
 class Risk(SystemStage):
     @property
@@ -33,7 +36,6 @@ class Risk(SystemStage):
     @diagnostic()
     def get_portfolio_risk_for_original_positions(self) -> pd.Series:
         return self.portfolio_stage.get_portfolio_risk_for_original_positions()
-
 
     @diagnostic()
     def get_original_buffered_rounded_positions_df(self) -> pd.DataFrame:
@@ -86,9 +88,11 @@ class Risk(SystemStage):
     @property
     def optimised_stage(self) -> optimisedPositions:
         try:
-            op_stage =self.parent.optimisedPositions
+            op_stage = self.parent.optimisedPositions
         except:
-            raise Exception("No optimisedPosition stage - not using dynamic optimisation - risk measure not appropriate")
+            raise Exception(
+                "No optimisedPosition stage - not using dynamic optimisation - risk measure not appropriate"
+            )
 
         return op_stage
 
@@ -97,10 +101,8 @@ class Risk(SystemStage):
         return self.parent.accounts
 
     @property
-    def portfolio_stage(self) ->Portfolios:
+    def portfolio_stage(self) -> Portfolios:
         return self.parent.portfolio
 
     def instrument_list(self) -> list:
         return self.parent.get_instrument_list()
-
-

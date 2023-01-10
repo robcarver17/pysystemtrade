@@ -15,6 +15,7 @@ NOT_VOLUME_COLUMNS = sorted(["OPEN", "HIGH", "LOW", "FINAL"])
 
 VERY_BIG_NUMBER = 999999.0
 
+
 class futuresContractPrices(pd.DataFrame):
     """
     simData frame in specific format containing per contract information
@@ -34,8 +35,6 @@ class futuresContractPrices(pd.DataFrame):
 
     def __copy__(self):
         return futuresContractPrices(copy(self._as_df))
-
-
 
     @classmethod
     def create_empty(futuresContractPrices):
@@ -75,7 +74,7 @@ class futuresContractPrices(pd.DataFrame):
     def inverse(self):
         new_version = copy(self)
         for colname in NOT_VOLUME_COLUMNS:
-            new_version[colname] = 1/self[colname]
+            new_version[colname] = 1 / self[colname]
 
         return futuresContractPrices(new_version)
 
@@ -85,7 +84,6 @@ class futuresContractPrices(pd.DataFrame):
             new_version[colname] = multiplier * self[colname]
 
         return futuresContractPrices(new_version)
-
 
     def daily_volumes(self) -> pd.Series:
         volumes = self._raw_volumes()
@@ -162,15 +160,14 @@ class futuresContractPrices(pd.DataFrame):
         return futuresContractPrices(new_data)
 
     def remove_zero_prices(self):
-        drop_it = self[FINAL_COLUMN]==0.0
+        drop_it = self[FINAL_COLUMN] == 0.0
         new_data = self[~drop_it]
         return futuresContractPrices(new_data)
 
     def remove_negative_prices(self):
-        drop_it = self[FINAL_COLUMN]<0.0
+        drop_it = self[FINAL_COLUMN] < 0.0
         new_data = self[~drop_it]
         return futuresContractPrices(new_data)
-
 
     def remove_future_data(self):
         new_data = futuresContractPrices(self[self.index < datetime.datetime.now()])
@@ -178,8 +175,10 @@ class futuresContractPrices(pd.DataFrame):
         return new_data
 
     def add_rows_to_existing_data(
-        self, new_futures_per_contract_prices, check_for_spike=True,
-            max_price_spike: float = VERY_BIG_NUMBER
+        self,
+        new_futures_per_contract_prices,
+        check_for_spike=True,
+        max_price_spike: float = VERY_BIG_NUMBER,
     ):
         """
         Merges self with new data.
@@ -194,7 +193,7 @@ class futuresContractPrices(pd.DataFrame):
             pd.DataFrame(self),
             new_futures_per_contract_prices,
             check_for_spike=check_for_spike,
-            max_spike = max_price_spike,
+            max_spike=max_price_spike,
             column_to_check=FINAL_COLUMN,
         )
 

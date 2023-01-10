@@ -1,5 +1,10 @@
 from syscore.objects import success, failure, arg_not_supplied, missing_data
-from syscore.interactive import get_and_convert, print_menu_and_get_response, get_datetime_input, true_if_answer_is_yes
+from syscore.interactive import (
+    get_and_convert,
+    print_menu_and_get_response,
+    get_datetime_input,
+    true_if_answer_is_yes,
+)
 
 from sysdata.data_blob import dataBlob
 from sysobjects.production.capital import LargeCapitalChange
@@ -126,7 +131,10 @@ def get_initial_capital_values_from_user(data: dataBlob):
 
     return broker_account_value, total_capital, maximum_capital, acc_pandl
 
+
 A_VERY_LARGE_NUMBER = 999999999
+
+
 def update_capital_from_ib(data: dataBlob):
 
     data_capital = dataCapital(data)
@@ -170,14 +178,9 @@ def adjust_capital_for_delta(data: dataBlob):
     )
     effect = data_capital.return_str_with_effect_of_delta_adjustment(capital_delta)
 
-    user_wants_adjustment = true_if_answer_is_yes(
-        "%s, are you sure? "
-        % effect
-    )
+    user_wants_adjustment = true_if_answer_is_yes("%s, are you sure? " % effect)
     if user_wants_adjustment:
-        data_capital.adjust_broker_account_for_delta(
-            capital_delta
-        )
+        data_capital.adjust_broker_account_for_delta(capital_delta)
 
 
 def modify_any_value(data: dataBlob):
@@ -188,7 +191,7 @@ def modify_any_value(data: dataBlob):
         total_capital,
         maximum_capital,
         acc_pandl,
-    ) = get_values_from_user_to_modify(data = data)
+    ) = get_values_from_user_to_modify(data=data)
 
     ans_is_yes = true_if_answer_is_yes(
         "Sure about this? May cause subtle weirdness in capital calculations?"
@@ -199,7 +202,7 @@ def modify_any_value(data: dataBlob):
             total_capital=total_capital,
             maximum_capital=maximum_capital,
             acc_pandl=acc_pandl,
-            are_you_sure=True
+            are_you_sure=True,
         )
 
 
@@ -208,30 +211,26 @@ def get_values_from_user_to_modify(data: dataBlob):
 
     current_broker_value = data_capital.get_current_broker_account_value()
     broker_account_value = get_and_convert(
-        "Broker account value",
-        type_expected=float,
-        default_value=current_broker_value
+        "Broker account value", type_expected=float, default_value=current_broker_value
     )
 
     current_total_capital = data_capital.get_current_total_capital()
     total_capital = get_and_convert(
         "Total capital at risk",
         type_expected=float,
-        default_value=current_total_capital
+        default_value=current_total_capital,
     )
 
     current_maximum_capital = data_capital.get_current_maximum_capital()
     maximum_capital = get_and_convert(
         "Max capital, only used for half compounding",
         type_expected=float,
-        default_value=current_maximum_capital
+        default_value=current_maximum_capital,
     )
 
     current_acc_profit = data_capital.get_current_accumulated_pandl()
     acc_pandl = get_and_convert(
-        "Accumulated profit",
-        type_expected=float,
-        default_value=current_acc_profit
+        "Accumulated profit", type_expected=float, default_value=current_acc_profit
     )
 
     return broker_account_value, total_capital, maximum_capital, acc_pandl
@@ -241,12 +240,12 @@ def delete_capital_since_time(data: dataBlob):
     data_capital = dataCapital(data)
 
     last_date = get_datetime_input("Delete capital from when?")
-    ans_is_yes = true_if_answer_is_yes("Delete anything after %s. Are you sure about this? Can't be undone Yes/<other for no>" % str(last_date))
+    ans_is_yes = true_if_answer_is_yes(
+        "Delete anything after %s. Are you sure about this? Can't be undone Yes/<other for no>"
+        % str(last_date)
+    )
     if ans_is_yes:
-        data_capital.delete_recent_global_capital(
-            last_date,
-            are_you_sure=True
-        )
+        data_capital.delete_recent_global_capital(last_date, are_you_sure=True)
 
 
 def delete_all_capital(data: dataBlob):
@@ -257,9 +256,7 @@ def delete_all_capital(data: dataBlob):
     )
     if ans == "YESyesYES":
         try:
-            data_capital.delete_all_global_capital(
-                are_you_really_sure=True
-            )
+            data_capital.delete_all_global_capital(are_you_really_sure=True)
 
         except BaseException:
             print(

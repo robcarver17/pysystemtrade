@@ -31,8 +31,7 @@ class accountCosts(accountInputs):
         """
         ## Calculate holding and transaction seperately, as the former could be pooled
         transaction_cost = self.get_SR_transaction_cost_for_instrument_forecast(
-            instrument_code = instrument_code,
-            rule_variation_name = rule_variation_name
+            instrument_code=instrument_code, rule_variation_name=rule_variation_name
         )
         holding_cost = self.get_SR_holding_cost_only(instrument_code)
 
@@ -377,7 +376,6 @@ class accountCosts(accountInputs):
         average_vol = float(daily_vol[start_date:].mean())
 
         return average_vol
-
 
     @property
     def use_SR_costs(self) -> float:

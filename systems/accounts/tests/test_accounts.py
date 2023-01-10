@@ -22,6 +22,7 @@ def system():
 
     return system
 
+
 @pytest.mark.skip
 class TestAccounts:
     def test_costs_per_trade(self, system):
@@ -104,8 +105,10 @@ class TestAccounts:
 
     @staticmethod
     def assert_rule_cost(system, instr: str, rule: str, expected: float):
-        actual = system.accounts._get_SR_transaction_cost_of_rule_for_individual_instrument(
-            instr, rule
+        actual = (
+            system.accounts._get_SR_transaction_cost_of_rule_for_individual_instrument(
+                instr, rule
+            )
         )
         assert actual == approx(expected, rel=1e-3)
 
