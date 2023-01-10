@@ -39,7 +39,7 @@ class exponentialMeans(exponentialEstimator):
         min_periods: int = 20,
         length_adjustment: int = 1,
         frequency: str = "W",
-        **_ignored_kwargs
+        **_ignored_kwargs,
     ):
 
         super().__init__(
@@ -48,7 +48,7 @@ class exponentialMeans(exponentialEstimator):
             min_periods=min_periods,
             length_adjustment=length_adjustment,
             frequency=frequency,
-            **_ignored_kwargs
+            **_ignored_kwargs,
         )
 
     @property
@@ -60,7 +60,7 @@ class exponentialMeans(exponentialEstimator):
         data: pd.DataFrame,
         adjusted_lookback=500,
         adjusted_min_periods=20,
-        **_other_kwargs
+        **_other_kwargs,
     ) -> pd.DataFrame:
 
         mean_calculations = exponential_mean(
@@ -103,7 +103,7 @@ class meanEstimator(genericEstimator):
         data_for_mean: pd.DataFrame,
         using_exponent: bool = True,
         frequency: str = "W",
-        **kwargs
+        **kwargs,
     ):
 
         super().__init__(data_for_mean, using_exponent=using_exponent, **kwargs)
@@ -132,7 +132,7 @@ def mean_estimator_for_subperiod(
     fit_period: fitDates,
     min_periods: int = 20,
     frequency: str = "W",
-    **_ignored_kwargs
+    **_ignored_kwargs,
 ) -> meanEstimates:
     subperiod_data = data_for_mean[fit_period.fit_start : fit_period.fit_end]
 

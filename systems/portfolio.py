@@ -685,7 +685,7 @@ class Portfolios(SystemStage):
             pandl_across_subsystems,
             turnovers=turnovers,
             log=self.log,
-            **weighting_params
+            **weighting_params,
         )
 
         return returns_pre_processor

@@ -57,7 +57,7 @@ class instrumentOrder(Order):
         generated_datetime: datetime.datetime = None,
         manual_trade: bool = False,
         roll_order: bool = False,
-        **kwargs_not_used
+        **kwargs_not_used,
     ):
         """
 
@@ -126,7 +126,7 @@ class instrumentOrder(Order):
             children=children,
             active=active,
             order_type=order_type,
-            **order_info
+            **order_info,
         )
 
     @classmethod
@@ -157,7 +157,7 @@ class instrumentOrder(Order):
             filled_price=filled_price,
             active=active,
             order_type=order_type,
-            **order_info
+            **order_info,
         )
 
         return order

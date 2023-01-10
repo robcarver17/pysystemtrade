@@ -24,7 +24,7 @@ def handcraft_optimisation(
     estimates: Estimates,
     equalise_SR: bool = False,
     equalise_vols: bool = True,
-    **_ignored_weighting_kwargs
+    **_ignored_weighting_kwargs,
 ) -> estimatesWithPortfolioWeights:
 
     weights = get_handcrafted_portfolio_weights_for_valid_data(

@@ -24,7 +24,7 @@ def robust_vol_calc(
     floor_min_periods: int = 100,
     floor_days: int = 500,
     backfill: bool = False,
-    **ignored_kwargs
+    **ignored_kwargs,
 ) -> pd.Series:
     """
     Robust exponential volatility calculation, assuming daily series of prices
@@ -127,7 +127,7 @@ def mixed_vol_calc(
     proportion_of_slow_vol: float = 0.3,
     vol_abs_min: float = 0.0000000001,
     backfill: bool = False,
-    **ignored_kwargs
+    **ignored_kwargs,
 ) -> pd.Series:
     """
     Robust exponential volatility calculation, assuming daily series of prices

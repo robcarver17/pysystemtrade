@@ -18,7 +18,7 @@ class optimiseWeightsOverTime(object):
         date_method="expanding",
         rollyears=20,
         log: logger = logtoscreen("optimiser"),
-        **kwargs
+        **kwargs,
     ):
 
         # Generate time periods

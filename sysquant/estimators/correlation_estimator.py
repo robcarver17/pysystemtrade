@@ -24,7 +24,7 @@ class correlationEstimator(genericEstimator):
         corr_matrix = correlation_estimator_for_subperiod(
             data_for_correlation=data_for_correlation,
             fit_period=fit_period,
-            **kwargs_for_estimator
+            **kwargs_for_estimator,
         )
 
         return corr_matrix
@@ -54,7 +54,7 @@ def correlation_estimator_for_subperiod(
     offdiag: float = 0.99,
     clip: float = arg_not_supplied,
     shrinkage: float = 0.0,
-    **_ignored_kwargs
+    **_ignored_kwargs,
 ):
 
     subperiod_data = data_for_correlation[fit_period.fit_start : fit_period.fit_end]

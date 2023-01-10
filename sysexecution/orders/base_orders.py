@@ -63,7 +63,7 @@ class Order(object):
         children: list = no_children,
         active: bool = True,
         order_type: orderType = orderType("market"),
-        **order_info
+        **order_info,
     ):
         """
 
@@ -420,7 +420,7 @@ class Order(object):
             children=children,
             active=active,
             order_type=order_type,
-            **order_info
+            **order_info,
         )
 
         return order

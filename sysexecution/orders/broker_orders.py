@@ -62,7 +62,7 @@ class brokerOrder(Order):
         broker_tempid: str = "",
         commission: float = 0.0,
         manual_fill: bool = False,
-        **kwargs_ignored
+        **kwargs_ignored,
     ):
         """
 
@@ -146,7 +146,7 @@ class brokerOrder(Order):
             children=children,
             active=active,
             order_type=order_type,
-            **order_info
+            **order_info,
         )
 
     @property
@@ -305,7 +305,7 @@ class brokerOrder(Order):
             filled_price=filled_price,
             fill_datetime=fill_datetime,
             order_type=order_type,
-            **order_info
+            **order_info,
         )
 
         return order

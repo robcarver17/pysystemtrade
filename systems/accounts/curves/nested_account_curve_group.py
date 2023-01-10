@@ -15,7 +15,7 @@ class nestedAccountCurveGroup(accountCurveGroup):
         self,
         nested_dict_of_account_curves: nestedDictOfAccountCurves,
         capital,
-        **kwargs
+        **kwargs,
     ):
 
         super().__init__(nested_dict_of_account_curves, capital=capital, **kwargs)
@@ -36,7 +36,7 @@ class nestedAccountCurveGroup(accountCurveGroup):
             self.nested_account_curves,
             capital=self.capital,
             curve_type=GROSS_CURVE,
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -46,7 +46,7 @@ class nestedAccountCurveGroup(accountCurveGroup):
             self.nested_account_curves,
             capital=self.capital,
             curve_type=NET_CURVE,
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -56,7 +56,7 @@ class nestedAccountCurveGroup(accountCurveGroup):
             self.nested_account_curves,
             capital=self.capital,
             curve_type=COSTS_CURVE,
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -66,7 +66,7 @@ class nestedAccountCurveGroup(accountCurveGroup):
             self.nested_account_curves,
             capital=self.capital,
             frequency=Frequency.BDay,
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -76,7 +76,7 @@ class nestedAccountCurveGroup(accountCurveGroup):
             self.nested_account_curves,
             capital=self.capital,
             frequency=Frequency.Week,
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -86,7 +86,7 @@ class nestedAccountCurveGroup(accountCurveGroup):
             self.nested_account_curves,
             capital=self.capital,
             frequency=Frequency.Month,
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -96,7 +96,7 @@ class nestedAccountCurveGroup(accountCurveGroup):
             self.nested_account_curves,
             capital=self.capital,
             frequency=Frequency.Year,
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -106,7 +106,7 @@ class nestedAccountCurveGroup(accountCurveGroup):
             self.nested_account_curves,
             capital=self.capital,
             is_percentage=True,
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -116,7 +116,7 @@ class nestedAccountCurveGroup(accountCurveGroup):
             self.nested_account_curves,
             capital=self.capital,
             is_percentage=False,
-            **kwargs
+            **kwargs,
         )
 
     @property

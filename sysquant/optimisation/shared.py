@@ -17,7 +17,7 @@ def optimise_given_estimates(
     equalise_SR: bool = True,
     ann_target_SR: float = 0.5,
     equalise_vols: bool = True,
-    **_ignored_kwargs
+    **_ignored_kwargs,
 ) -> estimatesWithPortfolioWeights:
 
     estimates = estimates.equalise_estimates(

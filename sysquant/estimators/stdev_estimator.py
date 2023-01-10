@@ -72,7 +72,7 @@ class exponentialStdev(exponentialEstimator):
         min_periods: int = 20,
         length_adjustment: int = 1,
         frequency: str = "W",
-        **_ignored_kwargs
+        **_ignored_kwargs,
     ):
 
         super().__init__(
@@ -81,7 +81,7 @@ class exponentialStdev(exponentialEstimator):
             min_periods=min_periods,
             length_adjustment=length_adjustment,
             frequency=frequency,
-            **_ignored_kwargs
+            **_ignored_kwargs,
         )
 
     @property
@@ -93,7 +93,7 @@ class exponentialStdev(exponentialEstimator):
         data_for_stdev: pd.DataFrame,
         adjusted_lookback=500,
         adjusted_min_periods=20,
-        **other_kwargs
+        **other_kwargs,
     ) -> pd.DataFrame:
 
         stdev_calculations = exponential_std_deviation(
@@ -125,7 +125,7 @@ def exponential_std_deviation(
     data_for_stdev: pd.DataFrame,
     ew_lookback: int = 250,
     min_periods: int = 20,
-    **_ignored_kwargs
+    **_ignored_kwargs,
 ) -> pd.DataFrame:
 
     exponential_stdev = data_for_stdev.ewm(
@@ -165,7 +165,7 @@ def stdev_estimator_for_subperiod(
     fit_period: fitDates,
     min_periods: int = 20,
     frequency: str = "W",
-    **_ignored_kwargs
+    **_ignored_kwargs,
 ) -> stdevEstimates:
     subperiod_data = data_for_stdev[fit_period.fit_start : fit_period.fit_end]
 

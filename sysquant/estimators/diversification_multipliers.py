@@ -10,7 +10,7 @@ def diversification_multiplier_from_list(
     correlation_list: CorrelationList,
     weight_df: pd.DataFrame,
     ewma_span: int = 125,
-    **kwargs
+    **kwargs,
 ) -> pd.Series:
     # FIXME THE FREQUENCY OF WEIGHT_DF MAY NOT MATCH EMWA_SPAN WHICH IS UNITLES IN ANY CASE...
     """

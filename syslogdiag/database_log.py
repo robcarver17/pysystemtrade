@@ -24,7 +24,7 @@ class logToDb(logger):
         type,
         data: "dataBlob" = None,
         log_level: str = DEFAULT_LOG_LEVEL,
-        **kwargs
+        **kwargs,
     ):
         self.data = data
         super().__init__(type=type, log_level=log_level, **kwargs)

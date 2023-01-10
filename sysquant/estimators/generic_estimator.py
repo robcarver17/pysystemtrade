@@ -34,7 +34,7 @@ class exponentialEstimator(object):
         ew_lookback: int = 250,
         min_periods: int = 20,
         length_adjustment: int = 1,
-        **other_kwargs
+        **other_kwargs,
     ):
 
         adjusted_lookback = ew_lookback * length_adjustment
@@ -44,7 +44,7 @@ class exponentialEstimator(object):
             data,
             adjusted_lookback=adjusted_lookback,
             adjusted_min_periods=adjusted_min_periods,
-            **other_kwargs
+            **other_kwargs,
         )
 
         self._calculations = calculations
@@ -56,7 +56,7 @@ class exponentialEstimator(object):
         data: pd.DataFrame,
         adjusted_lookback=500,
         adjusted_min_periods=20,
-        **other_kwargs
+        **other_kwargs,
     ):
         """
         eg    return self.data.ewm(span=adjusted_lookback,

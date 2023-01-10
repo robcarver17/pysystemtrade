@@ -9,7 +9,7 @@ def shrinkage_optimisation(
     shrinkage_SR: float = 0.90,
     shrinkage_corr: float = 0.50,
     ann_target_SR=0.5,
-    **weighting_kwargs
+    **weighting_kwargs,
 ) -> estimatesWithPortfolioWeights:
 
     estimates = estimates.shrink_correlation_to_average(shrinkage_corr)

@@ -10,7 +10,7 @@ def correlation_over_time_for_returns(
     returns_for_correlation: pd.DataFrame,
     frequency="W",
     forward_fill_price_index=True,
-    **kwargs
+    **kwargs,
 ) -> CorrelationList:
 
     index_prices_for_correlation = returns_for_correlation.cumsum()
@@ -32,7 +32,7 @@ def correlation_over_time(
     date_method="expanding",
     rollyears=20,
     interval_frequency: str = "12M",
-    **kwargs
+    **kwargs,
 ) -> CorrelationList:
 
     column_names = list(data_for_correlation.columns)

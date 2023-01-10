@@ -526,7 +526,7 @@ class systemCache(dict):
         not_pickable=False,
         instrument_classify=True,
         use_arg_names=True,
-        **kwargs
+        **kwargs,
     ):
         """
         Assumes that self._cache has an attribute itemname, and that is a dict
@@ -586,7 +586,7 @@ class systemCache(dict):
         *args,
         use_arg_names=True,
         instrument_classify=True,
-        **kwargs
+        **kwargs,
     ):
         """
         Return cache key

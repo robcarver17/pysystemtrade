@@ -26,7 +26,7 @@ class pandlCalculationWithCashCostsAndFills(
         raw_costs: instrumentCosts,
         rolls_per_year: int,
         vol_normalise_currency_costs: bool = True,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self._raw_costs = raw_costs

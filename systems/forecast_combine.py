@@ -607,7 +607,7 @@ class ForecastCombine(SystemStage):
             returns_pre_processor,
             asset_name=instrument_code,
             log=self.log,
-            **weighting_params
+            **weighting_params,
         )
 
         return weight_func

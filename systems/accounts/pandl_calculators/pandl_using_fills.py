@@ -38,7 +38,7 @@ class pandlCalculationWithFills(pandlCalculation):
         price: pd.Series,
         positions: pd.Series,
         fills: listOfFills,
-        **kwargs
+        **kwargs,
     ):
 
         merged_prices = merge_fill_prices_with_prices(price, fills)
