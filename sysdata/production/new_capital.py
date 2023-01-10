@@ -196,7 +196,7 @@ class capitalData(baseData):
             capital_df = self.get_capital_pd_df_for_strategy(strategy_name)
         except:
             capital_df = missing_data
-            
+
         capital_series = df_to_series(capital_df)
 
         new_capital_item = pd.Series([new_capital_value], [date])
