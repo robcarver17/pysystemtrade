@@ -230,7 +230,7 @@ class accountCurve(pd.Series):
     @property
     def vol_scalar(self) -> float:
         times_per_year = from_frequency_to_times_per_year(self.frequency)
-        return times_per_year ** 0.5
+        return times_per_year**0.5
 
     def sharpe(self):
         mean_return = self.ann_mean()

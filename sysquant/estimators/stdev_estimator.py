@@ -213,4 +213,4 @@ def annualise_stdev_estimate(stdev: stdevEstimates, frequency: str) -> stdevEsti
 def annualised_stdev(stdev_value: float, frequency: str):
     how_many_times_a_year = how_many_times_a_year_is_pd_frequency(frequency)
 
-    return stdev_value * (how_many_times_a_year ** 0.5)
+    return stdev_value * (how_many_times_a_year**0.5)

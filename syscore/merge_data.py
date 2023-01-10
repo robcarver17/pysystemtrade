@@ -252,7 +252,7 @@ def average_change_per_day(data_to_check: pd.Series) -> pd.Series:
     index_diff_days = [diff.total_seconds() / SECONDS_PER_DAY for diff in index_diff]
 
     change_per_day = [
-        diff / (diff_days ** 0.5)
+        diff / (diff_days**0.5)
         for diff, diff_days in zip(data_diff.values, index_diff_days)
     ]
 

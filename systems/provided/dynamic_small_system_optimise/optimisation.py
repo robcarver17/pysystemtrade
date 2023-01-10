@@ -243,7 +243,7 @@ class objectiveFunctionForGreedy:
             self.log.critical(msg)
             raise Exception(msg)
 
-        track_error_std = track_error_var ** 0.5
+        track_error_std = track_error_var**0.5
 
         return track_error_std
 

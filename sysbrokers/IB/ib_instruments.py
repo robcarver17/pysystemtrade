@@ -26,14 +26,18 @@ class ibInstrumentConfigData:
         return self.ibMultiplier / self.priceMagnifier
 
     def __repr__(self):
-        return "symbol='%s', exchange='%s', currency='%s', ibMultiplier='%s', priceMagnifier='%.2f', " "ignoreWeekly='%s', effective_multiplier='%.2f'" % (
-            self.symbol,
-            self.exchange,
-            self.currency,
-            self.ibMultiplier,
-            self.priceMagnifier,
-            self.ignoreWeekly,
-            self.effective_multiplier,
+        return (
+            "symbol='%s', exchange='%s', currency='%s', ibMultiplier='%s', priceMagnifier='%.2f', "
+            "ignoreWeekly='%s', effective_multiplier='%.2f'"
+            % (
+                self.symbol,
+                self.exchange,
+                self.currency,
+                self.ibMultiplier,
+                self.priceMagnifier,
+                self.ignoreWeekly,
+                self.effective_multiplier,
+            )
         )
 
     def as_dict(self):
