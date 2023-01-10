@@ -72,7 +72,7 @@ def static_system_results_for_capital(
     capital: float,
 ):
 
-    notional_starting_IDM = est_number_of_instruments ** 0.25
+    notional_starting_IDM = est_number_of_instruments**0.25
     max_instrument_weight = 1.0 / est_number_of_instruments
 
     return find_best_ordered_set_of_instruments(

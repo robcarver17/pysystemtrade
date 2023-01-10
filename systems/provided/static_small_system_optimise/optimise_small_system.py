@@ -315,4 +315,4 @@ def size_penalty(maximum_position):
     if maximum_position < 0.5:
         return 9999
 
-    return 0.125 / maximum_position ** 2
+    return 0.125 / maximum_position**2
