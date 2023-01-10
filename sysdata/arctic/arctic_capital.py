@@ -30,11 +30,7 @@ class arcticCapitalData(capitalData):
         return self.arctic.get_keynames()
 
     def get_capital_pd_df_for_strategy(self, strategy_name: str) -> pd.DataFrame:
-        try:
-            pd_series = self.arctic.read(strategy_name)
-        except:
-            return missing_data
-
+        pd_series = self.arctic.read(strategy_name)
         return pd_series
 
     def _delete_all_capital_for_strategy_no_checking(self, strategy_name: str):

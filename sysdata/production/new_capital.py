@@ -58,29 +58,33 @@ class capitalData(baseData):
         return float(pd_series[-1])
 
     def get_total_capital_pd_series(self) -> pd.Series:
-        all_capital_series = self.get_df_of_all_global_capital()
-        if all_capital_series is missing_data:
+        try:
+            all_capital_series = self.get_df_of_all_global_capital()
+        except:
             return missing_data
 
         return all_capital_series[CURRENT_CAPITAL_LABEL]
 
     def get_broker_account_value_pd_series(self) -> pd.Series:
-        all_capital_series = self.get_df_of_all_global_capital()
-        if all_capital_series is missing_data:
+        try:
+            all_capital_series = self.get_df_of_all_global_capital()
+        except:
             return missing_data
 
         return all_capital_series[BROKER_CAPITAL_LABEL]
 
     def get_maximum_account_value_pd_series(self) -> pd.Series:
-        all_capital_series = self.get_df_of_all_global_capital()
-        if all_capital_series is missing_data:
+        try:
+            all_capital_series = self.get_df_of_all_global_capital()
+        except:
             return missing_data
 
         return all_capital_series[MAX_CAPITAL_LABEL]
 
     def get_profit_and_loss_account_pd_series(self) -> pd.Series:
-        all_capital_series = self.get_df_of_all_global_capital()
-        if all_capital_series is missing_data:
+        try:
+            all_capital_series = self.get_df_of_all_global_capital()
+        except:
             return missing_data
 
         return all_capital_series[ACC_CAPITAL_LABEL]
@@ -117,8 +121,9 @@ class capitalData(baseData):
 
         new_capital_row = pd.DataFrame(cap_entry_dict, index=[date])
 
-        capital_df = self.get_df_of_all_global_capital()
-        if capital_df is missing_data:
+        try:
+            capital_df = self.get_df_of_all_global_capital()
+        except:
             raise Exception("Need to initialise capital first")
 
         updated_capital_df = pd.concat([capital_df, new_capital_row], axis=0)
@@ -187,8 +192,11 @@ class capitalData(baseData):
         if date is arg_not_supplied:
             date = datetime.datetime.now()
 
-        capital_df = self.get_capital_pd_df_for_strategy(strategy_name)
-
+        try:
+            capital_df = self.get_capital_pd_df_for_strategy(strategy_name)
+        except:
+            capital_df = missing_data
+            
         capital_series = df_to_series(capital_df)
 
         new_capital_item = pd.Series([new_capital_value], [date])
