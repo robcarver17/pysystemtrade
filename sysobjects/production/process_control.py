@@ -14,6 +14,7 @@ import os
 import pandas as pd
 
 from syscontrol.list_running_pids import list_of_all_running_pids
+from syscore.exceptions import missingData
 from syscore.fileutils import html_table
 from syscore.dateutils import SECONDS_PER_DAY, last_run_or_heartbeat_from_date_or_none
 
@@ -56,11 +57,14 @@ class dictOfRunningMethods(dict):
         self.set_entry(method_name, current_entry)
 
     def currently_running(self, method_name: str) -> bool:
-        last_start = self.when_last_start_run(method_name)
-        last_end = self.when_last_end_run(method_name)
-        if last_start is missing_data:
+        try:
+            last_start = self.when_last_start_run(method_name)
+        except missingData:
             return False
-        if last_end is missing_data:
+
+        try:
+            last_end = self.when_last_end_run(method_name)
+        except missingData:
             return True
 
         if last_start > last_end:
@@ -72,14 +76,14 @@ class dictOfRunningMethods(dict):
         current_entry = self.get_current_entry(method_name)
         start_run = current_entry[start_run_idx]
         if start_run == missing_date_str:
-            return missing_data
+            raise missingData("Last start not found: method has never run")
         return start_run
 
     def when_last_end_run(self, method_name: str) -> datetime.datetime:
         current_entry = self.get_current_entry(method_name)
         end_run = current_entry[end_run_idx]
         if end_run == missing_date_str:
-            return missing_data
+            raise missingData("Last end not found: method has never completed")
         return end_run
 
     def as_dict(self):
