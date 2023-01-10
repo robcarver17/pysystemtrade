@@ -1,0 +1,7 @@
+[tool.pytest.ini_options]
+norecursedirs = "examples"
+addopts = "--ignore=systems/provided/moretradingrules/temp.py"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
