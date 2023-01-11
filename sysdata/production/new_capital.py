@@ -5,6 +5,7 @@ import datetime
 import pandas as pd
 import numpy as np
 
+from syscore.exceptions import missingData
 from syscore.objects import arg_not_supplied, failure, missing_data
 
 from sysdata.base_data import baseData
@@ -60,7 +61,7 @@ class capitalData(baseData):
     def get_total_capital_pd_series(self) -> pd.Series:
         try:
             all_capital_series = self.get_df_of_all_global_capital()
-        except:
+        except missingData:
             return missing_data
 
         return all_capital_series[CURRENT_CAPITAL_LABEL]
@@ -68,7 +69,7 @@ class capitalData(baseData):
     def get_broker_account_value_pd_series(self) -> pd.Series:
         try:
             all_capital_series = self.get_df_of_all_global_capital()
-        except:
+        except missingData:
             return missing_data
 
         return all_capital_series[BROKER_CAPITAL_LABEL]
@@ -76,7 +77,7 @@ class capitalData(baseData):
     def get_maximum_account_value_pd_series(self) -> pd.Series:
         try:
             all_capital_series = self.get_df_of_all_global_capital()
-        except:
+        except missingData:
             return missing_data
 
         return all_capital_series[MAX_CAPITAL_LABEL]
@@ -84,7 +85,7 @@ class capitalData(baseData):
     def get_profit_and_loss_account_pd_series(self) -> pd.Series:
         try:
             all_capital_series = self.get_df_of_all_global_capital()
-        except:
+        except missingData:
             return missing_data
 
         return all_capital_series[ACC_CAPITAL_LABEL]
@@ -123,7 +124,7 @@ class capitalData(baseData):
 
         try:
             capital_df = self.get_df_of_all_global_capital()
-        except:
+        except missingData:
             raise Exception("Need to initialise capital first")
 
         updated_capital_df = pd.concat([capital_df, new_capital_row], axis=0)
@@ -194,7 +195,7 @@ class capitalData(baseData):
 
         try:
             capital_df = self.get_capital_pd_df_for_strategy(strategy_name)
-        except:
+        except missingData:
             capital_df = missing_data
 
         capital_series = df_to_series(capital_df)

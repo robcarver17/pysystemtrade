@@ -19,7 +19,7 @@ from syscore.objects import (
     ALL_ROLL_INSTRUMENTS,
     missing_data,
 )
-from syscore.exceptions import missingContract
+from syscore.exceptions import missingContract, missingData
 from sysexecution.orders.list_of_orders import listOfOrders
 
 from sysdata.data_blob import dataBlob
@@ -465,7 +465,7 @@ def total_current_capital(data):
     data_capital = dataCapital(data)
     try:
         capital_series = data_capital.get_series_of_all_global_capital()
-    except:
+    except missingData:
         print("No total capital in database")
         return None
     print(capital_series.tail(30))
