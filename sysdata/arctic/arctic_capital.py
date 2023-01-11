@@ -3,7 +3,6 @@ from sysdata.production.new_capital import capitalData
 
 CAPITAL_COLLECTION = "arctic_capital"
 
-from syscore.objects import missing_data
 from sysdata.arctic.arctic_connection import arcticData
 from syslogdiag.log_to_screen import logtoscreen
 import pandas as pd
