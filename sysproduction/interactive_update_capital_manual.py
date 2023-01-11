@@ -1,3 +1,4 @@
+from syscore.exceptions import missingData
 from syscore.objects import success, failure, arg_not_supplied, missing_data
 from syscore.interactive import (
     get_and_convert,
@@ -53,9 +54,10 @@ def finished(data):
 def print_capital_and_get_user_input(data: dataBlob):
     data_capital = dataCapital(data)
 
-    all_calcs = data_capital.get_series_of_all_global_capital()
     print("\n")
-    if all_calcs is missing_data:
+    try:
+        all_calcs = data_capital.get_series_of_all_global_capital()
+    except missingData:
         # No capital
         no_capital_setup = True
         print("No capital setup yet")

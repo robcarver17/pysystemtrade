@@ -1,3 +1,4 @@
+from syscore.exceptions import missingData
 from sysdata.production.new_capital import capitalData
 
 CAPITAL_COLLECTION = "arctic_capital"
@@ -33,7 +34,9 @@ class arcticCapitalData(capitalData):
         try:
             pd_series = self.arctic.read(strategy_name)
         except:
-            return missing_data
+            raise missingData(
+                "Unable to get capital data from arctic for strategy %s" % strategy_name
+            )
 
         return pd_series
 
