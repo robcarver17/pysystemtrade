@@ -34,7 +34,9 @@ class arcticCapitalData(capitalData):
         try:
             pd_series = self.arctic.read(strategy_name)
         except:
-            raise missingData("Unable to get capital data from arctic for strategy %s" % strategy_name)
+            raise missingData(
+                "Unable to get capital data from arctic for strategy %s" % strategy_name
+            )
 
         return pd_series
 
