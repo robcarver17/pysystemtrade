@@ -1,5 +1,4 @@
-from syscore.objects import missing_data, arg_not_supplied
-from sysdata.config.configdata import default_config, Config
+from sysdata.config.configdata import Config
 
 
 def get_list_of_bad_instruments_in_config(config: Config) -> list:
@@ -41,12 +40,8 @@ def generate_matching_duplicate_dict(config: Config):
     """
 
     duplicate_instruments_config = config.get_element("duplicate_instruments")
-    exclude_dict = duplicate_instruments_config.get("exclude", missing_data)
-    include_dict = duplicate_instruments_config.get("include", missing_data)
-    if exclude_dict is missing_data or include_dict is missing_data:
-        raise Exception(
-            "Need 'duplicate_instruments': exclude_dict and include_dict in config"
-        )
+    exclude_dict = duplicate_instruments_config.get("exclude", {})
+    include_dict = duplicate_instruments_config.get("include", {})
 
     joint_keys = list(set(list(exclude_dict.keys()) + list(include_dict.keys())))
 
@@ -96,9 +91,7 @@ def get_duplicate_list_of_instruments_to_remove_from_config(config: Config) -> l
         "duplicate_instruments", {}
     )
 
-    exclude_dict = duplicate_instruments_config.get("exclude", missing_data)
-    if exclude_dict is missing_data:
-        return []
+    exclude_dict = duplicate_instruments_config.get("exclude", {})
     list_of_duplicates = list(exclude_dict.values())
 
     ## do this because can have multiple duplicates
