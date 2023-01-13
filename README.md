@@ -1,6 +1,6 @@
 # pysystemtrade
 
-Systematic Trading in python
+Systematic futures trading in python
 
 Rob Carver
 
@@ -26,7 +26,7 @@ See [DONE_TO_DO](CHANGELOG.md) for release notes, and future plans.
 For a longer explanation of the motivation and point of this project see my [blog post.](https://qoppac.blogspot.com/2015/12/pysystemtrade.html)
 
 Pysystemtrade is a....:
-- Backtesting environment that will work "out of the box" for chapter 15 of my book ["Systematic Trading"](https://www.systematicmoney.org/systematic-trading)
+- Backtesting environment I used to test all the strategies in my various ["books"](https://www.systematicmoney.org)
 - Which implements all the optimisation and system design principles in the book and on my website and in my books
 - A fully automated system for futures trading (for interactive brokers)
 
