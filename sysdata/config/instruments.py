@@ -24,12 +24,9 @@ def get_list_of_ignored_instruments_in_config(config: Config) -> list:
 
 
 def get_config_of_excluded_instruments(config: Config) -> dict:
-    exclude_instrument_lists = config.get_element_or_missing_data(
-        "exclude_instrument_lists"
+    exclude_instrument_lists = config.get_element_or_default(
+        "exclude_instrument_lists", {}
     )
-    if exclude_instrument_lists is missing_data:
-        return {}
-
     return exclude_instrument_lists
 
 
@@ -43,12 +40,7 @@ def generate_matching_duplicate_dict(config: Config):
     dict(copper = dict(included = ["COPPER"], excluded = ["COPPER_mini"]
     """
 
-    duplicate_instruments_config = config.get_element_or_missing_data(
-        "duplicate_instruments"
-    )
-
-    if duplicate_instruments_config is missing_data:
-        raise Exception("Need 'duplicate_instruments' in config")
+    duplicate_instruments_config = config.get_element("duplicate_instruments")
     exclude_dict = duplicate_instruments_config.get("exclude", missing_data)
     include_dict = duplicate_instruments_config.get("include", missing_data)
     if exclude_dict is missing_data or include_dict is missing_data:
@@ -100,12 +92,10 @@ def get_entry_for_key_in_dict(key: str, check_dict: dict, is_include_dict: bool 
 
 
 def get_duplicate_list_of_instruments_to_remove_from_config(config: Config) -> list:
-    duplicate_instruments_config = config.get_element_or_missing_data(
-        "duplicate_instruments"
+    duplicate_instruments_config = config.get_element_or_default(
+        "duplicate_instruments", {}
     )
 
-    if duplicate_instruments_config is missing_data:
-        return []
     exclude_dict = duplicate_instruments_config.get("exclude", missing_data)
     if exclude_dict is missing_data:
         return []
