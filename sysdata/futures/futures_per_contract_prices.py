@@ -253,7 +253,7 @@ class futuresContractPriceData(baseData):
             if return_empty:
                 return futuresContractPrices.create_empty()
             else:
-                return missing_data
+                raise missingData
 
         return prices
 
