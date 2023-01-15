@@ -882,7 +882,7 @@ def get_list_of_changes_to_make_to_slippage(
             print("No data for %s" % instrument_code)
             continue
 
-        if abs(difference) * 100 < filter:
+        if abs(difference) < filter:
             ## do nothing
             continue
 
