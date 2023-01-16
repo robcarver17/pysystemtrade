@@ -9,7 +9,7 @@ from syscore.interactive import (
     print_menu_and_get_response,
     true_if_answer_is_yes,
 )
-from syscore.algos import calculate_multiplication_factor_for_nice_repr_of_value
+from syscore.text import calculate_multiplication_factor_for_nice_repr_of_value
 from syscore.pdutils import set_pd_print_options
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR, DAILY_PRICE_FREQ
 from syscore.genutils import round_significant_figures

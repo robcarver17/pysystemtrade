@@ -2,7 +2,7 @@
 Suite of functions to analyse a system, and produce configuration that can be saved to a yaml file
 """
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.algos import return_mapping_params
+from systems.forecast_mapping import estimate_mapping_params
 import yaml
 import numpy as np
 
@@ -127,7 +127,7 @@ class systemDiag(object):
                     b_param,
                     threshold_value,
                     capped_value,
-                ) = return_mapping_params(a_param)
+                ) = estimate_mapping_params(a_param)
                 map_dict = dict(
                     a_param=float(a_param),
                     b_param=float(b_param),
