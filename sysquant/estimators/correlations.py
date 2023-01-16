@@ -483,3 +483,11 @@ def average_correlation(corr_matrix: correlationEstimate) -> float:
     avg_corr = np.nanmean(new_corr_values)
 
     return avg_corr
+
+
+def get_near_psd(A: np.array):
+    C = (A + A.T) / 2
+    eigval, eigvec = np.linalg.eig(C)
+    eigval[eigval < 0] = 0
+
+    return np.array(eigvec.dot(np.diag(eigval)).dot(eigvec.T))

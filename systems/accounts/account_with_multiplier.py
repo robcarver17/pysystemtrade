@@ -4,7 +4,7 @@ import pandas as pd
 
 from syscore.objects import resolve_function
 from syscore.pdutils import from_scalar_values_to_ts
-from syscore.algos import apply_buffer
+from systems.accounts.account_buffering_subsystem import apply_buffer
 
 from systems.system_cache import output, diagnostic
 from systems.accounts.account_portfolio import accountPortfolio

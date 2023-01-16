@@ -7,7 +7,6 @@ crossovers
 """
 import math as maths
 import numpy as np
-import pandas as pd
 
 from syscore.genutils import sign
 from copy import copy
@@ -85,6 +84,8 @@ def renormalise_array_of_values_to_sum(
 
 def calculate_weighted_average(np_weights: np.array, np_values: np.array) -> float:
     """
+    Implicit replaces nan with zeros
+
     >>> calculate_weighted_average(np.array([0.2, 0.2, 0, 0.4]),np.array([2, np.nan, 3, np.nan]))
     0.4
     """
@@ -96,15 +97,15 @@ def calculate_weighted_average(np_weights: np.array, np_values: np.array) -> flo
 def apply_with_min_periods(xcol, my_func=np.nanmean, min_periods=0):
     """
     :param x: data
-    :type x: Tx1 pd.DataFrame
+    :type x: Tx1 pd.DataFrame or series
 
     :param func: Function to apply, if min periods met
     :type func: function
 
-    :param min_periods: The minimum number of observations (*default* 10)
+    :param min_periods: The minimum number of observations
     :type min_periods: int
 
-    :returns: pd.DataFrame Tx 1
+    :returns: output from function
     """
     not_nan = sum(~np.isnan(xcol))
 
@@ -113,111 +114,6 @@ def apply_with_min_periods(xcol, my_func=np.nanmean, min_periods=0):
         return my_func(xcol)
     else:
         return np.nan
-
-
-def apply_buffer_single_period(
-    last_position, optimal_position, top_pos, bot_pos, trade_to_edge
-):
-    """
-    Apply a buffer to a position, single period
-
-    If position is outside the buffer, we either trade to the edge of the
-    buffer, or to the optimal
-
-    :param last_position: last position we had
-    :type last_position: float
-
-    :param optimal_position: ideal position
-    :type optimal_position: float
-
-    :param top_pos: top of buffer
-    :type top_pos: float
-
-    :param bot_pos: bottom of buffer
-    :type bot_pos: float
-
-    :param trade_to_edge: Trade to the edge (TRue) or the optimal (False)
-    :type trade_to_edge: bool
-
-    :returns: float
-    """
-
-    if np.isnan(top_pos) or np.isnan(bot_pos) or np.isnan(optimal_position):
-        return last_position
-
-    if last_position > top_pos:
-        if trade_to_edge:
-            return top_pos
-        else:
-            return optimal_position
-    elif last_position < bot_pos:
-        if trade_to_edge:
-            return bot_pos
-        else:
-            return optimal_position
-    else:
-        return last_position
-
-
-def apply_buffer(
-    optimal_position: pd.Series,
-    pos_buffers: pd.DataFrame,
-    trade_to_edge: bool = False,
-    roundpositions: bool = False,
-) -> pd.Series:
-    """
-    Apply a buffer to a position
-
-    If position is outside the buffer, we either trade to the edge of the
-    buffer, or to the optimal
-
-    If we're rounding positions, then we floor and ceiling the buffers.
-
-    :param position: optimal position
-    :type position: pd.Series
-
-    :param pos_buffers:
-    :type pos_buffers: Tx2 pd.dataframe, top_pos and bot_pos
-
-    :param trade_to_edge: Trade to the edge (TRue) or the optimal (False)
-    :type trade_to_edge: bool
-
-    :param round_positions: Produce rounded positions
-    :type round_positions: bool
-
-    :returns: pd.Series
-    """
-
-    pos_buffers = pos_buffers.ffill()
-    use_optimal_position = optimal_position.ffill()
-
-    top_pos = pos_buffers.top_pos
-    bot_pos = pos_buffers.bot_pos
-
-    if roundpositions:
-        use_optimal_position = use_optimal_position.round()
-        top_pos = top_pos.round()
-        bot_pos = bot_pos.round()
-
-    current_position = use_optimal_position.values[0]
-    if np.isnan(current_position):
-        current_position = 0.0
-
-    buffered_position_list = [current_position]
-
-    for idx in range(len(optimal_position.index))[1:]:
-        current_position = apply_buffer_single_period(
-            current_position,
-            float(use_optimal_position.values[idx]),
-            float(top_pos.values[idx]),
-            float(bot_pos.values[idx]),
-            trade_to_edge=trade_to_edge,
-        )
-        buffered_position_list.append(current_position)
-
-    buffered_position = pd.Series(buffered_position_list, index=optimal_position.index)
-
-    return buffered_position
 
 
 def return_mapping_params(a_param):
@@ -311,16 +207,41 @@ def map_forecast_value(x, threshold=0.0, capped_value=20, a_param=1.0, b_param=1
     )
 
 
+def calculate_multiplication_factor_for_nice_repr_of_value(some_value: float) -> float:
+    """
+    Work out a multiplication factor to avoid having to print a mantissa repr
+    >>> calculate_multiplication_factor_for_nice_repr_of_value(3.2)
+    1.0
+    >>> calculate_multiplication_factor_for_nice_repr_of_value(0.032)
+    1.0
+    >>> calculate_multiplication_factor_for_nice_repr_of_value(0.0032)
+    100.0
+    >>> calculate_multiplication_factor_for_nice_repr_of_value(0.00032)
+    1000.0
+    >>> calculate_multiplication_factor_for_nice_repr_of_value(0.000000000000000001)
+    1e+18
+    """
+    BIG_ENOUGH = 0.01
+    ARBITRARY_LARGE_MULTIPLIER = 1000000
+    NO_MULTIPLIER_REQUIRED = 1.0
+
+    if some_value > BIG_ENOUGH:
+        return NO_MULTIPLIER_REQUIRED
+
+    if some_value == 0:
+        return ARBITRARY_LARGE_MULTIPLIER
+
+    mag = magnitude(some_value)
+    mult_factor = 10.0 ** (-mag)
+
+    return mult_factor
+
+
 def magnitude(x):
+    """
+    Magnitude of a positive numeber. Used for calculating significant figures
+    """
     return int(maths.log10(x))
-
-
-def get_near_psd(A: np.array):
-    C = (A + A.T) / 2
-    eigval, eigvec = np.linalg.eig(C)
-    eigval[eigval < 0] = 0
-
-    return np.array(eigvec.dot(np.diag(eigval)).dot(eigvec.T))
 
 
 if __name__ == "__main__":
