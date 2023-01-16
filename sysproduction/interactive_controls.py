@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from copy import copy
 import numpy as np
 import pandas as pd
 
@@ -882,7 +883,7 @@ def get_list_of_changes_to_make_to_slippage(
             print("No data for %s" % instrument_code)
             continue
 
-        if abs(difference) * 100 < filter:
+        if abs(difference) < filter:
             ## do nothing
             continue
 
@@ -891,12 +892,14 @@ def get_list_of_changes_to_make_to_slippage(
         if mult_factor > 1:
             print("ALL VALUES MULTIPLIED BY %f INCLUDING INPUTS!!!!" % mult_factor)
 
+        print_data_with_multiplier(pd_row, mult_factor=mult_factor)
+
         suggested_estimate_multiplied = round_significant_figures(
             suggested_estimate * mult_factor, 2
         )
+
         configured_estimate_multiplied = configured * mult_factor
 
-        print(pd_row * mult_factor)
         estimate_to_use_with_mult = get_and_convert(
             "New configured slippage value (current %f, default is estimate %f)"
             % (configured_estimate_multiplied, suggested_estimate_multiplied),
@@ -952,6 +955,21 @@ def calculate_mult_factor(pd_row) -> float:
     mult_factor = 10 ** (-mag)
 
     return mult_factor
+
+
+def print_data_with_multiplier(pd_row, mult_factor: float = 1.0):
+    multiplied_pd_row = copy(pd_row)
+    to_multiply = [
+        "bid_ask_trades",
+        "total_trades",
+        "bid_ask_sampled",
+        "estimate",
+        "Configured",
+    ]
+    for row_name in to_multiply:
+        multiplied_pd_row[row_name] = multiplied_pd_row[row_name] * mult_factor
+
+    print(multiplied_pd_row)
 
 
 def make_changes_to_slippage(data: dataBlob, changes_to_make: dict):
