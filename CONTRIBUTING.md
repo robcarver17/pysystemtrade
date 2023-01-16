@@ -62,7 +62,7 @@ In general, we try and follow the original texts: [PEP 8](https://peps.python.or
 
 ### Naming conventions
 
-- I prefer mixedCase to CamelCase.
+- For classes, I prefer mixedCase to CamelCase, but single word names should always be Camels.
 - Common methods are `get`, `calculate`, `read`, `write`.
 - There is a specific procedure for naming objects which form part of the data heirarchy, see [here](https://github.com/robcarver17/pysystemtrade/blob/master/docs/data.md#part-2-overview-of-futures-data-in-pysystemtrade). If this is not followed, then the [automated abstraction of data inside Data 'blob' instances](https://github.com/robcarver17/pysystemtrade/blob/master/docs/data.md#data-blobs) won't work.
 - Although arguably redundant, I am a fan of describing eg objects that inherit from dicts with a dict_ prefix. This gives hints as to how they behave without having to look at their code.
