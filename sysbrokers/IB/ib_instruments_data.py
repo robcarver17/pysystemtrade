@@ -8,7 +8,7 @@ from sysbrokers.IB.ib_instruments import (
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
 
-from syscore.fileutils import get_filename_for_package
+from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.genutils import value_or_npnan
 from syscore.objects import missing_instrument, missing_file
 
@@ -16,7 +16,9 @@ from sysobjects.instruments import futuresInstrument
 
 from syslogdiag.log_to_screen import logtoscreen
 
-IB_FUTURES_CONFIG_FILE = get_filename_for_package("sysbrokers.IB.ib_config_futures.csv")
+IB_FUTURES_CONFIG_FILE = resolve_path_and_filename_for_package(
+    "sysbrokers.IB.ib_config_futures.csv"
+)
 
 
 class IBconfig(pd.DataFrame):

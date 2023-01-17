@@ -1,11 +1,11 @@
 from pathlib import Path
-from syscore.fileutils import get_filename_for_package
+from syscore.fileutils import resolve_path_and_filename_for_package
 from docs.doc_generation.symbol_product_page_map import symbol_product_page_map
 
 # GET ABSOLUTE PATH TO THE DOCS MODULE
 file_in_module_where_md_file_is_to_be_stored = "docs.__init__.py"
-full_path = get_filename_for_package(
-    pathname=file_in_module_where_md_file_is_to_be_stored
+full_path = resolve_path_and_filename_for_package(
+    path_and_filename=file_in_module_where_md_file_is_to_be_stored
 )
 write_path = Path(full_path).parent
 

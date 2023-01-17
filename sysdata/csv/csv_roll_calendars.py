@@ -1,6 +1,9 @@
 from sysobjects.roll_calendars import rollCalendar
 from sysdata.futures.roll_calendars import rollCalendarData
-from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
+from syscore.fileutils import (
+    resolve_path_and_filename_for_package,
+    files_with_extension_in_pathname,
+)
 from syscore.pdutils import pd_readcsv
 from syscore.objects import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
@@ -67,4 +70,6 @@ class csvRollCalendarData(rollCalendarData):
         self.log.msg("Wrote calendar for %s to %s" % (instrument_code, str(filename)))
 
     def _filename_given_instrument_code(self, instrument_code: str):
-        return get_filename_for_package(self.datapath, "%s.csv" % (instrument_code))
+        return resolve_path_and_filename_for_package(
+            self.datapath, "%s.csv" % (instrument_code)
+        )

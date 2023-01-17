@@ -3,7 +3,7 @@ from copy import copy
 import datetime
 from sysdata.data_blob import dataBlob
 
-from syscore.fileutils import get_filename_for_package
+from syscore.fileutils import resolve_path_and_filename_for_package
 from sysproduction.data.control_process import dataControlProcess
 from sysproduction.data.control_process import diagControlProcess
 from syscore.dateutils import date_as_short_pattern_or_question_if_missing
@@ -123,7 +123,7 @@ filename = "private.index.html"
 
 
 def generate_html(process_observatory: processMonitor):
-    resolved_filename = get_filename_for_package(filename)
+    resolved_filename = resolve_path_and_filename_for_package(filename)
     trading_server_description = describe_trading_server_login_data()
     dbase_description = str(process_observatory.data.mongo_db)
     with open(resolved_filename, "w") as file:

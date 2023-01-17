@@ -1,6 +1,6 @@
 import pandas as pd
 from sysdata.production.optimal_positions import optimalPositionData
-from syscore.fileutils import get_filename_for_package
+from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.objects import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
 from sysobjects.production.tradeable_object import instrumentStrategy
@@ -37,7 +37,7 @@ class csvOptimalPositionData(optimalPositionData):
     def _filename_given_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ):
-        return get_filename_for_package(
+        return resolve_path_and_filename_for_package(
             self._datapath,
             "%s_%s.csv"
             % (instrument_strategy.strategy_name, instrument_strategy.instrument_code),

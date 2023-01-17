@@ -1,6 +1,6 @@
 import dataclasses
 
-from syscore.fileutils import get_filename_for_package
+from syscore.fileutils import resolve_path_and_filename_for_package
 from sysdata.futures.instruments import futuresInstrumentData
 from syscore.objects import arg_not_supplied
 from sysobjects.instruments import (
@@ -32,7 +32,7 @@ class csvFuturesInstrumentData(futuresInstrumentData):
 
         if datapath is arg_not_supplied:
             datapath = INSTRUMENT_CONFIG_PATH
-        config_file = get_filename_for_package(datapath, CONFIG_FILE_NAME)
+        config_file = resolve_path_and_filename_for_package(datapath, CONFIG_FILE_NAME)
         self._config_file = config_file
 
     @property

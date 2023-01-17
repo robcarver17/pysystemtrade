@@ -15,7 +15,7 @@ import pandas as pd
 
 from syscontrol.list_running_pids import list_of_all_running_pids
 from syscore.exceptions import missingData
-from syscore.fileutils import html_table
+from syscore.fileutils import write_list_of_lists_as_html_table_in_file
 from syscore.dateutils import (
     SECONDS_PER_DAY,
     date_as_short_pattern_or_question_if_missing,
@@ -354,7 +354,7 @@ class dictOfControlProcesses(dict):
         return lol
 
     def to_html_table_in_file(self, file):
-        html_table(file, self.list_of_printable_lists())
+        write_list_of_lists_as_html_table_in_file(file, self.list_of_printable_lists())
 
     def list_of_lists(self) -> list:
         lol = [value.as_printable_dict() for key, value in self.items()]

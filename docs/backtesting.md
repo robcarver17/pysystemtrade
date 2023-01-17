@@ -1436,17 +1436,17 @@ You can also save a config object into a yaml file:
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
 import yaml
-from syscore.fileutils import get_filename_for_package
+from syscore.fileutils import resolve_path_and_filename_for_package
 
-system=futures_system()
-my_config=system.config
+system = futures_system()
+my_config = system.config
 
 ## make some changes to my_config here
 
-filename=get_filename_for_package("private.this_system_name.config.yaml")
+filename = resolve_path_and_filename_for_package("private.this_system_name.config.yaml")
 
 with open(filename, 'w') as outfile:
-    outfile.write( yaml.dump(my_config, default_flow_style=True) )
+   outfile.write(yaml.dump(my_config, default_flow_style=True))
 ```
 
 This is useful if you've been playing with a backtest configuration, and want
@@ -3794,24 +3794,24 @@ There are a number of different ways one might want to specify path and file nam
 For convenience I have written some functions that translate betweeen these different formats, and the underlying OS representation.
 
 ```python
-from syscore.fileutils import get_resolved_pathname, get_filename_for_package
+from syscore.fileutils import get_resolved_pathname, resolve_path_and_filename_for_package
 
 # Resolve both filename and pathname jointly. Useful when writing the name of eg a configuration file
 ## Absolute format
 ### Windows (note use of double backslash in str) Make sure you include the initial backslash, or will be treated as relative format
-get_filename_for_package("\\home\\rob\\file.csv")
+resolve_path_and_filename_for_package("\\home\\rob\\file.csv")
 
 ### Unix. Make sure you include the initial forward slash,
-get_filename_for_package("/home/rob/file.csv")
+resolve_path_and_filename_for_package("/home/rob/file.csv")
 
 ## Relative format to find a file in the installed pysystemtrade
 ### Dot format. Notice there is no initial 'dot' and we don't need to include 'pysystemtrade'
-get_filename_for_package("syscore.tests.pricedata.csv")
+resolve_path_and_filename_for_package("syscore.tests.pricedata.csv")
 
 # Specify the path and filename separately
-get_filename_for_package("\\home\\rob","file.csv")
-get_filename_for_package("/home/rob","file.csv")
-get_filename_for_package("syscore.tests","pricedata.csv")
+resolve_path_and_filename_for_package("\\home\\rob", "file.csv")
+resolve_path_and_filename_for_package("/home/rob", "file.csv")
+resolve_path_and_filename_for_package("syscore.tests", "pricedata.csv")
 
 # Resolve just the pathname
 get_resolved_pathname("/home/rob")
@@ -3821,13 +3821,13 @@ get_resolved_pathname("syscore.tests")
 ## DON'T USE THESE:-
 ### It's possible to use Unix or Windows for relative filenames, but I prefer not to, so there is a clearer disctinction between absolute and relative.
 ### However this works:
-get_filename_for_package("syscore/tests/pricedata.csv")
+resolve_path_and_filename_for_package("syscore/tests/pricedata.csv")
 
 ### Similarly, I prefer not to use dot format for absolute filenames but it will work
-get_filename_for_package(".home.rob.file.csv")
+resolve_path_and_filename_for_package(".home.rob.file.csv")
 
 ### Finally, You can mix and match the above formats in a single string, but it won't make the code very readable!
-get_filename_for_package("\\home/rob.file.csv")
+resolve_path_and_filename_for_package("\\home/rob.file.csv")
 
 ```
 
