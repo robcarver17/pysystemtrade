@@ -12,7 +12,7 @@ from sysbrokers.IB.ib_positions import resolveBS_for_list
 from syscore.exceptions import missingContract, missingData
 
 from syscore.dateutils import (
-    replace_original_closing_time_with_notional_closing_time,
+    replace_midnight_with_notional_closing_time,
     strip_timezone_fromdatetime,
     Frequency,
     DAILY_PRICE_FREQ,
@@ -225,9 +225,7 @@ class ibPriceClient(ibContractsClient):
 
         timestamp = self._adjust_ib_time_to_local(timestamp_ib)
 
-        adjusted_ts = replace_original_closing_time_with_notional_closing_time(
-            timestamp
-        )
+        adjusted_ts = replace_midnight_with_notional_closing_time(timestamp)
 
         return adjusted_ts
 

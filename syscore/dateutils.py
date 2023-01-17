@@ -1,11 +1,14 @@
 """
 Various routines to do with dates
 """
-from enum import Enum
 
+import calendar
 import datetime
 import time
-import calendar
+
+from enum import Enum
+from typing import List, Union
+
 import pandas as pd
 import numpy as np
 
@@ -44,7 +47,7 @@ UNIXTIME_CONVERTER = 1e9
 UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
 
 
-def n_days_ago(n_days: int, end_date=arg_not_supplied):
+def n_days_ago(n_days: int, end_date=arg_not_supplied) -> datetime.datetime:
     """
     Calculates date N days ago
 
@@ -396,21 +399,25 @@ MIDNIGHT_TIME_AS_PD_OFFSET = pd.DateOffset(
 )
 
 
-def replace_original_closing_time_with_notional_closing_time(
-    timestamp: datetime.datetime,
+def replace_midnight_with_notional_closing_time(
+    timestamp: Union[datetime.datetime, datetime.date],
     notional_closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
-    original_closing_time: pd.DateOffset = MIDNIGHT_TIME_AS_PD_OFFSET,
 ) -> pd.Timestamp:
     """
     Replaces midnight with a notional closing time
 
-    >>> replace_original_closing_time_with_notional_closing_time(datetime.datetime(2023, 1, 15, 6, 32))
+    >>> replace_midnight_with_notional_closing_time(datetime.datetime(2023, 1, 15, 6, 32))
     Timestamp('2023-01-15 06:32:00')
-    >>> replace_original_closing_time_with_notional_closing_time(datetime.datetime(2023, 1, 15, 0, 0))
+    >>> replace_midnight_with_notional_closing_time(datetime.datetime(2023, 1, 15, 0, 0))
+    Timestamp('2023-01-15 23:00:00')
+    >>> replace_midnight_with_notional_closing_time(datetime.date(2023, 1, 15))
     Timestamp('2023-01-15 23:00:00')
     """
-
-    if check_time_matches_closing_time_to_second(timestamp, original_closing_time):
+    if type(timestamp) is datetime.date:
+        return timestamp + notional_closing_time
+    elif check_time_matches_closing_time_to_second(
+        timestamp, MIDNIGHT_TIME_AS_PD_OFFSET
+    ):
         return timestamp.date() + notional_closing_time
     else:
         return pd.to_datetime(timestamp)
@@ -452,7 +459,7 @@ MISSING_STRING_PATTERN = "     ???      "
 
 def date_as_short_pattern_or_question_if_missing(
     last_run_or_heartbeat: datetime.datetime,
-):
+) -> str:
     """
     Check time matches at one second resolution (good enough)
 
@@ -487,10 +494,38 @@ def from_marker_string_to_datetime(datetime_marker: str) -> datetime.datetime:
 
 def generate_equal_dates_within_year(
     year: int, number_of_dates: int, force_start_year_align: bool = False
-) -> list:
+) -> List[datetime.datetime]:
+
+    """
+    Generate equally spaced datetimes within a given year
+    >>> generate_equal_dates_within_year(2022,3)
+    [datetime.datetime(2022, 3, 2, 0, 0), datetime.datetime(2022, 7, 1, 0, 0), datetime.datetime(2022, 10, 30, 0, 0)]
+    >>> generate_equal_dates_within_year(2022,1)
+    [datetime.datetime(2022, 7, 2, 0, 0)]
+    >>> generate_equal_dates_within_year(2021,2, force_start_year_align=True)
+    [datetime.datetime(2021, 1, 1, 0, 0), datetime.datetime(2021, 7, 2, 0, 0)]
+    """
 
     days_between_periods = int(CALENDAR_DAYS_IN_YEAR / float(number_of_dates))
-    full_increment = datetime.timedelta(days=days_between_periods)
+    first_date = _calculate_first_date_for_equal_dates(
+        year=year,
+        days_between_periods=days_between_periods,
+        force_start_year_align=force_start_year_align,
+    )
+    delta_for_each_period = datetime.timedelta(days=days_between_periods)
+
+    all_dates = [
+        first_date + (delta_for_each_period * period_count)
+        for period_count in range(number_of_dates)
+    ]
+
+    return all_dates
+
+
+def _calculate_first_date_for_equal_dates(
+    year: int, days_between_periods: int, force_start_year_align: bool = False
+) -> datetime.datetime:
+
     start_of_year = datetime.datetime(year, 1, 1)
 
     if force_start_year_align:
@@ -501,12 +536,7 @@ def generate_equal_dates_within_year(
         half_period_increment = datetime.timedelta(days=half_period)
         first_date = start_of_year + half_period_increment
 
-    all_dates = [
-        first_date + full_increment * increment_size
-        for increment_size in range(number_of_dates)
-    ]
-
-    return all_dates
+    return first_date
 
 
 def get_approx_vol_scalar_for_period(

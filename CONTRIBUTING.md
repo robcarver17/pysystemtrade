@@ -56,8 +56,8 @@ In general, we try and follow the original texts: [PEP 8](https://peps.python.or
 
 ### General
 
-- Unless there is a single parameter, parameters should be explicit.
-- Type hints should be used, with Unions if required `from typing import Union`
+- Unless there is a single parameter, passed parameters should be explicit.
+- Type hints should be used, with Unions if required `from typing import Union` and Lists / Dicts ...`from typing import List, Dict`
 
 
 ### Naming conventions
