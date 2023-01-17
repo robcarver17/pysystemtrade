@@ -16,7 +16,10 @@ import pandas as pd
 from syscontrol.list_running_pids import list_of_all_running_pids
 from syscore.exceptions import missingData
 from syscore.fileutils import html_table
-from syscore.dateutils import SECONDS_PER_DAY, last_run_or_heartbeat_from_date_or_none
+from syscore.dateutils import (
+    SECONDS_PER_DAY,
+    date_as_short_pattern_or_question_if_missing,
+)
 
 from syscore.objects import (
     success,
@@ -312,8 +315,9 @@ class controlProcess(object):
         process_id_string = f"{''+str(self.process_id):<8}"
         return [
             "Started %s"
-            % last_run_or_heartbeat_from_date_or_none(self.last_start_time),
-            "ended %s" % last_run_or_heartbeat_from_date_or_none(self.last_end_time),
+            % date_as_short_pattern_or_question_if_missing(self.last_start_time),
+            "ended %s"
+            % date_as_short_pattern_or_question_if_missing(self.last_end_time),
             "Status %s" % status_string,
             "PID %s" % process_id_string,
             run_string,
@@ -322,8 +326,8 @@ class controlProcess(object):
     def as_printable_dict(self) -> dict:
         run_string = self.running_mode_str
         return dict(
-            start=last_run_or_heartbeat_from_date_or_none(self.last_start_time),
-            end=last_run_or_heartbeat_from_date_or_none(self.last_end_time),
+            start=date_as_short_pattern_or_question_if_missing(self.last_start_time),
+            end=date_as_short_pattern_or_question_if_missing(self.last_end_time),
             status=self.status,
             PID=self.process_id,
             running=run_string,

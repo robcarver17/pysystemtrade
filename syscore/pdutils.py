@@ -1,8 +1,6 @@
 """
 Utilities to help with pandas
 """
-import numpy
-import pandas
 import pandas as pd
 import datetime
 import random
@@ -13,7 +11,7 @@ from copy import copy
 from syscore.genutils import flatten_list
 from syscore.dateutils import (
     BUSINESS_DAYS_IN_YEAR,
-    time_matches,
+    check_time_matches_closing_time_to_second,
     CALENDAR_DAYS_IN_YEAR,
     SECONDS_IN_YEAR,
     NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
@@ -519,7 +517,9 @@ def set_pd_print_options():
 def closing_date_rows_in_pd_object(pd_object):
     return pd_object[
         [
-            time_matches(index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET)
+            check_time_matches_closing_time_to_second(
+                index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET
+            )
             for index_entry in pd_object.index
         ]
     ]
@@ -528,7 +528,9 @@ def closing_date_rows_in_pd_object(pd_object):
 def intraday_date_rows_in_pd_object(pd_object):
     return pd_object[
         [
-            not time_matches(index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET)
+            not check_time_matches_closing_time_to_second(
+                index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET
+            )
             for index_entry in pd_object.index
         ]
     ]

@@ -6,7 +6,7 @@ from sysdata.data_blob import dataBlob
 from syscore.fileutils import get_filename_for_package
 from sysproduction.data.control_process import dataControlProcess
 from sysproduction.data.control_process import diagControlProcess
-from syscore.dateutils import last_run_or_heartbeat_from_date_or_none
+from syscore.dateutils import date_as_short_pattern_or_question_if_missing
 from syscontrol.list_running_pids import describe_trading_server_login_data
 
 
@@ -83,7 +83,7 @@ class processMonitor(dict):
             process_name,
             current_status,
             new_status,
-            last_run_or_heartbeat_from_date_or_none(datetime.datetime.now()),
+            date_as_short_pattern_or_question_if_missing(datetime.datetime.now()),
         )
         self.log_messages.append_msg(msg)
 

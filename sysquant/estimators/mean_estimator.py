@@ -3,7 +3,8 @@ import numpy as np
 
 from syscore.pdutils import (
     how_many_times_a_year_is_pd_frequency,
-    get_max_index_before_datetime, apply_with_min_periods,
+    get_max_index_before_datetime,
+    apply_with_min_periods,
 )
 
 from sysquant.fitting_dates import fitDates

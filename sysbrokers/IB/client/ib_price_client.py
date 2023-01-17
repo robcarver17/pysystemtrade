@@ -12,7 +12,7 @@ from sysbrokers.IB.ib_positions import resolveBS_for_list
 from syscore.exceptions import missingContract, missingData
 
 from syscore.dateutils import (
-    adjust_timestamp_to_include_notional_close_and_time_offset,
+    replace_original_closing_time_with_notional_closing_time,
     strip_timezone_fromdatetime,
     Frequency,
     DAILY_PRICE_FREQ,
@@ -220,13 +220,12 @@ class ibPriceClient(ibContractsClient):
         and adjusts yyyymm to closing vector
 
         :param timestamp_str: datetime.datetime
-        :return: pd.datetime
+        :return: datetime.datetime
         """
 
-        local_timestamp_ib = self._adjust_ib_time_to_local(timestamp_ib)
-        timestamp = pd.to_datetime(local_timestamp_ib)
+        timestamp = self._adjust_ib_time_to_local(timestamp_ib)
 
-        adjusted_ts = adjust_timestamp_to_include_notional_close_and_time_offset(
+        adjusted_ts = replace_original_closing_time_with_notional_closing_time(
             timestamp
         )
 

@@ -2,7 +2,7 @@ from syscore.genutils import np_convert
 import datetime
 from copy import copy
 
-from syscore.dateutils import month_from_contract_letter, MONTH_LIST
+from syscore.dateutils import month_from_contract_letter, FUTURES_MONTH_LIST
 from sysobjects.contract_dates_and_expiries import contractDate, contract_given_tuple
 
 forward = 1
@@ -179,7 +179,7 @@ class rollCycle(object):
             return False
 
 
-GLOBAL_ROLLCYCLE = rollCycle("".join(MONTH_LIST))
+GLOBAL_ROLLCYCLE = rollCycle("".join(FUTURES_MONTH_LIST))
 
 
 class rollParameters(object):
