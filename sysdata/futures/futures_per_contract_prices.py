@@ -1,5 +1,5 @@
 from syscore.exceptions import missingData
-from syscore.objects import missing_data, failure
+from syscore.objects import failure
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ, MIXED_FREQ
 from syscore.merge_data import spike_in_data
 
@@ -274,17 +274,14 @@ class futuresContractPriceData(baseData):
         if self.has_price_data_for_contract_at_frequency(
             contract_object, frequency=frequency
         ):
-            try:
-                return self._get_prices_at_frequency_for_contract_object_no_checking(
-                    contract_object, frequency=frequency
-                )
-            except missingData:
-                return missing_data
+            return self._get_prices_at_frequency_for_contract_object_no_checking(
+                contract_object, frequency=frequency
+            )
         else:
             if return_empty:
                 return futuresContractPrices.create_empty()
             else:
-                return missing_data
+                raise missingData
 
     def write_merged_prices_for_contract_object(
         self,
