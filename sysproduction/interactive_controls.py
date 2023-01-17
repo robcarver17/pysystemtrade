@@ -9,11 +9,10 @@ from syscore.interactive import (
     print_menu_and_get_response,
     true_if_answer_is_yes,
 )
-from syscore.algos import magnitude
+from syscore.text import calculate_multiplication_factor_for_nice_repr_of_value
 from syscore.pdutils import set_pd_print_options
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR, DAILY_PRICE_FREQ
 from syscore.genutils import round_significant_figures
-from syscore.objects import missing_data
 
 from sysinit.futures.repocsv_instrument_config import (
     copy_instrument_config_from_csv_to_mongo,
@@ -49,7 +48,6 @@ from sysproduction.data.prices import (
     get_list_of_instruments,
     diagPrices,
     updatePrices,
-    spreadsForInstrumentData,
 )
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.instruments import dataInstruments
@@ -887,7 +885,7 @@ def get_list_of_changes_to_make_to_slippage(
             ## do nothing
             continue
 
-        mult_factor = calculate_mult_factor(pd_row)
+        mult_factor = calculate_mult_factor_from_cost_row(pd_row)
 
         if mult_factor > 1:
             print("ALL VALUES MULTIPLIED BY %f INCLUDING INPUTS!!!!" % mult_factor)
@@ -940,19 +938,12 @@ def get_filter_size_for_slippage() -> float:
     return filter
 
 
-def calculate_mult_factor(pd_row) -> float:
+def calculate_mult_factor_from_cost_row(pd_row) -> float:
     configured = pd_row["Configured"]
     suggested_estimate = pd_row["estimate"]
 
-    smallest = min(configured, suggested_estimate)
-    if smallest > 0.01:
-        return 1
-
-    if smallest == 0:
-        return 1000000
-
-    mag = magnitude(min(suggested_estimate, configured))
-    mult_factor = 10 ** (-mag)
+    smallest_value = min(configured, suggested_estimate)
+    mult_factor = calculate_multiplication_factor_for_nice_repr_of_value(smallest_value)
 
     return mult_factor
 

@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from syscore.algos import get_near_psd
 from syscore.objects import arg_not_supplied
 
 from syslogdiag.logger import logger, nullLog

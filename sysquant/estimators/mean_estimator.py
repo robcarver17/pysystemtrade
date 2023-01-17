@@ -1,10 +1,9 @@
 import pandas as pd
 import numpy as np
 
-from syscore.algos import apply_with_min_periods
 from syscore.pdutils import (
     how_many_times_a_year_is_pd_frequency,
-    get_max_index_before_datetime,
+    get_max_index_before_datetime, apply_with_min_periods,
 )
 
 from sysquant.fitting_dates import fitDates

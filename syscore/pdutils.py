@@ -708,3 +708,25 @@ def sort_df_ignoring_missing(df, column):
     valid = df[df[column] != missing_data]
     valid_sorted = valid.sort_values(column)
     return pd.concat([valid_sorted, missing])
+
+
+def apply_with_min_periods(xcol, my_func=np.nanmean, min_periods=0):
+    """
+    :param x: data
+    :type x: Tx1 pd.DataFrame or series
+
+    :param func: Function to apply, if min periods met
+    :type func: function
+
+    :param min_periods: The minimum number of observations
+    :type min_periods: int
+
+    :returns: output from function
+    """
+    not_nan = sum(~np.isnan(xcol))
+
+    if not_nan >= min_periods:
+
+        return my_func(xcol)
+    else:
+        return np.nan

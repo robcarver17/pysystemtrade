@@ -1,6 +1,6 @@
 import pandas as pd
 
-from syscore.algos import apply_buffer
+from systems.accounts.account_buffering_subsystem import apply_buffer
 from syscore.objects import missing_data
 from syscore.pdutils import turnover
 from systems.system_cache import diagnostic

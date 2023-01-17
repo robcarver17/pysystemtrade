@@ -3693,7 +3693,7 @@ returns the two sided t-test statistic and p-value for a null hypothesis of a
 zero mean.
 
 Sometimes you might want to compare the performance of two systems, instruments
-or trading rules. The function `from syscore.accounting import account_test`
+or trading rules. The function `from syscore.accounting import account_t_test`
 can be used for this purpose. The two parameters can be anything that looks
 like an account curve, no matter where you got it from.
 

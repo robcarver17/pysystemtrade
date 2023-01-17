@@ -481,7 +481,7 @@ Moved most examples except core to separate git [here](https://github.com/robcar
 
 * Added methods to accountCurveGroup.get_stats(): .mean(), .std(), .tstat(), .pvalue()
 * Added method to accountCurveGroup stack; stack object can also produce bootstrap
-* Added account_test(ac1, ac2) to produce a t-test statistic for any two account curve like objects.
+* Added account_t_test(ac1, ac2) to produce a t-test statistic for any two account curve like objects.
 
 ## Version 0.6.0
 

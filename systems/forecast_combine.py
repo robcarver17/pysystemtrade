@@ -2,7 +2,7 @@ from copy import copy
 
 import pandas as pd
 
-from syscore.algos import map_forecast_value
+from systems.forecast_mapping import map_forecast_value
 from syscore.genutils import str2Bool
 from syscore.objects import resolve_function, missing_data
 from syscore.pdutils import (

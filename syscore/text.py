@@ -1,3 +1,4 @@
+import math as maths
 import re
 from copy import copy
 
@@ -165,3 +166,40 @@ def measure_width(text: str) -> int:
         first_cr = len(text)
 
     return first_cr
+
+
+def calculate_multiplication_factor_for_nice_repr_of_value(some_value: float) -> float:
+    """
+    Work out a multiplication factor to avoid having to print a mantissa repr
+    >>> calculate_multiplication_factor_for_nice_repr_of_value(3.2)
+    1.0
+    >>> calculate_multiplication_factor_for_nice_repr_of_value(0.032)
+    1.0
+    >>> calculate_multiplication_factor_for_nice_repr_of_value(0.0032)
+    100.0
+    >>> calculate_multiplication_factor_for_nice_repr_of_value(0.00032)
+    1000.0
+    >>> calculate_multiplication_factor_for_nice_repr_of_value(0.000000000000000001)
+    1e+18
+    """
+    BIG_ENOUGH = 0.01
+    ARBITRARY_LARGE_MULTIPLIER = 1000000
+    NO_MULTIPLIER_REQUIRED = 1.0
+
+    if some_value > BIG_ENOUGH:
+        return NO_MULTIPLIER_REQUIRED
+
+    if some_value == 0:
+        return ARBITRARY_LARGE_MULTIPLIER
+
+    mag = magnitude(some_value)
+    mult_factor = 10.0 ** (-mag)
+
+    return mult_factor
+
+
+def magnitude(x):
+    """
+    Magnitude of a positive numeber. Used for calculating significant figures
+    """
+    return int(maths.log10(x))
