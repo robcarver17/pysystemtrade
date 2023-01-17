@@ -7,7 +7,7 @@ import datetime
 import time
 
 from enum import Enum
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import pandas as pd
 import numpy as np
@@ -16,7 +16,9 @@ from syscore.exceptions import missingData
 from syscore.objects import missing_data, arg_not_supplied
 
 """
-First some constants
+
+ GENERAL CONSTANTS
+
 """
 
 CALENDAR_DAYS_IN_YEAR = 365.25
@@ -45,6 +47,54 @@ MINUTES_PER_YEAR = CALENDAR_DAYS_IN_YEAR * HOURS_PER_DAY * MINUTES_PER_HOUR
 UNIXTIME_CONVERTER = 1e9
 
 UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
+
+"""
+ 
+ RELATIVE TIME REFERENCING
+
+"""
+
+
+def calculate_start_and_end_dates(
+    calendar_days_back=arg_not_supplied,
+    end_date: datetime.datetime = arg_not_supplied,
+    start_date: datetime.datetime = arg_not_supplied,
+    start_period: str = arg_not_supplied,
+    end_period: str = arg_not_supplied,
+) -> tuple:
+
+    ## DO THE END DATE FIRST
+    ## First preference is to use period
+    if end_period is arg_not_supplied:
+        ## OK preference is to use passed date, if there was one
+        if end_date is arg_not_supplied:
+            end_date = datetime.datetime.now()
+        else:
+            # Use passed end date
+            pass
+    else:
+        end_date = get_date_from_period_and_end_date(end_period)
+
+    ## DO THE START DATE NEXT
+    ## First preference is to use period, then passed date, then calendar days
+    if start_period is arg_not_supplied:
+        if start_date is arg_not_supplied:
+            ## no period or calendar days, use passed date
+            if calendar_days_back is arg_not_supplied:
+                raise Exception(
+                    "Have to specify one of calendar days back, start period or start date!"
+                )
+            else:
+                ## Calendar days
+                start_date = n_days_ago(calendar_days_back, end_date)
+        else:
+            ## Use passed start date
+            pass
+    else:
+        ## have a period
+        start_date = get_date_from_period_and_end_date(start_period, end_date)
+
+    return start_date, end_date
 
 
 def n_days_ago(n_days: int, end_date=arg_not_supplied) -> datetime.datetime:
@@ -190,6 +240,56 @@ def calculate_starting_day_of_current_quarter(
     return datetime.datetime(year=end_date.year, month=start_month_of_quarter, day=1)
 
 
+MIDNIGHT = datetime.time(0, 0)
+ONE_SECOND_BEFORE_MIDNIGHT = datetime.time(23, 59, 59)
+
+
+def preceeding_midnight_of_datetime(
+    some_datetime: datetime.datetime,
+) -> datetime.datetime:
+    """
+    >>> preceeding_midnight_of_datetime(datetime.datetime(2022,1,1,15,12))
+    datetime.datetime(2022, 1, 1, 0, 0)
+    """
+    return datetime.datetime.combine(some_datetime.date(), MIDNIGHT)
+
+
+def preceeding_midnight_of_date(some_date: datetime.date) -> datetime.datetime:
+    """
+    >>> preceeding_midnight_of_date(datetime.date(2022,1,1))
+    datetime.datetime(2022, 1, 1, 0, 0)
+    """
+    return datetime.datetime.combine(some_date, MIDNIGHT)
+
+
+def following_one_second_before_midnight_of_datetime(
+    some_datetime: datetime.datetime,
+) -> datetime.datetime:
+    """
+    >>> following_one_second_before_midnight_of_datetime(datetime.datetime(2022,1,1,15,12))
+    datetime.datetime(2022, 1, 1, 23, 59, 59)
+    """
+    return datetime.datetime.combine(some_datetime.date(), ONE_SECOND_BEFORE_MIDNIGHT)
+
+
+def following_one_second_before_midnight_of_date(
+    some_date: datetime.date,
+) -> datetime.datetime:
+    """
+    >>> following_one_second_before_midnight_of_date(datetime.datetime(2022,1,1,15,12))
+    datetime.datetime(2022, 1, 1, 23, 59, 59)
+    """
+    return following_one_second_before_midnight_of_datetime(
+        preceeding_midnight_of_date(some_date)
+    )
+
+
+"""
+
+    FREQUENCIES
+
+"""
+
 Frequency = Enum(
     "Frequency",
     "Unknown Year Month Week BDay Day Hour Minutes_15 Minutes_5 Minute Seconds_10 Second Mixed",
@@ -286,7 +386,11 @@ def from_config_frequency_to_frequency(freq_as_str: str) -> Frequency:
     return frequency
 
 
-#### FUTURES MONTHS
+"""
+
+    FUTURES MONTHS
+
+"""
 
 FUTURES_MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
 
@@ -340,11 +444,15 @@ def contract_month_from_number(month_number: int) -> str:
 
 
 """
+
+     DATE / STRING / DECIMAL CONVERSIONS
+
+"""
+
+"""
 Convert date into a decimal, and back again
 """
 LONG_DATE_FORMAT = "%Y%m%d%H%M%S.%f"
-LONG_TIME_FORMAT = "%H%M%S.%f"
-LONG_JUST_DATE_FORMAT = "%Y%m%d"
 CONVERSION_FACTOR = 10000
 
 
@@ -385,7 +493,68 @@ def long_to_datetime(int_to_convert: int) -> datetime.datetime:
     return as_datetime
 
 
-## closing times
+### SHORT DATES
+
+SHORT_DATE_PATTERN = "%m/%d %H:%M:%S"
+MISSING_STRING_PATTERN = "     ???      "
+
+
+def date_as_short_pattern_or_question_if_missing(
+    last_run_or_heartbeat: datetime.datetime,
+) -> str:
+    """
+    Check time matches at one second resolution (good enough)
+
+    >>> date_as_short_pattern_or_question_if_missing(datetime.datetime(2023, 1, 15, 6, 32))
+    '01/15 06:32:00'
+    >>> date_as_short_pattern_or_question_if_missing(106)
+    '     ???      '
+    """
+    if isinstance(last_run_or_heartbeat, datetime.datetime):
+        last_run_or_heartbeat = last_run_or_heartbeat.strftime(SHORT_DATE_PATTERN)
+    else:
+        last_run_or_heartbeat = MISSING_STRING_PATTERN
+
+    return last_run_or_heartbeat
+
+
+## MARKER DATES
+
+MARKER_DATE_FORMAT = "%Y%m%d_%H%M%S"
+
+
+def create_datetime_marker_string(datetime_to_use: datetime = arg_not_supplied) -> str:
+    if datetime_to_use is arg_not_supplied:
+        datetime_to_use = datetime.datetime.now()
+
+    datetime_marker = datetime_to_use.strftime(MARKER_DATE_FORMAT)
+
+    return datetime_marker
+
+
+def from_marker_string_to_datetime(datetime_marker: str) -> datetime.datetime:
+    return datetime.datetime.strptime(datetime_marker, MARKER_DATE_FORMAT)
+
+
+## TIMES
+
+
+def time_to_string(time: datetime.time):
+    return time.strftime("%H:%M")
+
+
+def time_from_string(time_string: str):
+    split_string = time_string.split(":")
+
+    return datetime.time(int(split_string[0]), int(split_string[1]))
+
+
+"""
+
+ CLOSING TIMES
+
+"""
+
 NOTIONAL_CLOSING_TIME_AS_PD_OFFSET = pd.DateOffset(
     hours=23,
     minutes=0,
@@ -453,43 +622,11 @@ def strip_timezone_fromdatetime(timestamp_with_tz_info) -> datetime.datetime:
     return new_timestamp
 
 
-SHORT_DATE_PATTERN = "%m/%d %H:%M:%S"
-MISSING_STRING_PATTERN = "     ???      "
+"""
+    
+    EQUAL DATES WITHIN A YEAR
 
-
-def date_as_short_pattern_or_question_if_missing(
-    last_run_or_heartbeat: datetime.datetime,
-) -> str:
-    """
-    Check time matches at one second resolution (good enough)
-
-    >>> date_as_short_pattern_or_question_if_missing(datetime.datetime(2023, 1, 15, 6, 32))
-    '01/15 06:32:00'
-    >>> date_as_short_pattern_or_question_if_missing(106)
-    '     ???      '
-    """
-    if isinstance(last_run_or_heartbeat, datetime.datetime):
-        last_run_or_heartbeat = last_run_or_heartbeat.strftime(SHORT_DATE_PATTERN)
-    else:
-        last_run_or_heartbeat = MISSING_STRING_PATTERN
-
-    return last_run_or_heartbeat
-
-
-date_formatting = "%Y%m%d_%H%M%S"
-
-
-def create_datetime_marker_string(datetime_to_use: datetime = arg_not_supplied) -> str:
-    if datetime_to_use is arg_not_supplied:
-        datetime_to_use = datetime.datetime.now()
-
-    datetime_marker = datetime_to_use.strftime(date_formatting)
-
-    return datetime_marker
-
-
-def from_marker_string_to_datetime(datetime_marker: str) -> datetime.datetime:
-    return datetime.datetime.strptime(datetime_marker, date_formatting)
+"""
 
 
 def generate_equal_dates_within_year(
@@ -539,7 +676,14 @@ def _calculate_first_date_for_equal_dates(
     return first_date
 
 
-def get_approx_vol_scalar_for_period(
+"""
+
+    VOL SCALING
+
+"""
+
+
+def get_approx_vol_scalar_versus_daily_vol_for_period(
     start_date: datetime.datetime, end_date=datetime.datetime
 ) -> float:
     time_between = end_date - start_date
@@ -547,76 +691,3 @@ def get_approx_vol_scalar_for_period(
     days_between = seconds_between / SECONDS_PER_DAY
 
     return days_between**0.5
-
-
-def calculate_start_and_end_dates(
-    calendar_days_back=arg_not_supplied,
-    end_date: datetime.datetime = arg_not_supplied,
-    start_date: datetime.datetime = arg_not_supplied,
-    start_period: str = arg_not_supplied,
-    end_period: str = arg_not_supplied,
-) -> tuple:
-
-    ## DO THE END DATE FIRST
-    ## First preference is to use period
-    if end_period is arg_not_supplied:
-        ## OK preference is to use passed date, if there was one
-        if end_date is arg_not_supplied:
-            end_date = datetime.datetime.now()
-        else:
-            # Use passed end date
-            pass
-    else:
-        end_date = get_date_from_period_and_end_date(end_period)
-
-    ## DO THE START DATE NEXT
-    ## First preference is to use period, then passed date, then calendar days
-    if start_period is arg_not_supplied:
-        if start_date is arg_not_supplied:
-            ## no period or calendar days, use passed date
-            if calendar_days_back is arg_not_supplied:
-                raise Exception(
-                    "Have to specify one of calendar days back, start period or start date!"
-                )
-            else:
-                ## Calendar days
-                start_date = n_days_ago(calendar_days_back, end_date)
-        else:
-            ## Use passed start date
-            pass
-    else:
-        ## have a period
-        start_date = get_date_from_period_and_end_date(start_period, end_date)
-
-    return start_date, end_date
-
-
-def time_to_string(time: datetime.time):
-    return time.strftime("%H:%M")
-
-
-def time_from_string(time_string: str):
-    split_string = time_string.split(":")
-
-    return datetime.time(int(split_string[0]), int(split_string[1]))
-
-
-MIDNIGHT = datetime.time(0, 0)
-
-
-def preceeding_midnight_of_datetime(some_datetime: datetime.datetime):
-    return datetime.datetime.combine(some_datetime.date(), datetime.time(0, 0))
-
-
-def preceeding_midnight_of_date(some_date: datetime.date):
-    return datetime.datetime.combine(some_date, datetime.time(0, 0))
-
-
-def following_one_second_before_midnight_of_datetime(some_datetime: datetime.datetime):
-    return datetime.datetime.combine(some_datetime.date(), datetime.time(23, 59, 59))
-
-
-def following_midnight_of_date(some_date: datetime.date):
-    return following_one_second_before_midnight_of_datetime(
-        preceeding_midnight_of_date(some_date)
-    )

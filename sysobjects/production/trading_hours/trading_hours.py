@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import List
 
 from syscore.dateutils import (
-    following_midnight_of_date,
+    following_one_second_before_midnight_of_date,
     SECONDS_PER_HOUR,
     following_one_second_before_midnight_of_datetime,
     preceeding_midnight_of_datetime,
@@ -19,7 +19,7 @@ class tradingHours:
 
     @classmethod
     def create_zero_length_day(cls, some_date: datetime.date):
-        midnight_on_date = following_midnight_of_date(some_date)
+        midnight_on_date = following_one_second_before_midnight_of_date(some_date)
         return cls(midnight_on_date, midnight_on_date)
 
     def okay_to_trade_now(self) -> bool:
