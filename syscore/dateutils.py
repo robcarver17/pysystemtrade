@@ -56,26 +56,69 @@ UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
 
 
 def calculate_start_and_end_dates(
-    calendar_days_back=arg_not_supplied,
+    calendar_days_back: int = arg_not_supplied,
     end_date: datetime.datetime = arg_not_supplied,
     start_date: datetime.datetime = arg_not_supplied,
     start_period: str = arg_not_supplied,
     end_period: str = arg_not_supplied,
-) -> tuple:
+) -> Tuple[datetime.datetime, datetime.datetime]:
 
-    ## DO THE END DATE FIRST
+    resolved_end_date = _resolve_end_date_given_period_and_explicit_end_date(
+        end_date=end_date, end_period=end_period
+    )
+    resolved_start_date = _resolve_start_date_given_end_date_calendar_days_and_period(
+        resolved_end_date=resolved_end_date,
+        start_date=start_date,
+        start_period=start_period,
+        calendar_days_back=calendar_days_back,
+    )
+
+    return resolved_start_date, resolved_end_date
+
+
+def _resolve_end_date_given_period_and_explicit_end_date(
+    end_date: datetime.datetime = arg_not_supplied,
+    end_period: str = arg_not_supplied,
+) -> datetime.datetime:
+    """
+    >>> _resolve_end_date_given_period_and_explicit_end_date(end_date=datetime.datetime(2022,1,1))
+    datetime.datetime(2022, 1, 1, 0, 0)
+    >>> _resolve_end_date_given_period_and_explicit_end_date(end_period="1M", end_date=datetime.datetime(2022,4,1))
+    datetime.datetime(2022, 3, 1, 0, 0)
+
+    """
+    ## Preference: Use period, use explicit end date, use now()
     ## First preference is to use period
     if end_period is arg_not_supplied:
         ## OK preference is to use passed date, if there was one
         if end_date is arg_not_supplied:
-            end_date = datetime.datetime.now()
+            ## Nothing passed use now
+            return datetime.datetime.now()
         else:
-            # Use passed end date
-            pass
+            # Use explicit passed end date
+            return end_date
     else:
-        end_date = get_date_from_period_and_end_date(end_period)
+        # use period string (date will probably not have an effect except when debugging)
+        return get_date_from_period_and_end_date(end_period, end_date=end_date)
 
-    ## DO THE START DATE NEXT
+
+def _resolve_start_date_given_end_date_calendar_days_and_period(
+    resolved_end_date: datetime.datetime,
+    calendar_days_back: int = arg_not_supplied,
+    start_date: datetime.datetime = arg_not_supplied,
+    start_period: str = arg_not_supplied,
+) -> datetime.datetime:
+    """
+    >>> _resolve_start_date_given_end_date_calendar_days_and_period(resolved_end_date = datetime.datetime(2023,1,1), calendar_days_back = 5, start_date = datetime.datetime(2022,1,1), start_period="2Y")
+    datetime.datetime(2021, 1, 1, 0, 0)
+    >>> _resolve_start_date_given_end_date_calendar_days_and_period(resolved_end_date = datetime.datetime(2023,1,1), calendar_days_back = 5, start_date = datetime.datetime(2022,1,1))
+    datetime.datetime(2022, 1, 1, 0, 0)
+    >>> _resolve_start_date_given_end_date_calendar_days_and_period(resolved_end_date = datetime.datetime(2023,1,7), calendar_days_back = 5)
+    datetime.datetime(2023, 1, 2, 0, 0)
+    >>> _resolve_start_date_given_end_date_calendar_days_and_period(resolved_end_date = datetime.datetime(2023,1,7))
+    Exception: Have to specify one of calendar days back, start period or start date!
+
+    """
     ## First preference is to use period, then passed date, then calendar days
     if start_period is arg_not_supplied:
         if start_date is arg_not_supplied:
@@ -85,16 +128,14 @@ def calculate_start_and_end_dates(
                     "Have to specify one of calendar days back, start period or start date!"
                 )
             else:
-                ## Calendar days
-                start_date = n_days_ago(calendar_days_back, end_date)
+                ## Have calendar days
+                return n_days_ago(calendar_days_back, resolved_end_date)
         else:
             ## Use passed start date
-            pass
+            return start_date
     else:
-        ## have a period
-        start_date = get_date_from_period_and_end_date(start_period, end_date)
-
-    return start_date, end_date
+        ## have a start period, use that
+        return get_date_from_period_and_end_date(start_period, resolved_end_date)
 
 
 def n_days_ago(n_days: int, end_date=arg_not_supplied) -> datetime.datetime:
