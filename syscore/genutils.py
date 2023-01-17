@@ -512,12 +512,6 @@ def np_convert(val):
     return val.item() if isinstance(val, np.generic) else val
 
 
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
-
-
 def intersection_intervals(intervals):
     start, end = intervals.pop()
     while intervals:
@@ -528,3 +522,9 @@ def intersection_intervals(intervals):
     if end < start:
         return []
     return [start, end]
+
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
