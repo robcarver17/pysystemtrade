@@ -40,6 +40,7 @@ def get_input_from_user_and_convert_to_type(
     allow_default: bool = True,
     default_value=0,
     default_str: str = None,
+    check_type: bool = True,
 ):
     input_str = prompt + " "
     if allow_default:
@@ -53,13 +54,18 @@ def get_input_from_user_and_convert_to_type(
         type_expected=type_expected,
         allow_default=allow_default,
         default_value=default_value,
+        check_type=check_type,
     )
 
     return result
 
 
 def _get_input_and_check_type(
-    input_str: str, type_expected=int, allow_default: bool = True, default_value=0
+    input_str: str,
+    type_expected=int,
+    allow_default: bool = True,
+    default_value=0,
+    check_type: bool = True,
 ):
     invalid = True
     while invalid:
@@ -67,6 +73,10 @@ def _get_input_and_check_type(
 
         if user_input == "" and allow_default:
             return default_value
+        if not check_type:
+            ## not typecasting
+            return user_input
+
         try:
             result = _convert_type_or_throw_expection(
                 user_input=user_input, type_expected=type_expected
@@ -104,8 +114,8 @@ def input_field_names_for_named_tuple(named_tuple_instance):
         original_tuple_entry_class = original_tuple_entry.__class__
         input_result = get_input_from_user_and_convert_to_type(
             key_name,
-            default_value=original_tuple_entry,
             type_expected=original_tuple_entry_class,
+            default_value=original_tuple_entry,
         )
 
         original_tuple_as_dict[key_name] = input_result

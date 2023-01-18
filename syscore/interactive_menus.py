@@ -199,9 +199,9 @@ def print_menu_and_get_desired_option_index(
     while invalid_response:
         ans = get_input_from_user_and_convert_to_type(
             "Your choice?",
-            default_value=default_option_index,
             type_expected=int,
             allow_default=allow_default,
+            default_value=default_option_index,
             default_str=default_str,
         )
         if ans not in menu_options_list:

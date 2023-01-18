@@ -1,5 +1,5 @@
 import inspect
-from typing import Union
+from syscore.interactive_input import get_input_from_user_and_convert_to_type
 
 NO_DEFAULT = object()
 NO_TYPE_PROVIDED = object()
@@ -38,8 +38,7 @@ def interactively_input_arguments_for_function(func, full_funcname):
 def input_and_type_cast_argument(argname: str, parameter_signature: inspect.Parameter):
     """
     Interactively get a value for a parameter, considering any type casting required or defaults
-    :param argname: str
-    :param parameter_signature: results of doing inspect.signature(func)['parameter name']
+
     :return: argument value
     """
 
@@ -48,55 +47,31 @@ def input_and_type_cast_argument(argname: str, parameter_signature: inspect.Para
 
     if default_provided:
         argdefault = parameter_default(parameter_signature)
+        default_str = " (default: '%s')" % str(argdefault)
+    else:
+        default_str = ""
 
     if needs_casting:
         type_to_cast_to = parameter_type(parameter_signature)
+        type_string = " (type: %s)" % str(type_to_cast_to)
+    else:
+        type_to_cast_to = NO_TYPE_PROVIDED
+        type_string = ""
 
-    # Should never return this unless something gone horribly wrong
-    arg_value = NO_VALID_ARGUMENT_PASSED
+    prompt = "Argument %s %s" % (argname, type_string)
 
-    while arg_value is NO_VALID_ARGUMENT_PASSED:
-        if default_provided:
-            default_string = " (default: '%s')" % str(argdefault)
-        else:
-            default_string = ""
+    if needs_casting:
+        check_type = True
+    else:
+        check_type = False
 
-        if needs_casting:
-            type_string = " (type: %s)" % str(type_to_cast_to)
-        else:
-            type_string = ""
-
-        arg_value = input("Argument %s %s %s?" % (argname, default_string, type_string))
-
-        if arg_value == "":  # just pressed carriage return...
-            if default_provided:
-                arg_value = argdefault
-                break
-            else:
-                print(
-                    "No default provided for %s - need a value. Please type something!"
-                    % argname
-                )
-                arg_value = NO_VALID_ARGUMENT_PASSED
-        else:
-            # A value has been typed - check if needs type casting
-
-            if needs_casting:
-                try:
-                    # Cast the type
-                    # this might not work
-                    type_func = eval("%s" % type_to_cast_to)
-                    arg_value = type_func(arg_value)
-                    break
-                except BaseException:
-                    print(
-                        "\nCouldn't cast value %s to type %s\n"
-                        % (arg_value, type_to_cast_to)
-                    )
-                    arg_value = NO_VALID_ARGUMENT_PASSED
-            else:
-                # no type casting required
-                pass
+    arg_value = get_input_from_user_and_convert_to_type(
+        prompt=prompt,
+        type_expected=type_to_cast_to,
+        allow_default=default_provided,
+        default_str=default_str,
+        check_type=check_type,
+    )
 
     return arg_value
 
@@ -107,28 +82,27 @@ def has_type(parameter_signature) -> bool:
 
 def parameter_type(
     parameter_signature: inspect.Parameter,
-) -> Union[str, object]:
+):
 
     ptype = parameter_signature.annotation
     if ptype is EMPTY_VALUE:
         # get from default
         if has_default(parameter_signature):
-            name_of_type = get_name_of_default_type(parameter_signature)
+            return_type = get_default_type(parameter_signature)
         else:
             # give up
             return NO_TYPE_PROVIDED
     else:
-        name_of_type = ptype.__name__
+        return_type = ptype
 
-    return name_of_type
+    return return_type
 
 
-def get_name_of_default_type(parameter_signature: inspect.Parameter) -> str:
+def get_default_type(parameter_signature: inspect.Parameter) -> str:
     default_value = parameter_default(parameter_signature)
     default_ptype = type(default_value)
-    name_of_type = default_ptype.__name__
 
-    return name_of_type
+    return default_ptype
 
 
 def has_default(parameter_signature: inspect.Parameter) -> bool:

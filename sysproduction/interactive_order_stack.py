@@ -166,9 +166,9 @@ def spawn_contracts_from_instrument_orders(data):
     view_instrument_stack(data)
     order_id = get_input_from_user_and_convert_to_type(
         "Which instrument order ID",
+        type_expected=int,
         default_value="ALL",
         default_str="All",
-        type_expected=int,
     )
     check_ans = input("Are you sure? (Y/other)")
     if check_ans != "Y":
@@ -456,8 +456,8 @@ def enter_manual_contract_order(data, instrument_order):
     limit_price = get_input_from_user_and_convert_to_type(
         "Limit price? (will override instrument order limit price, will be ignored by some algo types",
         type_expected=float,
-        default_str="None",
         default_value=None,
+        default_str="None",
     )
 
     order_type = map_instrument_order_type_to_contract_order_type(
@@ -482,7 +482,7 @@ def generate_generic_manual_fill(data):
     stack = resolve_stack(data, exclude_instrument_stack=True)
     view_generic_stack(stack)
     order_id = get_input_from_user_and_convert_to_type(
-        "Enter order ID", default_str="Cancel", default_value=""
+        "Enter order ID", default_value="", default_str="Cancel"
     )
     if order_id == "":
         return None
@@ -542,9 +542,9 @@ def generate_ib_orders(data):
     view_contract_stack(data)
     contract_order_id = get_input_from_user_and_convert_to_type(
         "Which contract order ID?",
+        type_expected=int,
         default_value="ALL",
         default_str="for all",
-        type_expected=int,
     )
     ans = input("Are you sure? (Y/other)")
     if ans != "Y":
@@ -581,15 +581,15 @@ def create_fx_trade(data):
         print("First currency")
         ccy1 = get_input_from_user_and_convert_to_type(
             "First currency",
+            type_expected=str,
             allow_default=True,
             default_value=None,
             default_str="Cancel",
-            type_expected=str,
         )
         if ccy1 is None:
             return None
         ccy2 = get_input_from_user_and_convert_to_type(
-            "Second currency", default_value="USD", type_expected=str
+            "Second currency", type_expected=str, default_value="USD"
         )
         if ccy1 == ccy2:
             print("%s==%s. Not allowed!" % (ccy1, ccy2))
@@ -624,9 +624,9 @@ def get_fills_from_broker(data):
     view_broker_stack(data)
     broker_order_id = get_input_from_user_and_convert_to_type(
         "Which broker order ID?",
+        type_expected=int,
         default_value="ALL",
         default_str="for all",
-        type_expected=int,
     )
     ans = input("Are you sure? (Y/other)")
     if ans != "Y":
@@ -650,7 +650,7 @@ def pass_fills_upwards_from_broker(data):
     view_contract_stack(data)
 
     contract_order_id = get_input_from_user_and_convert_to_type(
-        "Which order ID?", default_value="ALL", default_str="for all", type_expected=int
+        "Which order ID?", type_expected=int, default_value="ALL", default_str="for all"
     )
     ans = input("Are you sure? (Y/other)")
     if ans != "Y":
@@ -673,7 +673,7 @@ def pass_fills_upwards_from_contracts(data):
     )
     view_contract_stack(data)
     contract_order_id = get_input_from_user_and_convert_to_type(
-        "Which order ID?", default_value="ALL", default_str="for all", type_expected=int
+        "Which order ID?", type_expected=int, default_value="ALL", default_str="for all"
     )
     ans = input("Are you sure? (Y/other)")
     if ans != "Y":
@@ -709,9 +709,9 @@ def handle_completed_orders(data):
     view_instrument_stack(data)
     instrument_order_id = get_input_from_user_and_convert_to_type(
         "Which instrument order ID?",
-        default_str="All",
-        default_value="ALL",
         type_expected=int,
+        default_value="ALL",
+        default_str="All",
     )
     ans = input("Are you sure? (Y/other)")
     if ans != "Y":
@@ -786,7 +786,7 @@ def resolve_stack(data, exclude_instrument_stack=False):
         request_str = "Broker stack [1], Contract stack [2] or instrument stack [3]?"
 
     ans = get_input_from_user_and_convert_to_type(
-        request_str, type_expected=int, default_str="Exit", default_value=0
+        request_str, type_expected=int, default_value=0, default_str="Exit"
     )
     if ans == 1:
         stack = stack_handler.broker_stack
@@ -886,7 +886,7 @@ def cancel_broker_order(data):
     view_broker_stack(data)
     stack_handler = stackHandler(data)
     broker_order_id = get_input_from_user_and_convert_to_type(
-        "Which order ID?", default_value="ALL", default_str="for all", type_expected=int
+        "Which order ID?", type_expected=int, default_value="ALL", default_str="for all"
     )
     ans = input("Are you sure? (Y/other)")
     if ans != "Y":

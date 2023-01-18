@@ -107,29 +107,20 @@ def setup_initial_capital(data: dataBlob):
 
 
 def get_initial_capital_values_from_user(data: dataBlob):
-    broker_account_value = get_input_from_user_and_convert_to_type(
-        "Broker account value",
-        type_expected=float,
-        default_str="get from IB",
-        default_value=arg_not_supplied,
-    )
+    broker_account_value = get_input_from_user_and_convert_to_type("Broker account value", type_expected=float,
+                                                                   default_value=arg_not_supplied,
+                                                                   default_str="get from IB")
     if broker_account_value is arg_not_supplied:
         broker_account_value = get_broker_account_value(data)
         print("Got broker account value of %f from IB" % broker_account_value)
 
-    total_capital = get_input_from_user_and_convert_to_type(
-        "Total capital at risk", type_expected=float, default_value=broker_account_value
-    )
+    total_capital = get_input_from_user_and_convert_to_type("Total capital at risk", type_expected=float,
+                                                            default_value=broker_account_value)
 
-    maximum_capital = get_input_from_user_and_convert_to_type(
-        "Max capital, only used for half compounding",
-        type_expected=float,
-        default_value=total_capital,
-    )
+    maximum_capital = get_input_from_user_and_convert_to_type("Max capital, only used for half compounding",
+                                                              type_expected=float, default_value=total_capital)
 
-    acc_pandl = get_input_from_user_and_convert_to_type(
-        "Accumulated profit", type_expected=float, default_value=0.0
-    )
+    acc_pandl = get_input_from_user_and_convert_to_type("Accumulated profit", type_expected=float, default_value=0.0)
 
     return broker_account_value, total_capital, maximum_capital, acc_pandl
 
@@ -176,8 +167,7 @@ def adjust_capital_for_delta(data: dataBlob):
 
     capital_delta = get_input_from_user_and_convert_to_type(
         "What change have you made to brokerage account that will not change capital +ve deposit, -ve withdrawal",
-        type_expected=float,
-    )
+        type_expected=float)
     effect = data_capital.return_str_with_effect_of_delta_adjustment(capital_delta)
 
     user_wants_adjustment = true_if_answer_is_yes("%s, are you sure? " % effect)
@@ -212,28 +202,21 @@ def get_values_from_user_to_modify(data: dataBlob):
     data_capital = dataCapital(data)
 
     current_broker_value = data_capital.get_current_broker_account_value()
-    broker_account_value = get_input_from_user_and_convert_to_type(
-        "Broker account value", type_expected=float, default_value=current_broker_value
-    )
+    broker_account_value = get_input_from_user_and_convert_to_type("Broker account value", type_expected=float,
+                                                                   default_value=current_broker_value)
 
     current_total_capital = data_capital.get_current_total_capital()
-    total_capital = get_input_from_user_and_convert_to_type(
-        "Total capital at risk",
-        type_expected=float,
-        default_value=current_total_capital,
-    )
+    total_capital = get_input_from_user_and_convert_to_type("Total capital at risk", type_expected=float,
+                                                            default_value=current_total_capital)
 
     current_maximum_capital = data_capital.get_current_maximum_capital()
-    maximum_capital = get_input_from_user_and_convert_to_type(
-        "Max capital, only used for half compounding",
-        type_expected=float,
-        default_value=current_maximum_capital,
-    )
+    maximum_capital = get_input_from_user_and_convert_to_type("Max capital, only used for half compounding",
+                                                              type_expected=float,
+                                                              default_value=current_maximum_capital)
 
     current_acc_profit = data_capital.get_current_accumulated_pandl()
-    acc_pandl = get_input_from_user_and_convert_to_type(
-        "Accumulated profit", type_expected=float, default_value=current_acc_profit
-    )
+    acc_pandl = get_input_from_user_and_convert_to_type("Accumulated profit", type_expected=float,
+                                                        default_value=current_acc_profit)
 
     return broker_account_value, total_capital, maximum_capital, acc_pandl
 
