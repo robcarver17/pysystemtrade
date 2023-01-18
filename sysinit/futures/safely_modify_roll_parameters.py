@@ -3,7 +3,10 @@
 # matplotlib.use("TkAgg")
 from matplotlib.pyplot import show
 import pandas as pd
-from syscore.interactive import true_if_answer_is_yes, get_and_convert
+from syscore.interactive import (
+    true_if_answer_is_yes,
+    get_input_from_user_and_convert_to_type,
+)
 from sysdata.data_blob import dataBlob
 from sysinit.futures.rollcalendars_from_arcticprices_to_csv import (
     build_and_write_roll_calendar,
@@ -146,27 +149,27 @@ def modified_roll_parameters(data: dataBlob, instrument_code) -> rollParameters:
     print(str(roll_parameters))
     unhappy = True
     while unhappy:
-        hold_rollcycle = get_and_convert(
+        hold_rollcycle = get_input_from_user_and_convert_to_type(
             "Hold rollcycle (use FGHJKMNQUVXZ)",
             type_expected=str,
             default_value=str(roll_parameters.hold_rollcycle),
         )
-        priced_rollcycle = get_and_convert(
+        priced_rollcycle = get_input_from_user_and_convert_to_type(
             "Priced rollcycle (use FGHJKMNQUVXZ)",
             type_expected=str,
             default_value=str(roll_parameters.priced_rollcycle),
         )
-        roll_offset_day = get_and_convert(
+        roll_offset_day = get_input_from_user_and_convert_to_type(
             "Roll offset days versus expiry (normally negative)",
             type_expected=int,
             default_value=roll_parameters.roll_offset_day,
         )
-        carry_offset = get_and_convert(
+        carry_offset = get_input_from_user_and_convert_to_type(
             "Carry offset (ideally -1, 1 if trading front)",
             type_expected=int,
             default_value=roll_parameters.carry_offset,
         )
-        approx_expiry_offset = get_and_convert(
+        approx_expiry_offset = get_input_from_user_and_convert_to_type(
             "Approximate expiry day in month",
             type_expected=int,
             default_value=roll_parameters.approx_expiry_offset,

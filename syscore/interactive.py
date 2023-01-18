@@ -1,7 +1,14 @@
+"""
+
+Code used when we interact with users (displaying stuff, getting input, monitoring progress)
+
+"""
+
 import datetime
 import sys
 import time
 from copy import copy
+from typing import Union, Tuple
 
 from syscore.dateutils import (
     n_days_ago,
@@ -12,26 +19,31 @@ from syscore.genutils import str2Bool
 from syscore.objects import arg_not_supplied
 
 
-def get_field_names_for_named_tuple(named_tuple_instance):
-    original_tuple_as_dict = named_tuple_as_dict(named_tuple_instance)
-    for key_name in original_tuple_as_dict.keys():
-        original_tuple_entry = original_tuple_as_dict[key_name]
-        original_tuple_entry_class = original_tuple_entry.__class__
-        input_result = get_and_convert(
-            key_name,
-            default_value=original_tuple_entry,
-            type_expected=original_tuple_entry_class,
-        )
+def true_if_answer_is_yes(
+    prompt: str = "", allow_empty_to_return_none: bool = False
+) -> bool:
+    invalid = True
+    while invalid:
+        x = input(prompt)
+        if x == "":
+            if allow_empty_to_return_none:
+                return None
+        else:
+            first_character = x[0].lower()
+            if first_character == "y":
+                return True
+            elif first_character == "n":
+                return False
 
-        original_tuple_as_dict[key_name] = input_result
-
-    new_tuple = override_tuple_fields(named_tuple_instance, original_tuple_as_dict)
-
-    return new_tuple
+        print("Need one of yes/no, Yes/No, y/n, Y/N")
 
 
-def get_and_convert(
-    prompt, type_expected=int, allow_default=True, default_value=0, default_str=None
+def get_input_from_user_and_convert_to_type(
+    prompt: str,
+    type_expected=int,
+    allow_default: bool = True,
+    default_value=0,
+    default_str: str = None,
 ):
     invalid = True
     input_str = prompt + " "
@@ -57,16 +69,22 @@ def get_and_convert(
             continue
 
 
+"""
+    
+    RUN AN INTERACTIVE MENU AND SUB-MENU SYSTEM
+
+"""
+
 TOP_LEVEL = -1
 
 
-class run_interactive_menu(object):
+class interactiveMenu(object):
     def __init__(
         self,
-        top_level_menu_of_options,
-        nested_menu_of_options,
-        exit_option=-1,
-        another_menu=-2,
+        top_level_menu_of_options: dict,
+        nested_menu_of_options: dict,
+        exit_option: int = -1,
+        another_menu: int = -2,
     ):
         """
 
@@ -152,7 +170,7 @@ def print_menu_and_get_response(menu_of_options, default_option=None, default_st
         menu_options_list = [default_option] + menu_options_list
 
     while computer_says_no:
-        ans = get_and_convert(
+        ans = get_input_from_user_and_convert_to_type(
             "Your choice?",
             default_value=default_option,
             type_expected=int,
@@ -169,23 +187,14 @@ def print_menu_and_get_response(menu_of_options, default_option=None, default_st
     return ans
 
 
-def true_if_answer_is_yes(prompt="", allow_empty_to_return_none=False) -> bool:
-    invalid = True
-    while invalid:
-        x = input(prompt)
-        if allow_empty_to_return_none:
-            if x == "":
-                return None
+"""
 
-        x = x.lower()
-        if len(x) > 0 and x[0] == "y":
-            return True
-        elif len(x) > 0 and x[0] == "n":
-            return False
-        print("Need one of yes/no, Yes/No, y/n, Y/N")
+    REPORTING DATES
+
+"""
 
 
-def get_report_dates():
+def get_report_dates() -> Tuple[datetime.datetime, datetime.datetime]:
 
     end_date = arg_not_supplied
     start_date = arg_not_supplied
@@ -295,6 +304,12 @@ def resolve_datetime_input_str(ans):
         raise ValueError
     return return_datetime
 
+
+"""
+
+    PROGRESS BAR
+
+"""
 
 PROGRESS_EXP_FACTOR = 0.9
 
@@ -442,6 +457,31 @@ class progressBar(object):
     def finished(self):
         self.display_bar()
         sys.stdout.write("\n")
+
+
+"""
+
+    INPUT TUPLE DATA
+
+"""
+
+
+def get_field_names_for_named_tuple(named_tuple_instance):
+    original_tuple_as_dict = named_tuple_as_dict(named_tuple_instance)
+    for key_name in original_tuple_as_dict.keys():
+        original_tuple_entry = original_tuple_as_dict[key_name]
+        original_tuple_entry_class = original_tuple_entry.__class__
+        input_result = get_input_from_user_and_convert_to_type(
+            key_name,
+            default_value=original_tuple_entry,
+            type_expected=original_tuple_entry_class,
+        )
+
+        original_tuple_as_dict[key_name] = input_result
+
+    new_tuple = override_tuple_fields(named_tuple_instance, original_tuple_as_dict)
+
+    return new_tuple
 
 
 def override_tuple_fields(original_tuple_instance, dict_of_new_fields: dict):

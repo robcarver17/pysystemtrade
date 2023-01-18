@@ -240,6 +240,13 @@ def if_object_matches_return_empty_string(x, object_to_match):
         return x
 
 
+"""
+    
+    NAMED TUPLES AND OBJECTS
+
+"""
+
+
 def transfer_object_attributes(named_tuple_object, original_object):
     kwargs = dict(
         [
@@ -250,6 +257,13 @@ def transfer_object_attributes(named_tuple_object, original_object):
     new_object = named_tuple_object(**kwargs)
 
     return new_object
+
+
+"""
+
+    COMMON FACTORS
+
+"""
 
 
 def highest_common_factor_for_list(list_of_ints: List[int]) -> int:

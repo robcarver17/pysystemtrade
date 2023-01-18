@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 
 from syscore.interactive import (
-    get_and_convert,
-    run_interactive_menu,
+    get_input_from_user_and_convert_to_type,
+    interactiveMenu,
     print_menu_and_get_response,
     true_if_answer_is_yes,
 )
@@ -80,7 +80,7 @@ class parametersForAutoPopulation:
 def interactive_controls():
     set_pd_print_options()
     with dataBlob(log_name="Interactive-Controls") as data:
-        menu = run_interactive_menu(
+        menu = interactiveMenu(
             top_level_menu_of_options,
             nested_menu_of_options,
             exit_option=-1,
@@ -166,10 +166,10 @@ def view_trade_limits(data):
 def change_limit_for_instrument(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
-    period_days = get_and_convert(
+    period_days = get_input_from_user_and_convert_to_type(
         "Period of days?", type_expected=int, allow_default=True, default_value=1
     )
-    new_limit = get_and_convert(
+    new_limit = get_input_from_user_and_convert_to_type(
         "Limit (in contracts?)", type_expected=int, allow_default=False
     )
     ans = input(
@@ -184,7 +184,7 @@ def change_limit_for_instrument(data):
 def reset_limit_for_instrument(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
-    period_days = get_and_convert(
+    period_days = get_input_from_user_and_convert_to_type(
         "Period of days?", type_expected=int, allow_default=True, default_value=1
     )
     ans = input("Reset means trade 'clock' will restart. Are you sure? (y/other)")
@@ -203,10 +203,10 @@ def change_limit_for_instrument_strategy(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
     strategy_name = get_valid_strategy_name_from_user(data)
-    period_days = get_and_convert(
+    period_days = get_input_from_user_and_convert_to_type(
         "Period of days?", type_expected=int, allow_default=True, default_value=1
     )
-    new_limit = get_and_convert(
+    new_limit = get_input_from_user_and_convert_to_type(
         "Limit (in contracts?)", type_expected=int, allow_default=False
     )
 
@@ -227,7 +227,7 @@ def change_limit_for_instrument_strategy(data):
 def reset_limit_for_instrument_strategy(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
-    period_days = get_and_convert(
+    period_days = get_input_from_user_and_convert_to_type(
         "Period of days?", type_expected=int, allow_default=True, default_value=1
     )
     strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
@@ -249,12 +249,12 @@ def auto_populate_limits(data: dataBlob):
     instrument_list = get_list_of_instruments(data)
     auto_parameters = get_auto_population_parameters()
 
-    trade_multiplier = get_and_convert(
+    trade_multiplier = get_input_from_user_and_convert_to_type(
         "Higgest proportion of standard position expected to trade daily?",
         type_expected=float,
         default_value=MAX_POSITION_TRADED_DAILY,
     )
-    period_days = get_and_convert(
+    period_days = get_input_from_user_and_convert_to_type(
         "What period in days to set limit for?", type_expected=int, default_value=1
     )
     _ = [
@@ -327,32 +327,32 @@ from sysproduction.reporting.data.constants import (
 
 def get_auto_population_parameters() -> parametersForAutoPopulation:
     print("Enter parameters to estimate typical position sizes")
-    notional_risk_target = get_and_convert(
+    notional_risk_target = get_input_from_user_and_convert_to_type(
         "Notional risk target (% per year, 0.25 = 25%%)",
         type_expected=float,
         default_value=RISK_TARGET_ASSUMED / 100.0,
     )
-    approx_IDM = get_and_convert(
+    approx_IDM = get_input_from_user_and_convert_to_type(
         "Approximate IDM", type_expected=float, default_value=IDM_ASSUMED
     )
-    notional_instrument_weight = get_and_convert(
+    notional_instrument_weight = get_input_from_user_and_convert_to_type(
         "Notional instrument weight (go large for safety!)",
         type_expected=float,
         default_value=INSTRUMENT_WEIGHT_ASSUMED,
     )
-    raw_max_leverage = get_and_convert(
+    raw_max_leverage = get_input_from_user_and_convert_to_type(
         "Maximum Leverage per instrument (notional exposure*# contracts / capital)",
         type_expected=float,
         default_value=RAW_MAX_LEVERAGE,
     )
 
-    max_proportion_risk_one_contract = get_and_convert(
+    max_proportion_risk_one_contract = get_input_from_user_and_convert_to_type(
         "Maximum proportion of risk in a single instrument (0.1 = 10%%)",
         type_expected=float,
         default_value=MAX_RISK_EXPOSURE_ONE_INSTRUMENT,
     )
 
-    max_proportion_of_volume = get_and_convert(
+    max_proportion_of_volume = get_input_from_user_and_convert_to_type(
         "Maximum proportion of volume for expiry with largest volume (0.1 = 10%)",
         type_expected=float,
         default_value=MAX_PROPORTION_OF_VOLUME,
@@ -569,7 +569,7 @@ def change_position_limit_for_instrument(data):
     view_position_limit(data)
     data_position_limits = dataPositionLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data, allow_all=False)
-    new_position_limit = get_and_convert(
+    new_position_limit = get_input_from_user_and_convert_to_type(
         "New position limit?",
         type_expected=int,
         allow_default=True,
@@ -592,7 +592,7 @@ def change_position_limit_for_instrument_strategy(data):
         data, allow_all=False, source="positions"
     )
     instrument_code = get_valid_instrument_code_from_user(data, allow_all=False)
-    new_position_limit = get_and_convert(
+    new_position_limit = get_input_from_user_and_convert_to_type(
         "New position limit?",
         type_expected=int,
         allow_default=True,
@@ -898,7 +898,7 @@ def get_list_of_changes_to_make_to_slippage(
 
         configured_estimate_multiplied = configured * mult_factor
 
-        estimate_to_use_with_mult = get_and_convert(
+        estimate_to_use_with_mult = get_input_from_user_and_convert_to_type(
             "New configured slippage value (current %f, default is estimate %f)"
             % (configured_estimate_multiplied, suggested_estimate_multiplied),
             type_expected=float,
@@ -928,7 +928,7 @@ def get_list_of_changes_to_make_to_slippage(
 
 
 def get_filter_size_for_slippage() -> float:
-    filter = get_and_convert(
+    filter = get_input_from_user_and_convert_to_type(
         "% difference to filter on? (eg 30 means we ignore differences<30%",
         type_expected=float,
         allow_default=True,

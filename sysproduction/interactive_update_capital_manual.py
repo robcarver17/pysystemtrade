@@ -1,7 +1,7 @@
 from syscore.exceptions import missingData
 from syscore.objects import success, failure, arg_not_supplied, missing_data
 from syscore.interactive import (
-    get_and_convert,
+    get_input_from_user_and_convert_to_type,
     print_menu_and_get_response,
     get_datetime_input,
     true_if_answer_is_yes,
@@ -107,7 +107,7 @@ def setup_initial_capital(data: dataBlob):
 
 
 def get_initial_capital_values_from_user(data: dataBlob):
-    broker_account_value = get_and_convert(
+    broker_account_value = get_input_from_user_and_convert_to_type(
         "Broker account value",
         type_expected=float,
         default_str="get from IB",
@@ -117,17 +117,17 @@ def get_initial_capital_values_from_user(data: dataBlob):
         broker_account_value = get_broker_account_value(data)
         print("Got broker account value of %f from IB" % broker_account_value)
 
-    total_capital = get_and_convert(
+    total_capital = get_input_from_user_and_convert_to_type(
         "Total capital at risk", type_expected=float, default_value=broker_account_value
     )
 
-    maximum_capital = get_and_convert(
+    maximum_capital = get_input_from_user_and_convert_to_type(
         "Max capital, only used for half compounding",
         type_expected=float,
         default_value=total_capital,
     )
 
-    acc_pandl = get_and_convert(
+    acc_pandl = get_input_from_user_and_convert_to_type(
         "Accumulated profit", type_expected=float, default_value=0.0
     )
 
@@ -174,7 +174,7 @@ def get_broker_account_value(data: dataBlob):
 def adjust_capital_for_delta(data: dataBlob):
     data_capital = dataCapital(data)
 
-    capital_delta = get_and_convert(
+    capital_delta = get_input_from_user_and_convert_to_type(
         "What change have you made to brokerage account that will not change capital +ve deposit, -ve withdrawal",
         type_expected=float,
     )
@@ -212,26 +212,26 @@ def get_values_from_user_to_modify(data: dataBlob):
     data_capital = dataCapital(data)
 
     current_broker_value = data_capital.get_current_broker_account_value()
-    broker_account_value = get_and_convert(
+    broker_account_value = get_input_from_user_and_convert_to_type(
         "Broker account value", type_expected=float, default_value=current_broker_value
     )
 
     current_total_capital = data_capital.get_current_total_capital()
-    total_capital = get_and_convert(
+    total_capital = get_input_from_user_and_convert_to_type(
         "Total capital at risk",
         type_expected=float,
         default_value=current_total_capital,
     )
 
     current_maximum_capital = data_capital.get_current_maximum_capital()
-    maximum_capital = get_and_convert(
+    maximum_capital = get_input_from_user_and_convert_to_type(
         "Max capital, only used for half compounding",
         type_expected=float,
         default_value=current_maximum_capital,
     )
 
     current_acc_profit = data_capital.get_current_accumulated_pandl()
-    acc_pandl = get_and_convert(
+    acc_pandl = get_input_from_user_and_convert_to_type(
         "Accumulated profit", type_expected=float, default_value=current_acc_profit
     )
 

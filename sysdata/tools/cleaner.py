@@ -1,7 +1,7 @@
 from collections import namedtuple
 from copy import copy
 
-from syscore.interactive import get_field_names_for_named_tuple, true_if_answer_is_yes
+from syscore.interactive import true_if_answer_is_yes, get_field_names_for_named_tuple
 from syscore.objects import arg_not_supplied, missing_data
 
 from sysdata.data_blob import dataBlob

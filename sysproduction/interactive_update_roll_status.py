@@ -9,7 +9,7 @@ import numpy as np
 
 from syscore.interactive import (
     print_menu_of_values_and_get_response,
-    get_and_convert,
+    get_input_from_user_and_convert_to_type,
     true_if_answer_is_yes,
 )
 from syscore.objects import success, failure, status, named_object
@@ -186,7 +186,7 @@ def update_roll_status_full_auto(data: dataBlob):
 
 
 def get_days_ahead_to_consider_when_auto_cycling() -> int:
-    days_ahead = get_and_convert(
+    days_ahead = get_input_from_user_and_convert_to_type(
         "How many days ahead should I look for expiries?",
         type_expected=int,
         allow_default=True,
@@ -244,7 +244,7 @@ class autoRollParameters:
 
 
 def get_auto_roll_parameters() -> autoRollParameters:
-    min_volume = get_and_convert(
+    min_volume = get_input_from_user_and_convert_to_type(
         "Minimum relative volume before rolling",
         type_expected=float,
         allow_default=True,
