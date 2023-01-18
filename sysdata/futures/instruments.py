@@ -3,7 +3,6 @@ Read / write and represent instrument data
 """
 
 import pandas as pd
-from syscore.objects import missing_data
 from sysdata.base_data import baseData
 from sysobjects.instruments import (
     futuresInstrumentWithMetaData,
