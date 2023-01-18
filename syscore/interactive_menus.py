@@ -153,7 +153,7 @@ def print_menu_of_values_and_get_response(
 
 def _get_index_of_default_option(
     menu_of_options_as_list: List[str], default_str=""
-) -> Tuple[Union[None, int], List[str]]:
+) -> Tuple[Union[type(None), int], List[str]]:
 
     copy_menu_of_options_as_list = copy(menu_of_options_as_list)
     if default_str == "":

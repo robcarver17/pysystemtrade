@@ -3,14 +3,14 @@
 Code used when we interact with users (displaying stuff, getting input, monitoring progress)
 
 """
-
 from typing import Union
+
 from syscore.genutils import str2Bool
 
 
 def true_if_answer_is_yes(
     prompt: str = "", allow_empty_to_return_none: bool = False
-) -> Union[bool, None]:
+) -> Union[bool, type(None)]:
     invalid = True
     while invalid:
         x = input(prompt)

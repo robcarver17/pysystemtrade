@@ -101,7 +101,7 @@ def input_and_type_cast_argument(argname: str, parameter_signature: inspect.Para
     return arg_value
 
 
-def has_type(parameter_signature):
+def has_type(parameter_signature) -> bool:
     return parameter_type(parameter_signature) is not NO_TYPE_PROVIDED
 
 
