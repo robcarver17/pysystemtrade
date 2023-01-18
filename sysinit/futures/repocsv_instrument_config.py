@@ -3,7 +3,7 @@ Populate a mongo DB collection with instrument data from the instrument data in 
 
 """
 from syscore.genutils import new_removing_existing
-from syscore.interactive import true_if_answer_is_yes
+from syscore.interactive_input import true_if_answer_is_yes
 from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 from sysdata.data_blob import dataBlob

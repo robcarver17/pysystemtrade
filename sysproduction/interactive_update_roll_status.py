@@ -7,7 +7,7 @@ NOTE: this does not update the roll calendar .csv files stored elsewhere. Under 
 from dataclasses import dataclass
 import numpy as np
 
-from syscore.interactive import (
+from syscore.interactive_input import (
     get_input_from_user_and_convert_to_type,
     true_if_answer_is_yes,
 )

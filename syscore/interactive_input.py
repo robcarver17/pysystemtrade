@@ -4,12 +4,13 @@ Code used when we interact with users (displaying stuff, getting input, monitori
 
 """
 
+from typing import Union
 from syscore.genutils import str2Bool
 
 
 def true_if_answer_is_yes(
     prompt: str = "", allow_empty_to_return_none: bool = False
-) -> bool:
+) -> Union[bool, None]:
     invalid = True
     while invalid:
         x = input(prompt)
@@ -24,6 +25,13 @@ def true_if_answer_is_yes(
                 return False
 
         print("Need one of yes/no, Yes/No, y/n, Y/N")
+
+
+"""
+
+    GET INPUT AND CAST TO TYPE
+
+"""
 
 
 def get_input_from_user_and_convert_to_type(
@@ -84,18 +92,12 @@ def _convert_type_or_throw_expection(user_input: str, type_expected=int):
 
 """
 
-    PROGRESS BAR
-
-"""
-
-"""
-
     INPUT TUPLE DATA
 
 """
 
 
-def get_field_names_for_named_tuple(named_tuple_instance):
+def input_field_names_for_named_tuple(named_tuple_instance):
     original_tuple_as_dict = named_tuple_as_dict(named_tuple_instance)
     for key_name in original_tuple_as_dict.keys():
         original_tuple_entry = original_tuple_as_dict[key_name]

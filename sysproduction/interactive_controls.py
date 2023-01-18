@@ -3,7 +3,7 @@ from copy import copy
 import numpy as np
 import pandas as pd
 
-from syscore.interactive import (
+from syscore.interactive_input import (
     get_input_from_user_and_convert_to_type,
     true_if_answer_is_yes,
 )
