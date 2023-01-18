@@ -173,11 +173,15 @@ def get_instrument_object_from_config(
     config_row = config[config.Instrument == instrument_code]
     symbol = config_row.IBSymbol.values[0]
     exchange = config_row.IBExchange.values[0]
-    currency = return_another_value_if_nan(config_row.IBCurrency.values[0], NOT_REQUIRED_FOR_IB)
+    currency = return_another_value_if_nan(
+        config_row.IBCurrency.values[0], NOT_REQUIRED_FOR_IB
+    )
     ib_multiplier = return_another_value_if_nan(
         config_row.IBMultiplier.values[0], NOT_REQUIRED_FOR_IB
     )
-    price_magnifier = return_another_value_if_nan(config_row.priceMagnifier.values[0], 1.0)
+    price_magnifier = return_another_value_if_nan(
+        config_row.priceMagnifier.values[0], 1.0
+    )
     ignore_weekly = config_row.IgnoreWeekly.values[0]
 
     # We use the flexibility of futuresInstrument to add additional arguments

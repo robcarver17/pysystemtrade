@@ -189,7 +189,7 @@ Note that the large contract prices will continue to be updated (best to keep do
 
 ## Version 0.51.0
 
-- Essentially 'finished' production.md (in as much as anything can be finished...)
+- Essentially 'close' production.md (in as much as anything can be close...)
 - Changed data Blobs so now take lists of objects rather than str, easier to see dependencies
 
 ## Version 0.50.0

@@ -4,7 +4,7 @@ import pandas as pd
 from statsmodels.formula import api as sm
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR, n_days_ago, CALENDAR_DAYS_IN_YEAR
-from syscore.interactive import progressBar
+from syscore.progress_bar import progressBar
 from syscore.objects import arg_not_supplied
 from syscore.pdutils import prices_to_daily_prices
 from sysdata.data_blob import dataBlob
@@ -163,7 +163,7 @@ def get_instrument_risk_table(data, only_held_instruments=True):
         risk_data_list.append(risk_this_instrument)
         p.iterate()
 
-    p.finished()
+    p.close()
 
     risk_df = pd.DataFrame(risk_data_list, index=instrument_list).transpose()
     risk_df = sorted_clean_df(risk_df, "annual_risk_perc_capital")

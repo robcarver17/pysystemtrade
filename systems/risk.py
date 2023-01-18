@@ -1,7 +1,7 @@
 import datetime
 import numpy as np
 import pandas as pd
-from syscore.interactive import progressBar
+from syscore.progress_bar import progressBar
 
 from systems.stage import SystemStage
 from systems.portfolio import Portfolios

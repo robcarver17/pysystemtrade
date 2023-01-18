@@ -5,7 +5,7 @@ For a given process:
  - am I running?
  - when did I last finish running?
  - is my status NO-RUN, STOP or GO?
- - have I run today and finished running?
+ - have I run today and close running?
 """
 
 from copy import copy

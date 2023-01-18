@@ -135,8 +135,8 @@ Table of Contents
             * [View processes](#view-processes)
             * [Change status of process](#change-status-of-process)
             * [Global status change](#global-status-change)
-            * [Mark as finished](#mark-as-finished)
-            * [Mark all dead processes as finished](#mark-all-dead-processes-as-finished)
+            * [Mark as close](#mark-as-finished)
+            * [Mark all dead processes as close](#mark-all-dead-processes-as-finished)
             * [View process configuration](#view-process-configuration)
          * [Update configuration](#update-configuration)
       * [Interactive diagnostics](#interactive-diagnostics)
@@ -301,7 +301,7 @@ Before trading, and each time you restart the machine you should:
 
 - [check a mongodb server is running with the right data directory](/docs/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/IbcAlpha/IBC) depending on your security setup)
-- ensure all processes are [marked as 'finished'](#mark-as-finished)
+- ensure all processes are [marked as 'close'](#mark-as-finished)
 
 Note that the system won't start trading until the next day, unless you manually launch the processes that would ordinarily have been started by the crontab or other [scheduler](#scheduling). [Linux screen](https://linuxize.com/post/how-to-use-linux-screen/) is helpful if you want to launch a process but not keep the window active (eg on a headless machine).
 
@@ -1204,7 +1204,7 @@ Well the stack handler code regularly runs the method sysexecution/stack_handler
 - first we look in the cached set of broker orders and control objects, that should include any orders made in this session (but that won't work if the order was done somewhere else, eg by interactive_order_stack). Remember that this was indexed by broker_tempid.
 - if that fails then we get the orders and control objects actually from the broker. 
     - Again first we look for orders with the same broker_tempid (i.e. from the same account, clientid and with the same IB orderId). 
-    - If that fails we look for an order with the same permid. This will work as long as the original broker order in the database got a permid before the stack handler had finished the original (failed?) execution process.
+    - If that fails we look for an order with the same permid. This will work as long as the original broker order in the database got a permid before the stack handler had close the original (failed?) execution process.
 - if that fails we're buggered and we need to enter the fill manually using interactive_order_stack. Most likely this will happen if more than 24 hours passes after the order was executed, since IB only returns recent orders from it's API 
 
 
@@ -1934,9 +1934,9 @@ Note that processes that have launched but waiting to properly start (perhaps be
 
 #####  Change status of process
 
-You can change the status of any process to STOP, GO or NO RUN. A process which is NO RUN will continue running, but won't start again. This is the correct way to stop processes that you want to kill, as it will properly update their process state and (importantly in the case of run stack handler) do a graceful exit. Stop processes will only stop once they have finished running their current method, which means for run_systems and run_strategy_order_generator they will stop when the current strategy has finished processing (which can take a while!).
+You can change the status of any process to STOP, GO or NO RUN. A process which is NO RUN will continue running, but won't start again. This is the correct way to stop processes that you want to kill, as it will properly update their process state and (importantly in the case of run stack handler) do a graceful exit. Stop processes will only stop once they have close running their current method, which means for run_systems and run_strategy_order_generator they will stop when the current strategy has close processing (which can take a while!).
 
-If a process refuses to STOP, then as a last resort you can use `kill NNNN` at the command line where NNNN is the PID, but there may be data corruption, or weird behaviour (particularly if you do this with the stack handler), and you will definitely need to mark it as finished (see below).
+If a process refuses to STOP, then as a last resort you can use `kill NNNN` at the command line where NNNN is the PID, but there may be data corruption, or weird behaviour (particularly if you do this with the stack handler), and you will definitely need to mark it as close (see below).
 
 Marking a process as START won't actually launch it, you will have to do this manually or wait for the crontab to run it. Nor will the process run if it's preconditions aren't met (start and end time window, previous process).
 
@@ -1945,15 +1945,15 @@ Marking a process as START won't actually launch it, you will have to do this ma
 Sometimes you might want to mark all processes as STOP (emergency shut down?) or GO (post emergency restart).
 
 
-#####  Mark as finished
+#####  Mark as close
 
-This will manually mark a process as finished. This is done automatically when a process finishes normally, or is told to stop, but if it terminates unexpectedly then the status may well be set as 'running', which means a new version of the process can't be launched until this flag is cleared. Marking a process as finished won't stop it if it is still running! Use 'change status' instead. Check the process PID isn't running using `ps aux | grep NNNNN` where NNNN is the PID, before marking it as finished.
+This will manually mark a process as close. This is done automatically when a process finishes normally, or is told to stop, but if it terminates unexpectedly then the status may well be set as 'running', which means a new version of the process can't be launched until this flag is cleared. Marking a process as close won't stop it if it is still running! Use 'change status' instead. Check the process PID isn't running using `ps aux | grep NNNNN` where NNNN is the PID, before marking it as close.
 
-Note that the startup script will also mark all processes as finished (as there should be no processes running on startup). Also if you run the next option ('mark all dead processes as finished') this will be automatic.
+Note that the startup script will also mark all processes as close (as there should be no processes running on startup). Also if you run the next option ('mark all dead processes as close') this will be automatic.
 
-#####  Mark all dead processes as finished
+#####  Mark all dead processes as close
 
-This will check to see if a process PID is active, and if not it will mark a process as finished, assumed crashed. This is also done periodically by the [system monitor and/or dashboard](/docs/dashboard_and_monitor.md), if running.
+This will check to see if a process PID is active, and if not it will mark a process as close, assumed crashed. This is also done periodically by the [system monitor and/or dashboard](/docs/dashboard_and_monitor.md), if running.
 
 #####  View process configuration
 
@@ -2199,7 +2199,7 @@ If the broker API has gone crazy or died for some reason then all instruments wi
 
 ##### Remove Algo lock on contract order
 
-When an algo begins executing a contract order (in part or in full), it locks it. That lock is released when the order has finished executing. If the stack handler crashes before that can happen, then no other algo can execute it. Although the order will be deleted in the normal end of day stack clean up, if you can't wait that long you can manually clear the problem.
+When an algo begins executing a contract order (in part or in full), it locks it. That lock is released when the order has close executing. If the stack handler crashes before that can happen, then no other algo can execute it. Although the order will be deleted in the normal end of day stack clean up, if you can't wait that long you can manually clear the problem.
 
 
 #### Delete and clean
@@ -2378,7 +2378,7 @@ Linux script:
 There is some housekeeping to do when a machine starts up, primarily in case it crashed and did not close everything gracefully:
 
 - Clear IB client IDs: Do this when the machine restarts and IB is definitely not running (or we'll eventually run out of IDs)
-- Mark all running processes as finished
+- Mark all running processes as close
 
 ## Scripts under other (non-linux) operating systems
 
@@ -2471,7 +2471,7 @@ The scheduler built into pysystemtrade does not launch processes (this is still 
 
 - Record when processes have started and stopped, if they are still running, and what their process ID is.
 - Run only in a specified time window (start time, end time)
-- Run only when another process has already finished (i.e. do not run_systems until prices have been updated)
+- Run only when another process has already close (i.e. do not run_systems until prices have been updated)
 - Allow interactive_controls to STOP processes, or prevent them from starting.
 - Call 'methods', which are effectively sub processes, multiple times (up to a specified limit) and at specified time intervals (if required).
 - Provides a monitoring tool which can also be used from a remote machine
@@ -2526,7 +2526,7 @@ process_configuration_previous_process:
   run_strategy_order_generator: 'run_systems' # will be no orders to generate until backtest system has run
   run_cleaners: 'run_strategy_order_generator' # wait until the main 'big 3' daily processes have run before tidying up
   run_backups: 'run_cleaners' # this can take a while, will be less stuff to back up if we've already cleaned
-  run_reports: 'run_strategy_order_generator' # will be more interesting reports if we run after other stuff has finished
+  run_reports: 'run_strategy_order_generator' # will be more interesting reports if we run after other stuff has close
 
 ```
 
@@ -2644,14 +2644,14 @@ Why won't my process run?
 - is it set to STOP or DONT RUN? Fix with interactive_controls
 - is it before the start_time? Change the start time, or wait
 - is it after the end_time? Change the end time, or wait until tommorrow
-- has the previous process finished? Wait, or remove dependency
-- is it already running, or at least thinks it is already running because a previous iteration didn't fail? Mark the process as finished with interactive_controls
+- has the previous process close? Wait, or remove dependency
+- is it already running, or at least thinks it is already running because a previous iteration didn't fail? Mark the process as close with interactive_controls
 
 Why has my process stopped?
 
 - is it set to STOP?
 - is it after the end_time?
-- have all the methods finished running, because they have exceeded their `max_executions`?
+- have all the methods close running, because they have exceeded their `max_executions`?
 
 Why won't my method run?
 
@@ -3182,7 +3182,7 @@ KRWUSD  2020-10-19 23:00:00
 
 
 "Optimal positions are generated by the backtest that runs daily; this hasn't
-quite finished yet hence these are from the previous friday."
+quite close yet hence these are from the previous friday."
 
 =====================================================
         Status of optimal position generation        

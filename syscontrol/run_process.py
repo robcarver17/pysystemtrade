@@ -135,11 +135,11 @@ class processToRun(object):
 
         if result_of_finish is failure:
             self.log.warn(
-                "Process %s won't finish in process control as already finished: weird!"
+                "Process %s won't finish in process control as already close: weird!"
                 % self.process_name
             )
         elif result_of_finish is success:
-            self.log.msg("Process control %s marked finished" % self.process_name)
+            self.log.msg("Process control %s marked close" % self.process_name)
 
 
 ### STARTUP CODE

@@ -13,7 +13,7 @@ from sysquant.estimators.covariance import (
     covarianceEstimate,
     covariance_from_stdev_and_correlation,
 )
-from syscore.interactive import progressBar
+from syscore.progress_bar import progressBar
 from syscore.objects import arg_not_supplied, missing_data
 from syscore.pdutils import calculate_cost_deflator, get_row_of_series
 from systems.provided.dynamic_small_system_optimise.optimisation import (
@@ -58,8 +58,8 @@ class optimisedPositions(SystemStage):
         progress = progressBar(
             len(common_index),
             suffix="Optimising positions",
-            show_timings=True,
             show_each_time=True,
+            show_timings=True,
         )
         previous_optimal_positions = portfolioWeights.allzeros(self.instrument_list())
         position_list = []
@@ -71,7 +71,7 @@ class optimisedPositions(SystemStage):
             position_list.append(optimal_positions)
             previous_optimal_positions = copy(optimal_positions)
             progress.iterate()
-        progress.finished()
+        progress.close()
         position_df = pd.DataFrame(position_list, index=common_index)
 
         return position_df

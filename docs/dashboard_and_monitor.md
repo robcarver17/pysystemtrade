@@ -46,7 +46,7 @@ Once your machine has started you should be able to go to `http://192.168.1.13:8
 
 # Handling of crashed processes
 
-Whilst running the monitor and dashboard will also handle any 'crashed' processes (those where the PID that is registered is killed without the process being properly finished); it will email the user, update the web log, and mark the process as finished so it can be run again. **It will not automatically respawn the processes!** (you will have to do that manually or wait until the crontab does so the next day).
+Whilst running the monitor and dashboard will also handle any 'crashed' processes (those where the PID that is registered is killed without the process being properly close); it will email the user, update the web log, and mark the process as close so it can be run again. **It will not automatically respawn the processes!** (you will have to do that manually or wait until the crontab does so the next day).
 
 # Running a remote dashboard or monitor
 

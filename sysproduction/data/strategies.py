@@ -1,6 +1,6 @@
 from sysdata.data_blob import dataBlob
 from syscore.objects import missing_data, arg_not_supplied
-from syscore.interactive import print_menu_of_values_and_get_response
+from syscore.interactive_menus import print_menu_of_values_and_get_response
 from sysproduction.data.positions import diagPositions, dataOptimalPositions
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric

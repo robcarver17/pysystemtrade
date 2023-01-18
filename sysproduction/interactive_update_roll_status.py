@@ -7,11 +7,11 @@ NOTE: this does not update the roll calendar .csv files stored elsewhere. Under 
 from dataclasses import dataclass
 import numpy as np
 
-from syscore.interactive import (
-    print_menu_of_values_and_get_response,
-    get_and_convert,
+from syscore.interactive_input import (
+    get_input_from_user_and_convert_to_type,
     true_if_answer_is_yes,
 )
+from syscore.interactive_menus import print_menu_of_values_and_get_response
 from syscore.objects import success, failure, status, named_object
 from syscore.text import landing_strip, print_with_landing_strips_around
 
@@ -186,7 +186,7 @@ def update_roll_status_full_auto(data: dataBlob):
 
 
 def get_days_ahead_to_consider_when_auto_cycling() -> int:
-    days_ahead = get_and_convert(
+    days_ahead = get_input_from_user_and_convert_to_type(
         "How many days ahead should I look for expiries?",
         type_expected=int,
         allow_default=True,
@@ -244,7 +244,7 @@ class autoRollParameters:
 
 
 def get_auto_roll_parameters() -> autoRollParameters:
-    min_volume = get_and_convert(
+    min_volume = get_input_from_user_and_convert_to_type(
         "Minimum relative volume before rolling",
         type_expected=float,
         allow_default=True,
