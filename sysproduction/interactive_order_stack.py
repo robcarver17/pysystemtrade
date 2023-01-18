@@ -217,7 +217,9 @@ def create_balance_trade(data):
         allow_default=True,
         default_value=default_price,
     )
-    fill_datetime = get_datetime_input("Fill datetime", allow_default=True)
+    fill_datetime = get_datetime_input(
+        "Fill datetime", allow_default_datetime_of_now=True
+    )
     commission = get_input_from_user_and_convert_to_type(
         "Commission", type_expected=float, allow_default=True, default_value=0.0
     )
@@ -279,7 +281,9 @@ def create_instrument_balance_trade(data):
         allow_default=True,
         default_value=default_price,
     )
-    fill_datetime = get_datetime_input("Fill datetime", allow_default=True)
+    fill_datetime = get_datetime_input(
+        "Fill datetime", allow_default_datetime_of_now=True
+    )
 
     instrument_order = instrumentOrder(
         strategy_name,
@@ -502,7 +506,9 @@ def generate_generic_manual_fill(data):
     filled_price = get_input_from_user_and_convert_to_type(
         "Filled price", type_expected=float, allow_default=False
     )
-    fill_datetime = get_datetime_input("Fill datetime", allow_default=True)
+    fill_datetime = get_datetime_input(
+        "Fill datetime", allow_default_datetime_of_now=True
+    )
 
     order = stack.get_order_with_id_from_stack(order_id)
 

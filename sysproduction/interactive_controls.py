@@ -6,7 +6,7 @@ import pandas as pd
 from syscore.interactive import (
     get_input_from_user_and_convert_to_type,
     interactiveMenu,
-    print_menu_and_get_desired_option,
+    print_menu_and_get_desired_option_index,
     true_if_answer_is_yes,
 )
 from syscore.text import calculate_multiplication_factor_for_nice_repr_of_value
@@ -777,14 +777,14 @@ def change_global_process_control_status(data):
 
 
 def get_valid_status_for_process():
-    status_int = print_menu_and_get_desired_option(
+    status_int = print_menu_and_get_desired_option_index(
         {
             1: "Go",
             2: "Do not run (don't stop if already running)",
             3: "Stop (and don't run if not started)",
             4: "Pause (carry on running process, but don't run methods)",
         },
-        default_option=0,
+        default_option_index=0,
         default_str="<CANCEL>",
     )
     return status_int
@@ -807,7 +807,9 @@ def get_process_name(data):
     process_names = get_dict_of_process_controls(data)
     menu_of_options = dict(list(enumerate(process_names)))
     print("Process name?")
-    option = print_menu_and_get_desired_option(menu_of_options, default_option=1)
+    option = print_menu_and_get_desired_option_index(
+        menu_of_options, default_option_index=1
+    )
     ans = menu_of_options[option]
     return ans
 

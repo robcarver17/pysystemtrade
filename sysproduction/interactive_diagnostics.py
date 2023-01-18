@@ -7,7 +7,7 @@ from syscore.interactive import (
     get_input_from_user_and_convert_to_type,
     interactiveMenu,
     print_menu_of_values_and_get_response,
-    print_menu_and_get_desired_option,
+    print_menu_and_get_desired_option_index,
     true_if_answer_is_yes,
     get_report_dates,
     progressBar,
@@ -326,7 +326,7 @@ def view_errors(data):
         "How many days?", type_expected=int, default_value=7
     )
     print("Which level of error/message?")
-    log_level = print_menu_and_get_desired_option(msg_levels)
+    log_level = print_menu_and_get_desired_option_index(msg_levels)
     log_item_list = diag_logs.get_log_items_with_level(
         log_level, attribute_dict=dict(), lookback_days=lookback_days
     )

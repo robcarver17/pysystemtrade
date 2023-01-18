@@ -167,8 +167,8 @@ class interactiveMenu(object):
         return option_chosen
 
     def _propose_options_and_get_input_at_top_level(self):
-        option_chosen = print_menu_and_get_desired_option(
-            self.top_level_menu, default_option=EXIT_OPTION, default_str="EXIT"
+        option_chosen = print_menu_and_get_desired_option_index(
+            self.top_level_menu, default_option_index=EXIT_OPTION, default_str="EXIT"
         )
         if option_chosen == EXIT_OPTION:
             return EXIT_OPTION
@@ -179,8 +179,8 @@ class interactiveMenu(object):
     def _propose_options_and_get_input_at_sub_level(self) -> int:
 
         sub_menu = self.current_submenu
-        option_chosen = print_menu_and_get_desired_option(
-            sub_menu, default_option=EXIT_OPTION, default_str="Back"
+        option_chosen = print_menu_and_get_desired_option_index(
+            sub_menu, default_option_index=EXIT_OPTION, default_str="Back"
         )
         if option_chosen == EXIT_OPTION:
             self.location = TOP_LEVEL
@@ -229,59 +229,74 @@ class interactiveMenu(object):
 
 
 def print_menu_of_values_and_get_response(
-    menu_of_options_as_list: list, default_str=""
-):
+    menu_of_options_as_list: List[str], default_str=""
+) -> str:
 
-    copy_menu_of_options_as_list = copy(menu_of_options_as_list)
-    if default_str != "":
-        try:
-            copy_menu_of_options_as_list.index(default_str)
-        except ValueError:
-            copy_menu_of_options_as_list.append(default_str)
-
-        default_option = copy_menu_of_options_as_list.index(default_str)
-    else:
-        default_option = None
-
-    menu_of_options = dict(
-        [
-            (int_key, menu_value)
-            for int_key, menu_value in enumerate(copy_menu_of_options_as_list)
-        ]
+    default_option_index, copy_menu_of_options_as_list = _get_index_of_default_option(
+        menu_of_options_as_list=menu_of_options_as_list, default_str=default_str
     )
-    ans = print_menu_and_get_desired_option(
-        menu_of_options, default_option=default_option, default_str=default_str
+
+    menu_of_options = _list_menu_to_dict_menu(copy_menu_of_options_as_list)
+
+    ans = print_menu_and_get_desired_option_index(
+        menu_of_options,
+        default_option_index=default_option_index,
+        default_str=default_str,
     )
     option_chosen = copy_menu_of_options_as_list[ans]
 
     return option_chosen
 
 
-def print_menu_and_get_desired_option(
-    menu_of_options: dict, default_option=None, default_str: str = ""
+def _get_index_of_default_option(
+    menu_of_options_as_list: List[str], default_str=""
+) -> Tuple[Union[None, int], List[str]]:
+
+    copy_menu_of_options_as_list = copy(menu_of_options_as_list)
+    if default_str == "":
+        return None, copy_menu_of_options_as_list
+    try:
+        default_option = copy_menu_of_options_as_list.index(default_str)
+    except ValueError:
+        ## not in list have to add it
+        copy_menu_of_options_as_list.append(default_str)
+        default_option = copy_menu_of_options_as_list.index(default_str)
+
+    return default_option, copy_menu_of_options_as_list
+
+
+def _list_menu_to_dict_menu(menu_of_options_as_list: List[str]) -> dict:
+    menu_of_options = dict(
+        [
+            (int_key, menu_value)
+            for int_key, menu_value in enumerate(menu_of_options_as_list)
+        ]
+    )
+    return menu_of_options
+
+
+def print_menu_and_get_desired_option_index(
+    menu_of_options: dict, default_option_index=None, default_str: str = ""
 ) -> int:
-    """
+    _print_options_menu(menu_of_options)
 
-    :param copy_menu_of_options: A dict, keys are ints, values are str
-    :param default_option: None, or one of the keys
-    :return: int menu chosen
-    """
-    copy_menu_of_options = copy(menu_of_options)
+    (
+        allow_default,
+        copy_menu_of_options,
+        default_option_index,
+        default_str,
+    ) = _resolve_default_for_dict_of_menu_options(
+        menu_of_options=menu_of_options,
+        default_option_index=default_option_index,
+        default_str=default_str,
+    )
     menu_options_list = sorted(copy_menu_of_options.keys())
-    for option in menu_options_list:
-        print("%d: %s" % (option, copy_menu_of_options[option]))
-    print("\n")
-    computer_says_no = True
-    if default_option is None:
-        allow_default = False
-    else:
-        allow_default = True
-        menu_options_list = [default_option] + menu_options_list
 
-    while computer_says_no:
+    invalid_response = True
+    while invalid_response:
         ans = get_input_from_user_and_convert_to_type(
             "Your choice?",
-            default_value=default_option,
+            default_value=default_option_index,
             type_expected=int,
             allow_default=allow_default,
             default_str=default_str,
@@ -290,10 +305,52 @@ def print_menu_and_get_desired_option(
             print("Not a valid option")
             continue
         else:
-            computer_says_no = False
             break
 
     return ans
+
+
+def _resolve_default_for_dict_of_menu_options(
+    menu_of_options: dict, default_option_index=None, default_str: str = ""
+) -> Tuple[bool, dict, int, str]:
+
+    """
+
+    >>> _resolve_default_for_dict_of_menu_options({1: 'a', 2: 'b'}, 1)
+    (True, {1: 'a', 2: 'b'}, 1, 'a')
+    >>> _resolve_default_for_dict_of_menu_options({1: 'a', 2: 'b'})
+    (False, {1: 'a', 2: 'b'}, None, '')
+    >>> _resolve_default_for_dict_of_menu_options({1: 'a', 2: 'b'}, default_str="x")
+    (False, {1: 'a', 2: 'b'}, None, 'x')
+    >>> _resolve_default_for_dict_of_menu_options({1: 'a', 2: 'b'}, 0, default_str="c")
+    (True, {1: 'a', 2: 'b', 0: 'c'}, 0, 'c')
+
+    """
+
+    copy_menu_of_options = copy(menu_of_options)
+    menu_options_list = sorted(copy_menu_of_options.keys())
+
+    if default_option_index is None:
+        allow_default = False
+        ## will ignore default_str without an index for it
+    else:
+        allow_default = True
+        if not default_option_index in menu_options_list:
+            copy_menu_of_options[default_option_index] = default_str
+        else:
+            default_str = copy_menu_of_options[default_option_index]
+
+    return allow_default, copy_menu_of_options, default_option_index, default_str
+
+
+def _print_options_menu(menu_of_options: dict):
+    menu_options_list = sorted(menu_of_options.keys())
+    try:
+        for option in menu_options_list:
+            print("%d: %s" % (option, str(menu_of_options[option])))
+        print("\n")
+    except TypeError:
+        raise Exception("All keys passed to menu must be of type int")
 
 
 """
@@ -312,9 +369,9 @@ def get_report_dates() -> Tuple[datetime.datetime, datetime.datetime]:
 
     input_end_date = get_datetime_input(
         "End date for report?\n",
-        allow_default=True,
-        allow_period=True,
+        allow_default_datetime_of_now=True,
         allow_calendar_days=True,
+        allow_period=True,
     )
 
     if type(input_end_date) is int:
@@ -330,9 +387,9 @@ def get_report_dates() -> Tuple[datetime.datetime, datetime.datetime]:
 
     input_start_date = get_datetime_input(
         "Start date for report? \n",
-        allow_default=False,
-        allow_period=True,
+        allow_default_datetime_of_now=False,
         allow_calendar_days=True,
+        allow_period=True,
     )
 
     if type(input_start_date) is int:
@@ -357,60 +414,112 @@ def get_report_dates() -> Tuple[datetime.datetime, datetime.datetime]:
     return start_date, end_date
 
 
+INVALID_DATETIME = object()
+
+
 def get_datetime_input(
     prompt: str,
-    allow_default: bool = True,
+    allow_default_datetime_of_now: bool = True,
+    allow_calendar_days: bool = False,
+    allow_period: bool = False,
+) -> Union[str, datetime.datetime, int]:
+
+    input_str = _create_input_string_for_datetime_input(
+        prompt=prompt,
+        allow_default_datetime_of_now=allow_default_datetime_of_now,
+        allow_period=allow_period,
+        allow_calendar_days=allow_calendar_days,
+    )
+    invalid_input = True
+    while invalid_input:
+        ans = _get_input_for_datetime_prompt(
+            input_str=input_str,
+            allow_period=allow_period,
+            allow_calendar_days=allow_calendar_days,
+            allow_default_datetime_of_now=allow_default_datetime_of_now,
+        )
+        if ans is INVALID_DATETIME:
+            continue
+        else:
+            break
+
+    return ans
+
+
+LONG_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+SHORT_DATETIME_FORMAT = "%Y-%m-%d"
+LONG_EXAMPLE = datetime.datetime.strftime(datetime.datetime.now(), LONG_DATETIME_FORMAT)
+SHORT_EXAMPLE = datetime.datetime.strftime(
+    datetime.datetime.now(), SHORT_DATETIME_FORMAT
+)
+
+
+def _create_input_string_for_datetime_input(
+    prompt: str,
+    allow_default_datetime_of_now: bool = True,
+    allow_calendar_days: bool = False,
+    allow_period: bool = False,
+) -> str:
+    input_str = (
+        prompt
+        + ": Enter date and time in format %s eg '%s' OR '%s' eg '%s'"
+        % (SHORT_DATETIME_FORMAT, SHORT_EXAMPLE, LONG_DATETIME_FORMAT, LONG_EXAMPLE)
+    )
+    if allow_calendar_days:
+        input_str = input_str + "\n OR [Enter an integer to go back N calendar days]"
+    if allow_period:
+        input_str = input_str + "OR [Enter a string for period, eg 'YTD', '3M', '2B']"
+    if allow_default_datetime_of_now:
+        input_str = input_str + "OR <RETURN for now>"
+
+    return input_str
+
+
+def _get_input_for_datetime_prompt(
+    input_str: str,
+    allow_default_datetime_of_now: bool = True,
     allow_calendar_days: bool = False,
     allow_period: bool = False,
 ):
-    invalid_input = True
-    input_str = (
-        prompt
-        + ": Enter date and time in format %Y-%m-%d eg '2020-05-30' OR '%Y-%m-%d %H:%M:%S' eg '2020-05-30 14:04:11'"
-    )
-    if allow_calendar_days:
-        input_str = input_str + "\n OR [Enter a number to back N calendar days]"
+    ans = input(input_str)
+    if ans == "" and allow_default_datetime_of_now:
+        return datetime.datetime.now()
+
     if allow_period:
-        input_str = input_str + "OR [Enter a string for period, eg 'YTD', '3M', '2B']"
-    if allow_default:
-        input_str = input_str + "OR <RETURN for now>"
-
-    while invalid_input:
-        ans = input(input_str)
-        if ans == "" and allow_default:
-            return datetime.datetime.now()
-
-        if allow_period:
-            try:
-                _NOT_USED = get_date_from_period_and_end_date(ans)
-                ## all good, return as string
-                return ans
-            except:
-                pass
-
-        if allow_calendar_days:
-            try:
-                attempt_as_int = int(ans)
-                return attempt_as_int
-            except:
-                pass
-
         try:
-            ans = resolve_datetime_input_str(ans)
+            _NOT_USED = get_date_from_period_and_end_date(ans)
+            ## all good, return as string
             return ans
         except:
-            print("%s is not any valid input string" % ans)
             pass
 
+    if allow_calendar_days:
+        try:
+            ans_as_int = int(ans)
+            return ans_as_int
+        except:
+            pass
 
-def resolve_datetime_input_str(ans):
-    if len(ans) == 10:
-        return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d")
-    elif len(ans) == 19:
-        return_datetime = datetime.datetime.strptime(ans, "%Y-%m-%d %H:%M:%S")
+    try:
+        ans_as_datetime = _resolve_datetime_input_str(ans)
+        return ans_as_datetime
+    except:
+        pass
+
+    print("%s is not any valid input string" % ans)
+
+    return INVALID_DATETIME
+
+
+def _resolve_datetime_input_str(ans) -> datetime.datetime:
+    if len(ans) == len(SHORT_DATETIME_FORMAT):
+        return_datetime = datetime.datetime.strptime(ans, SHORT_DATETIME_FORMAT)
+    elif len(ans) == len(LONG_DATETIME_FORMAT):
+        return_datetime = datetime.datetime.strptime(ans, LONG_DATETIME_FORMAT)
     else:
         # problems formatting will also raise value error
         raise ValueError
+
     return return_datetime
 
 
