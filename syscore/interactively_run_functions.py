@@ -18,7 +18,7 @@ def interactively_input_arguments_for_function(func, full_funcname):
 
     print(
         "\n %s:\n %s \n Arguments: %s"
-        % (full_funcname, inspect.getdoc(func), list(func_arguments.keys()))
+        % (full_funcname, str(inspect.getdoc(func)), str(list(func_arguments.keys())))
     )
 
     args = []

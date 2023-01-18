@@ -71,6 +71,16 @@ def get_unique_list(somelist: list) -> list:
     return list(set(somelist))
 
 
+def get_unique_list_slow(somelist):
+    uniquelist = []
+
+    for somevalue in somelist:
+        if somevalue not in uniquelist:
+            uniquelist.append(somevalue)
+
+    return uniquelist
+
+
 def round_significant_figures(x: float, figures: int = 3) -> float:
     """
     >>> round_significant_figures(0.0234, 2)

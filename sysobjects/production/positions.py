@@ -1,6 +1,6 @@
 import pandas as pd
 
-from syscore.genutils import get_unique_list
+from syscore.genutils import get_unique_list_slow
 from sysobjects.contracts import futuresContract, contract_from_key
 from sysobjects.instruments import futuresInstrument
 from sysobjects.production.tradeable_object import instrumentStrategy
@@ -106,7 +106,7 @@ class listOfPositions(list):
         list_of_other_tradeable_objects = [
             position.tradeable_object for position in other_list_of_positions
         ]
-        joint_list_of_tradeable_objects = get_unique_list(
+        joint_list_of_tradeable_objects = get_unique_list_slow(
             list_of_my_tradeable_objects + list_of_other_tradeable_objects
         )
         list_of_breaks = []
