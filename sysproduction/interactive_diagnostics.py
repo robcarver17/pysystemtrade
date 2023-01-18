@@ -7,7 +7,7 @@ from syscore.interactive import (
     get_input_from_user_and_convert_to_type,
     interactiveMenu,
     print_menu_of_values_and_get_response,
-    print_menu_and_get_response,
+    print_menu_and_get_desired_option,
     true_if_answer_is_yes,
     get_report_dates,
     progressBar,
@@ -74,23 +74,9 @@ def interactive_diagnostics():
     print("\n\n INTERACTIVE DIAGNOSTICS\n\n")
     set_pd_print_options()
     with dataBlob(log_name="Interactive-Diagnostics") as data:
-        menu = interactiveMenu(
-            top_level_menu_of_options,
-            nested_menu_of_options,
-            exit_option=-1,
-            another_menu=-2,
-        )
-        still_running = True
-        while still_running:
-            option_chosen = menu.propose_options_and_get_input()
-            if option_chosen == -1:
-                print("FINISHED")
-                return None
-            if option_chosen == -2:
-                continue
-
-            method_chosen = dict_of_functions[option_chosen]
-            method_chosen(data)
+        set_pd_print_options()
+        menu = interactiveMenu(top_level_menu_of_options, nested_menu_of_options, data)
+        menu.run_menu()
 
 
 top_level_menu_of_options = {
@@ -340,7 +326,7 @@ def view_errors(data):
         "How many days?", type_expected=int, default_value=7
     )
     print("Which level of error/message?")
-    log_level = print_menu_and_get_response(msg_levels)
+    log_level = print_menu_and_get_desired_option(msg_levels)
     log_item_list = diag_logs.get_log_items_with_level(
         log_level, attribute_dict=dict(), lookback_days=lookback_days
     )

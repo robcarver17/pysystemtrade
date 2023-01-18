@@ -6,7 +6,7 @@ import pandas as pd
 from syscore.interactive import (
     get_input_from_user_and_convert_to_type,
     interactiveMenu,
-    print_menu_and_get_response,
+    print_menu_and_get_desired_option,
     true_if_answer_is_yes,
 )
 from syscore.text import calculate_multiplication_factor_for_nice_repr_of_value
@@ -80,23 +80,9 @@ class parametersForAutoPopulation:
 def interactive_controls():
     set_pd_print_options()
     with dataBlob(log_name="Interactive-Controls") as data:
-        menu = interactiveMenu(
-            top_level_menu_of_options,
-            nested_menu_of_options,
-            exit_option=-1,
-            another_menu=-2,
-        )
-        still_running = True
-        while still_running:
-            option_chosen = menu.propose_options_and_get_input()
-            if option_chosen == -1:
-                print("FINISHED")
-                return None
-            if option_chosen == -2:
-                continue
-
-            method_chosen = dict_of_functions[option_chosen]
-            method_chosen(data)
+        set_pd_print_options()
+        menu = interactiveMenu(top_level_menu_of_options, nested_menu_of_options, data)
+        menu.run_menu()
 
 
 top_level_menu_of_options = {
@@ -791,7 +777,7 @@ def change_global_process_control_status(data):
 
 
 def get_valid_status_for_process():
-    status_int = print_menu_and_get_response(
+    status_int = print_menu_and_get_desired_option(
         {
             1: "Go",
             2: "Do not run (don't stop if already running)",
@@ -821,7 +807,7 @@ def get_process_name(data):
     process_names = get_dict_of_process_controls(data)
     menu_of_options = dict(list(enumerate(process_names)))
     print("Process name?")
-    option = print_menu_and_get_response(menu_of_options, default_option=1)
+    option = print_menu_and_get_desired_option(menu_of_options, default_option=1)
     ans = menu_of_options[option]
     return ans
 

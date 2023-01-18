@@ -58,24 +58,9 @@ def interactive_order_stack():
 
 def interactive_order_stack_with_ib_conn(ib_conn: connectionIB = arg_not_supplied):
     with dataBlob(log_name="Interactive-Order-Stack", ib_conn=ib_conn) as data:
-
-        menu = interactiveMenu(
-            top_level_menu_of_options,
-            nested_menu_of_options,
-            exit_option=-1,
-            another_menu=-2,
-        )
-        still_running = True
-        while still_running:
-            option_chosen = menu.propose_options_and_get_input()
-            if option_chosen == -1:
-                print("FINISHED")
-                return None
-            if option_chosen == -2:
-                continue
-            set_pd_print_options()
-            method_chosen = dict_of_functions[option_chosen]
-            method_chosen(data)
+        set_pd_print_options()
+        menu = interactiveMenu(top_level_menu_of_options, nested_menu_of_options, data)
+        menu.run_menu()
 
 
 top_level_menu_of_options = {

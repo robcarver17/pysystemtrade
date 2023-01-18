@@ -2,7 +2,7 @@ from syscore.exceptions import missingData
 from syscore.objects import success, failure, arg_not_supplied, missing_data
 from syscore.interactive import (
     get_input_from_user_and_convert_to_type,
-    print_menu_and_get_response,
+    print_menu_and_get_desired_option,
     get_datetime_input,
     true_if_answer_is_yes,
 )
@@ -78,7 +78,7 @@ def print_capital_and_get_user_input(data: dataBlob):
             6: "Delete everything and start again",
         }
 
-    user_option_int = print_menu_and_get_response(
+    user_option_int = print_menu_and_get_desired_option(
         possible_options, default_option=0, default_str="EXIT"
     )
 
