@@ -77,7 +77,9 @@ def interactive_diagnostics():
     set_pd_print_options()
     with dataBlob(log_name="Interactive-Diagnostics") as data:
         set_pd_print_options()
-        menu = interactiveMenu(top_level_menu_of_options, nested_menu_of_options, data)
+        menu = interactiveMenu(
+            top_level_menu_of_options, nested_menu_of_options, dict_of_functions, data
+        )
         menu.run_menu()
 
 

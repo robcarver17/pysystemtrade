@@ -61,7 +61,9 @@ def interactive_order_stack():
 def interactive_order_stack_with_ib_conn(ib_conn: connectionIB = arg_not_supplied):
     with dataBlob(log_name="Interactive-Order-Stack", ib_conn=ib_conn) as data:
         set_pd_print_options()
-        menu = interactiveMenu(top_level_menu_of_options, nested_menu_of_options, data)
+        menu = interactiveMenu(
+            top_level_menu_of_options, nested_menu_of_options, dict_of_functions, data
+        )
         menu.run_menu()
 
 
