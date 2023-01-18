@@ -5,7 +5,7 @@ import datetime
 from collections import namedtuple
 
 from syscore.objects import header, table, body_text, missing_data
-from syscore.dateutils import ROOT_BDAYS_INYEAR, from_marker_to_datetime
+from syscore.dateutils import ROOT_BDAYS_INYEAR, from_marker_string_to_datetime
 from sysproduction.data.positions import diagPositions
 
 from sysobjects.production.backtest_storage import interactiveBacktest
@@ -182,7 +182,7 @@ def get_forecast_matrix(
     trading_rules = data_backtest.system.rules.trading_rules()
     trading_rule_names = list(trading_rules.keys())
 
-    datetime_cutoff = from_marker_to_datetime(data_backtest.timestamp)
+    datetime_cutoff = from_marker_string_to_datetime(data_backtest.timestamp)
 
     value_dict = {}
     for rule_name in trading_rule_names:
@@ -205,7 +205,7 @@ def get_forecast_matrix_over_code(
     trading_rules = data_backtest.system.rules.trading_rules()
     trading_rule_names = list(trading_rules.keys())
 
-    datetime_cutoff = from_marker_to_datetime(data_backtest.timestamp)
+    datetime_cutoff = from_marker_string_to_datetime(data_backtest.timestamp)
 
     value_dict = {}
     for instrument_code in instrument_codes:
@@ -371,7 +371,7 @@ def get_stage_breakdown_over_codes(backtest: interactiveBacktest, method_list: l
 
 def get_list_of_values_by_instrument_for_config(backtest, config_for_method):
     instrument_codes = backtest.system.get_instrument_list()
-    datetime_cutoff = from_marker_to_datetime(backtest.timestamp)
+    datetime_cutoff = from_marker_string_to_datetime(backtest.timestamp)
 
     stage = getattr(backtest.system, config_for_method.stage_name)
     method = getattr(stage, config_for_method.method_name)
@@ -460,7 +460,7 @@ def get_position_for_instrument_code_at_timestamp(data_backtest, data, instrumen
     if positions_over_time is missing_data:
         return np.nan
 
-    datetime_cutoff = from_marker_to_datetime(data_backtest.timestamp)
+    datetime_cutoff = from_marker_string_to_datetime(data_backtest.timestamp)
     positions_over_time_ffill = positions_over_time.ffill()
     positions_before_cutoff = positions_over_time_ffill[:datetime_cutoff]
 

@@ -8,7 +8,7 @@ import numpy as np
 
 from syscore.dateutils import (
     get_date_from_period_and_end_date,
-    get_approx_vol_scalar_for_period,
+    get_approx_vol_scalar_versus_daily_vol_for_period,
 )
 from syscore.cache import Cache
 from syscore.objects import arg_not_supplied
@@ -158,7 +158,9 @@ class marketMovers(object):
         end_date: datetime.date,
     ) -> float:
 
-        vol_scalar = get_approx_vol_scalar_for_period(start_date, end_date)
+        vol_scalar = get_approx_vol_scalar_versus_daily_vol_for_period(
+            start_date, end_date
+        )
         stddev = self.get_stdev_at_start_date_for_instrument(
             start_date, instrument_code
         )

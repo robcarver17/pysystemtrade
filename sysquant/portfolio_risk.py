@@ -1,6 +1,6 @@
 import datetime
 import pandas as pd
-from syscore.genutils import progressBar
+from syscore.interactive import progressBar
 
 from sysquant.estimators.stdev_estimator import seriesOfStdevEstimates, stdevEstimates
 from sysquant.estimators.correlations import (

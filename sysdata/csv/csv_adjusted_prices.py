@@ -2,7 +2,10 @@ import pandas as pd
 
 from sysdata.futures.adjusted_prices import futuresAdjustedPricesData
 from sysobjects.adjusted_prices import futuresAdjustedPrices
-from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
+from syscore.fileutils import (
+    resolve_path_and_filename_for_package,
+    files_with_extension_in_pathname,
+)
 from syscore.pdutils import pd_readcsv
 from syscore.objects import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
@@ -76,4 +79,6 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
         adjusted_price_data_as_dataframe.to_csv(filename, index_label=DATE_INDEX_NAME)
 
     def _filename_given_instrument_code(self, instrument_code: str):
-        return get_filename_for_package(self.datapath, "%s.csv" % (instrument_code))
+        return resolve_path_and_filename_for_package(
+            self.datapath, "%s.csv" % (instrument_code)
+        )

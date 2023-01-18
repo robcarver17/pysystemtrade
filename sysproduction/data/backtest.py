@@ -3,7 +3,7 @@ import datetime
 import os
 from shutil import copyfile
 
-from syscore.dateutils import create_datetime_string
+from syscore.dateutils import create_datetime_marker_string
 from syscore.fileutils import files_with_extension_in_pathname, get_resolved_pathname
 from syscore.objects import (
     arg_not_supplied,
@@ -202,7 +202,7 @@ def store_backtest_state(data, system, strategy_name="default_strategy"):
 
     ensure_backtest_directory_exists(strategy_name)
 
-    datetime_marker = create_datetime_string()
+    datetime_marker = create_datetime_marker_string()
 
     pickle_filename = get_backtest_pickle_filename(strategy_name, datetime_marker)
     pickle_state(data, system, pickle_filename)

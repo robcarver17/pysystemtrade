@@ -1,7 +1,7 @@
 import pandas as pd
 from copy import copy
 
-from syscore.genutils import progressBar
+from syscore.interactive import progressBar
 
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.instruments import diagInstruments

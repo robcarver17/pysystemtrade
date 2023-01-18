@@ -3,7 +3,10 @@ import pandas as pd
 
 from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
-from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
+from syscore.fileutils import (
+    resolve_path_and_filename_for_package,
+    files_with_extension_in_pathname,
+)
 from syscore.objects import arg_not_supplied
 from syscore.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
 from syslogdiag.log_to_screen import logtoscreen
@@ -114,4 +117,4 @@ class csvFxPricesData(fxPricesData):
         )
 
     def _filename_given_fx_code(self, code: str):
-        return get_filename_for_package(self._datapath, "%s.csv" % (code))
+        return resolve_path_and_filename_for_package(self._datapath, "%s.csv" % (code))

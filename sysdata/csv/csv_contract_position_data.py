@@ -1,7 +1,7 @@
 import pandas as pd
 from sysdata.production.historic_positions import contractPositionData
 from sysobjects.contracts import futuresContract
-from syscore.fileutils import get_filename_for_package
+from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.objects import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
 
@@ -35,6 +35,6 @@ class csvContractPositionData(contractPositionData):
         position_df.to_csv(filename, index_label=DATE_INDEX_NAME)
 
     def _filename_given_contract(self, contract: futuresContract):
-        return get_filename_for_package(
+        return resolve_path_and_filename_for_package(
             self._datapath, "%s_%s.csv" % (contract.instrument_code, contract.date_str)
         )

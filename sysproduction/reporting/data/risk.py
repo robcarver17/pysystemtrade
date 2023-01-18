@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 from statsmodels.formula import api as sm
 
-from syscore.dateutils import ROOT_BDAYS_INYEAR, n_days_ago
-from syscore.genutils import progressBar
+from syscore.dateutils import ROOT_BDAYS_INYEAR, n_days_ago, CALENDAR_DAYS_IN_YEAR
+from syscore.interactive import progressBar
 from syscore.objects import arg_not_supplied
 from syscore.pdutils import prices_to_daily_prices
 from sysdata.data_blob import dataBlob
@@ -777,7 +777,9 @@ def last_years_perc_returns_for_list_of_instruments(
     adj_prices_as_df = pd.concat(adj_prices_as_dict, axis=1)
     adj_prices_as_df.columns = list_of_instruments
     daily_adj_prices_as_df = prices_to_daily_prices(adj_prices_as_df)
-    last_year_daily_adj_prices_as_df = daily_adj_prices_as_df[n_days_ago(365) :]
+    last_year_daily_adj_prices_as_df = daily_adj_prices_as_df[
+        n_days_ago(CALENDAR_DAYS_IN_YEAR) :
+    ]
     perc_returns = (
         last_year_daily_adj_prices_as_df - last_year_daily_adj_prices_as_df.shift(1)
     ) / last_year_daily_adj_prices_as_df.shift(1)

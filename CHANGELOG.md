@@ -260,7 +260,7 @@ Note that the large contract prices will continue to be updated (best to keep do
 
 ## Version 0.23.0
 
-- 'get_filename_for_package' can now take absolute as well as relative paths, and can cope with separate file names
+- 'resolve_path_and_filename_for_package' can now take absolute as well as relative paths, and can cope with separate file names
 - Updated legacy .csv files
 - Fixed a few bugs
 - Can now get unexpired contracts for a given instrument using 'contractDateWithRollParameters.get_unexpired_contracts_from_now_to_contract_date()'

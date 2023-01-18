@@ -8,15 +8,17 @@ from sysbrokers.IB.ib_instruments import (
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
 
-from syscore.fileutils import get_filename_for_package
-from syscore.genutils import value_or_npnan
+from syscore.fileutils import resolve_path_and_filename_for_package
+from syscore.genutils import return_another_value_if_nan
 from syscore.objects import missing_instrument, missing_file
 
 from sysobjects.instruments import futuresInstrument
 
 from syslogdiag.log_to_screen import logtoscreen
 
-IB_FUTURES_CONFIG_FILE = get_filename_for_package("sysbrokers.IB.ib_config_futures.csv")
+IB_FUTURES_CONFIG_FILE = resolve_path_and_filename_for_package(
+    "sysbrokers.IB.ib_config_futures.csv"
+)
 
 
 class IBconfig(pd.DataFrame):
@@ -171,11 +173,11 @@ def get_instrument_object_from_config(
     config_row = config[config.Instrument == instrument_code]
     symbol = config_row.IBSymbol.values[0]
     exchange = config_row.IBExchange.values[0]
-    currency = value_or_npnan(config_row.IBCurrency.values[0], NOT_REQUIRED_FOR_IB)
-    ib_multiplier = value_or_npnan(
+    currency = return_another_value_if_nan(config_row.IBCurrency.values[0], NOT_REQUIRED_FOR_IB)
+    ib_multiplier = return_another_value_if_nan(
         config_row.IBMultiplier.values[0], NOT_REQUIRED_FOR_IB
     )
-    price_magnifier = value_or_npnan(config_row.priceMagnifier.values[0], 1.0)
+    price_magnifier = return_another_value_if_nan(config_row.priceMagnifier.values[0], 1.0)
     ignore_weekly = config_row.IgnoreWeekly.values[0]
 
     # We use the flexibility of futuresInstrument to add additional arguments

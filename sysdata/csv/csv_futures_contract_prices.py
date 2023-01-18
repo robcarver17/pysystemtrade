@@ -4,7 +4,10 @@ from sysdata.futures.futures_per_contract_prices import futuresContractPriceData
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from syslogdiag.log_to_screen import logtoscreen
-from syscore.fileutils import files_with_extension_in_pathname, get_filename_for_package
+from syscore.fileutils import (
+    files_with_extension_in_pathname,
+    resolve_path_and_filename_for_package,
+)
 from syscore.objects import arg_not_supplied
 from syscore.dateutils import MIXED_FREQ, Frequency
 from syscore.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
@@ -275,7 +278,9 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         return frequency, instrument_code, contract_date
 
     def _filename_given_key_name(self, keyname: str):
-        return get_filename_for_package(self._datapath, "%s.csv" % (keyname))
+        return resolve_path_and_filename_for_package(
+            self._datapath, "%s.csv" % (keyname)
+        )
 
     def _all_keynames_in_library(self) -> list:
         return files_with_extension_in_pathname(self._datapath, ".csv")

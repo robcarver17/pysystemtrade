@@ -2,7 +2,7 @@ import matplotlib.pyplot as pyplot
 
 import pandas as pd
 
-from syscore.fileutils import file_in_home_dir
+from syscore.fileutils import full_filename_for_file_in_home_dir
 from syscore.objects import user_exit, missing_data
 from syscore.interactive import print_menu_of_values_and_get_response
 from syscore.interactively_run_functions import fill_args_and_run_func
@@ -107,7 +107,7 @@ class interactiveBacktest(object):
         data = self.interactively_get_data_for_stage_and_method()
         if data is user_exit or data is missing_data:
             return data
-        filename = file_in_home_dir("temp.html")
+        filename = full_filename_for_file_in_home_dir("temp.html")
         try:
             data_as_pd = pd.DataFrame(data)
             data_as_pd.to_html(filename)

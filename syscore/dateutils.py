@@ -1,11 +1,14 @@
 """
 Various routines to do with dates
 """
-from enum import Enum
 
+import calendar
 import datetime
 import time
-import calendar
+
+from enum import Enum
+from typing import List, Union, Tuple
+
 import pandas as pd
 import numpy as np
 
@@ -13,7 +16,9 @@ from syscore.exceptions import missingData
 from syscore.objects import missing_data, arg_not_supplied
 
 """
-First some constants
+
+ GENERAL CONSTANTS
+
 """
 
 CALENDAR_DAYS_IN_YEAR = 365.25
@@ -43,12 +48,131 @@ UNIXTIME_CONVERTER = 1e9
 
 UNIXTIME_IN_YEAR = UNIXTIME_CONVERTER * SECONDS_IN_YEAR
 
-MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
+"""
+ 
+ RELATIVE TIME REFERENCING
+
+"""
+
+
+def calculate_start_and_end_dates(
+    calendar_days_back: int = arg_not_supplied,
+    end_date: datetime.datetime = arg_not_supplied,
+    start_date: datetime.datetime = arg_not_supplied,
+    start_period: str = arg_not_supplied,
+    end_period: str = arg_not_supplied,
+) -> Tuple[datetime.datetime, datetime.datetime]:
+
+    resolved_end_date = _resolve_end_date_given_period_and_explicit_end_date(
+        end_date=end_date, end_period=end_period
+    )
+    resolved_start_date = _resolve_start_date_given_end_date_calendar_days_and_period(
+        resolved_end_date=resolved_end_date,
+        start_date=start_date,
+        start_period=start_period,
+        calendar_days_back=calendar_days_back,
+    )
+
+    return resolved_start_date, resolved_end_date
+
+
+def _resolve_end_date_given_period_and_explicit_end_date(
+    end_date: datetime.datetime = arg_not_supplied,
+    end_period: str = arg_not_supplied,
+) -> datetime.datetime:
+    """
+    >>> _resolve_end_date_given_period_and_explicit_end_date(end_date=datetime.datetime(2022,1,1))
+    datetime.datetime(2022, 1, 1, 0, 0)
+    >>> _resolve_end_date_given_period_and_explicit_end_date(end_period="1M", end_date=datetime.datetime(2022,4,1))
+    datetime.datetime(2022, 3, 1, 0, 0)
+
+    """
+    ## Preference: Use period, use explicit end date, use now()
+    ## First preference is to use period
+    if end_period is arg_not_supplied:
+        ## OK preference is to use passed date, if there was one
+        if end_date is arg_not_supplied:
+            ## Nothing passed use now
+            return datetime.datetime.now()
+        else:
+            # Use explicit passed end date
+            return end_date
+    else:
+        # use period string (date will probably not have an effect except when debugging)
+        return get_date_from_period_and_end_date(end_period, end_date=end_date)
+
+
+def _resolve_start_date_given_end_date_calendar_days_and_period(
+    resolved_end_date: datetime.datetime,
+    calendar_days_back: int = arg_not_supplied,
+    start_date: datetime.datetime = arg_not_supplied,
+    start_period: str = arg_not_supplied,
+) -> datetime.datetime:
+    """
+    >>> _resolve_start_date_given_end_date_calendar_days_and_period(resolved_end_date = datetime.datetime(2023,1,1), calendar_days_back = 5, start_date = datetime.datetime(2022,1,1), start_period="2Y")
+    datetime.datetime(2021, 1, 1, 0, 0)
+    >>> _resolve_start_date_given_end_date_calendar_days_and_period(resolved_end_date = datetime.datetime(2023,1,1), calendar_days_back = 5, start_date = datetime.datetime(2022,1,1))
+    datetime.datetime(2022, 1, 1, 0, 0)
+    >>> _resolve_start_date_given_end_date_calendar_days_and_period(resolved_end_date = datetime.datetime(2023,1,7), calendar_days_back = 5)
+    datetime.datetime(2023, 1, 2, 0, 0)
+    >>> _resolve_start_date_given_end_date_calendar_days_and_period(resolved_end_date = datetime.datetime(2023,1,7))
+    Exception: Have to specify one of calendar days back, start period or start date!
+
+    """
+    ## First preference is to use period, then passed date, then calendar days
+    if start_period is arg_not_supplied:
+        if start_date is arg_not_supplied:
+            ## no period or calendar days, use passed date
+            if calendar_days_back is arg_not_supplied:
+                raise Exception(
+                    "Have to specify one of calendar days back, start period or start date!"
+                )
+            else:
+                ## Have calendar days
+                return n_days_ago(calendar_days_back, resolved_end_date)
+        else:
+            ## Use passed start date
+            return start_date
+    else:
+        ## have a start period, use that
+        return get_date_from_period_and_end_date(start_period, resolved_end_date)
+
+
+def n_days_ago(n_days: int, end_date=arg_not_supplied) -> datetime.datetime:
+    """
+    Calculates date N days ago
+
+    >>> n_days_ago(16, datetime.datetime(2023,4,15,12,15))
+    datetime.datetime(2023, 3, 30, 12, 15)
+
+    """
+
+    if end_date is arg_not_supplied:
+        end_date = datetime.datetime.now()
+
+    period = "%dD" % n_days
+
+    return calculate_previous_date_from_period_with_char_number(period, end_date)
 
 
 def get_date_from_period_and_end_date(
     period: str, end_date=arg_not_supplied
 ) -> datetime.datetime:
+    """
+    Calculates date according to offset
+
+    >>> get_date_from_period_and_end_date('YTD', datetime.date(2023,5,15))
+    datetime.datetime(2023, 1, 1, 0, 0)
+    >>> get_date_from_period_and_end_date('MTD', datetime.date(2023,5,15))
+    datetime.datetime(2023, 5, 1, 0, 0)
+    >>> get_date_from_period_and_end_date('QTD', datetime.date(2023,5,15))
+    datetime.datetime(2023, 4, 1, 0, 0)
+    >>> get_date_from_period_and_end_date('TAX', datetime.datetime(2023,5,15))
+    datetime.datetime(2023, 4, 6, 0, 0)
+    >>> get_date_from_period_and_end_date('2M', datetime.datetime(2023,5,15,12,15))
+    datetime.datetime(2023, 3, 15, 12, 15)
+
+    """
     if end_date is arg_not_supplied:
         end_date = datetime.datetime.now()
 
@@ -61,13 +185,29 @@ def get_date_from_period_and_end_date(
     elif period == "TAX":
         return calculate_starting_day_of_current_uk_tax_year(end_date)
 
-    offset_date = _get_previous_date_from_period_with_char_number(period, end_date)
+    offset_date = calculate_previous_date_from_period_with_char_number(period, end_date)
+
     return offset_date
 
 
-def _get_previous_date_from_period_with_char_number(
+def calculate_previous_date_from_period_with_char_number(
     period: str, end_date: datetime.datetime
 ) -> datetime.datetime:
+    """
+    Calculates date according to string offset
+
+    >>> calculate_previous_date_from_period_with_char_number('1M', datetime.datetime(2023,4,15,12,15))
+    datetime.datetime(2023, 3, 15, 12, 15)
+    >>> calculate_previous_date_from_period_with_char_number('16D', datetime.datetime(2023,4,15,12,15))
+    datetime.datetime(2023, 3, 30, 12, 15)
+    >>> calculate_previous_date_from_period_with_char_number('3W', datetime.datetime(2023,4,28,12,15))
+    datetime.datetime(2023, 4, 7, 12, 15)
+    >>> calculate_previous_date_from_period_with_char_number('6B', datetime.datetime(2023,4,15,12,15))
+    datetime.datetime(2023, 4, 7, 12, 15)
+    >>> calculate_previous_date_from_period_with_char_number('5Y', datetime.datetime(2023,4,15,12,15))
+    datetime.datetime(2018, 4, 15, 12, 15)
+
+    """
 
     type_of_offset = period[-1]
     try:
@@ -90,16 +230,33 @@ def _get_previous_date_from_period_with_char_number(
             "Type of offset %s not recognised must be one of BDMYW" % type_of_offset
         )
 
-    return offset_date
+    return offset_date.to_pydatetime()
 
 
-def calculate_starting_day_of_current_year(end_date) -> datetime.datetime:
+def calculate_starting_day_of_current_year(
+    end_date: datetime.datetime,
+) -> datetime.datetime:
+    """
+    Calculates date according to offset
+
+    >>> calculate_starting_day_of_current_year(datetime.date(2023,5,15))
+    datetime.datetime(2023, 1, 1, 0, 0)
+    """
     return datetime.datetime(year=end_date.year, month=1, day=1)
 
 
 def calculate_starting_day_of_current_uk_tax_year(
     end_date: datetime.datetime,
 ) -> datetime.datetime:
+    """
+    Calculates date according to offset
+
+    >>> calculate_starting_day_of_current_uk_tax_year(datetime.date(2023,5,15))
+    datetime.datetime(2023, 4, 6, 0, 0)
+    >>> calculate_starting_day_of_current_uk_tax_year(datetime.date(2023,4,1))
+    datetime.datetime(2022, 4, 6, 0, 0)
+    """
+
     current_month = end_date.month
     current_day = end_date.day
     current_year = end_date.year
@@ -109,16 +266,70 @@ def calculate_starting_day_of_current_uk_tax_year(
         return datetime.datetime(year=current_year, month=4, day=6)
 
 
-def calculate_starting_day_of_current_month(end_date) -> datetime.datetime:
+def calculate_starting_day_of_current_month(
+    end_date: datetime.datetime,
+) -> datetime.datetime:
     return datetime.datetime(year=end_date.year, month=end_date.month, day=1)
 
 
-def calculate_starting_day_of_current_quarter(end_date):
+def calculate_starting_day_of_current_quarter(
+    end_date: datetime.datetime,
+) -> datetime.datetime:
     current_month = end_date.month
     current_quarter = int(np.ceil(current_month / 3))
     start_month_of_quarter = ((current_quarter - 1) * 3) + 1
     return datetime.datetime(year=end_date.year, month=start_month_of_quarter, day=1)
 
+
+MIDNIGHT = datetime.time(0, 0)
+ONE_SECOND_BEFORE_MIDNIGHT = datetime.time(23, 59, 59)
+
+
+def preceeding_midnight_of_datetime(
+    some_datetime: datetime.datetime,
+) -> datetime.datetime:
+    """
+    >>> preceeding_midnight_of_datetime(datetime.datetime(2022,1,1,15,12))
+    datetime.datetime(2022, 1, 1, 0, 0)
+    """
+    return datetime.datetime.combine(some_datetime.date(), MIDNIGHT)
+
+
+def preceeding_midnight_of_date(some_date: datetime.date) -> datetime.datetime:
+    """
+    >>> preceeding_midnight_of_date(datetime.date(2022,1,1))
+    datetime.datetime(2022, 1, 1, 0, 0)
+    """
+    return datetime.datetime.combine(some_date, MIDNIGHT)
+
+
+def following_one_second_before_midnight_of_datetime(
+    some_datetime: datetime.datetime,
+) -> datetime.datetime:
+    """
+    >>> following_one_second_before_midnight_of_datetime(datetime.datetime(2022,1,1,15,12))
+    datetime.datetime(2022, 1, 1, 23, 59, 59)
+    """
+    return datetime.datetime.combine(some_datetime.date(), ONE_SECOND_BEFORE_MIDNIGHT)
+
+
+def following_one_second_before_midnight_of_date(
+    some_date: datetime.date,
+) -> datetime.datetime:
+    """
+    >>> following_one_second_before_midnight_of_date(datetime.datetime(2022,1,1,15,12))
+    datetime.datetime(2022, 1, 1, 23, 59, 59)
+    """
+    return following_one_second_before_midnight_of_datetime(
+        preceeding_midnight_of_date(some_date)
+    )
+
+
+"""
+
+    FREQUENCIES
+
+"""
 
 Frequency = Enum(
     "Frequency",
@@ -132,6 +343,13 @@ MIXED_FREQ = Frequency.Mixed
 
 
 def from_config_frequency_pandas_resample(freq: Frequency) -> str:
+    """
+    Translate between my frequencies and pandas frequencies
+
+    >>> from_config_frequency_pandas_resample(BUSINESS_DAY_FREQ)
+    'B'
+    """
+
     LOOKUP_TABLE = {
         Frequency.BDay: "B",
         Frequency.Week: "W",
@@ -153,6 +371,13 @@ def from_config_frequency_pandas_resample(freq: Frequency) -> str:
 
 
 def from_frequency_to_times_per_year(freq: Frequency) -> float:
+    """
+    Times a year that a frequency corresponds to
+
+    >>> from_frequency_to_times_per_year(BUSINESS_DAY_FREQ)
+    256.0
+    """
+
     LOOKUP_TABLE = {
         Frequency.BDay: BUSINESS_DAYS_IN_YEAR,
         Frequency.Week: WEEKS_IN_YEAR,
@@ -174,10 +399,17 @@ def from_frequency_to_times_per_year(freq: Frequency) -> float:
 
 
 def from_config_frequency_to_frequency(freq_as_str: str) -> Frequency:
+    """
+    Translate between configured letter frequencies and my frequencies
+
+    >>> from_config_frequency_to_frequency('B')
+    <Frequency.BDay: 5>
+    """
     LOOKUP_TABLE = {
         "Y": Frequency.Year,
         "m": Frequency.Month,
         "W": Frequency.Week,
+        "B": Frequency.BDay,
         "D": Frequency.Day,
         "H": Frequency.Hour,
         "15M": Frequency.Minutes_15,
@@ -195,6 +427,15 @@ def from_config_frequency_to_frequency(freq_as_str: str) -> Frequency:
     return frequency
 
 
+"""
+
+    FUTURES MONTHS
+
+"""
+
+FUTURES_MONTH_LIST = ["F", "G", "H", "J", "K", "M", "N", "Q", "U", "V", "X", "Z"]
+
+
 def month_from_contract_letter(contract_letter: str) -> int:
     """
     Returns month number (1 is January) from contract letter
@@ -208,11 +449,11 @@ def month_from_contract_letter(contract_letter: str) -> int:
     """
 
     try:
-        month_number = MONTH_LIST.index(contract_letter)
+        month_number = FUTURES_MONTH_LIST.index(contract_letter)
     except ValueError:
         raise Exception(
             "Contract letter %s is not a valid future month (must be one of %s)"
-            % (contract_letter, str(MONTH_LIST))
+            % (contract_letter, str(FUTURES_MONTH_LIST))
         )
 
     return month_number + 1
@@ -227,110 +468,56 @@ def contract_month_from_number(month_number: int) -> str:
     >>> contract_month_from_number(12)
     'Z'
     >>> contract_month_from_number(0)
-    AssertionError
+    Exception: Months have to be between 1 and 12
     >>> contract_month_from_number(13)
-    AssertionError
+    Exception: Months have to be between 1 and 12
 
     :param month_number: int
     :return: str
     """
 
-    assert month_number > 0 and month_number < 13
+    try:
+        assert month_number > 0 and month_number < 13
+    except:
+        raise Exception("Months have to be between 1 and 12")
 
-    return MONTH_LIST[month_number - 1]
-
-
-def get_datetime_from_datestring(datestring: str):
-    """
-    Translates a date which could be "20150305" or "201505" into a datetime
+    return FUTURES_MONTH_LIST[month_number - 1]
 
 
-    :param datestring: Date to be processed
-    :type days: str
+"""
 
-    :returns: datetime.datetime
+     DATE / STRING / DECIMAL CONVERSIONS
 
-    >>> get_datetime_from_datestring('201503')
-    datetime.datetime(2015, 3, 1, 0, 0)
-
-    >>> get_datetime_from_datestring('20150300')
-    datetime.datetime(2015, 3, 1, 0, 0)
-
-    >>> get_datetime_from_datestring('20150305')
-    datetime.datetime(2015, 3, 5, 0, 0)
-
-    >>> get_datetime_from_datestring('2015031')
-    Exception: 2015031 needs to be a string with 6 or 8 digits
-    >>> get_datetime_from_datestring('2015013')
-    Exception: 2015013 needs to be a string with 6 or 8 digits
-
-    """
-
-    # do string expiry calc
-    if len(datestring) == 8:
-        if datestring[6:8] == "00":
-            return datetime.datetime.strptime(datestring, "%Y%m")
-        else:
-            return datetime.datetime.strptime(datestring, "%Y%m%d")
-    if len(datestring) == 6:
-        return datetime.datetime.strptime(datestring, "%Y%m")
-    else:
-        raise Exception("%s needs to be a string with 6 or 8 digits" % datestring)
-
-
-class fit_dates_object(object):
-    def __init__(self, fit_start, fit_end, period_start, period_end, no_data=False):
-        setattr(self, "fit_start", fit_start)
-        setattr(self, "fit_end", fit_end)
-        setattr(self, "period_start", period_start)
-        setattr(self, "period_end", period_end)
-        setattr(self, "no_data", no_data)
-
-    def __repr__(self):
-        if self.no_data:
-            return "Fit without data, use from %s to %s" % (
-                self.period_start,
-                self.period_end,
-            )
-        else:
-            return "Fit from %s to %s, use in %s to %s" % (
-                self.fit_start,
-                self.fit_end,
-                self.period_start,
-                self.period_end,
-            )
-
-
-def time_matches(
-    index_entry, closing_time=pd.DateOffset(hours=12, minutes=0, seconds=0)
-):
-    if (
-        index_entry.hour == closing_time.hours
-        and index_entry.minute == closing_time.minutes
-        and index_entry.second == closing_time.seconds
-    ):
-
-        return True
-    else:
-        return False
-
+"""
 
 """
 Convert date into a decimal, and back again
 """
 LONG_DATE_FORMAT = "%Y%m%d%H%M%S.%f"
-LONG_TIME_FORMAT = "%H%M%S.%f"
-LONG_JUST_DATE_FORMAT = "%Y%m%d"
 CONVERSION_FACTOR = 10000
 
 
 def datetime_to_long(date_to_convert: datetime.datetime) -> int:
+    """
+    Translate a datetime into a long integer
+
+    >>> datetime_to_long(datetime.datetime(2023,1,15,6,32,7))
+    202301150632070016
+    """
+
     as_str = date_to_convert.strftime(LONG_DATE_FORMAT)
     as_float = float(as_str)
     return int(as_float * CONVERSION_FACTOR)
 
 
 def long_to_datetime(int_to_convert: int) -> datetime.datetime:
+    """
+    Translate an integer into a datetime.datetime
+
+    >>> long_to_datetime(202301150632070016)
+    datetime.datetime(2023, 1, 15, 6, 32, 7)
+    """
+
     as_float = float(int_to_convert) / CONVERSION_FACTOR
     str_to_convert = "%.6f" % as_float
 
@@ -347,42 +534,23 @@ def long_to_datetime(int_to_convert: int) -> datetime.datetime:
     return as_datetime
 
 
-NOTIONAL_CLOSING_TIME = dict(hours=23, minutes=0, seconds=0)
-NOTIONAL_CLOSING_TIME_AS_PD_OFFSET = pd.DateOffset(
-    hours=NOTIONAL_CLOSING_TIME["hours"],
-    minutes=NOTIONAL_CLOSING_TIME["minutes"],
-    seconds=NOTIONAL_CLOSING_TIME["seconds"],
-)
-
-
-def adjust_timestamp_to_include_notional_close_and_time_offset(
-    timestamp: datetime.datetime,
-    actual_close: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
-    original_close: pd.DateOffset = pd.DateOffset(hours=23, minutes=0, seconds=0),
-    time_offset: pd.DateOffset = pd.DateOffset(hours=0),
-) -> datetime.datetime:
-
-    if timestamp.hour == 0 and timestamp.minute == 0 and timestamp.second == 0:
-        new_datetime = timestamp.date() + actual_close
-    elif time_matches(timestamp, original_close):
-        new_datetime = timestamp.date() + actual_close
-    else:
-        new_datetime = timestamp + time_offset
-
-    return new_datetime
-
-
-def strip_timezone_fromdatetime(timestamp_with_tz_info) -> datetime.datetime:
-    ts = timestamp_with_tz_info.timestamp()
-    new_timestamp = datetime.datetime.fromtimestamp(ts)
-    return new_timestamp
-
+### SHORT DATES
 
 SHORT_DATE_PATTERN = "%m/%d %H:%M:%S"
 MISSING_STRING_PATTERN = "     ???      "
 
 
-def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat: datetime.datetime):
+def date_as_short_pattern_or_question_if_missing(
+    last_run_or_heartbeat: datetime.datetime,
+) -> str:
+    """
+    Check time matches at one second resolution (good enough)
+
+    >>> date_as_short_pattern_or_question_if_missing(datetime.datetime(2023, 1, 15, 6, 32))
+    '01/15 06:32:00'
+    >>> date_as_short_pattern_or_question_if_missing(106)
+    '     ???      '
+    """
     if isinstance(last_run_or_heartbeat, datetime.datetime):
         last_run_or_heartbeat = last_run_or_heartbeat.strftime(SHORT_DATE_PATTERN)
     else:
@@ -391,111 +559,25 @@ def last_run_or_heartbeat_from_date_or_none(last_run_or_heartbeat: datetime.date
     return last_run_or_heartbeat
 
 
-date_formatting = "%Y%m%d_%H%M%S"
+## MARKER DATES
+
+MARKER_DATE_FORMAT = "%Y%m%d_%H%M%S"
 
 
-def create_datetime_string(datetime_to_use: datetime = arg_not_supplied):
+def create_datetime_marker_string(datetime_to_use: datetime = arg_not_supplied) -> str:
     if datetime_to_use is arg_not_supplied:
         datetime_to_use = datetime.datetime.now()
 
-    datetime_marker = datetime_to_use.strftime(date_formatting)
+    datetime_marker = datetime_to_use.strftime(MARKER_DATE_FORMAT)
 
     return datetime_marker
 
 
-def from_marker_to_datetime(datetime_marker):
-    return datetime.datetime.strptime(datetime_marker, date_formatting)
+def from_marker_string_to_datetime(datetime_marker: str) -> datetime.datetime:
+    return datetime.datetime.strptime(datetime_marker, MARKER_DATE_FORMAT)
 
 
-def two_weeks_ago():
-    return n_days_ago(14)
-
-
-def four_weeks_ago():
-    return n_days_ago(28)
-
-
-def n_days_ago(n_days: int, date_ref=arg_not_supplied):
-    if date_ref is arg_not_supplied:
-        date_ref = datetime.datetime.now()
-    date_diff = datetime.timedelta(days=n_days)
-    return date_ref - date_diff
-
-
-def generate_equal_dates_within_year(
-    year: int, number_of_dates: int, force_start_year_align: bool = False
-) -> list:
-
-    days_between_periods = int(CALENDAR_DAYS_IN_YEAR / float(number_of_dates))
-    full_increment = datetime.timedelta(days=days_between_periods)
-    start_of_year = datetime.datetime(year, 1, 1)
-
-    if force_start_year_align:
-        ## more realistic for most rolling calendars
-        first_date = start_of_year
-    else:
-        half_period = int(days_between_periods / 2)
-        half_period_increment = datetime.timedelta(days=half_period)
-        first_date = start_of_year + half_period_increment
-
-    all_dates = [
-        first_date + full_increment * increment_size
-        for increment_size in range(number_of_dates)
-    ]
-
-    return all_dates
-
-
-def get_approx_vol_scalar_for_period(
-    start_date: datetime.datetime, end_date=datetime.datetime
-) -> float:
-    time_between = end_date - start_date
-    seconds_between = time_between.total_seconds()
-    days_between = seconds_between / SECONDS_PER_DAY
-
-    return days_between**0.5
-
-
-def calculate_start_and_end_dates(
-    calendar_days_back=arg_not_supplied,
-    end_date: datetime.datetime = arg_not_supplied,
-    start_date: datetime.datetime = arg_not_supplied,
-    start_period: str = arg_not_supplied,
-    end_period: str = arg_not_supplied,
-) -> tuple:
-
-    ## DO THE END DATE FIRST
-    ## First preference is to use period
-    if end_period is arg_not_supplied:
-        ## OK preference is to use passed date, if there was one
-        if end_date is arg_not_supplied:
-            end_date = datetime.datetime.now()
-        else:
-            # Use passed end date
-            pass
-    else:
-        end_date = get_date_from_period_and_end_date(end_period)
-
-    ## DO THE START DATE NEXT
-    ## First preference is to use period, then passed date, then calendar days
-    if start_period is arg_not_supplied:
-        if start_date is arg_not_supplied:
-            ## no period or calendar days, use passed date
-            if calendar_days_back is arg_not_supplied:
-                raise Exception(
-                    "Have to specify one of calendar days back, start period or start date!"
-                )
-            else:
-                ## Calendar days
-                start_date = n_days_ago(calendar_days_back, end_date)
-        else:
-            ## Use passed start date
-            pass
-    else:
-        ## have a period
-        start_date = get_date_from_period_and_end_date(start_period, end_date)
-
-    return start_date, end_date
+## TIMES
 
 
 def time_to_string(time: datetime.time):
@@ -508,22 +590,145 @@ def time_from_string(time_string: str):
     return datetime.time(int(split_string[0]), int(split_string[1]))
 
 
-MIDNIGHT = datetime.time(0, 0)
+"""
+
+ CLOSING TIMES
+
+"""
+
+NOTIONAL_CLOSING_TIME_AS_PD_OFFSET = pd.DateOffset(
+    hours=23,
+    minutes=0,
+    seconds=0,
+)
+
+MIDNIGHT_TIME_AS_PD_OFFSET = pd.DateOffset(
+    hours=0,
+    minutes=0,
+    seconds=0,
+)
 
 
-def preceeding_midnight_of_datetime(some_datetime: datetime.datetime):
-    return datetime.datetime.combine(some_datetime.date(), datetime.time(0, 0))
+def replace_midnight_with_notional_closing_time(
+    timestamp: Union[datetime.datetime, datetime.date],
+    notional_closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+) -> pd.Timestamp:
+    """
+    Replaces midnight with a notional closing time
+
+    >>> replace_midnight_with_notional_closing_time(datetime.datetime(2023, 1, 15, 6, 32))
+    Timestamp('2023-01-15 06:32:00')
+    >>> replace_midnight_with_notional_closing_time(datetime.datetime(2023, 1, 15, 0, 0))
+    Timestamp('2023-01-15 23:00:00')
+    >>> replace_midnight_with_notional_closing_time(datetime.date(2023, 1, 15))
+    Timestamp('2023-01-15 23:00:00')
+    """
+    if type(timestamp) is datetime.date:
+        return timestamp + notional_closing_time
+    elif check_time_matches_closing_time_to_second(
+        timestamp, MIDNIGHT_TIME_AS_PD_OFFSET
+    ):
+        return timestamp.date() + notional_closing_time
+    else:
+        return pd.to_datetime(timestamp)
 
 
-def preceeding_midnight_of_date(some_date: datetime.date):
-    return datetime.datetime.combine(some_date, datetime.time(0, 0))
+def check_time_matches_closing_time_to_second(
+    index_entry: datetime.datetime,
+    closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+) -> bool:
+    """
+    Check time matches at one second resolution (good enough)
+
+    >>> check_time_matches_closing_time_to_second(datetime.datetime(2023, 1, 15, 6, 32))
+    False
+    >>> check_time_matches_closing_time_to_second(datetime.datetime(2023, 1, 15, 23, 0))
+    True
+    """
+
+    if (
+        index_entry.hour == closing_time.hours
+        and index_entry.minute == closing_time.minutes
+        and index_entry.second == closing_time.seconds
+    ):
+
+        return True
+    else:
+        return False
 
 
-def following_one_second_before_midnight_of_datetime(some_datetime: datetime.datetime):
-    return datetime.datetime.combine(some_datetime.date(), datetime.time(23, 59, 59))
+def strip_timezone_fromdatetime(timestamp_with_tz_info) -> datetime.datetime:
+    ts = timestamp_with_tz_info.timestamp()
+    new_timestamp = datetime.datetime.fromtimestamp(ts)
+    return new_timestamp
 
 
-def following_midnight_of_date(some_date: datetime.date):
-    return following_one_second_before_midnight_of_datetime(
-        preceeding_midnight_of_date(some_date)
+"""
+    
+    EQUAL DATES WITHIN A YEAR
+
+"""
+
+
+def generate_equal_dates_within_year(
+    year: int, number_of_dates: int, force_start_year_align: bool = False
+) -> List[datetime.datetime]:
+
+    """
+    Generate equally spaced datetimes within a given year
+    >>> generate_equal_dates_within_year(2022,3)
+    [datetime.datetime(2022, 3, 2, 0, 0), datetime.datetime(2022, 7, 1, 0, 0), datetime.datetime(2022, 10, 30, 0, 0)]
+    >>> generate_equal_dates_within_year(2022,1)
+    [datetime.datetime(2022, 7, 2, 0, 0)]
+    >>> generate_equal_dates_within_year(2021,2, force_start_year_align=True)
+    [datetime.datetime(2021, 1, 1, 0, 0), datetime.datetime(2021, 7, 2, 0, 0)]
+    """
+
+    days_between_periods = int(CALENDAR_DAYS_IN_YEAR / float(number_of_dates))
+    first_date = _calculate_first_date_for_equal_dates(
+        year=year,
+        days_between_periods=days_between_periods,
+        force_start_year_align=force_start_year_align,
     )
+    delta_for_each_period = datetime.timedelta(days=days_between_periods)
+
+    all_dates = [
+        first_date + (delta_for_each_period * period_count)
+        for period_count in range(number_of_dates)
+    ]
+
+    return all_dates
+
+
+def _calculate_first_date_for_equal_dates(
+    year: int, days_between_periods: int, force_start_year_align: bool = False
+) -> datetime.datetime:
+
+    start_of_year = datetime.datetime(year, 1, 1)
+
+    if force_start_year_align:
+        ## more realistic for most rolling calendars
+        first_date = start_of_year
+    else:
+        half_period = int(days_between_periods / 2)
+        half_period_increment = datetime.timedelta(days=half_period)
+        first_date = start_of_year + half_period_increment
+
+    return first_date
+
+
+"""
+
+    VOL SCALING
+
+"""
+
+
+def get_approx_vol_scalar_versus_daily_vol_for_period(
+    start_date: datetime.datetime, end_date=datetime.datetime
+) -> float:
+    time_between = end_date - start_date
+    seconds_between = time_between.total_seconds()
+    days_between = seconds_between / SECONDS_PER_DAY
+
+    return days_between**0.5
