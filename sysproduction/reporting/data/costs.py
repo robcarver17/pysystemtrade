@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.exceptions import missingContract
-from syscore.genutils import progressBar
+from syscore.interactive import progressBar
 
 from sysdata.data_blob import dataBlob
 

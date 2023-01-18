@@ -13,7 +13,7 @@ from sysquant.estimators.covariance import (
     covarianceEstimate,
     covariance_from_stdev_and_correlation,
 )
-from syscore.genutils import progressBar
+from syscore.interactive import progressBar
 from syscore.objects import arg_not_supplied, missing_data
 from syscore.pdutils import calculate_cost_deflator, get_row_of_series
 from systems.provided.dynamic_small_system_optimise.optimisation import (

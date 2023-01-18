@@ -10,8 +10,8 @@ from syscore.interactive import (
     print_menu_and_get_response,
     true_if_answer_is_yes,
     get_report_dates,
+    progressBar,
 )
-from syscore.genutils import progressBar
 from syscore.pdutils import set_pd_print_options
 from syscore.objects import (
     user_exit,

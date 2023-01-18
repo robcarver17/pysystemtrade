@@ -313,7 +313,7 @@ system.get_list_of_bad_markets()
 
 ### Automatically excluded
 
-It's also possible that there are some instruments that have zero positions. The most likely explanation for this is that you have set a speed limit on trading costs, and there are no trading rules that are cheap enough to trade the given instrument.
+It's also possible that there are some instruments that have zero positions. The most likely explanation for this is that you have set a speed limit on trading costs, and there are no trading rules that are cheap enough to trade the given instrument. These are automatically added to the list of markets given a zero weight for optimisation. 
 
 
 ## Customising the list of 'all instruments' and 'excluded for optimisation'

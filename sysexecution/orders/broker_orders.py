@@ -19,7 +19,10 @@ from sysexecution.orders.instrument_orders import instrumentOrder
 
 from sysobjects.production.tradeable_object import instrumentStrategy, futuresContract
 
-from syscore.genutils import none_to_object, object_to_none
+from syscore.genutils import (
+    if_empty_string_return_object,
+    if_object_matches_return_empty_string,
+)
 from syscore.objects import fill_exceeds_trade, success
 
 
@@ -285,9 +288,13 @@ class brokerOrder(Order):
         fill_datetime = order_as_dict.pop("fill_datetime")
 
         locked = order_as_dict.pop("locked")
-        order_id = none_to_object(order_as_dict.pop("order_id"), no_order_id)
-        parent = none_to_object(order_as_dict.pop("parent"), no_parent)
-        children = none_to_object(order_as_dict.pop("children"), no_children)
+        order_id = if_empty_string_return_object(
+            order_as_dict.pop("order_id"), no_order_id
+        )
+        parent = if_empty_string_return_object(order_as_dict.pop("parent"), no_parent)
+        children = if_empty_string_return_object(
+            order_as_dict.pop("children"), no_children
+        )
         active = order_as_dict.pop("active")
         order_type = brokerOrderType(order_as_dict.pop("order_type", None))
 
@@ -321,8 +328,12 @@ class brokerOrder(Order):
         new_log = log.setup(
             strategy_name=broker_order.strategy_name,
             instrument_code=broker_order.instrument_code,
-            contract_order_id=object_to_none(broker_order.parent, no_parent),
-            broker_order_id=object_to_none(broker_order.order_id, no_order_id),
+            contract_order_id=if_object_matches_return_empty_string(
+                broker_order.parent, no_parent
+            ),
+            broker_order_id=if_object_matches_return_empty_string(
+                broker_order.order_id, no_order_id
+            ),
         )
 
         return new_log
