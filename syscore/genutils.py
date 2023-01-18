@@ -4,23 +4,32 @@ Utilities I can't put anywhere else...
 
 import time
 
-from math import copysign, gcd
-from copy import copy
 import sys
-import numpy as np
 import datetime
 import functools
 import math
+
+import numpy as np
+
 from collections import namedtuple
+from copy import copy
+from math import copysign, gcd
+from typing import Union
 
 Changes = namedtuple("Changes", ["new", "existing", "removing"])
 
 
-def round_significant_figures(x, figures=3):
-    return round(x, figures - int(math.floor(math.log10(abs(x)))) - 1)
-
-
-def new_removing_existing(original_list: list, new_list: list):
+def new_removing_existing(original_list: list, new_list: list) -> Changes:
+    """
+    >>> new_removing_existing([1,2],[3,4])
+    Changes(new=[3, 4], existing=[], removing=[1, 2])
+    >>> new_removing_existing([1,2,3],[3,4])
+    Changes(new=[4], existing=[3], removing=[1, 2])
+    >>> new_removing_existing([1,2,3],[1,2])
+    Changes(new=[], existing=[1, 2], removing=[3])
+    >>> new_removing_existing([1],[1,2])
+    Changes(new=[2], existing=[1], removing=[])
+    """
     existing = list(set(original_list).intersection(set(new_list)))
     new = list(set(new_list).difference(set(original_list)))
     removing = list(set(original_list).difference(set(new_list)))
@@ -28,81 +37,41 @@ def new_removing_existing(original_list: list, new_list: list):
     return Changes(new=new, existing=existing, removing=removing)
 
 
-def flatten_list(some_list):
+def list_union(x: list, y: list) -> list:
+    return list(set(x).union(set(y)))
+
+
+def round_significant_figures(x: float, figures: int = 3) -> float:
+    """
+    >>> round_significant_figures(0.0234, 2)
+    0.023
+    """
+    return round(x, figures - int(math.floor(math.log10(abs(x)))) - 1)
+
+
+def flatten_list(some_list: list) -> list:
+    """
+    >>> flatten_list([[1],[2,3]])
+    [1, 2, 3]
+    """
     flattened = [item for sublist in some_list for item in sublist]
 
     return flattened
 
 
-class not_required_flag(object):
-    def __repr__(self):
-        return "Not required"
-
-
-NOT_REQUIRED = not_required_flag()
-
-
-def group_dict_from_natural(dict_group):
-    """
-    If we're passed a natural grouping dict (eg dict(bonds=["US10", "KR3", "DE10"], equity=["SP500"]))
-    Returns the dict optimised for algo eg dict(US10=["KR3", "DE10"], SP500=[], ..)
-
-    :param dict_group: dictionary of groupings
-    :type dict_group: dict
-
-    :returns: dict
-
-
-    >>> a=dict(bonds=["US10", "KR3", "DE10"], equity=["SP500"])
-    >>> group_dict_from_natural(a)['KR3']
-    ['US10', 'DE10']
-    """
-    if len(dict_group) == 0:
-        return dict()
-
-    all_names = sorted(
-        set(sum([dict_group[groupname] for groupname in dict_group.keys()], []))
-    )
-
-    def _return_without(name, group):
-        if name in group:
-            g2 = copy(group)
-            g2.remove(name)
-            return g2
-        else:
-            return None
-
-    def _return_group(name, dict_group):
-        ans = [
-            _return_without(name, dict_group[groupname])
-            for groupname in dict_group.keys()
-        ]
-        ans = [x for x in ans if x is not None]
-        if len(ans) == 0:
-            return []
-
-        ans = ans[0]
-        return ans
-
-    gdict = dict([(name, _return_group(name, dict_group)) for name in all_names])
-
-    return gdict
-
-
-def str2Bool(x):
+def str2Bool(x: str) -> bool:
     if isinstance(x, bool):
         return x
-    return x.lower() in ("t", "true")
+    if x.lower() in ("t", "true"):
+        return True
+    if x.upper() in ("f", "false"):
+        return False
+    raise Exception("%s can't be resolved as a bool" % x)
 
 
-def str_of_int(x):
+def str_of_int(x: int) -> str:
     """
     Returns the string of int of x, handling nan's or whatever
-
-    :param x: Name of python package
-    :type x: int or float
-
-    :returns: 1.0 or -1.0
 
     >>> str_of_int(34)
     '34'
@@ -123,14 +92,8 @@ def str_of_int(x):
         return ""
 
 
-def sign(x):
+def sign(x: Union[int, float]) -> float:
     """
-    Return the sign of x (float or int)
-    :param x: Thing we want sign of
-    :type x: int, float
-
-    :returns: 1 or -1
-
     >>> sign(3)
     1.0
 

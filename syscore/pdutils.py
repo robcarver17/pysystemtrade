@@ -351,7 +351,8 @@ def reindex_last_monthly_include_first_date(x: pd.DataFrame) -> pd.DataFrame:
 
 def weights_sum_to_one(weights: pd.DataFrame):
     sum_weights = weights.sum(axis=1)
-    sum_weights[sum_weights == 0.0] = 0.0001
+    zero_rows = sum_weights == 0.0
+    sum_weights[zero_rows] = 0.0001
     weight_multiplier = 1.0 / sum_weights
     weight_multiplier_array = np.array([weight_multiplier] * len(weights.columns))
     weight_values = weights.values
