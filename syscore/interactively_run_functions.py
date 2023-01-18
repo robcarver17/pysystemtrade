@@ -107,7 +107,7 @@ def has_type(parameter_signature):
 
 def parameter_type(
     parameter_signature: inspect.Parameter,
-) -> Union[str, NO_TYPE_PROVIDED]:
+) -> Union[str, object]:
 
     ptype = parameter_signature.annotation
     if ptype is EMPTY_VALUE:
