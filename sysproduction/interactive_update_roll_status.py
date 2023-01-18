@@ -8,10 +8,10 @@ from dataclasses import dataclass
 import numpy as np
 
 from syscore.interactive import (
-    print_menu_of_values_and_get_response,
     get_input_from_user_and_convert_to_type,
     true_if_answer_is_yes,
 )
+from syscore.interactive_menus import print_menu_of_values_and_get_response
 from syscore.objects import success, failure, status, named_object
 from syscore.text import landing_strip, print_with_landing_strips_around
 

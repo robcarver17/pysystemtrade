@@ -112,7 +112,7 @@ class controlProcessData(baseData):
 
         if result is was_running_pid_notok_closed:
             self.log.critical(
-                "Process %s with PID %d appears to have crashed, marking as finished: you may want to restart"
+                "Process %s with PID %d appears to have crashed, marking as close: you may want to restart"
                 % (process_name, PID)
             )
             self._update_control_for_process_name(process_name, original_process)

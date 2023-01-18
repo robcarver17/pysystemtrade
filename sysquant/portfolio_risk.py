@@ -1,6 +1,6 @@
 import datetime
 import pandas as pd
-from syscore.interactive import progressBar
+from syscore.progress_bar import progressBar
 
 from sysquant.estimators.stdev_estimator import seriesOfStdevEstimates, stdevEstimates
 from sysquant.estimators.correlations import (
@@ -39,8 +39,8 @@ def calc_portfolio_risk_series(
     progress = progressBar(
         len(common_index),
         suffix="Calculating portfolio risk",
-        show_timings=True,
         show_each_time=False,
+        show_timings=True,
     )
 
     for relevant_date in common_index:
@@ -55,7 +55,7 @@ def calc_portfolio_risk_series(
         risk_on_date = weights_on_date.portfolio_stdev(covariance)
         risk_series.append(risk_on_date)
 
-    progress.finished()
+    progress.close()
     risk_series = pd.Series(risk_series, common_index)
 
     return risk_series

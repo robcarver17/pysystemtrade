@@ -12,8 +12,7 @@ from syscore.objects import (
     failure,
     missing_data,
 )
-from syscore.interactive import print_menu_of_values_and_get_response
-
+from syscore.interactive_menus import print_menu_of_values_and_get_response
 
 from sysdata.config.production_config import get_production_config
 from sysdata.data_blob import dataBlob

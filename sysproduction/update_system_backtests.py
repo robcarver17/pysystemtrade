@@ -1,5 +1,5 @@
 from syscontrol.strategy_tools import strategyRunner
-from syscore.interactive import print_menu_of_values_and_get_response
+from syscore.interactive_menus import print_menu_of_values_and_get_response
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.control_process import get_list_of_strategies_for_process

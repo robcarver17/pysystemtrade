@@ -5,9 +5,11 @@ import pandas as pd
 
 from syscore.interactive import (
     get_input_from_user_and_convert_to_type,
+    true_if_answer_is_yes,
+)
+from syscore.interactive_menus import (
     interactiveMenu,
     print_menu_and_get_desired_option_index,
-    true_if_answer_is_yes,
 )
 from syscore.text import calculate_multiplication_factor_for_nice_repr_of_value
 from syscore.pdutils import set_pd_print_options
@@ -123,8 +125,8 @@ nested_menu_of_options = {
         40: "View process controls and status",
         41: "Change status of process control (STOP/GO/NO RUN)",
         42: "Global status change  (STOP/GO/NO RUN)",
-        43: "Mark process as finished",
-        44: "Mark all dead processes as finished",
+        43: "Mark process as close",
+        44: "Mark all dead processes as close",
         45: "View process configuration (set in YAML, cannot change here)",
     },
     5: {

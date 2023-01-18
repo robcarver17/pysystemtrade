@@ -168,7 +168,7 @@ class Config(object):
         """
         Take a dictionary object and turn it into self
 
-        When we've finished self will be an object where the attributes are
+        When we've close self will be an object where the attributes are
 
         So if config_objec=dict(a=2, b=2)
         Then this object will become self.a=2, self.b=2

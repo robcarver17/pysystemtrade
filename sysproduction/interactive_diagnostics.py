@@ -5,12 +5,14 @@ from sysobjects.production.trading_hours.trading_hours import (
 )
 from syscore.interactive import (
     get_input_from_user_and_convert_to_type,
+    true_if_answer_is_yes,
+)
+from syscore.progress_bar import progressBar
+from syscore.interactive_date_input import get_report_dates
+from syscore.interactive_menus import (
     interactiveMenu,
     print_menu_of_values_and_get_response,
     print_menu_and_get_desired_option_index,
-    true_if_answer_is_yes,
-    get_report_dates,
-    progressBar,
 )
 from syscore.pdutils import set_pd_print_options
 from syscore.objects import (
@@ -372,7 +374,7 @@ def build_attribute_dict(diag_logs, lookback_days):
             list_of_attribute_values
         )
         attribute_dict[attribute_name] = attribute_value
-        ans = input("Have you finished? (RETURN: No, anything else YES)")
+        ans = input("Have you close? (RETURN: No, anything else YES)")
         if not ans == "":
             not_finished = False
             break
@@ -724,7 +726,7 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied):
         check_trading_hours(trading_hours, instrument_code)
         all_trading_hours[instrument_code] = trading_hours
 
-    p.finished()
+    p.close()
 
     return all_trading_hours
 
