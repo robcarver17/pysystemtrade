@@ -1,4 +1,4 @@
-from syscore.objects import missing_data
+from syscore.exceptions import missingData
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
 from sysobjects.production.roll_state import (
@@ -22,8 +22,9 @@ class rollStateData(baseData):
         return state_name
 
     def get_roll_state(self, instrument_code: str) -> RollState:
-        state_as_str = self._get_roll_state_as_str_no_default(instrument_code)
-        if state_as_str is missing_data:
+        try:
+            state_as_str = self._get_roll_state_as_str_no_default(instrument_code)
+        except missingData:
             state = default_state
             self.set_roll_state(instrument_code, state)
         else:

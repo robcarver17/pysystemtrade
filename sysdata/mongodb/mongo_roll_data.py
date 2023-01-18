@@ -1,9 +1,10 @@
+from syscore.exceptions import missingData
 from sysdata.futures.rolls_parameters import rollParametersData
 from sysobjects.rolls import rollParameters
 
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log_to_screen import logtoscreen
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied
 
 ROLL_COLLECTION = "futures_roll_parameters"
 
@@ -36,13 +37,15 @@ class mongoRollParametersData(rollParametersData):
     def _get_roll_parameters_without_checking(
         self, instrument_code: str
     ) -> rollParameters:
-        result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(
-            instrument_code
-        )
-        if result_dict is missing_data:
+        try:
+            result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(
+                instrument_code
+            )
+        except missingData:
             self.log.critical(
                 "%s just vanished from roll parameters??" % instrument_code
             )
+            raise
 
         roll_parameters_object = rollParameters.create_from_dict(result_dict)
 

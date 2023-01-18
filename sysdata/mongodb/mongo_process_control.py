@@ -40,8 +40,6 @@ class mongoControlProcessData(controlProcessData):
         result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(
             process_name
         )
-        if result_dict is missing_data:
-            return missing_data
 
         control_object = controlProcess.from_dict(result_dict)
 

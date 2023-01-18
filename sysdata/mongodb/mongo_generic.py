@@ -82,7 +82,7 @@ class mongoDataWithSingleKey(object):
         key_name = self.key_name
         result_dict = self.collection.find_one({key_name: key})
         if result_dict is None:
-            return missing_data
+            raise missingData("Key %s not found in Mongo data" % key)
 
         result_dict.pop(MONGO_ID_KEY)
 
@@ -91,8 +91,6 @@ class mongoDataWithSingleKey(object):
     def get_result_dict_for_key_without_key_value(self, key) -> dict:
         key_name = self.key_name
         result_dict = self.get_result_dict_for_key(key)
-        if result_dict is missing_data:
-            return missing_data
 
         result_dict.pop(key_name)
 
@@ -106,8 +104,9 @@ class mongoDataWithSingleKey(object):
         return dict_list
 
     def key_is_in_data(self, key):
-        result = self.get_result_dict_for_key(key)
-        if result is missing_data:
+        try:
+            self.get_result_dict_for_key(key)
+        except missingData:
             return False
         else:
             return True

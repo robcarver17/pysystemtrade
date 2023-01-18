@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied
 from sysdata.production.locks import lockData, lock_off, lock_on
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log_to_screen import logtoscreen
@@ -30,8 +30,6 @@ class mongoLockData(lockData):
 
     def _get_lock_for_instrument_no_checking(self, instrument_code: str) -> str:
         result = self.mongo_data.get_result_dict_for_key(instrument_code)
-        if result is missing_data:
-            return missing_data
 
         lock = result[LOCK_DICT_KEY]
 

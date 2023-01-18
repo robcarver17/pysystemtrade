@@ -1,6 +1,5 @@
 from sysdata.production.roll_state import rollStateData
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
-from syscore.objects import success, missing_data
 from syslogdiag.log_to_screen import logtoscreen
 
 ROLL_STATUS_COLLECTION = "futures_roll_status"
@@ -39,8 +38,6 @@ class mongoRollStateData(rollStateData):
 
     def _get_roll_state_as_str_no_default(self, instrument_code: str):
         result_dict = self.mongo_data.get_result_dict_for_key(instrument_code)
-        if result_dict is missing_data:
-            return missing_data
 
         roll_status = result_dict[ROLL_STATE_KEY]
 

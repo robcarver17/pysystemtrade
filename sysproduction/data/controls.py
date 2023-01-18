@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from syscore.objects import missing_data
+from syscore.exceptions import missingData
 
 from sysdata.config.instruments import (
     get_list_of_bad_instruments_in_config,
@@ -657,12 +657,13 @@ class dataPositionLimits(productionDataLayerGeneric):
         )
 
     def reset_position_limit_for_instrument_to_original_value(self, instrument_code):
-        original_limit = (
-            self.db_temporary_close_data.get_stored_position_limit_for_instrument(
-                instrument_code
+        try:
+            original_limit = (
+                self.db_temporary_close_data.get_stored_position_limit_for_instrument(
+                    instrument_code
+                )
             )
-        )
-        if original_limit is missing_data:
+        except missingData:
             self.log.warn("No temporary position limit stored")
             return None
 
