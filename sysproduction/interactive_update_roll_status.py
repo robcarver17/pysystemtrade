@@ -186,8 +186,12 @@ def update_roll_status_full_auto(data: dataBlob):
 
 
 def get_days_ahead_to_consider_when_auto_cycling() -> int:
-    days_ahead = get_input_from_user_and_convert_to_type("How many days ahead should I look for expiries?",
-                                                         type_expected=int, allow_default=True, default_value=10)
+    days_ahead = get_input_from_user_and_convert_to_type(
+        "How many days ahead should I look for expiries?",
+        type_expected=int,
+        allow_default=True,
+        default_value=10,
+    )
 
     return days_ahead
 
@@ -240,8 +244,12 @@ class autoRollParameters:
 
 
 def get_auto_roll_parameters() -> autoRollParameters:
-    min_volume = get_input_from_user_and_convert_to_type("Minimum relative volume before rolling", type_expected=float,
-                                                         allow_default=True, default_value=0.1)
+    min_volume = get_input_from_user_and_convert_to_type(
+        "Minimum relative volume before rolling",
+        type_expected=float,
+        allow_default=True,
+        default_value=0.1,
+    )
 
     manual_prompt_for_position = true_if_answer_is_yes(
         "Manually prompt for state if have position? (y/n)"

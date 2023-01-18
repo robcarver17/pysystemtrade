@@ -156,9 +156,12 @@ def view_trade_limits(data):
 def change_limit_for_instrument(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
-    period_days = get_input_from_user_and_convert_to_type("Period of days?", type_expected=int, allow_default=True,
-                                                          default_value=1)
-    new_limit = get_input_from_user_and_convert_to_type("Limit (in contracts?)", type_expected=int, allow_default=False)
+    period_days = get_input_from_user_and_convert_to_type(
+        "Period of days?", type_expected=int, allow_default=True, default_value=1
+    )
+    new_limit = get_input_from_user_and_convert_to_type(
+        "Limit (in contracts?)", type_expected=int, allow_default=False
+    )
     ans = input(
         "Update will change number of trades allowed in periods, but won't reset 'clock'. Are you sure? (y/other)"
     )
@@ -171,8 +174,9 @@ def change_limit_for_instrument(data):
 def reset_limit_for_instrument(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
-    period_days = get_input_from_user_and_convert_to_type("Period of days?", type_expected=int, allow_default=True,
-                                                          default_value=1)
+    period_days = get_input_from_user_and_convert_to_type(
+        "Period of days?", type_expected=int, allow_default=True, default_value=1
+    )
     ans = input("Reset means trade 'clock' will restart. Are you sure? (y/other)")
     if ans == "y":
         trade_limits.reset_instrument_limit(instrument_code, period_days)
@@ -189,9 +193,12 @@ def change_limit_for_instrument_strategy(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
     strategy_name = get_valid_strategy_name_from_user(data)
-    period_days = get_input_from_user_and_convert_to_type("Period of days?", type_expected=int, allow_default=True,
-                                                          default_value=1)
-    new_limit = get_input_from_user_and_convert_to_type("Limit (in contracts?)", type_expected=int, allow_default=False)
+    period_days = get_input_from_user_and_convert_to_type(
+        "Period of days?", type_expected=int, allow_default=True, default_value=1
+    )
+    new_limit = get_input_from_user_and_convert_to_type(
+        "Limit (in contracts?)", type_expected=int, allow_default=False
+    )
 
     ans = input(
         "Update will change number of trades allowed in periods, but won't reset 'clock'. Are you sure? (y/other)"
@@ -210,8 +217,9 @@ def change_limit_for_instrument_strategy(data):
 def reset_limit_for_instrument_strategy(data):
     trade_limits = dataTradeLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data)
-    period_days = get_input_from_user_and_convert_to_type("Period of days?", type_expected=int, allow_default=True,
-                                                          default_value=1)
+    period_days = get_input_from_user_and_convert_to_type(
+        "Period of days?", type_expected=int, allow_default=True, default_value=1
+    )
     strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
 
     ans = input("Reset means trade 'clock' will restart. Are you sure? (y/other)")
@@ -232,10 +240,13 @@ def auto_populate_limits(data: dataBlob):
     auto_parameters = get_auto_population_parameters()
 
     trade_multiplier = get_input_from_user_and_convert_to_type(
-        "Higgest proportion of standard position expected to trade daily?", type_expected=float,
-        default_value=MAX_POSITION_TRADED_DAILY)
-    period_days = get_input_from_user_and_convert_to_type("What period in days to set limit for?", type_expected=int,
-                                                          default_value=1)
+        "Higgest proportion of standard position expected to trade daily?",
+        type_expected=float,
+        default_value=MAX_POSITION_TRADED_DAILY,
+    )
+    period_days = get_input_from_user_and_convert_to_type(
+        "What period in days to set limit for?", type_expected=int, default_value=1
+    )
     _ = [
         set_trade_limit_for_instrument(
             data,
@@ -306,25 +317,36 @@ from sysproduction.reporting.data.constants import (
 
 def get_auto_population_parameters() -> parametersForAutoPopulation:
     print("Enter parameters to estimate typical position sizes")
-    notional_risk_target = get_input_from_user_and_convert_to_type("Notional risk target (% per year, 0.25 = 25%%)",
-                                                                   type_expected=float,
-                                                                   default_value=RISK_TARGET_ASSUMED / 100.0)
-    approx_IDM = get_input_from_user_and_convert_to_type("Approximate IDM", type_expected=float,
-                                                         default_value=IDM_ASSUMED)
+    notional_risk_target = get_input_from_user_and_convert_to_type(
+        "Notional risk target (% per year, 0.25 = 25%%)",
+        type_expected=float,
+        default_value=RISK_TARGET_ASSUMED / 100.0,
+    )
+    approx_IDM = get_input_from_user_and_convert_to_type(
+        "Approximate IDM", type_expected=float, default_value=IDM_ASSUMED
+    )
     notional_instrument_weight = get_input_from_user_and_convert_to_type(
-        "Notional instrument weight (go large for safety!)", type_expected=float,
-        default_value=INSTRUMENT_WEIGHT_ASSUMED)
+        "Notional instrument weight (go large for safety!)",
+        type_expected=float,
+        default_value=INSTRUMENT_WEIGHT_ASSUMED,
+    )
     raw_max_leverage = get_input_from_user_and_convert_to_type(
-        "Maximum Leverage per instrument (notional exposure*# contracts / capital)", type_expected=float,
-        default_value=RAW_MAX_LEVERAGE)
+        "Maximum Leverage per instrument (notional exposure*# contracts / capital)",
+        type_expected=float,
+        default_value=RAW_MAX_LEVERAGE,
+    )
 
     max_proportion_risk_one_contract = get_input_from_user_and_convert_to_type(
-        "Maximum proportion of risk in a single instrument (0.1 = 10%%)", type_expected=float,
-        default_value=MAX_RISK_EXPOSURE_ONE_INSTRUMENT)
+        "Maximum proportion of risk in a single instrument (0.1 = 10%%)",
+        type_expected=float,
+        default_value=MAX_RISK_EXPOSURE_ONE_INSTRUMENT,
+    )
 
     max_proportion_of_volume = get_input_from_user_and_convert_to_type(
-        "Maximum proportion of volume for expiry with largest volume (0.1 = 10%)", type_expected=float,
-        default_value=MAX_PROPORTION_OF_VOLUME)
+        "Maximum proportion of volume for expiry with largest volume (0.1 = 10%)",
+        type_expected=float,
+        default_value=MAX_PROPORTION_OF_VOLUME,
+    )
 
     auto_parameters = parametersForAutoPopulation(
         raw_max_leverage=raw_max_leverage,
@@ -537,9 +559,13 @@ def change_position_limit_for_instrument(data):
     view_position_limit(data)
     data_position_limits = dataPositionLimits(data)
     instrument_code = get_valid_instrument_code_from_user(data, allow_all=False)
-    new_position_limit = get_input_from_user_and_convert_to_type("New position limit?", type_expected=int,
-                                                                 allow_default=True, default_value=-1,
-                                                                 default_str="No limit")
+    new_position_limit = get_input_from_user_and_convert_to_type(
+        "New position limit?",
+        type_expected=int,
+        allow_default=True,
+        default_value=-1,
+        default_str="No limit",
+    )
     if new_position_limit == -1:
         data_position_limits.delete_position_limit_for_instrument(instrument_code)
     else:
@@ -556,9 +582,13 @@ def change_position_limit_for_instrument_strategy(data):
         data, allow_all=False, source="positions"
     )
     instrument_code = get_valid_instrument_code_from_user(data, allow_all=False)
-    new_position_limit = get_input_from_user_and_convert_to_type("New position limit?", type_expected=int,
-                                                                 allow_default=True, default_value=-1,
-                                                                 default_str="No limit")
+    new_position_limit = get_input_from_user_and_convert_to_type(
+        "New position limit?",
+        type_expected=int,
+        allow_default=True,
+        default_value=-1,
+        default_str="No limit",
+    )
 
     instrument_strategy = instrumentStrategy(
         instrument_code=instrument_code, strategy_name=strategy_name
@@ -862,8 +892,11 @@ def get_list_of_changes_to_make_to_slippage(
 
         estimate_to_use_with_mult = get_input_from_user_and_convert_to_type(
             "New configured slippage value (current %f, default is estimate %f)"
-            % (configured_estimate_multiplied, suggested_estimate_multiplied), type_expected=float, allow_default=True,
-            default_value=suggested_estimate_multiplied)
+            % (configured_estimate_multiplied, suggested_estimate_multiplied),
+            type_expected=float,
+            allow_default=True,
+            default_value=suggested_estimate_multiplied,
+        )
 
         if estimate_to_use_with_mult == configured_estimate_multiplied:
             print("Same as configured, do nothing...")
@@ -888,8 +921,11 @@ def get_list_of_changes_to_make_to_slippage(
 
 def get_filter_size_for_slippage() -> float:
     filter = get_input_from_user_and_convert_to_type(
-        "% difference to filter on? (eg 30 means we ignore differences<30%", type_expected=float, allow_default=True,
-        default_value=30.0)
+        "% difference to filter on? (eg 30 means we ignore differences<30%",
+        type_expected=float,
+        allow_default=True,
+        default_value=30.0,
+    )
 
     return filter
 
