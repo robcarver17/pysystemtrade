@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied
 
 from sysdata.production.temporary_close import temporaryCloseData
 from sysobjects.production.position_limits import positionLimitForInstrument
@@ -34,8 +34,6 @@ class mongoTemporaryCloseData(temporaryCloseData):
         self, instrument_code: str
     ) -> positionLimitForInstrument:
         result_dict = self.mongo_data.get_result_dict_for_key(instrument_code)
-        if result_dict is missing_data:
-            return missing_data
 
         return positionLimitForInstrument(
             instrument_code, result_dict[POSITION_LIMIT_FIELD]

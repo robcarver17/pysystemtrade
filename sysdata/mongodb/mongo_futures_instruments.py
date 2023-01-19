@@ -38,9 +38,6 @@ class mongoFuturesInstrumentData(futuresInstrumentData):
     def _get_instrument_data_without_checking(self, instrument_code):
 
         result_dict = self.mongo_data.get_result_dict_for_key(instrument_code)
-        if result_dict is missing_data:
-            # shouldn't happen...
-            raise Exception("Data for %s gone AWOL" % instrument_code)
 
         instrument_object = futuresInstrumentWithMetaData.from_dict(result_dict)
 

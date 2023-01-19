@@ -1,4 +1,4 @@
-from syscore.objects import success, missing_data
+from syscore.exceptions import missingData
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log_to_screen import logtoscreen
 
@@ -51,8 +51,9 @@ class mongoOrderStackData(orderStackData):
         )
 
     def get_order_with_id_from_stack(self, order_id: int):
-        result_dict = self.mongo_data.get_result_dict_for_key(order_id)
-        if result_dict is missing_data:
+        try:
+            result_dict = self.mongo_data.get_result_dict_for_key(order_id)
+        except missingData:
             return missing_order
 
         order_class = self._order_class()
@@ -90,8 +91,9 @@ class mongoOrderStackData(orderStackData):
         return new_orderid
 
     def _get_current_max_order_id(self) -> int:
-        result_dict = self.mongo_data.get_result_dict_for_key(ORDER_ID_STORE_KEY)
-        if result_dict is missing_data:
+        try:
+            result_dict = self.mongo_data.get_result_dict_for_key(ORDER_ID_STORE_KEY)
+        except missingData:
             orderid = self._create_and_return_max_order_id()
             return orderid
 

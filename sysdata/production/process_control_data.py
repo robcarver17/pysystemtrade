@@ -1,5 +1,6 @@
 import datetime
 
+from syscore.exceptions import missingData
 from sysobjects.production.process_control import (
     dictOfControlProcesses,
     controlProcess,
@@ -31,8 +32,9 @@ class controlProcessData(baseData):
         return list(self._control_store.keys())
 
     def get_control_for_process_name(self, process_name) -> controlProcess:
-        control = self._get_control_for_process_name_without_default(process_name)
-        if control is missing_data:
+        try:
+            control = self._get_control_for_process_name_without_default(process_name)
+        except missingData:
             return controlProcess()
         else:
             return control
@@ -44,10 +46,9 @@ class controlProcessData(baseData):
         return control
 
     def _update_control_for_process_name(self, process_name, new_control_object):
-        existing_control = self._get_control_for_process_name_without_default(
-            process_name
-        )
-        if existing_control is missing_data:
+        try:
+            self._get_control_for_process_name_without_default(process_name)
+        except missingData:
             self._add_control_for_process_name(process_name, new_control_object)
         else:
             self._modify_existing_control_for_process_name(
