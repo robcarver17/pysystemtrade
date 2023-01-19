@@ -1,7 +1,7 @@
 import pandas as pd
 from syscore.dateutils import long_to_datetime, datetime_to_long
 from syscore.exceptions import missingData
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 
 from sysdata.production.margin import marginData, seriesOfMargin
