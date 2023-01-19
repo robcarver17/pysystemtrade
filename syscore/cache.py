@@ -10,6 +10,15 @@ from syscore.objects import missing_data
 
 
 class Cache(object):
+    """
+    >>> some_class = _testCacheClass()
+    >>> some_class.square(2)
+    calculating
+    4
+    >>> some_class.square(2)
+    4
+    """
+
     def __init__(self, parent_object):
         self._parent = parent_object
         self._store = {}
@@ -52,3 +61,15 @@ class Cache(object):
 
 def _get_key(function_name, tuple_of_args: tuple, dict_of_kwargs: dict) -> str:
     return "%s/%s/%s" % (str(function_name), str(tuple_of_args), str(dict_of_kwargs))
+
+
+class _testCacheClass(object):
+    def __init__(self):
+        self.cache = Cache(self)
+
+    def square(self, x):
+        return self.cache.get(self._square, x)
+
+    def _square(self, x):
+        print("calculating")
+        return x**2

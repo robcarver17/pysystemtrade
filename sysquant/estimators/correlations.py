@@ -7,7 +7,7 @@ import numpy as np
 
 from dataclasses import dataclass
 from syscore.objects import arg_not_supplied
-from syscore.pandas.pdutils import must_have_item
+from syscore.pandas.pdutils import get_index_of_columns_in_df_with_at_least_one_value
 
 from sysquant.fitting_dates import fitDates, listOfFittingDates
 from sysquant.estimators.generic_estimator import Estimate
@@ -119,7 +119,7 @@ class correlationEstimate(Estimate):
 
         # must_haves are items with data in this period, so we need some
         # kind of correlation
-        must_haves = must_have_item(current_period_data)
+        must_haves = get_index_of_columns_in_df_with_at_least_one_value(current_period_data)
 
         clean_correlation = self.clean_correlations(must_haves, offdiag=offdiag)
 
