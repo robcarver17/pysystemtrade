@@ -7,7 +7,7 @@ import pandas as pd
 import datetime
 
 from sysdata.base_data import baseData
-from syscore.merge_data import spike_in_data
+from syscore.merge_data import SPIKE_IN_DATA
 
 from sysobjects.spot_fx_prices import fxPrices, get_fx_tuple_from_code, DEFAULT_CURRENCY
 
@@ -190,8 +190,8 @@ class fxPricesData(baseData):
             new_fx_prices, check_for_spike=check_for_spike
         )
 
-        if merged_fx_prices is spike_in_data:
-            return spike_in_data
+        if merged_fx_prices is SPIKE_IN_DATA:
+            return SPIKE_IN_DATA
 
         rows_added = len(merged_fx_prices) - len(old_fx_prices)
 

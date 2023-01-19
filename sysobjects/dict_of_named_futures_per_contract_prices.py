@@ -177,10 +177,11 @@ def _merge_futures_contract_final_prices_with_contract_id(
     price_column_name = original_data.price_column_name
     contract_column_name = original_data.contract_column_name
 
-    col_names_for_merger = dict(data=price_column_name, label=contract_column_name)
-
     merged_data_as_pd = merge_data_series_with_label_column(
-        original_data, new_data, col_names=col_names_for_merger
+        original_data,
+        new_data,
+        data_column=price_column_name,
+        label_column=contract_column_name,
     )
 
     merged_data = futuresNamedContractFinalPricesWithContractID(

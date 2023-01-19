@@ -5,7 +5,7 @@ import pandas as pd
 from syscore.merge_data import (
     merge_newer_data,
     full_merge_of_existing_data,
-    spike_in_data,
+    SPIKE_IN_DATA,
 )
 
 
@@ -78,11 +78,9 @@ class fxPrices(pd.Series):
         :return: merged fxPrices
         """
 
-        merged_fx_prices = merge_newer_data(
-            self, new_fx_prices, check_for_spike=check_for_spike
-        )
-        if merged_fx_prices is spike_in_data:
-            return spike_in_data
+        merged_fx_prices = merge_newer_data(self, new_fx_prices, check_for_spike=check_for_spike)
+        if merged_fx_prices is SPIKE_IN_DATA:
+            return SPIKE_IN_DATA
 
         merged_fx_prices = fxPrices(merged_fx_prices)
 

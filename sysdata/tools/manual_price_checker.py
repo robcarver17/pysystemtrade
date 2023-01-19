@@ -63,7 +63,7 @@ def manual_price_checker(
 
         merged_data_with_status = spike_check_merged_data(
             merged_data_with_status,
-            column_to_check=column_to_check,
+            column_to_check_for_spike=column_to_check,
             max_spike=max_price_spike,
         )
         spike_present = merged_data_with_status.spike_present
@@ -73,7 +73,7 @@ def manual_price_checker(
             data_iterating = False
             break
 
-        first_spike = merged_data_with_status.date_of_spike
+        first_spike = merged_data_with_status.spike_date
         merged_data = merged_data_with_status.merged_data
 
         position_of_spike_in_newdata = list(new_data.index).index(first_spike)

@@ -2,7 +2,7 @@ import pandas as pd
 import datetime
 from copy import copy
 
-from syscore.merge_data import spike_in_data
+from syscore.merge_data import SPIKE_IN_DATA
 from syscore.pdutils import (
     sumup_business_days_over_pd_series_without_double_counting_of_closing_data,
 )
@@ -144,13 +144,13 @@ class futuresContractPrices(pd.DataFrame):
         merged_data = full_merge_of_existing_data(
             self,
             new_futures_per_contract_prices,
-            check_for_spike=check_for_spike,
-            column_to_check=FINAL_COLUMN,
             keep_older=keep_older,
+            check_for_spike=check_for_spike,
+            column_to_check_for_spike=FINAL_COLUMN,
         )
 
-        if merged_data is spike_in_data:
-            return spike_in_data
+        if merged_data is SPIKE_IN_DATA:
+            return SPIKE_IN_DATA
 
         return futuresContractPrices(merged_data)
 
@@ -194,11 +194,11 @@ class futuresContractPrices(pd.DataFrame):
             new_futures_per_contract_prices,
             check_for_spike=check_for_spike,
             max_spike=max_price_spike,
-            column_to_check=FINAL_COLUMN,
+            column_to_check_for_spike=FINAL_COLUMN,
         )
 
-        if merged_futures_prices is spike_in_data:
-            return spike_in_data
+        if merged_futures_prices is SPIKE_IN_DATA:
+            return SPIKE_IN_DATA
 
         merged_futures_prices = futuresContractPrices(merged_futures_prices)
 

@@ -4,7 +4,7 @@ Update historical data per contract from interactive brokers data, dump into mon
 
 from copy import copy
 from syscore.objects import success, failure, arg_not_supplied, missing_data
-from syscore.merge_data import spike_in_data
+from syscore.merge_data import SPIKE_IN_DATA
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
 from syscore.pdutils import merge_data_with_different_freq
 
@@ -207,7 +207,7 @@ def price_updating_or_errors(
         max_price_spike=cleaning_config.max_price_spike,
     )
 
-    if error_or_rows_added is spike_in_data:
+    if error_or_rows_added is SPIKE_IN_DATA:
         report_price_spike(data, contract_object)
         return failure
 
