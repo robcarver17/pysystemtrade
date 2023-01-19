@@ -10,7 +10,7 @@ from syscore.fileutils import (
 )
 from syscore.objects import arg_not_supplied
 from syscore.dateutils import MIXED_FREQ, Frequency
-from syscore.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
+from syscore.pandas.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
 
 
 @dataclass

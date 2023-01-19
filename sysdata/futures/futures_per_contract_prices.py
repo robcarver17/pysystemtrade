@@ -1,7 +1,7 @@
 from syscore.exceptions import missingData
 from syscore.objects import failure
-from syscore.dateutils import Frequency, DAILY_PRICE_FREQ, MIXED_FREQ
-from syscore.merge_data import spike_in_data
+from syscore.dateutils import Frequency, MIXED_FREQ
+from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
 
 from sysdata.base_data import baseData
 
@@ -372,11 +372,11 @@ class futuresContractPriceData(baseData):
             max_price_spike=max_price_spike,
         )
 
-        if merged_prices is spike_in_data:
+        if merged_prices is SPIKE_IN_DATA:
             new_log.msg(
                 "Price has moved too much - will need to manually check - no price update done"
             )
-            return spike_in_data
+            return SPIKE_IN_DATA
 
         old_prices = old_prices[~old_prices.index.duplicated(keep="first")]
         rows_added = len(merged_prices) - len(old_prices)

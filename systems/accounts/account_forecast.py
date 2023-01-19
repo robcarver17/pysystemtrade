@@ -2,7 +2,7 @@ import pandas as pd
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.objects import arg_not_supplied
-from syscore.pdutils import sum_series
+from syscore.pandas.pdutils import sum_series
 from sysquant.estimators.vol import robust_daily_vol_given_price
 
 from systems.system_cache import diagnostic

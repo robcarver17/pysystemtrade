@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.objects import missing_data
-from syscore.pdutils import turnover
+from syscore.pandas.pdutils import turnover
 from systems.system_cache import diagnostic
 
 from systems.accounts.account_costs import accountCosts

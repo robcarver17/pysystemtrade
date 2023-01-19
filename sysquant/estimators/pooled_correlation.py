@@ -1,6 +1,6 @@
 from copy import copy
 
-from syscore.pdutils import listOfDataFrames
+from syscore.pandas.pdutils import listOfDataFrames
 
 from sysquant.estimators.correlations import CorrelationList
 from sysquant.estimators.correlation_over_time import correlation_over_time

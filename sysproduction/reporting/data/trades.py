@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.genutils import transfer_object_attributes
-from syscore.pdutils import make_df_from_list_of_named_tuple
+from syscore.pandas.pdutils import make_df_from_list_of_named_tuple
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.orders import dataOrders

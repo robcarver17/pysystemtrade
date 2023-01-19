@@ -1,5 +1,8 @@
 from syscore.dateutils import DAILY_PRICE_FREQ, HOURLY_FREQ
-from syscore.pdutils import get_intraday_df_at_frequency, closing_date_rows_in_pd_object
+from syscore.pandas.pdutils import (
+    get_intraday_df_at_frequency,
+    closing_date_rows_in_pd_object,
+)
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )

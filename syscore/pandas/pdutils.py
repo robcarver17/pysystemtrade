@@ -5,8 +5,10 @@ import pandas as pd
 import datetime
 import random
 
-import numpy as np
 from copy import copy
+from typing import Union
+import numpy as np
+
 
 from syscore.genutils import flatten_list
 from syscore.dateutils import (
@@ -21,6 +23,15 @@ from syscore.dateutils import (
 from syscore.objects import arg_not_supplied, missing_data
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
+def is_a_series(x: Union[pd.Series, pd.DataFrame]) -> bool:
+    columns = getattr(x, "columns", None)
+    return columns is None
+
+
+def is_a_dataframe(x: Union[pd.Series, pd.DataFrame]) -> bool:
+    return not is_a_series(x)
 
 
 def interpolate_data_during_day(

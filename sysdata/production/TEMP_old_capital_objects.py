@@ -3,7 +3,7 @@ import datetime
 import pandas as pd
 
 from syscore.objects import arg_not_supplied, failure, missing_data
-from syscore.pdutils import uniquets
+from syscore.pandas.pdutils import uniquets
 
 from sysdata.data_blob import dataBlob
 from sysdata.production.capital import capitalEntry, capitalForStrategy

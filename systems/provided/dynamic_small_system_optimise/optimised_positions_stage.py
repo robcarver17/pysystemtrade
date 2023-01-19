@@ -3,19 +3,16 @@ from copy import copy
 
 import pandas as pd
 
-from sysquant.estimators.stdev_estimator import stdevEstimates, seriesOfStdevEstimates
+from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.estimators.correlations import (
     correlationEstimate,
-    create_boring_corr_matrix,
-    CorrelationList,
 )
 from sysquant.estimators.covariance import (
-    covarianceEstimate,
     covariance_from_stdev_and_correlation,
 )
-from syscore.progress_bar import progressBar
-from syscore.objects import arg_not_supplied, missing_data
-from syscore.pdutils import calculate_cost_deflator, get_row_of_series
+from syscore.interactive.progress_bar import progressBar
+from syscore.objects import arg_not_supplied
+from syscore.pandas.pdutils import calculate_cost_deflator, get_row_of_series
 from systems.provided.dynamic_small_system_optimise.optimisation import (
     objectiveFunctionForGreedy,
     constraintsForDynamicOpt,

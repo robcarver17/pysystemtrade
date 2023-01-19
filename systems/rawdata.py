@@ -5,7 +5,6 @@ import pandas as pd
 from systems.stage import SystemStage
 from syscore.objects import resolve_function
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.pdutils import prices_to_daily_prices
 from systems.system_cache import input, diagnostic, output
 
 from sysdata.sim.futures_sim_data import futuresSimData

@@ -2,7 +2,7 @@ import pandas as pd
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.objects import arg_not_supplied
-from syscore.pdutils import spread_out_annualised_return_over_periods
+from syscore.pandas.pdutils import spread_out_annualised_return_over_periods
 from sysquant.estimators.vol import robust_daily_vol_given_price
 from systems.accounts.pandl_calculators.pandl_generic_costs import (
     pandlCalculationWithGenericCosts,
