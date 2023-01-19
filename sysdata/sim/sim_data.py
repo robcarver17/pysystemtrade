@@ -3,7 +3,10 @@ import datetime
 
 from syscore.objects import get_methods, missing_data
 from syscore.dateutils import ARBITRARY_START
-from syscore.pandas.pdutils import resample_prices_to_business_day_index, get_intraday_df_at_frequency
+from syscore.pandas.pdutils import (
+    resample_prices_to_business_day_index,
+    get_intraday_df_at_frequency,
+)
 from sysdata.base_data import baseData
 
 from sysobjects.spot_fx_prices import fxPrices
