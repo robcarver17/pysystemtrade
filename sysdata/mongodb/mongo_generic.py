@@ -1,7 +1,7 @@
 from copy import copy
 from datetime import date, time
 
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied
 from syscore.exceptions import missingData, existingData
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,
@@ -203,7 +203,7 @@ class mongoDataWithMultipleKeys(object):
     def get_result_dict_for_dict_keys(self, dict_of_keys: dict) -> dict:
         result_dict = self._mongo.collection.find_one(dict_of_keys)
         if result_dict is None:
-            return missing_data
+            raise missingData("Keys %s not found in Mongo data" % dict_of_keys)
 
         result_dict.pop(MONGO_ID_KEY)
 
@@ -221,8 +221,9 @@ class mongoDataWithMultipleKeys(object):
         return list_of_result_dicts
 
     def key_dict_is_in_data(self, dict_of_keys: dict) -> bool:
-        result = self.get_result_dict_for_dict_keys(dict_of_keys)
-        if result is missing_data:
+        try:
+            self.get_result_dict_for_dict_keys(dict_of_keys)
+        except missingData:
             return False
         else:
             return True

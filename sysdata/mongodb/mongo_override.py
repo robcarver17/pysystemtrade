@@ -1,4 +1,4 @@
-from syscore.objects import missing_data
+from syscore.exceptions import missingData
 from sysdata.production.override import overrideData
 from sysobjects.production.override import Override
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
@@ -34,10 +34,10 @@ class mongoOverrideData(overrideData):
     def _get_override_object_for_type_and_key(
         self, override_type: str, key: str
     ) -> Override:
-        # return missing_data if nothing found
         dict_of_keys = {OVERRIDE_KEY: key, OVERRIDE_TYPE: override_type}
-        result_dict = self.mongo_data.get_result_dict_for_dict_keys(dict_of_keys)
-        if result_dict is missing_data:
+        try:
+            result_dict = self.mongo_data.get_result_dict_for_dict_keys(dict_of_keys)
+        except missingData:
             return self.default_override()
 
         override = _from_dict_to_override(result_dict)
