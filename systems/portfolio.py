@@ -4,7 +4,7 @@ from copy import copy
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.genutils import str2Bool, list_union
-from syscore.pdutils import (
+from syscore.pandas.pdutils import (
     fix_weights_vs_position_or_forecast,
     from_dict_of_values_to_df,
     from_scalar_values_to_ts,

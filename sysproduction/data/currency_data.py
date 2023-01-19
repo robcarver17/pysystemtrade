@@ -1,5 +1,5 @@
 from syscore.objects import arg_not_supplied
-from syscore.interactive_menus import print_menu_of_values_and_get_response
+from syscore.interactive.interactive_menus import print_menu_of_values_and_get_response
 
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.fx.spotfx import fxPricesData

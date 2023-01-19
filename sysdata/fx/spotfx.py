@@ -7,7 +7,7 @@ import pandas as pd
 import datetime
 
 from sysdata.base_data import baseData
-from syscore.merge_data import SPIKE_IN_DATA
+from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
 
 from sysobjects.spot_fx_prices import fxPrices, get_fx_tuple_from_code, DEFAULT_CURRENCY
 

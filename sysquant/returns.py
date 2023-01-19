@@ -5,7 +5,7 @@ from systems.accounts.curves.account_curve_group import accountCurveGroup
 from syscore.genutils import flatten_list
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 
-from syscore.pdutils import listOfDataFrames
+from syscore.pandas.pdutils import listOfDataFrames
 
 
 SINGLE_NAME = "asset"

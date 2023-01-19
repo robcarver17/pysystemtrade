@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-from syscore.pdutils import check_df_equals, check_ts_equals
+from syscore.pandas.pdutils import check_df_equals, check_ts_equals
 from syscore.objects import missing_data
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
 from sysdata.data_blob import dataBlob

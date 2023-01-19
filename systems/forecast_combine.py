@@ -5,7 +5,7 @@ import pandas as pd
 from systems.forecast_mapping import map_forecast_value
 from syscore.genutils import str2Bool
 from syscore.objects import resolve_function, missing_data
-from syscore.pdutils import (
+from syscore.pandas.pdutils import (
     dataframe_pad,
     fix_weights_vs_position_or_forecast,
     from_dict_of_values_to_df,

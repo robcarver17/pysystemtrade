@@ -14,7 +14,7 @@ from syscore.objects import (
     body_text,
     ALL_ROLL_INSTRUMENTS,
 )
-from syscore.pdutils import top_and_tail
+from syscore.pandas.pdutils import top_and_tail
 from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import annonate_df_index_with_positions_held

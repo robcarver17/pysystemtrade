@@ -1,5 +1,7 @@
 import inspect
-from syscore.interactive_input import get_input_from_user_and_convert_to_type
+from syscore.interactive.interactive_input import (
+    get_input_from_user_and_convert_to_type,
+)
 
 NO_DEFAULT = object()
 NO_TYPE_PROVIDED = object()

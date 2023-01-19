@@ -5,7 +5,10 @@ import pandas as pd
 from syscore.exceptions import missingData
 from syscore.genutils import transfer_object_attributes
 from syscore.objects import missing_data
-from syscore.pdutils import make_df_from_list_of_named_tuple, sort_df_ignoring_missing
+from syscore.pandas.pdutils import (
+    make_df_from_list_of_named_tuple,
+    sort_df_ignoring_missing,
+)
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
 from sysproduction.data.controls import (

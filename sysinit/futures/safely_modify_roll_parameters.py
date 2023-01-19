@@ -3,7 +3,7 @@
 # matplotlib.use("TkAgg")
 from matplotlib.pyplot import show
 import pandas as pd
-from syscore.interactive_input import (
+from syscore.interactive.interactive_input import (
     true_if_answer_is_yes,
     get_input_from_user_and_convert_to_type,
 )

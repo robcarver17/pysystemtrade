@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
-from syscore.pdutils import uniquets, apply_abs_min
+from syscore.pandas.pdutils import uniquets, apply_abs_min
 
 
 class rawCarryData(pd.DataFrame):

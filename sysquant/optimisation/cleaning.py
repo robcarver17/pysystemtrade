@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from sysquant.optimisation.weights import portfolioWeights
-from syscore.pdutils import must_have_item
+from syscore.pandas.pdutils import must_have_item
 
 
 def get_must_have_dict_from_data(data: pd.DataFrame) -> dict:

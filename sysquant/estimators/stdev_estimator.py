@@ -2,7 +2,7 @@ import datetime
 import pandas as pd
 import numpy as np
 
-from syscore.pdutils import (
+from syscore.pandas.pdutils import (
     how_many_times_a_year_is_pd_frequency,
     get_max_index_before_datetime,
     get_row_of_df_aligned_to_weights_as_dict,

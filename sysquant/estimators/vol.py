@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR
-from syscore.pdutils import prices_to_daily_prices
+from syscore.pandas.pdutils import prices_to_daily_prices
 
 
 def robust_daily_vol_given_price(price: pd.Series, **kwargs):

@@ -1,6 +1,6 @@
 import datetime
 import pandas as pd
-from syscore.progress_bar import progressBar
+from syscore.interactive.progress_bar import progressBar
 
 from sysquant.estimators.stdev_estimator import seriesOfStdevEstimates, stdevEstimates
 from sysquant.estimators.correlations import (
@@ -12,7 +12,7 @@ from sysquant.estimators.covariance import (
     covarianceEstimate,
     covariance_from_stdev_and_correlation,
 )
-from sysquant.optimisation.weights import portfolioWeights, seriesOfPortfolioWeights
+from sysquant.optimisation.weights import seriesOfPortfolioWeights
 
 
 def calc_sum_annualised_risk_given_portfolio_weights(

@@ -2,7 +2,7 @@ import pandas as pd
 
 from systems.accounts.account_buffering_subsystem import apply_buffer
 from syscore.objects import missing_data
-from syscore.pdutils import turnover
+from syscore.pandas.pdutils import turnover
 from systems.system_cache import diagnostic
 
 from systems.accounts.account_inputs import accountInputs

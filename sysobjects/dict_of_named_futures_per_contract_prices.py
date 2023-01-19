@@ -1,6 +1,8 @@
 import pandas as pd
 
-from syscore.merge_data import merge_data_series_with_label_column
+from syscore.pandas.merge_data_with_label_column import (
+    merge_data_series_with_label_column,
+)
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 
 ## CHECK IF ALL THESE ARE NEEDED...

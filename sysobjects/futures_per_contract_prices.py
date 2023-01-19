@@ -2,11 +2,12 @@ import pandas as pd
 import datetime
 from copy import copy
 
-from syscore.merge_data import SPIKE_IN_DATA
-from syscore.pdutils import (
+from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
+from syscore.pandas.pdutils import (
     sumup_business_days_over_pd_series_without_double_counting_of_closing_data,
 )
-from syscore.merge_data import merge_newer_data, full_merge_of_existing_data
+from syscore.pandas.merge_data_keeping_past_data import merge_newer_data
+from syscore.pandas.full_merge_with_replacement import full_merge_of_existing_data
 
 PRICE_DATA_COLUMNS = sorted(["OPEN", "HIGH", "LOW", "FINAL", "VOLUME"])
 FINAL_COLUMN = "FINAL"

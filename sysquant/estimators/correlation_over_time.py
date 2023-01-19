@@ -1,5 +1,5 @@
 import pandas as pd
-from syscore.progress_bar import progressBar
+from syscore.interactive.progress_bar import progressBar
 from sysquant.estimators.correlation_estimator import correlationEstimator
 
 from sysquant.fitting_dates import generate_fitting_dates

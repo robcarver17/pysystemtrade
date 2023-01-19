@@ -7,7 +7,7 @@ import numpy as np
 
 from dataclasses import dataclass
 from syscore.objects import arg_not_supplied
-from syscore.pdutils import must_have_item
+from syscore.pandas.pdutils import must_have_item
 
 from sysquant.fitting_dates import fitDates, listOfFittingDates
 from sysquant.estimators.generic_estimator import Estimate

@@ -1,7 +1,6 @@
 from sysobjects.instruments import instrumentCosts
 
-from syscore.pdutils import from_scalar_values_to_ts
-from syscore.objects import missing_data
+from syscore.pandas.pdutils import from_scalar_values_to_ts
 
 import pandas as pd
 from systems.stage import SystemStage

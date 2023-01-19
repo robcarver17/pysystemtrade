@@ -2,7 +2,7 @@ import datetime
 import numpy as np
 import pandas as pd
 
-from syscore.pdutils import years_in_data, uniquets, calculate_cost_deflator
+from syscore.pandas.pdutils import years_in_data, uniquets, calculate_cost_deflator
 from syscore.dateutils import generate_equal_dates_within_year
 from syscore.genutils import flatten_list
 

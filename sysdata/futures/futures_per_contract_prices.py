@@ -1,7 +1,7 @@
 from syscore.exceptions import missingData
 from syscore.objects import failure
-from syscore.dateutils import Frequency, DAILY_PRICE_FREQ, MIXED_FREQ
-from syscore.merge_data import SPIKE_IN_DATA
+from syscore.dateutils import Frequency, MIXED_FREQ
+from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
 
 from sysdata.base_data import baseData
 
