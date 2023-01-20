@@ -612,16 +612,20 @@ def make_df_from_list_of_named_tuple(
 
 
 def set_pd_print_options():
+    ## avoid annoying truncation in reports
     pd.set_option("display.max_rows", 500)
     pd.set_option("display.max_columns", 100)
     pd.set_option("display.width", 1000)
 
 
-def closing_date_rows_in_pd_object(pd_object):
+def closing_date_rows_in_pd_object(
+    pd_object: Union[pd.DataFrame, pd.Series],
+    closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+) -> Union[pd.DataFrame, pd.Series]:
     return pd_object[
         [
             check_time_matches_closing_time_to_second(
-                index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET
+                index_entry=index_entry, closing_time=closing_time
             )
             for index_entry in pd_object.index
         ]
