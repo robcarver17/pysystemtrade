@@ -81,6 +81,6 @@ FIXME This is a bit of a mess - Update when a unified cache system setup
 ### Testing
 
 Doc tests should be removed from class methods, since they often require a lot of setup, and make the code harder to read. Unit tests are preferable.
-Doc tests make more sense for seperate, standalone, functions.
+Doc tests make more sense for seperate, standalone, functions. This is especially the case when they can be used to quickly demonstrate how a function works.
 
 Test coverage is extremely sparse. 

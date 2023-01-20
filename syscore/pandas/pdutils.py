@@ -5,6 +5,7 @@ import pandas as pd
 import datetime
 import random
 
+from collections import namedtuple
 from copy import copy
 from typing import Union, List
 import numpy as np
@@ -546,6 +547,8 @@ def apply_abs_min(x: pd.Series, min_value: float = 0.1) -> pd.Series:
     2000-01-10   -3
     Freq: B, dtype: int64
     """
+
+    ## Could also use clip but no quicker and this is more intuitive
     x[(x < min_value) & (x > 0)] = min_value
     x[(x > -min_value) & (x < 0)] = -min_value
 
@@ -568,7 +571,27 @@ def check_ts_equals(x, y):
         return False
 
 
-def make_df_from_list_of_named_tuple(tuple_class, list_of_tuples):
+def make_df_from_list_of_named_tuple(
+    tuple_class,
+    list_of_tuples: list,
+    make_index: bool = True,
+    field_name_for_index: str = arg_not_supplied,
+):
+    """
+    Turn a list of named tuplies into a dataframe
+    The first element in the tuple will become the index
+
+    >>> T = namedtuple('T', 'name value_a value_b')
+    >>> t1 = T('X', 3,1)
+    >>> t2 = T('Y',1,2)
+    >>> t3 = T('Z', 4, 3)
+    >>> make_df_from_list_of_named_tuple(T, [t1, t2, t3])
+          value_a  value_b
+    name
+    X           3        1
+    Y           1        2
+    Z           4        3
+    """
     elements = tuple_class._fields
     dict_of_elements = {}
     for element_name in elements:
@@ -578,8 +601,12 @@ def make_df_from_list_of_named_tuple(tuple_class, list_of_tuples):
         dict_of_elements[element_name] = this_element_values
 
     pdf = pd.DataFrame(dict_of_elements)
-    pdf.index = pdf[elements[0]]
-    pdf = pdf.drop(labels=elements[0], axis=1)
+
+    if make_index:
+        if field_name_for_index is arg_not_supplied:
+            field_name_for_index = elements[0]
+        pdf.index = pdf[field_name_for_index]
+        pdf = pdf.drop(labels=field_name_for_index, axis=1)
 
     return pdf
 
