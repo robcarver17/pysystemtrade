@@ -248,10 +248,11 @@ def get_last_position_update_for_strategy_instrument(
         instrument_code=instrument_code, strategy_name=strategy_name
     )
 
-    pos_data = op.get_optimal_position_as_df_for_instrument_strategy(
-        instrument_strategy
-    )
-    if pos_data is missing_data:
+    try:
+        pos_data = op.get_optimal_position_as_df_for_instrument_strategy(
+            instrument_strategy
+        )
+    except missingData:
         return None
     last_update = pos_data.index[-1]
     key = "%s/%s" % (strategy_name, instrument_code)
