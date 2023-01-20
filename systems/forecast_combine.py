@@ -1122,7 +1122,9 @@ class ForecastCombine(SystemStage):
         # To deal with this we pad the weights data frame so it is exactly
         # aligned with the correlations
 
-        weight_df = dataframe_pad(weight_df, correlation_list.column_names, pad_with_value=0.0)
+        weight_df = dataframe_pad(
+            weight_df, correlation_list.column_names, pad_with_value=0.0
+        )
 
         ts_fdm = idm_func(correlation_list, weight_df, **div_mult_params)
 
