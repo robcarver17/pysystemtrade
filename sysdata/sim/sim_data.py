@@ -5,7 +5,7 @@ from syscore.objects import get_methods, missing_data
 from syscore.dateutils import ARBITRARY_START
 from syscore.pandas.pdutils import (
     resample_prices_to_business_day_index,
-    get_intraday_df_at_frequency,
+    get_intraday_pdf_at_frequency,
 )
 from sysdata.base_data import baseData
 
@@ -135,7 +135,7 @@ class simData(baseData):
             raise Exception("No adjusted hourly prices for %s" % instrument_code)
 
         # ignore type warning - series or data frame both work
-        hourly_prices = get_intraday_df_at_frequency(instrprice)
+        hourly_prices = get_intraday_pdf_at_frequency(instrprice)
 
         return hourly_prices
 

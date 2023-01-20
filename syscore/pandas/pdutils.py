@@ -622,6 +622,15 @@ def closing_date_rows_in_pd_object(
     pd_object: Union[pd.DataFrame, pd.Series],
     closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
 ) -> Union[pd.DataFrame, pd.Series]:
+    """
+    >>> d = datetime.datetime
+    >>> date_index = [d(2000,1,1,15),d(2000,1,1,23), d(2000,1,2,15)]
+    >>> df = pd.DataFrame(dict(a=[1, 2, 3], b=[4 , 6, 5]), index=date_index)
+    >>> closing_date_rows_in_pd_object(df)
+                         a  b
+    2000-01-01 23:00:00  2  6
+
+    """
     return pd_object[
         [
             check_time_matches_closing_time_to_second(
@@ -632,26 +641,71 @@ def closing_date_rows_in_pd_object(
     ]
 
 
-def intraday_date_rows_in_pd_object(pd_object):
+def intraday_date_rows_in_pd_object(
+    pd_object: Union[pd.DataFrame, pd.Series],
+    closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+) -> Union[pd.DataFrame, pd.Series]:
+    """
+    >>> d = datetime.datetime
+    >>> date_index = [d(2000,1,1,15),d(2000,1,1,23), d(2000,1,2,15)]
+    >>> df = pd.DataFrame(dict(a=[1, 2, 3], b=[4 , 6, 5]), index=date_index)
+    >>> intraday_date_rows_in_pd_object(df)
+                         a  b
+    2000-01-01 15:00:00  1  4
+    2000-01-02 15:00:00  3  5
+    """
+
     return pd_object[
         [
             not check_time_matches_closing_time_to_second(
-                index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET
+                index_entry=index_entry, closing_time=closing_time
             )
             for index_entry in pd_object.index
         ]
     ]
 
 
-def get_intraday_df_at_frequency(df: pd.DataFrame, frequency="H"):
-    intraday_only_df = intraday_date_rows_in_pd_object(df)
+def get_intraday_pdf_at_frequency(
+    pd_object: Union[pd.DataFrame, pd.Series],
+    frequency: str = "H",
+    closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+) -> Union[pd.Series, pd.DataFrame]:
+    """
+    >>> d = datetime.datetime
+    >>> date_index = [d(2000,1,1,15),d(2000,1,1,16),d(2000,1,1,23), d(2000,1,2,15)]
+    >>> df = pd.DataFrame(dict(a=[1, 2, 3,4], b=[4,5,6,7]), index=date_index)
+    >>> get_intraday_pdf_at_frequency(df,"2H")
+                         a  b
+    2000-01-01 14:00:00  1  4
+    2000-01-02 14:00:00  3  5
+    """
+    intraday_only_df = intraday_date_rows_in_pd_object(
+        pd_object, closing_time=closing_time
+    )
     intraday_df = intraday_only_df.resample(frequency).last()
     intraday_df_clean = intraday_df.dropna()
 
     return intraday_df_clean
 
 
-def merge_data_with_different_freq(list_of_data: list):
+def merge_data_with_different_freq(
+    list_of_data: List[Union[pd.DataFrame, pd.Series]]
+) -> Union[pd.Series, pd.DataFrame]:
+    """
+    >>> d = datetime.datetime
+    >>> date_index1 = [d(2000,1,1,23),d(2000,1,2,23),d(2000,1,3,23)]
+    >>> date_index2 = [d(2000,1,1,15),d(2000,1,1,16),d(2000,1,2,15)]
+    >>> s1 = pd.Series([3,5,6], index=date_index1)
+    >>> s2 = pd.Series([1,2,4], index=date_index2)
+    >>> merge_data_with_different_freq([s1,s2])
+    2000-01-01 15:00:00    1
+    2000-01-01 16:00:00    2
+    2000-01-01 23:00:00    3
+    2000-01-02 15:00:00    4
+    2000-01-02 23:00:00    5
+    2000-01-03 23:00:00    6
+    """
+
     list_as_concat_pd = pd.concat(list_of_data, axis=0)
     sorted_pd = list_as_concat_pd.sort_index()
     unique_pd = uniquets(sorted_pd)
@@ -660,9 +714,30 @@ def merge_data_with_different_freq(list_of_data: list):
 
 
 def sumup_business_days_over_pd_series_without_double_counting_of_closing_data(
-    pd_series,
-):
-    intraday_data = intraday_date_rows_in_pd_object(pd_series)
+    pd_series: pd.Series,
+    closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+) -> pd.Series:
+    """
+    Used for volume data - adds up a series over a day to get a daily total
+
+    Uses closing values when available, otherwise sums up intraday values
+
+    >>> d = datetime.datetime
+    >>> date_index1 = [d(2000,2,1,15),d(2000,2,1,16), d(2000,2,1,23), ]
+    >>> s1 = pd.Series([10,5,17], index=date_index1)
+    >>> sumup_business_days_over_pd_series_without_double_counting_of_closing_data(s1)
+    2000-02-01    17
+    Freq: B, Name: 0, dtype: int64
+    >>> date_index1 = [d(2000,2,1,15),d(2000,2,1,16), d(2000,2,2,23) ]
+    >>> s1 = pd.Series([10,5,2], index=date_index1)
+    >>> sumup_business_days_over_pd_series_without_double_counting_of_closing_data(s1)
+    2000-02-01    15.0
+    2000-02-02     2.0
+    Freq: B, Name: 0, dtype: float64
+    """
+    intraday_data = intraday_date_rows_in_pd_object(
+        pd_series, closing_time=closing_time
+    )
     if len(intraday_data) == 0:
         return pd_series
 
@@ -683,6 +758,8 @@ def sumup_business_days_over_pd_series_without_double_counting_of_closing_data(
 def replace_all_zeros_with_nan(result: pd.Series) -> pd.Series:
     check_result = copy(result)
     check_result[check_result == 0.0] = np.nan
+
+    ##
     if all(check_result.isna()):
         result[:] = np.nan
 
