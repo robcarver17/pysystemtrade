@@ -58,9 +58,7 @@ def can_we_send_this_email_now(data, subject, email_is_report=False):
         return True
 
     try:
-        last_time_email_sent = get_time_last_email_sent_with_this_subject(
-            data, subject
-        )
+        last_time_email_sent = get_time_last_email_sent_with_this_subject(data, subject)
     except missingData:
         return True
 
