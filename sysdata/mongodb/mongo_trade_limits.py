@@ -1,4 +1,4 @@
-from syscore.objects import missing_data
+from syscore.exceptions import missingData
 from sysdata.production.trade_limits import (
     tradeLimitData,
     listOfInstrumentStrategyKeyAndDays,
@@ -49,9 +49,9 @@ class mongoTradeLimitData(tradeLimitData):
             PERIOD_KEY: period_days,
         }
 
-        result_dict = self.mongo_data.get_result_dict_for_dict_keys(dict_of_keys)
-
-        if result_dict is missing_data:
+        try:
+            result_dict = self.mongo_data.get_result_dict_for_dict_keys(dict_of_keys)
+        except missingData:
             result_dict = self._get_old_style_trade_limit_as_dict_or_missing_data(
                 instrument_strategy, period_days
             )
@@ -68,8 +68,6 @@ class mongoTradeLimitData(tradeLimitData):
         }
 
         result_dict = self.mongo_data.get_result_dict_for_dict_keys(dict_of_keys)
-        if result_dict is missing_data:
-            return missing_data
         result_dict = _from_trade_limit_dict_to_required_dict(result_dict)
 
         return result_dict

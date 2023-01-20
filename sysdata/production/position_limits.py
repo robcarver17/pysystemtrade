@@ -6,7 +6,7 @@ When we want to trade (create an instrument / strategy order) we check that the 
 
 
 """
-
+from syscore.exceptions import missingData
 from syscore.objects import missing_data
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
@@ -29,10 +29,11 @@ class positionLimitData(baseData):
         self, instrument_strategy: instrumentStrategy
     ) -> positionLimitForStrategyInstrument:
 
-        position_limit = self._get_abs_position_limit_for_instrument_strategy(
-            instrument_strategy
-        )
-        if position_limit is missing_data:
+        try:
+            position_limit = self._get_abs_position_limit_for_instrument_strategy(
+                instrument_strategy
+            )
+        except missingData:
             position_limit_object = positionLimitForStrategyInstrument.no_limit(
                 instrument_strategy
             )
@@ -47,8 +48,11 @@ class positionLimitData(baseData):
         self, instrument_code: str
     ) -> positionLimitForInstrument:
 
-        position_limit = self._get_abs_position_limit_for_instrument(instrument_code)
-        if position_limit is missing_data:
+        try:
+            position_limit = self._get_abs_position_limit_for_instrument(
+                instrument_code
+            )
+        except missingData:
             position_limit_object = positionLimitForInstrument.no_limit(instrument_code)
         else:
             position_limit_object = positionLimitForInstrument(

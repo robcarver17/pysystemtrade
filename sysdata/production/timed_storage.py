@@ -1,13 +1,12 @@
 """
 Generic timed storage; more bullet proof than a data frame
 """
-
+from syscore.exceptions import missingData
 from syscore.objects import (
     success,
     failure,
     resolve_function,
     arg_not_supplied,
-    missing_data,
 )
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
@@ -173,10 +172,11 @@ class listOfEntriesData(baseData):
         return current_entry
 
     def _get_series_for_args_dict(self, args_dict) -> listOfEntries:
-        class_with_series_as_list_of_dicts = (
-            self._get_series_dict_and_class_for_args_dict(args_dict)
-        )
-        if class_with_series_as_list_of_dicts is missing_data:
+        try:
+            class_with_series_as_list_of_dicts = (
+                self._get_series_dict_and_class_for_args_dict(args_dict)
+            )
+        except missingData:
             return self._empty_data_series
 
         entry_series = class_with_series_as_list_of_dicts.as_list_of_entries()
@@ -190,9 +190,6 @@ class listOfEntriesData(baseData):
         class_str_with_series_as_list_of_dicts = (
             self._get_series_dict_with_data_class_for_args_dict(args_dict)
         )
-
-        if class_str_with_series_as_list_of_dicts is missing_data:
-            return missing_data
 
         class_with_series_as_list_of_dicts = (
             class_str_with_series_as_list_of_dicts.with_class_object()
@@ -227,11 +224,11 @@ class listOfEntriesData(baseData):
     ) -> str:
 
         ## Use existing data, or if not available use the default for this object
-        class_str_with_series_as_list_of_dicts = (
-            self._get_series_dict_with_data_class_for_args_dict(args_dict)
-        )
-
-        if class_str_with_series_as_list_of_dicts is missing_data:
+        try:
+            class_str_with_series_as_list_of_dicts = (
+                self._get_series_dict_with_data_class_for_args_dict(args_dict)
+            )
+        except missingData:
             return self._data_class_name()
         else:
             return class_str_with_series_as_list_of_dicts.class_of_entry_list_as_str

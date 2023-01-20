@@ -3,7 +3,7 @@ from sysdata.production.timed_storage import (
     classStrWithListOfEntriesAsListOfDicts,
     listOfEntriesAsListOfDicts,
 )
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied
 
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
 from syslogdiag.log_to_screen import logtoscreen
@@ -58,8 +58,6 @@ class mongoListOfEntriesData(listOfEntriesData):
     ) -> classStrWithListOfEntriesAsListOfDicts:
 
         result_dict = self.mongo_data.get_result_dict_for_dict_keys(args_dict)
-        if result_dict is missing_data:
-            return missing_data
 
         data_class = result_dict[DATA_CLASS_KEY]
         series_as_list_of_dicts = result_dict[ENTRY_SERIES_KEY]

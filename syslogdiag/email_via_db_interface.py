@@ -1,7 +1,7 @@
 import datetime
 
 from syscore.dateutils import SECONDS_PER_DAY
-from syscore.objects import missing_data
+from syscore.exceptions import missingData
 from syslogdiag.mongo_email_control import mongoEmailControlData
 
 from syslogdiag.emailing import send_mail_msg, send_mail_pdfs
@@ -57,7 +57,11 @@ def can_we_send_this_email_now(data, subject, email_is_report=False):
         # always send reports
         return True
 
-    last_time_email_sent = get_time_last_email_sent_with_this_subject(data, subject)
+    try:
+        last_time_email_sent = get_time_last_email_sent_with_this_subject(data, subject)
+    except missingData:
+        return True
+
     email_was_sent_in_last_day = check_if_sent_in_last_day(last_time_email_sent)
 
     if email_was_sent_in_last_day:
@@ -77,17 +81,19 @@ def store_and_warn_email(data, body, subject, email_is_report=False):
 
 
 def have_we_sent_warning_email_for_this_subject(data, subject):
-    last_time_email_sent = get_time_last_warning_email_sent_with_this_subject(
-        data, subject
-    )
+    try:
+        last_time_email_sent = get_time_last_warning_email_sent_with_this_subject(
+            data, subject
+        )
+    except missingData:
+        return False
+
     result = check_if_sent_in_last_day(last_time_email_sent)
 
     return result
 
 
-def check_if_sent_in_last_day(last_time_email_sent):
-    if last_time_email_sent is missing_data:
-        return False
+def check_if_sent_in_last_day(last_time_email_sent: datetime.datetime):
     time_now = datetime.datetime.now()
     elapsed_time = time_now - last_time_email_sent
     elapsed_time_seconds = elapsed_time.total_seconds()

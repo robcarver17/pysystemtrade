@@ -1,5 +1,3 @@
-from syscore.objects import missing_data
-
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
 from sysdata.production.position_limits import positionLimitData
 from sysobjects.production.position_limits import (
@@ -95,15 +93,12 @@ class mongoPositionLimitData(positionLimitData):
         self, instrument_strategy: instrumentStrategy
     ) -> int:
 
-        # return missing_data if no limit found
         dict_of_keys = {
             MARKER_KEY: MARKER_STRATEGY_INSTRUMENT,
             STRATEGY_KEY: instrument_strategy.strategy_name,
             INSTRUMENT_KEY: instrument_strategy.instrument_code,
         }
         find_object_dict = self.mongo_data.get_result_dict_for_dict_keys(dict_of_keys)
-        if find_object_dict is missing_data:
-            return missing_data
         position_limit = find_object_dict[POSITION_LIMIT_KEY]
 
         return position_limit
@@ -115,8 +110,6 @@ class mongoPositionLimitData(positionLimitData):
         dict_of_keys = {MARKER_KEY: MARKER_INSTRUMENT, INSTRUMENT_KEY: instrument_code}
 
         find_object_dict = self.mongo_data.get_result_dict_for_dict_keys(dict_of_keys)
-        if find_object_dict is missing_data:
-            return missing_data
         position_limit = find_object_dict[POSITION_LIMIT_KEY]
 
         return position_limit
