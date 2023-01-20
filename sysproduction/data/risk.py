@@ -5,7 +5,7 @@ import pandas as pd
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
 from syscore.objects import arg_not_supplied, resolve_function, missing_data
-from syscore.pandas.pdutils import prices_to_daily_prices
+from syscore.pandas.pdutils import resample_prices_to_business_day_index
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.prices import (
     get_current_price_of_instrument,
@@ -222,7 +222,7 @@ def get_daily_price_series_for_risk(data, instrument_code):
     if len(price_series) == 0:
         return price_series
 
-    daily_prices = prices_to_daily_prices(price_series)
+    daily_prices = resample_prices_to_business_day_index(price_series)
 
     return daily_prices[-DAILY_RISK_CALC_LOOKBACK:]
 

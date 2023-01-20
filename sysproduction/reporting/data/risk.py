@@ -6,7 +6,7 @@ from statsmodels.formula import api as sm
 from syscore.dateutils import ROOT_BDAYS_INYEAR, n_days_ago, CALENDAR_DAYS_IN_YEAR
 from syscore.interactive.progress_bar import progressBar
 from syscore.objects import arg_not_supplied
-from syscore.pandas.pdutils import prices_to_daily_prices
+from syscore.pandas.pdutils import resample_prices_to_business_day_index
 from sysdata.data_blob import dataBlob
 
 
@@ -776,7 +776,7 @@ def last_years_perc_returns_for_list_of_instruments(
 
     adj_prices_as_df = pd.concat(adj_prices_as_dict, axis=1)
     adj_prices_as_df.columns = list_of_instruments
-    daily_adj_prices_as_df = prices_to_daily_prices(adj_prices_as_df)
+    daily_adj_prices_as_df = resample_prices_to_business_day_index(adj_prices_as_df)
     last_year_daily_adj_prices_as_df = daily_adj_prices_as_df[
         n_days_ago(CALENDAR_DAYS_IN_YEAR) :
     ]

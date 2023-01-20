@@ -3,7 +3,10 @@ import datetime
 
 from syscore.objects import get_methods, missing_data
 from syscore.dateutils import ARBITRARY_START
-from syscore.pandas.pdutils import prices_to_daily_prices, get_intraday_df_at_frequency
+from syscore.pandas.pdutils import (
+    resample_prices_to_business_day_index,
+    get_intraday_df_at_frequency,
+)
 from sysdata.base_data import baseData
 
 from sysobjects.spot_fx_prices import fxPrices
@@ -117,7 +120,7 @@ class simData(baseData):
         instrprice = self.get_raw_price(instrument_code)
         if len(instrprice) == 0:
             raise Exception("No adjusted daily prices for %s" % instrument_code)
-        dailyprice = prices_to_daily_prices(instrprice)
+        dailyprice = resample_prices_to_business_day_index(instrprice)
 
         return dailyprice
 

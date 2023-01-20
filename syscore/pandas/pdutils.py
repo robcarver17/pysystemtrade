@@ -6,7 +6,7 @@ import datetime
 import random
 
 from copy import copy
-from typing import Union
+from typing import Union, List
 import numpy as np
 
 
@@ -41,8 +41,10 @@ def interpolate_data_during_day(
         group[1] for group in data_series.groupby(data_series.index.date)
     ]
     interpolate_data_by_day = [
-        interpolate_for_a_single_day(data_series_for_day, resample_freq=resample_freq)
-        for data_series_for_day in set_of_data_by_day
+        interpolate_for_a_single_day(
+            data_series_for_a_single_day, resample_freq=resample_freq
+        )
+        for data_series_for_a_single_day in set_of_data_by_day
     ]
 
     interpolated_data_as_single_series = pd.concat(interpolate_data_by_day, axis=0)
@@ -50,20 +52,22 @@ def interpolate_data_during_day(
     return interpolated_data_as_single_series
 
 
-def interpolate_for_a_single_day(data_series_for_day: pd.Series, resample_freq="600S"):
-    if len(data_series_for_day) < 2:
-        return data_series_for_day
+def interpolate_for_a_single_day(
+    data_series_for_single_day: pd.Series, resample_freq="600S"
+) -> pd.Series:
+    if len(data_series_for_single_day) < 2:
+        return data_series_for_single_day
 
-    resampled_data = data_series_for_day.resample(resample_freq).interpolate()
+    resampled_data = data_series_for_single_day.resample(resample_freq).interpolate()
 
     return resampled_data
 
 
-def top_and_tail(x: pd.DataFrame, rows=5):
+def top_and_tail(x: pd.DataFrame, rows=5) -> pd.DataFrame:
     return pd.concat([x[:rows], x[-rows:]], axis=0)
 
 
-def prices_to_daily_prices(x):
+def resample_prices_to_business_day_index(x):
     return x.resample("1B").last()
 
 
@@ -75,9 +79,9 @@ def how_many_times_a_year_is_pd_frequency(frequency: str) -> float:
         "D": CALENDAR_DAYS_IN_YEAR,
     }
 
-    times_a_year = DICT_OF_FREQ.get(frequency, None)
+    times_a_year = DICT_OF_FREQ.get(frequency, missing_data)
 
-    if times_a_year is None:
+    if times_a_year is missing_data:
         raise Exception(
             "Frequency %s is no good I only know about %s"
             % (frequency, str(list(DICT_OF_FREQ.keys())))
@@ -86,7 +90,7 @@ def how_many_times_a_year_is_pd_frequency(frequency: str) -> float:
     return float(times_a_year)
 
 
-def sum_series(list_of_series: list, ffill=True) -> pd.Series:
+def sum_series(list_of_series: List[pd.Series], ffill=True) -> pd.Series:
     list_of_series_as_df = pd.concat(list_of_series, axis=1)
     if ffill:
         list_of_series_as_df = list_of_series_as_df.ffill()
@@ -96,7 +100,9 @@ def sum_series(list_of_series: list, ffill=True) -> pd.Series:
     return sum_of_series
 
 
-def turnover(x, y, smooth_y_days: int = 250):
+def turnover(
+    x: pd.Series, y: Union[pd.Series, float, int], smooth_y_days: int = 250
+) -> float:
     """
     Gives the turnover of x, once normalised for y
 
@@ -112,14 +118,14 @@ def turnover(x, y, smooth_y_days: int = 250):
         ## need to apply a drag to this or will give zero turnover for constant risk
         daily_y = daily_y.ewm(smooth_y_days, min_periods=2).mean()
 
-    norm_x = daily_x / daily_y.ffill()
+    x_normalised_for_y = daily_x / daily_y.ffill()
 
-    avg_daily = float(norm_x.diff().abs().mean())
+    avg_daily = float(x_normalised_for_y.diff().abs().mean())
 
     return avg_daily * BUSINESS_DAYS_IN_YEAR
 
 
-def uniquets(x):
+def uniquets(x: Union[pd.Series, pd.DataFrame]) -> Union[pd.Series, pd.DataFrame]:
     """
     Makes x unique
     """
@@ -147,6 +153,12 @@ class listOfDataFrames(list):
 
         return data_as_df
 
+    def aligned(self):
+        list_of_df_reindexed = self.reindex_to_common_index()
+        list_of_df_common = list_of_df_reindexed.reindex_to_common_columns()
+
+        return list_of_df_common
+
     def reindex_to_common_index(self):
         common_index = self.common_index()
         reindexed_data = self.reindex(common_index)
@@ -165,15 +177,7 @@ class listOfDataFrames(list):
 
         return common_unique_index
 
-    def common_columns(self):
-        all_columns = [data_item.columns for data_item in self]
-        all_columns_flattened = flatten_list(all_columns)
-        common_unique_columns = list(set(all_columns_flattened))
-        common_unique_columns.sort()
-
-        return listOfDataFrames(common_unique_columns)
-
-    def reindex_to_common_columns(self, padwith=0.0):
+    def reindex_to_common_columns(self, padwith: float = 0.0):
         common_columns = self.common_columns()
         data_reindexed = [
             dataframe_pad(data_item, common_columns, padwith=padwith)
@@ -181,13 +185,15 @@ class listOfDataFrames(list):
         ]
         return listOfDataFrames(data_reindexed)
 
-    def aligned(self):
-        list_of_df_reindexed = self.reindex_to_common_index()
-        list_of_df_common = list_of_df_reindexed.reindex_to_common_columns()
+    def common_columns(self) -> list:
+        all_columns = [data_item.columns for data_item in self]
+        all_columns_flattened = flatten_list(all_columns)
+        common_unique_columns = list(set(all_columns_flattened))
+        common_unique_columns.sort()
 
-        return list_of_df_common
+        return common_unique_columns
 
-    def fill_and_multipy(self):
+    def fill_and_multipy(self) -> pd.DataFrame:
         list_of_df_common = self.aligned()
         list_of_df_common = list_of_df_common.ffill()
         result = list_of_df_common[0]
@@ -201,66 +207,67 @@ def stacked_df_with_added_time_from_list(data: listOfDataFrames) -> pd.DataFrame
     """
     Create a single data frame from list of data frames
 
+    Useful for fitting or calculating forecast correlations eg across instruments
+
     To preserve a unique time signature we add on 1..2..3... micro seconds to successive elements of the list
 
     WARNING: SO THIS METHOD WON'T WORK WITH HIGH FREQUENCY DATA!
 
     THIS WILL ALSO DESTROY ANY AUTOCORRELATION PROPERTIES
+
+    >>> d1 = pd.DataFrame(dict(a=[1,2]), index=pd.date_range(datetime.datetime(2000,1,1),periods=2))
+    >>> d2 = pd.DataFrame(dict(a=[5,6,7]), index=pd.date_range(datetime.datetime(2000,1,1),periods=3))
+    >>> list_of_df = listOfDataFrames([d1, d2])
+    >>> stacked_df_with_added_time_from_list(list_of_df)
+                                a
+    2000-01-01 00:00:00.000000  1
+    2000-01-01 00:00:00.000001  5
+    2000-01-02 00:00:00.000000  2
+    2000-01-02 00:00:00.000001  6
+    2000-01-03 00:00:00.000001  7
     """
 
-    if isinstance(data, list) or isinstance(data, listOfDataFrames):
-        column_names = sorted(
-            set(sum([list(data_item.columns) for data_item in data], []))
-        )
-        # ensure all are properly aligned
-        # note we don't check that all the columns match here
-        new_data = [data_item[column_names] for data_item in data]
+    # ensure all are properly aligned
+    # note we don't check that all the columns match here
+    aligned_data = data.reindex_to_common_columns()
 
-        # add on an offset
-        for (offset_value, data_item) in enumerate(new_data):
-            data_item.index = data_item.index + pd.Timedelta("%dus" % offset_value)
+    # add on an offset
+    for (offset_value, data_item) in enumerate(aligned_data):
+        data_item.index = data_item.index + pd.Timedelta("%dus" % offset_value)
 
-        # pooled
-        # stack everything up
-        new_data = pd.concat(new_data, axis=0)
-        new_data = new_data.sort_index()
-    else:
-        # nothing to do here
-        new_data = copy(data)
+    # pooled
+    # stack everything up
+    stacked_data = pd.concat(aligned_data, axis=0)
+    stacked_data = stacked_data.sort_index()
 
-    return new_data
+    return stacked_data
 
 
-def must_haves_from_list(data):
-    must_haves_list = [must_have_item(data_item) for data_item in data]
-    must_haves = list(set(sum(must_haves_list, [])))
-
-    return must_haves
-
-
-def must_have_item(slice_data):
-    """
-    Returns the columns of slice_data for which we have at least one non nan value
-
-    :param slice_data: simData to get correlations from
-    :type slice_data: pd.DataFrame
-
-    :returns: list of bool
-
-    >>>
+def get_column_names_in_df_with_at_least_one_value(df: pd.DataFrame) -> List[str]:
     """
 
-    return list(~slice_data.isna().all().values)
-
-
-def get_bootstrap_series(data: pd.DataFrame):
-    length_of_series = len(data.index)
-    random_indices = [
-        int(random.uniform(0, length_of_series)) for _unused in range(length_of_series)
+    >>> df = pd.DataFrame(dict(a=[1,2], b=[np.nan, 3], c=[np.nan, np.nan]), index=pd.date_range(datetime.datetime(2000,1,1),periods=2))
+    >>> get_column_names_in_df_with_at_least_one_value(df)
+    ['a', 'b']
+    """
+    list_of_must_have = get_index_of_columns_in_df_with_at_least_one_value(df)
+    columns = list(df.columns)
+    must_have_columns = [
+        col for idx, col in enumerate(columns) if list_of_must_have[idx]
     ]
-    bootstrap_data = data.iloc[random_indices]
+    return must_have_columns
 
-    return bootstrap_data
+
+def get_index_of_columns_in_df_with_at_least_one_value(df: pd.DataFrame) -> List[bool]:
+    """
+    Returns the bool for columns of slice_data for which we have at least one non nan value
+
+    >>> df = pd.DataFrame(dict(a=[1,2], b=[np.nan, 3], c=[np.nan, np.nan]), index=pd.date_range(datetime.datetime(2000,1,1),periods=2))
+    >>> get_index_of_columns_in_df_with_at_least_one_value(df)
+    [True, True, False]
+    """
+
+    return list(~df.isna().all().values)
 
 
 def pd_readcsv(
