@@ -10,13 +10,13 @@ from syscore.fileutils import (
 )
 from syscore.objects import arg_not_supplied
 from syscore.dateutils import MIXED_FREQ, Frequency
-from syscore.pandas.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT
+from syscore.pandas.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT_FOR_CSV
 
 
 @dataclass
 class ConfigCsvFuturesPrices:
     input_date_index_name: str = "DATETIME"
-    input_date_format: str = DEFAULT_DATE_FORMAT
+    input_date_format: str = DEFAULT_DATE_FORMAT_FOR_CSV
     input_column_mapping: dict = None
     input_skiprows: int = 0
     input_skipfooter: int = 0
