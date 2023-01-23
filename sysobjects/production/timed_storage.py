@@ -4,7 +4,7 @@ import datetime
 import pandas as pd
 
 from syscore.exceptions import missingData
-from syscore.objects import success, arg_not_supplied, missing_data
+from syscore.objects import success, arg_not_supplied
 
 DATE_KEY_NAME = "date"
 
@@ -221,7 +221,7 @@ class listOfEntries(list):
 
     def final_entry(self):
         if len(self) == 0:
-            return missing_data
+            raise missingData
         self.sort()
         return self[-1]
 
