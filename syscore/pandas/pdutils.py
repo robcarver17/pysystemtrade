@@ -5,6 +5,7 @@ import pandas as pd
 import datetime
 import random
 
+from collections import namedtuple
 from copy import copy
 from typing import Union, List
 import numpy as np
@@ -20,9 +21,9 @@ from syscore.dateutils import (
     WEEKS_IN_YEAR,
     MONTHS_IN_YEAR,
 )
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.objects import arg_not_supplied, missing_data, named_object
 
-DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+DEFAULT_DATE_FORMAT_FOR_CSV = "%Y-%m-%d %H:%M:%S"
 
 
 def is_a_series(x: Union[pd.Series, pd.DataFrame]) -> bool:
@@ -180,7 +181,7 @@ class listOfDataFrames(list):
     def reindex_to_common_columns(self, padwith: float = 0.0):
         common_columns = self.common_columns()
         data_reindexed = [
-            dataframe_pad(data_item, common_columns, padwith=padwith)
+            dataframe_pad(data_item, common_columns, pad_with_value=padwith)
             for data_item in self
         ]
         return listOfDataFrames(data_reindexed)
@@ -271,70 +272,65 @@ def get_index_of_columns_in_df_with_at_least_one_value(df: pd.DataFrame) -> List
 
 
 def pd_readcsv(
-    filename,
-    date_index_name="DATETIME",
-    date_format=DEFAULT_DATE_FORMAT,
-    input_column_mapping=None,
-    skiprows=0,
-    skipfooter=0,
-):
+    filename: str,
+    date_index_name: str = "DATETIME",
+    date_format: str = DEFAULT_DATE_FORMAT_FOR_CSV,
+    input_column_mapping: Union[dict, named_object] = arg_not_supplied,
+    skiprows: int = 0,
+    skipfooter: int = 0,
+) -> pd.DataFrame:
     """
     Reads a pandas data frame, with time index labelled
     package_name(/path1/path2.., filename
 
     :param filename: Filename with extension
-    :type filename: str
-
     :param date_index_name: Column name of date index
-    :type date_index_name: str
-
-    :param date_format: https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
-    :type date_format: str
-
+    :param date_format: usual stfrtime format
     :param input_column_mapping: If supplied remaps column names in .csv file
-    :type input_column_mapping: dict or None
-
     :param skiprows, skipfooter: passed to pd.read_csv
 
     :returns: pd.DataFrame
 
     """
 
-    ans = pd.read_csv(filename, skiprows=skiprows, skipfooter=skipfooter)
-    ans.index = pd.to_datetime(ans[date_index_name], format=date_format).values
+    df = pd.read_csv(filename, skiprows=skiprows, skipfooter=skipfooter)
 
-    del ans[date_index_name]
+    ## Add time index as index
+    df.index = pd.to_datetime(df[date_index_name], format=date_format).values
+    del df[date_index_name]
+    df.index.name = None
 
-    ans.index.name = None
+    if input_column_mapping is not arg_not_supplied:
+        df = remap_columns_in_pd(df, input_column_mapping)
 
-    if input_column_mapping is None:
-        return ans
+    return df
 
-    # Have to remap
-    new_ans = pd.DataFrame(index=ans.index)
+
+def remap_columns_in_pd(df: pd.DataFrame, input_column_mapping: dict) -> pd.DataFrame:
+    """
+    Returns the bool for columns of slice_data for which we have at least one non nan value
+
+    >>> df = pd.DataFrame(dict(a=[1,2], b=[np.nan, 3]), index=pd.date_range(datetime.datetime(2000,1,1),periods=2))
+    >>> remap_columns_in_pd(df, dict(b='a', a='b'))
+                b    a
+    2000-01-01  1  NaN
+    2000-01-02  2  3.0
+    """
+
+    new_df = pd.DataFrame(index=df.index)
     for new_col_name, old_col_name in input_column_mapping.items():
-        new_ans[new_col_name] = ans[old_col_name]
+        new_df[new_col_name] = df[old_col_name]
 
-    return new_ans
+    return new_df
 
 
 def fix_weights_vs_position_or_forecast(
     weights: pd.DataFrame, position_or_forecast: pd.DataFrame
-):
+) -> pd.DataFrame:
     """
-    Take a matrix of weights and positions/forecasts (pdm)
-
-    Ensure that the weights in each row add up to 1, for active positions/forecasts (not np.nan values after forward filling)
+    Take a matrix of weights and positions/forecasts (pdm) and align the weights to the forecasts/positions
 
     This deals with the problem of different rules and/or instruments having different history
-
-    :param weights: Weights to
-    :type weights: TxK pd.DataFrame (same columns as weights, perhaps different length)
-
-    :param position_or_forecast:
-    :type position_or_forecast: TxK pd.DataFrame (same columns as weights, perhaps different length)
-
-    :returns: TxK pd.DataFrame of adjusted weights
 
     """
 
@@ -358,19 +354,36 @@ def fix_weights_vs_position_or_forecast(
     return adj_weights
 
 
-def reindex_last_monthly_include_first_date(x: pd.DataFrame) -> pd.DataFrame:
-    x_monthly_index = list(x.resample("1M").last().index)  ## last day in month
-    x_first_date_in_index = x.index[0]
-    x_monthly_index = [x_first_date_in_index] + x_monthly_index
-    x_reindex = x.reindex(x_monthly_index).ffill()
+def reindex_last_monthly_include_first_date(df: pd.DataFrame) -> pd.DataFrame:
+    df_monthly_index = list(df.resample("1M").last().index)  ## last day in month
+    df_first_date_in_index = df.index[0]
+    df_monthly_index = [df_first_date_in_index] + df_monthly_index
+    df_reindex = df.reindex(df_monthly_index).ffill()
 
-    return x_reindex
+    return df_reindex
 
 
-def weights_sum_to_one(weights: pd.DataFrame):
+def weights_sum_to_one(weights: pd.DataFrame) -> pd.DataFrame:
+    """
+    Ensure that weights for ecah row sum up to one, except where all weights are zero
+
+    Preserves nans
+
+    >>> df = pd.DataFrame(dict(a=[np.nan, np.nan, 0, 5,0, 2, 2], b=[0, np.nan, 0, np.nan,3,  3, 1]), index=pd.date_range(datetime.datetime(2000,1,1),periods=7))
+    >>> weights_sum_to_one(df)
+                       a         b
+    2000-01-01       NaN  0.000000
+    2000-01-02       NaN       NaN
+    2000-01-03  0.000000  0.000000
+    2000-01-04  1.000000       NaN
+    2000-01-05  0.000000  1.000000
+    2000-01-06  0.400000  0.600000
+    2000-01-07  0.666667  0.333333
+
+    """
     sum_weights = weights.sum(axis=1)
     zero_rows = sum_weights == 0.0
-    sum_weights[zero_rows] = 0.0001
+    sum_weights[zero_rows] = 0.0001  ## avoid Inf
     weight_multiplier = 1.0 / sum_weights
     weight_multiplier_array = np.array([weight_multiplier] * len(weights.columns))
     weight_values = weights.values
@@ -383,33 +396,58 @@ def weights_sum_to_one(weights: pd.DataFrame):
     return normalised_weights
 
 
-def drawdown(x):
+def drawdown(x: Union[pd.DataFrame, pd.Series]) -> Union[pd.DataFrame, pd.Series]:
     """
     Returns a ts of drawdowns for a time series x
 
-    :param x: account curve (cumulated returns)
-    :type x: pd.DataFrame or Series
-
-    :returns: pd.DataFrame or Series
-
+    >>> df = pd.DataFrame(dict(a=[1, 2, 3, 2,1 , 4, 5], b=[2, 2, 1, 2,4 , 6, 5]), index=pd.date_range(datetime.datetime(2000,1,1),periods=7))
+    >>> drawdown(df)
+                  a    b
+    2000-01-01  0.0  0.0
+    2000-01-02  0.0  0.0
+    2000-01-03  0.0 -1.0
+    2000-01-04 -1.0  0.0
+    2000-01-05 -2.0  0.0
+    2000-01-06  0.0  0.0
+    2000-01-07  0.0 -1.0
+    >>> s = pd.Series([1, 2, 3, 2,1 , 4, 5], index=pd.date_range(datetime.datetime(2000,1,1),periods=7))
+    >>> drawdown(s)
+    2000-01-01    0.0
+    2000-01-02    0.0
+    2000-01-03    0.0
+    2000-01-04   -1.0
+    2000-01-05   -2.0
+    2000-01-06    0.0
+    2000-01-07    0.0
+    Freq: D, dtype: float64
+    w
     """
     maxx = x.expanding(min_periods=1).max()
     return x - maxx
 
 
 def from_dict_of_values_to_df(
-    data_dict: dict, ts_index, columns: list = None
+    data_dict: dict, ts_index: pd.Index, columns: List[str] = arg_not_supplied
 ) -> pd.DataFrame:
     """
     Turn a set of fixed values into a pd.DataFrame that spans the long index
 
-    :param data_dict: A dict of scalars
-    :param ts_index: A timeseries index
-    :param columns: (optional) A list of str to align the column names to [must have entries in data_dict keys]
-    :return: pd.DataFrame, column names from data_dict, values repeated scalars
+    >>> from_dict_of_values_to_df({'a':2, 'b':1}, ts_index = pd.date_range(datetime.datetime(2000,1,1),periods=4))
+                a  b
+    2000-01-01  2  1
+    2000-01-02  2  1
+    2000-01-03  2  1
+    2000-01-04  2  1
+    >>> from_dict_of_values_to_df({'a':2, 'b':1}, columns = ['b', 'a'],ts_index = pd.date_range(datetime.datetime(2000,1,1),periods=4))
+                b  a
+    2000-01-01  1  2
+    2000-01-02  1  2
+    2000-01-03  1  2
+    2000-01-04  1  2
+
     """
 
-    if columns is not None:
+    if columns is not arg_not_supplied:
         data_dict = {keyname: data_dict[keyname] for keyname in columns}
 
     pd_dataframe = pd.DataFrame(data_dict, ts_index)
@@ -417,13 +455,15 @@ def from_dict_of_values_to_df(
     return pd_dataframe
 
 
-def from_scalar_values_to_ts(scalar_value: float, ts_index) -> pd.Series:
+def from_scalar_values_to_ts(scalar_value: float, ts_index: pd.Index) -> pd.Series:
     """
     Turn a scalar value into a pd.Series that spans the long index
-
-    :param scalar_value: A scalar
-    :param ts_index: A timeseries index
-    :return: pd.Series, values repeated scalars
+    >>> from_scalar_values_to_ts(4, ts_index = pd.date_range(datetime.datetime(2000,1,1),periods=4))
+    2000-01-01    4
+    2000-01-02    4
+    2000-01-03    4
+    2000-01-04    4
+    Freq: D, dtype: int64
     """
 
     pd_series = pd.Series(scalar_value, index=ts_index)
@@ -432,65 +472,85 @@ def from_scalar_values_to_ts(scalar_value: float, ts_index) -> pd.Series:
 
 
 def create_arbitrary_pdseries(
-    data_list, date_start=datetime.datetime(1980, 1, 1), freq="B"
-):
+    data_list: list, date_start=datetime.datetime(1980, 1, 1), freq: str = "B"
+) -> pd.Series:
     """
     Return a pandas Series with an arbitrary date index
-
-    :param data_list: simData
-    :type data_list: list of floats or ints
-
-    :param date_start: First date to use in index
-    :type date_start: datetime
-
-    :param freq: Frequency of date index
-    :type freq: str of a type that pd.date_range will recognise
-
-    :returns: pd.Series  (same length as simData)
 
     >>> create_arbitrary_pdseries([1,2,3])
     1980-01-01    1
     1980-01-02    2
     1980-01-03    3
     Freq: B, dtype: int64
+    >>> create_arbitrary_pdseries([1,2,3], date_start = datetime.datetime(2000,1,1), freq="W")
+    2000-01-02    1
+    2000-01-09    2
+    2000-01-16    3
+    Freq: W-SUN, dtype: int64
     """
 
     date_index = pd.date_range(start=date_start, periods=len(data_list), freq=freq)
-
     pdseries = pd.Series(data_list, index=date_index)
 
     return pdseries
 
 
-def dataframe_pad(starting_df, column_list, padwith=0.0):
+def dataframe_pad(
+    starting_df: pd.DataFrame,
+    target_column_list: List[str],
+    pad_with_value: float = 0.0,
+) -> pd.DataFrame:
     """
     Takes a dataframe and adds extra columns if necessary so we end up with columns named column_list
 
-    :param starting_df: A pd.dataframe with named columns
-    :param column_list: A list of column names
-    :param padwith: The value to pad missing columns with
-    :return: pd.Dataframe
+    >>> df = pd.DataFrame(dict(a=[1, 2, 3], b=[4 , 6, 5]), index=pd.date_range(datetime.datetime(2000,1,1),periods=3))
+    >>> dataframe_pad(df, ['a','b','c'], pad_with_value=4.0)
+                a  b    c
+    2000-01-01  1  4  4.0
+    2000-01-02  2  6  4.0
+    2000-01-03  3  5  4.0
+    >>> dataframe_pad(df, ['a','c'])
+                a    c
+    2000-01-01  1  0.0
+    2000-01-02  2  0.0
+    2000-01-03  3  0.0
     """
 
-    def _pad_column(column_name, starting_df, padwith):
+    def _pad_column(column_name: str, starting_df: pd.DataFrame, pad_with_value: float):
         if column_name in starting_df.columns:
             return starting_df[column_name]
         else:
-            return pd.Series(np.full(starting_df.shape[0], 0.0), starting_df.index)
+            return pd.Series(
+                np.full(starting_df.shape[0], pad_with_value), starting_df.index
+            )
 
     new_data = [
-        _pad_column(column_name, starting_df, padwith) for column_name in column_list
+        _pad_column(column_name, starting_df, pad_with_value)
+        for column_name in target_column_list
     ]
 
     new_df = pd.concat(new_data, axis=1)
-    new_df.columns = column_list
+    new_df.columns = target_column_list
 
     return new_df
 
 
-def apply_abs_min(x: pd.Series, min_value=0.1):
+def apply_abs_min(x: pd.Series, min_value: float = 0.1) -> pd.Series:
+    """
+    >>> s1=create_arbitrary_pdseries([1,2,3,-1,-2,-3], date_start = datetime.datetime(2000,1,1))
+    >>> apply_abs_min(s1, 2)
+    2000-01-03    2
+    2000-01-04    2
+    2000-01-05    3
+    2000-01-06   -2
+    2000-01-07   -2
+    2000-01-10   -3
+    Freq: B, dtype: int64
+    """
+
+    ## Could also use clip but no quicker and this is more intuitive
     x[(x < min_value) & (x > 0)] = min_value
-    x[(x > min_value) & (x < 0)] = -min_value
+    x[(x > -min_value) & (x < 0)] = -min_value
 
     return x
 
@@ -511,7 +571,27 @@ def check_ts_equals(x, y):
         return False
 
 
-def make_df_from_list_of_named_tuple(tuple_class, list_of_tuples):
+def make_df_from_list_of_named_tuple(
+    tuple_class,
+    list_of_tuples: list,
+    make_index: bool = True,
+    field_name_for_index: str = arg_not_supplied,
+):
+    """
+    Turn a list of named tuplies into a dataframe
+    The first element in the tuple will become the index
+
+    >>> T = namedtuple('T', 'name value_a value_b')
+    >>> t1 = T('X', 3,1)
+    >>> t2 = T('Y',1,2)
+    >>> t3 = T('Z', 4, 3)
+    >>> make_df_from_list_of_named_tuple(T, [t1, t2, t3])
+          value_a  value_b
+    name
+    X           3        1
+    Y           1        2
+    Z           4        3
+    """
     elements = tuple_class._fields
     dict_of_elements = {}
     for element_name in elements:
@@ -521,49 +601,111 @@ def make_df_from_list_of_named_tuple(tuple_class, list_of_tuples):
         dict_of_elements[element_name] = this_element_values
 
     pdf = pd.DataFrame(dict_of_elements)
-    pdf.index = pdf[elements[0]]
-    pdf = pdf.drop(labels=elements[0], axis=1)
+
+    if make_index:
+        if field_name_for_index is arg_not_supplied:
+            field_name_for_index = elements[0]
+        pdf.index = pdf[field_name_for_index]
+        pdf = pdf.drop(labels=field_name_for_index, axis=1)
 
     return pdf
 
 
 def set_pd_print_options():
+    ## avoid annoying truncation in reports
     pd.set_option("display.max_rows", 500)
     pd.set_option("display.max_columns", 100)
     pd.set_option("display.width", 1000)
 
 
-def closing_date_rows_in_pd_object(pd_object):
+def closing_date_rows_in_pd_object(
+    pd_object: Union[pd.DataFrame, pd.Series],
+    closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+) -> Union[pd.DataFrame, pd.Series]:
+    """
+    >>> d = datetime.datetime
+    >>> date_index = [d(2000,1,1,15),d(2000,1,1,23), d(2000,1,2,15)]
+    >>> df = pd.DataFrame(dict(a=[1, 2, 3], b=[4 , 6, 5]), index=date_index)
+    >>> closing_date_rows_in_pd_object(df)
+                         a  b
+    2000-01-01 23:00:00  2  6
+
+    """
     return pd_object[
         [
             check_time_matches_closing_time_to_second(
-                index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET
+                index_entry=index_entry, closing_time=closing_time
             )
             for index_entry in pd_object.index
         ]
     ]
 
 
-def intraday_date_rows_in_pd_object(pd_object):
+def intraday_date_rows_in_pd_object(
+    pd_object: Union[pd.DataFrame, pd.Series],
+    closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+) -> Union[pd.DataFrame, pd.Series]:
+    """
+    >>> d = datetime.datetime
+    >>> date_index = [d(2000,1,1,15),d(2000,1,1,23), d(2000,1,2,15)]
+    >>> df = pd.DataFrame(dict(a=[1, 2, 3], b=[4 , 6, 5]), index=date_index)
+    >>> intraday_date_rows_in_pd_object(df)
+                         a  b
+    2000-01-01 15:00:00  1  4
+    2000-01-02 15:00:00  3  5
+    """
+
     return pd_object[
         [
             not check_time_matches_closing_time_to_second(
-                index_entry, NOTIONAL_CLOSING_TIME_AS_PD_OFFSET
+                index_entry=index_entry, closing_time=closing_time
             )
             for index_entry in pd_object.index
         ]
     ]
 
 
-def get_intraday_df_at_frequency(df: pd.DataFrame, frequency="H"):
-    intraday_only_df = intraday_date_rows_in_pd_object(df)
+def get_intraday_pdf_at_frequency(
+    pd_object: Union[pd.DataFrame, pd.Series],
+    frequency: str = "H",
+    closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+) -> Union[pd.Series, pd.DataFrame]:
+    """
+    >>> d = datetime.datetime
+    >>> date_index = [d(2000,1,1,15),d(2000,1,1,16),d(2000,1,1,23), d(2000,1,2,15)]
+    >>> df = pd.DataFrame(dict(a=[1, 2, 3,4], b=[4,5,6,7]), index=date_index)
+    >>> get_intraday_pdf_at_frequency(df,"2H")
+                         a  b
+    2000-01-01 14:00:00  1  4
+    2000-01-02 14:00:00  3  5
+    """
+    intraday_only_df = intraday_date_rows_in_pd_object(
+        pd_object, closing_time=closing_time
+    )
     intraday_df = intraday_only_df.resample(frequency).last()
     intraday_df_clean = intraday_df.dropna()
 
     return intraday_df_clean
 
 
-def merge_data_with_different_freq(list_of_data: list):
+def merge_data_with_different_freq(
+    list_of_data: List[Union[pd.DataFrame, pd.Series]]
+) -> Union[pd.Series, pd.DataFrame]:
+    """
+    >>> d = datetime.datetime
+    >>> date_index1 = [d(2000,1,1,23),d(2000,1,2,23),d(2000,1,3,23)]
+    >>> date_index2 = [d(2000,1,1,15),d(2000,1,1,16),d(2000,1,2,15)]
+    >>> s1 = pd.Series([3,5,6], index=date_index1)
+    >>> s2 = pd.Series([1,2,4], index=date_index2)
+    >>> merge_data_with_different_freq([s1,s2])
+    2000-01-01 15:00:00    1
+    2000-01-01 16:00:00    2
+    2000-01-01 23:00:00    3
+    2000-01-02 15:00:00    4
+    2000-01-02 23:00:00    5
+    2000-01-03 23:00:00    6
+    """
+
     list_as_concat_pd = pd.concat(list_of_data, axis=0)
     sorted_pd = list_as_concat_pd.sort_index()
     unique_pd = uniquets(sorted_pd)
@@ -572,9 +714,30 @@ def merge_data_with_different_freq(list_of_data: list):
 
 
 def sumup_business_days_over_pd_series_without_double_counting_of_closing_data(
-    pd_series,
-):
-    intraday_data = intraday_date_rows_in_pd_object(pd_series)
+    pd_series: pd.Series,
+    closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
+) -> pd.Series:
+    """
+    Used for volume data - adds up a series over a day to get a daily total
+
+    Uses closing values when available, otherwise sums up intraday values
+
+    >>> d = datetime.datetime
+    >>> date_index1 = [d(2000,2,1,15),d(2000,2,1,16), d(2000,2,1,23), ]
+    >>> s1 = pd.Series([10,5,17], index=date_index1)
+    >>> sumup_business_days_over_pd_series_without_double_counting_of_closing_data(s1)
+    2000-02-01    17
+    Freq: B, Name: 0, dtype: int64
+    >>> date_index1 = [d(2000,2,1,15),d(2000,2,1,16), d(2000,2,2,23) ]
+    >>> s1 = pd.Series([10,5,2], index=date_index1)
+    >>> sumup_business_days_over_pd_series_without_double_counting_of_closing_data(s1)
+    2000-02-01    15.0
+    2000-02-02     2.0
+    Freq: B, Name: 0, dtype: float64
+    """
+    intraday_data = intraday_date_rows_in_pd_object(
+        pd_series, closing_time=closing_time
+    )
     if len(intraday_data) == 0:
         return pd_series
 
@@ -595,6 +758,8 @@ def sumup_business_days_over_pd_series_without_double_counting_of_closing_data(
 def replace_all_zeros_with_nan(result: pd.Series) -> pd.Series:
     check_result = copy(result)
     check_result[check_result == 0.0] = np.nan
+
+    ##
     if all(check_result.isna()):
         result[:] = np.nan
 
