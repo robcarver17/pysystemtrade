@@ -3,6 +3,7 @@ import datetime
 
 import pandas as pd
 
+from syscore.exceptions import missingData
 from syscore.objects import success, arg_not_supplied, missing_data
 
 DATE_KEY_NAME = "date"
@@ -265,7 +266,7 @@ class listOfEntries(list):
         :return: pd.DataFrame
         """
         if len(self) == 0:
-            return missing_data
+            raise missingData
         (
             list_of_dates,
             dict_of_lists,

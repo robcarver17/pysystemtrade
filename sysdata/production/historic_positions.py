@@ -1,4 +1,6 @@
 import pandas as pd
+
+from syscore.exceptions import missingData
 from syscore.objects import arg_not_supplied, missing_data
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 
@@ -413,8 +415,9 @@ class contractPositionData(listOfEntriesData):
         end_date: datetime.datetime,
     ) -> bool:
 
-        df_positions = self.get_position_as_df_for_contract_object(contract)
-        if df_positions is missing_data:
+        try:
+            df_positions = self.get_position_as_df_for_contract_object(contract)
+        except missingData:
             return False
         any_positions = any_positions_since_start_date(
             df_positions, start_date, end_date

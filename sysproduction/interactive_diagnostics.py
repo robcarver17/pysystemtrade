@@ -479,10 +479,14 @@ def optimal_positions(data):
     instrument_strategy = instrumentStrategy(
         instrument_code=instrument_code, strategy_name=strategy_name
     )
-    data_series = optimal_data.get_optimal_position_as_df_for_instrument_strategy(
-        instrument_strategy
-    )
-    print(data_series)
+    try:
+        data_series = optimal_data.get_optimal_position_as_df_for_instrument_strategy(
+            instrument_strategy
+        )
+    except missingData:
+        print("missing data")
+    else:
+        print(data_series)
 
     return None
 
@@ -518,10 +522,14 @@ def actual_instrument_position(data):
         strategy_name=strategy_name, instrument_code=instrument_code
     )
 
-    pos_series = diag_positions.get_position_df_for_instrument_strategy(
-        instrument_strategy
-    )
-    print(pos_series)
+    try:
+        pos_series = diag_positions.get_position_df_for_instrument_strategy(
+            instrument_strategy
+        )
+    except missingData:
+        print("missing data")
+    else:
+        print(pos_series)
     return None
 
 
@@ -544,8 +552,12 @@ def actual_contract_position(data):
     # ignore warnings can be str
     contract = futuresContract(instrument_code, contract_date_str)
 
-    pos_series = diag_positions.get_position_df_for_contract(contract)
-    print(pos_series)
+    try:
+        pos_series = diag_positions.get_position_df_for_contract(contract)
+    except missingData:
+        print("missing data")
+    else:
+        print(pos_series)
     return None
 
 

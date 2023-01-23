@@ -4,7 +4,8 @@ import datetime
 
 from collections import namedtuple
 
-from syscore.objects import header, table, body_text, missing_data
+from syscore.exceptions import missingData
+from syscore.objects import header, table, body_text
 from syscore.dateutils import ROOT_BDAYS_INYEAR, from_marker_string_to_datetime
 from sysproduction.data.positions import diagPositions
 
@@ -454,10 +455,11 @@ def get_position_for_instrument_code_at_timestamp(data_backtest, data, instrumen
         strategy_name=strategy_name, instrument_code=instrument_code
     )
 
-    positions_over_time = diag_positions.get_position_df_for_instrument_strategy(
-        instrument_strategy
-    )
-    if positions_over_time is missing_data:
+    try:
+        positions_over_time = diag_positions.get_position_df_for_instrument_strategy(
+            instrument_strategy
+        )
+    except missingData:
         return np.nan
 
     datetime_cutoff = from_marker_string_to_datetime(data_backtest.timestamp)
