@@ -17,7 +17,7 @@ from syscore.pandas.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT_FOR_CSV
 class ConfigCsvFuturesPrices:
     input_date_index_name: str = "DATETIME"
     input_date_format: str = DEFAULT_DATE_FORMAT_FOR_CSV
-    input_column_mapping: dict = None
+    input_column_mapping: dict = arg_not_supplied
     input_skiprows: int = 0
     input_skipfooter: int = 0
     apply_multiplier: float = 1.0
