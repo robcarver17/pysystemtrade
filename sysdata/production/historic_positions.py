@@ -72,8 +72,10 @@ class strategyPositionData(listOfEntriesData):
     ) -> int:
 
         try:
-            position_entry = self.get_current_position_entry_for_instrument_strategy_object(
-                instrument_strategy
+            position_entry = (
+                self.get_current_position_entry_for_instrument_strategy_object(
+                    instrument_strategy
+                )
             )
         except missingData:
             return 0
