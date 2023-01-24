@@ -226,8 +226,8 @@ class listOfEntries(list):
         return self[-1]
 
     def append(self, item):
-        previous_final_entry = self.final_entry()
         if len(self) > 0:
+            previous_final_entry = self.final_entry()
             try:
                 previous_final_entry.check_args_match(item)
             except Exception as e:
