@@ -6,11 +6,12 @@ Code used when we interact with users (displaying stuff, getting input, monitori
 from typing import Union
 
 from syscore.genutils import str2Bool
+from syscore.objects import none_type
 
 
 def true_if_answer_is_yes(
     prompt: str = "", allow_empty_to_return_none: bool = False
-) -> Union[bool, type(None)]:
+) -> Union[bool, none_type]:
     invalid = True
     while invalid:
         x = input(prompt)

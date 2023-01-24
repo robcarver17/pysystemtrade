@@ -61,7 +61,7 @@ class mergingDataWithStatus(object):
     def __init__(
         self,
         status: mergeStatus,
-        date_of_merge_join: Union[datetime.datetime, object],
+        date_of_merge_join: Union[datetime.datetime, named_object],
         merged_data: Union[pd.DataFrame, pd.Series],
     ):
         self._status = status
@@ -89,7 +89,7 @@ class mergingDataWithStatus(object):
             return True
 
     @property
-    def spike_date(self) -> Union[datetime.datetime, object]:
+    def spike_date(self) -> Union[datetime.datetime, named_object]:
         spike_date = getattr(self, "_spike_date", NO_SPIKE)
         return spike_date
 
@@ -102,7 +102,7 @@ class mergingDataWithStatus(object):
         return self._status
 
     @property
-    def date_of_merge_join(self) -> Union[datetime.datetime, object]:
+    def date_of_merge_join(self) -> Union[datetime.datetime, named_object]:
         return self._date_of_merge_join
 
     @property
@@ -192,7 +192,7 @@ def spike_check_merged_data(
 
 def _find_first_spike_in_data(
     merged_data: Union[pd.Series, pd.DataFrame],
-    date_of_merge_join: Union[datetime.datetime, object] = NO_MERGE_DATE,
+    date_of_merge_join: Union[datetime.datetime, named_object] = NO_MERGE_DATE,
     column_to_check_for_spike: str = arg_not_supplied,
     max_spike: float = VERY_BIG_NUMBER,
 ):
@@ -290,7 +290,7 @@ def _calculate_change_in_daily_units(data_to_check: pd.Series) -> pd.Series:
 
 def _get_relevant_period_in_vol_normalised_units_to_check(
     change_in_vol_normalised_units: pd.Series,
-    date_of_merge_join: Union[datetime.datetime, object] = NO_MERGE_DATE,
+    date_of_merge_join: Union[datetime.datetime, named_object] = NO_MERGE_DATE,
 ):
     if date_of_merge_join is NO_MERGE_DATE:
         # No merged data so we check it all
@@ -307,7 +307,7 @@ def _get_relevant_period_in_vol_normalised_units_to_check(
 def _check_for_spikes_in_change_in_vol_normalised_units(
     relevant_change_in_vol_normalised_units: pd.Series,
     max_spike: float = VERY_BIG_NUMBER,
-) -> Union[datetime.datetime, object]:
+) -> Union[datetime.datetime, named_object]:
 
     if any(relevant_change_in_vol_normalised_units > max_spike):
         first_spike = relevant_change_in_vol_normalised_units.index[

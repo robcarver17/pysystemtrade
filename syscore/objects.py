@@ -4,6 +4,8 @@ Do fun things with objects and classes
 from collections import namedtuple
 import importlib
 
+none_type = type(None)
+
 
 class named_object:
     def __init__(self, name):

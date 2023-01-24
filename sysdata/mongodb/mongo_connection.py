@@ -180,6 +180,10 @@ class mongoConnection(object):
         else:
             self.collection.create_index([(indexname, order)], unique=True)
 
+
+    ## FIXME ISSUE https://github.com/robcarver17/pysystemtrade/discussions/948
+    ## NOT CLEAR WHAT A LOT OF THIS CODE DOES
+
     def create_multikey_index(
         self, indexname1, indexname2, order1=ASCENDING, order2=ASCENDING
     ):
