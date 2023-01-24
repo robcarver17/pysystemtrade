@@ -1,8 +1,8 @@
 import os
 import pandas as pd
 
+from syscore.exceptions import missingData
 from syscore.pandas.pdutils import check_df_equals, check_ts_equals
-from syscore.objects import missing_data
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
 from sysdata.data_blob import dataBlob
 
@@ -337,19 +337,18 @@ def backup_contract_position_data(data):
             )
         )
         for contract in contract_list:
-            mongo_data = (
-                data.mongo_contract_position.get_position_as_df_for_contract_object(
-                    contract
-                )
-            )
             try:
+                mongo_data = (
+                    data.mongo_contract_position.get_position_as_df_for_contract_object(
+                        contract
+                    )
+                )
+            except missingData:
+                print("No data to write to .csv")
+            else:
                 data.csv_contract_position.write_position_df_for_contract(
                     contract, mongo_data
                 )
-            except:
-                ## deals with weird corner case
-                print("Couldn't write %s to .csv" % str(mongo_data))
-                pass
             data.log.msg(
                 "Backed up %s %s contract position data" % (instrument_code, contract)
             )
@@ -365,10 +364,11 @@ def backup_strategy_position_data(data):
             instrument_strategy = instrumentStrategy(
                 strategy_name=strategy_name, instrument_code=instrument_code
             )
-            mongo_data = data.mongo_strategy_position.get_position_as_df_for_instrument_strategy_object(
-                instrument_strategy
-            )
-            if mongo_data is missing_data:
+            try:
+                mongo_data = data.mongo_strategy_position.get_position_as_df_for_instrument_strategy_object(
+                    instrument_strategy
+                )
+            except missingData:
                 continue
             data.csv_strategy_position.write_position_df_for_instrument_strategy(
                 instrument_strategy, mongo_data
@@ -446,10 +446,11 @@ def backup_optimal_positions(data):
     )
 
     for instrument_strategy in strategy_instrument_list:
-        mongo_data = data.mongo_optimal_position.get_optimal_position_as_df_for_instrument_strategy(
-            instrument_strategy
-        )
-        if mongo_data is missing_data:
+        try:
+            mongo_data = data.mongo_optimal_position.get_optimal_position_as_df_for_instrument_strategy(
+                instrument_strategy
+            )
+        except missingData:
             continue
         data.csv_optimal_position.write_position_df_for_instrument_strategy(
             instrument_strategy, mongo_data
