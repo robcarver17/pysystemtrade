@@ -43,13 +43,8 @@ class brokerExecutionStackData(brokerOrderStackData):
     ) -> bool:
         raise NotImplementedError
 
-    def check_order_can_be_modified_given_control_object(
-        self, broker_order_with_controls: orderWithControls
-    ) -> bool:
-
-        raise NotImplementedError
-
     def modify_limit_price_given_control_object(
         self, broker_order_with_controls: orderWithControls, new_limit_price: float
     ) -> orderWithControls:
+        # throw orderCannotBeModified if can't be modified
         raise NotImplementedError

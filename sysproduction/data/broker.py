@@ -13,6 +13,7 @@ from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
 from syscore.exceptions import missingContract, missingData
 
 from syscore.objects import arg_not_supplied, missing_data, market_closed
+from syscore.exceptions import orderCannotBeModified
 from sysexecution.orders.named_order_objects import missing_order
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
@@ -503,21 +504,16 @@ class dataBroker(productionDataLayerGeneric):
 
         return result
 
-    def check_order_can_be_modified_given_control_object(
-        self, broker_order_with_controls: orderWithControls
-    ) -> bool:
-        return self.broker_execution_stack_data.check_order_can_be_modified_given_control_object(
-            broker_order_with_controls
-        )
-
     def modify_limit_price_given_control_object(
         self, broker_order_with_controls: orderWithControls, new_limit_price: float
     ) -> orderWithControls:
+        ## throws orderCannotBeModified on failure
         new_order_with_controls = (
             self.broker_execution_stack_data.modify_limit_price_given_control_object(
                 broker_order_with_controls, new_limit_price
             )
         )
+
         return new_order_with_controls
 
     def get_margin_used_in_base_currency(self) -> float:

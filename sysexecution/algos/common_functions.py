@@ -1,5 +1,6 @@
 # functions used by multiple algos
 
+from syscore.exceptions import orderCannotBeModified
 from sysdata.data_blob import dataBlob
 from sysproduction.data.broker import dataBroker
 from syscore.genutils import quickTimer
@@ -63,18 +64,16 @@ def set_limit_price(
 
     log = broker_order_with_controls.order.log_with_attributes(data.log)
     data_broker = dataBroker(data)
-    can_be_modified = data_broker.check_order_can_be_modified_given_control_object(
-        broker_order_with_controls
-    )
-    if can_be_modified:
+
+    try:
         broker_order_with_controls = (
             data_broker.modify_limit_price_given_control_object(
                 broker_order_with_controls, new_limit_price
             )
         )
         log.msg("Tried to change limit price to %f" % new_limit_price)
-    else:
-        log.msg("Can't modify limit price for order right now as status isn't good")
+    except orderCannotBeModified as error:
+        log.msg("Can't modify limit price for order, error %s" % str(error))
 
     return broker_order_with_controls
 
