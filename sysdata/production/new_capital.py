@@ -39,8 +39,6 @@ class capitalData(baseData):
 
     def get_current_broker_account_value(self) -> float:
         pd_series = self.get_broker_account_value_pd_series()
-        if pd_series is missing_data:
-            return missing_data
 
         return float(pd_series[-1])
 
@@ -67,11 +65,7 @@ class capitalData(baseData):
         return all_capital_series[CURRENT_CAPITAL_LABEL]
 
     def get_broker_account_value_pd_series(self) -> pd.Series:
-        try:
-            all_capital_series = self.get_df_of_all_global_capital()
-        except missingData:
-            return missing_data
-
+        all_capital_series = self.get_df_of_all_global_capital()
         return all_capital_series[BROKER_CAPITAL_LABEL]
 
     def get_maximum_account_value_pd_series(self) -> pd.Series:
@@ -379,8 +373,9 @@ class totalCapitalCalculationData(object):
     ) -> totalCapitalUpdater:
 
         calc_method = self.calc_method
-        prev_broker_account_value = self._get_prev_broker_account_value()
-        if prev_broker_account_value is missing_data:
+        try:
+            prev_broker_account_value = self._get_prev_broker_account_value()
+        except missingData:
             raise Exception("No previous broker account value can't update capital")
 
         prev_maximum_capital = self.capital_data.get_current_maximum_capital_value()
@@ -435,11 +430,15 @@ class totalCapitalCalculationData(object):
         :return: None
         """
 
-        prev_broker_account_value = self.capital_data.get_current_broker_account_value()
-        if prev_broker_account_value is missing_data:
+        try:
+            prev_broker_account_value = (
+                self.capital_data.get_current_broker_account_value()
+            )
+        except missingData:
             self._capital_data.log.warn(
                 "Can't apply a delta to broker account value, since no value in data"
             )
+            raise
 
         broker_account_value = prev_broker_account_value + delta_value
 
