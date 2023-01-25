@@ -29,7 +29,8 @@ from sysproduction.reporting.reporting_functions import (
     header,
     table,
     PdfOutputWithTempFileName,
-    figure, body_text,
+    figure,
+    body_text,
 )
 from sysproduction.reporting.data.costs import (
     get_table_of_SR_costs,

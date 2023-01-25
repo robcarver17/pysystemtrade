@@ -180,7 +180,6 @@ class mongoConnection(object):
         else:
             self.collection.create_index([(indexname, order)], unique=True)
 
-
     ## FIXME ISSUE https://github.com/robcarver17/pysystemtrade/discussions/948
     ## NOT CLEAR WHAT A LOT OF THIS CODE DOES
 
