@@ -1,8 +1,9 @@
 """
 Do fun things with objects and classes
 """
-from collections import namedtuple
 import importlib
+
+none_type = type(None)
 
 
 class named_object:
@@ -14,31 +15,13 @@ class named_object:
 
 
 missing_instrument = named_object("missing instrument")
-
-missing_order = named_object("missing order")
-locked_order = named_object("locked order")
-duplicate_order = named_object("duplicate order")
-zero_order = named_object("zero order")
-
+missing_file = named_object("missing file")
+missing_data = named_object("missing data")
 market_closed = named_object("market closed")
-
 fill_exceeds_trade = named_object("fill too big for trade")
 
-order_is_in_status_finished = named_object("order status is modification close")
-order_is_in_status_modified = named_object("order status is being modified")
-order_is_in_status_not_modified = named_object("order status is not currently modified")
-order_is_in_status_reject_modification = named_object(
-    "order status is modification rejected"
-)
-
-no_order_id = named_object("no order ID")
-no_children = named_object("no_children")
-no_parent = named_object("no parent")
-
-rolling_cant_trade = named_object("rolling can't trade")
-ROLL_PSEUDO_STRATEGY = "_ROLL_PSEUDO_STRATEGY"
-
-not_updated = named_object("not updated")
+arg_not_supplied = named_object("arg not supplied")
+user_exit = named_object("exit")
 
 
 class status(named_object):
@@ -48,13 +31,7 @@ class status(named_object):
 success = status("success")
 failure = status("failure")
 
-arg_not_supplied = named_object("arg not supplied")
-user_exit = named_object("exit")
-
-table = namedtuple("table", "Heading Body")
-header = namedtuple("header", "Heading")
-body_text = namedtuple("bodytext", "Text")
-figure = namedtuple("figure", "pdf_filename")
+## FIXME HERE
 
 
 def get_methods(a_stage_object) -> list:
@@ -65,7 +42,7 @@ def get_methods(a_stage_object) -> list:
     dir_list = [method_name for method_name in dir_list if method_name[0] != "_"]
 
     # remove special
-    special_list = ["log", "name", "parent", "description"]
+    special_list = ["log", "name", "parent", "description", "data"]
     dir_list = [
         method_name for method_name in dir_list if method_name not in special_list
     ]
@@ -217,8 +194,3 @@ def hasallattr(some_object, attrlist=[]):
 
 def get_class_name(class_object):
     return class_object.__name__
-
-
-missing_file = named_object("missing file")
-missing_data = named_object("missing data")
-ALL_ROLL_INSTRUMENTS = "ALL"

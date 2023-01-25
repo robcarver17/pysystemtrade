@@ -1,4 +1,4 @@
-from syscore.objects import missing_order, zero_order
+from sysexecution.orders.named_order_objects import missing_order, zero_order
 from sysexecution.order_stacks.order_stack import orderStackData
 from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.orders.list_of_orders import listOfOrders

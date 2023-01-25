@@ -1,6 +1,6 @@
 import datetime
 from dataclasses import dataclass
-from syscore.objects import missing_order, ROLL_PSEUDO_STRATEGY
+from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.data_blob import dataBlob
 
@@ -27,6 +27,8 @@ from sysexecution.orders.instrument_orders import zero_roll_order_type
 from sysexecution.orders.list_of_orders import listOfOrders
 
 CONTRACT_ORDER_TYPE_FOR_ROLL_ORDERS = best_order_type
+
+ROLL_PSEUDO_STRATEGY = "_ROLL_PSEUDO_STRATEGY"
 
 
 class stackHandlerForRolls(stackHandlerCore):

@@ -21,7 +21,7 @@ from syscore.dateutils import (
     WEEKS_IN_YEAR,
     MONTHS_IN_YEAR,
 )
-from syscore.objects import arg_not_supplied, missing_data, named_object
+from syscore.objects import arg_not_supplied, missing_data, named_object, none_type
 
 DEFAULT_DATE_FORMAT_FOR_CSV = "%Y-%m-%d %H:%M:%S"
 
@@ -755,21 +755,37 @@ def sumup_business_days_over_pd_series_without_double_counting_of_closing_data(
     return joint_data
 
 
-## FIXME HERE
+def replace_all_zeros_with_nan(pd_series: pd.Series) -> pd.Series:
+    """
+    >>> d = datetime.datetime
+    >>> date_index1 = [d(2000,1,1,23),d(2000,1,2,23),d(2000,1,3,23)]
+    >>> s1 = pd.Series([0,5,6], index=date_index1)
+    >>> replace_all_zeros_with_nan(s1)
+    2000-01-01 23:00:00    NaN
+    2000-01-02 23:00:00    5.0
+    2000-01-03 23:00:00    6.0
+    dtype: float64
+    """
+    copy_pd_series = copy(pd_series)
+    copy_pd_series[copy_pd_series == 0.0] = np.nan
+
+    if all(copy_pd_series.isna()):
+        copy_pd_series[:] = np.nan
+
+    return copy_pd_series
 
 
-def replace_all_zeros_with_nan(result: pd.Series) -> pd.Series:
-    check_result = copy(result)
-    check_result[check_result == 0.0] = np.nan
-
-    ##
-    if all(check_result.isna()):
-        result[:] = np.nan
-
-    return result
-
-
-def spread_out_annualised_return_over_periods(data_as_annual):
+def spread_out_annualised_return_over_periods(data_as_annual: pd.Series) -> pd.Series:
+    """
+    >>> d = datetime.datetime
+    >>> date_index1 = [d(2000,1,1,23),d(2000,1,2,23),d(2000,1,3,23)]
+    >>> s1 = pd.Series([0.365,0.730,0.365], index=date_index1)
+    >>> spread_out_annualised_return_over_periods(s1)
+    2000-01-01 23:00:00         NaN
+    2000-01-02 23:00:00    0.001999
+    2000-01-03 23:00:00    0.000999
+    dtype: float64
+    """
     period_intervals_in_seconds = (
         data_as_annual.index.to_series().diff().dt.total_seconds()
     )
@@ -779,6 +795,150 @@ def spread_out_annualised_return_over_periods(data_as_annual):
     return data_per_period
 
 
+def get_row_of_df_aligned_to_weights_as_dict(
+    df: pd.DataFrame, relevant_date: datetime.datetime = arg_not_supplied
+) -> dict:
+    """
+    >>> d = datetime.datetime
+    >>> date_index = [d(2000,1,1),d(2000,1,2),d(2000,1,3), d(2000,1,4)]
+    >>> df = pd.DataFrame(dict(a=[1, 2, 3,4], b=[4,5,6,7]), index=date_index)
+    >>> get_row_of_df_aligned_to_weights_as_dict(df, d(2000,1,3))
+    {'a': 3, 'b': 6}
+    """
+
+    if relevant_date is arg_not_supplied:
+        data_at_date = df.iloc[-1]
+    else:
+        try:
+            data_at_date = df.loc[relevant_date]
+        except KeyError:
+            raise Exception("Date %s not found in data" % str(relevant_date))
+
+    return data_at_date.to_dict()
+
+
+def get_row_of_series(
+    series: pd.Series, relevant_date: datetime.datetime = arg_not_supplied
+):
+    """
+    >>> d = datetime.datetime
+    >>> date_index1 = [d(2000,1,1),d(2000,1,2),d(2000,1,3)]
+    >>> s1 = pd.Series([1,2,3], index=date_index1)
+    >>> get_row_of_series(s1, d(2000,1,2))
+    2
+    """
+
+    if relevant_date is arg_not_supplied:
+        data_at_date = series.values[-1]
+    else:
+        try:
+            data_at_date = series.loc[relevant_date]
+        except KeyError:
+            raise Exception("Date %s not found in data" % str(relevant_date))
+
+    return data_at_date
+
+
+def get_row_of_series_before_date(
+    series: pd.Series, relevant_date: datetime.datetime = arg_not_supplied
+):
+    """
+    >>> d = datetime.datetime
+    >>> date_index1 = [d(2000,1,1),d(2000,1,2),d(2000,1,5)]
+    >>> s1 = pd.Series([1,2,3], index=date_index1)
+    >>> get_row_of_series_before_date(s1, d(2000,1,3))
+    2
+    """
+
+    if relevant_date is arg_not_supplied:
+        data_at_date = series.values[-1]
+    else:
+        index_point = get_max_index_before_datetime(series.index, relevant_date)
+        data_at_date = series.values[index_point]
+
+    return data_at_date
+
+
+def get_max_index_before_datetime(
+    index: pd.core.indexes.datetimes.DatetimeIndex, date_point: datetime.datetime
+) -> Union[int, none_type]:
+    matching_index_size = index[index < date_point].size
+
+    if matching_index_size == 0:
+        return None
+    else:
+        return matching_index_size - 1
+
+
+def years_in_data(data: pd.Series) -> List[int]:
+    """
+    >>> d = datetime.datetime
+    >>> date_index1 = [d(2000,1,1),d(2002,1,2),d(2003,1,5)]
+    >>> s1 = pd.Series([1,2,3], index=date_index1)
+    >>> years_in_data(s1)
+    [2000, 2002, 2003]
+    """
+
+    all_years = [x.year for x in data.index]
+    unique_years = list(set(all_years))
+    unique_years.sort()
+
+    return unique_years
+
+
+def calculate_cost_deflator(price: pd.Series) -> pd.Series:
+    daily_returns = price_to_daily_returns(price)
+    ## crude but doesn't matter
+    vol_price = daily_returns.rolling(180, min_periods=3).std().ffill()
+    final_vol = vol_price[-1]
+
+    cost_scalar = vol_price / final_vol
+
+    return cost_scalar
+
+
+def price_to_daily_returns(price: pd.Series) -> pd.Series:
+    daily_price = price.resample("1B").ffill()
+    daily_returns = daily_price.ffill().diff()
+
+    return daily_returns
+
+
+def quantile_of_points_in_data_series(data_series: pd.Series) -> pd.Series:
+    ## With thanks to https://github.com/PurpleHazeIan for this implementation
+    numpy_series = np.array(data_series)
+    results = []
+
+    for irow in range(len(data_series)):
+        current_value = numpy_series[irow]
+        count_less_than = (numpy_series < current_value)[:irow].sum()
+        results.append(count_less_than / (irow + 1))
+
+    results_series = pd.Series(results, index=data_series.index)
+    return results_series
+
+
+def sort_df_ignoring_missing(df: pd.DataFrame, column: List[str]) -> pd.DataFrame:
+    # sorts df by column, with rows containing missing_data coming at the end
+    missing = df[df[column] == missing_data]
+    valid = df[df[column] != missing_data]
+    valid_sorted = valid.sort_values(column)
+    return pd.concat([valid_sorted, missing])
+
+
+def apply_with_min_periods(
+    xcol: pd.Series, my_func=np.nanmean, min_periods: int = 0
+) -> float:
+    not_nan = sum(~np.isnan(xcol))
+
+    if not_nan >= min_periods:
+
+        return my_func(xcol)
+    else:
+        return np.nan
+
+
+### unused but might be useful
 def from_series_to_matching_df_frame(
     pd_series: pd.Series, pd_df_to_match: pd.DataFrame, method="ffill"
 ) -> pd.DataFrame:
@@ -803,119 +963,3 @@ if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
-
-
-def get_row_of_df_aligned_to_weights_as_dict(
-    df: pd.DataFrame, relevant_date: datetime.datetime = arg_not_supplied
-) -> dict:
-
-    if relevant_date is arg_not_supplied:
-        data_at_date = df.iloc[-1]
-    else:
-        try:
-            data_at_date = df.loc[relevant_date]
-        except KeyError:
-            raise Exception("Date %s not found in data" % str(relevant_date))
-
-    return data_at_date.to_dict()
-
-
-def get_row_of_series(
-    series: pd.Series, relevant_date: datetime.datetime = arg_not_supplied
-):
-
-    if relevant_date is arg_not_supplied:
-        data_at_date = series.values[-1]
-    else:
-        try:
-            data_at_date = series.loc[relevant_date]
-        except KeyError:
-            raise Exception("Date %s not found in data" % str(relevant_date))
-
-    return data_at_date
-
-
-def get_row_of_series_before_data(
-    series: pd.Series, relevant_date: datetime.datetime = arg_not_supplied
-):
-
-    if relevant_date is arg_not_supplied:
-        data_at_date = series.values[-1]
-    else:
-        index_point = get_max_index_before_datetime(series.index, relevant_date)
-        data_at_date = series.values[index_point]
-
-    return data_at_date
-
-
-def get_max_index_before_datetime(index, date_point):
-    matching_index_size = index[index < date_point].size
-
-    if matching_index_size == 0:
-        return None
-    else:
-        return matching_index_size - 1
-
-
-def years_in_data(data: pd.Series) -> list:
-    all_years = [x.year for x in data.index]
-    unique_years = list(set(all_years))
-    unique_years.sort()
-
-    return unique_years
-
-
-def calculate_cost_deflator(price: pd.Series) -> pd.Series:
-    ## crude but doesn't matter
-    daily_price = price.resample("1B").ffill()
-    daily_returns = daily_price.ffill().diff()
-    vol_price = daily_returns.rolling(180, min_periods=3).std().ffill()
-    final_vol = vol_price[-1]
-
-    cost_scalar = vol_price / final_vol
-
-    return cost_scalar
-
-
-def quantile_of_points_in_data_series(data_series):
-    ## With thanks to https://github.com/PurpleHazeIan for this implementation
-    numpy_series = np.array(data_series)
-    results = []
-
-    for irow in range(len(data_series)):
-        current_value = numpy_series[irow]
-        count_less_than = (numpy_series < current_value)[:irow].sum()
-        results.append(count_less_than / (irow + 1))
-
-    results_series = pd.Series(results, index=data_series.index)
-    return results_series
-
-
-def sort_df_ignoring_missing(df, column):
-    # sorts df by column, with rows containing missing_data coming at the end
-    missing = df[df[column] == missing_data]
-    valid = df[df[column] != missing_data]
-    valid_sorted = valid.sort_values(column)
-    return pd.concat([valid_sorted, missing])
-
-
-def apply_with_min_periods(xcol, my_func=np.nanmean, min_periods=0):
-    """
-    :param x: data
-    :type x: Tx1 pd.DataFrame or series
-
-    :param func: Function to apply, if min periods met
-    :type func: function
-
-    :param min_periods: The minimum number of observations
-    :type min_periods: int
-
-    :returns: output from function
-    """
-    not_nan = sum(~np.isnan(xcol))
-
-    if not_nan >= min_periods:
-
-        return my_func(xcol)
-    else:
-        return np.nan

@@ -5,7 +5,7 @@ import datetime
 from collections import namedtuple
 
 from syscore.exceptions import missingData
-from syscore.objects import header, table, body_text
+from sysproduction.reporting.reporting_functions import table, header, body_text
 from syscore.dateutils import ROOT_BDAYS_INYEAR, from_marker_string_to_datetime
 from sysproduction.data.positions import diagPositions
 

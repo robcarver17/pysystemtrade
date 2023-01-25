@@ -8,12 +8,10 @@ from syscore.genutils import (
 
 from sysexecution.orders.base_orders import (
     Order,
-    no_order_id,
-    no_children,
-    no_parent,
     tradeQuantity,
     orderType,
 )
+from sysexecution.orders.named_order_objects import no_order_id, no_children, no_parent
 
 from sysobjects.production.tradeable_object import instrumentStrategy
 

@@ -1,8 +1,8 @@
 from copy import copy
 from syscore.objects import (
-    missing_order,
     resolve_function,
 )
+from sysexecution.orders.named_order_objects import missing_order
 from sysproduction.data.controls import dataTradeLimits
 
 from sysexecution.algos.allocate_algo_to_order import (

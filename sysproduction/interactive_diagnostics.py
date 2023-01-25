@@ -18,9 +18,9 @@ from syscore.pandas.pdutils import set_pd_print_options
 from syscore.objects import (
     user_exit,
     arg_not_supplied,
-    ALL_ROLL_INSTRUMENTS,
     missing_data,
 )
+from sysobjects.production.roll_state import ALL_ROLL_INSTRUMENTS
 from syscore.exceptions import missingContract, missingData
 from sysexecution.orders.list_of_orders import listOfOrders
 

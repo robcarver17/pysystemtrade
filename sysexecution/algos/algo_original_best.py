@@ -3,7 +3,8 @@ This is the original 'best execution' algo I used in my legacy system
 """
 from typing import Union
 
-from syscore.objects import missing_order, market_closed, missing_data
+from syscore.objects import market_closed, missing_data
+from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.data_blob import dataBlob
 from sysexecution.algos.algo import Algo, limit_price_from_offside_price

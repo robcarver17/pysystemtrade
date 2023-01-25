@@ -81,3 +81,6 @@ def allowable_roll_state_from_current_and_position(
         raise Exception("State plus position %s not recognised" % status_plus_position)
 
     return allowable_states
+
+
+ALL_ROLL_INSTRUMENTS = "ALL"

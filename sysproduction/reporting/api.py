@@ -11,9 +11,8 @@ from syscore.dateutils import (
 from syscore.objects import (
     arg_not_supplied,
     missing_data,
-    body_text,
-    ALL_ROLL_INSTRUMENTS,
 )
+from sysobjects.production.roll_state import ALL_ROLL_INSTRUMENTS
 from syscore.pandas.pdutils import top_and_tail
 from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
@@ -30,7 +29,7 @@ from sysproduction.reporting.reporting_functions import (
     header,
     table,
     PdfOutputWithTempFileName,
-    figure,
+    figure, body_text,
 )
 from sysproduction.reporting.data.costs import (
     get_table_of_SR_costs,

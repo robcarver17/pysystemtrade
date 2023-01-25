@@ -1,8 +1,6 @@
 from copy import copy
 
-from syscore.objects import (
-    missing_order,
-)
+from sysexecution.orders.named_order_objects import missing_order
 from syscore.genutils import quickTimer
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysexecution.orders.list_of_orders import listOfOrders
