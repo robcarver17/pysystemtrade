@@ -1,5 +1,5 @@
 import inspect
-from syscore.interactive.interactive_input import (
+from syscore.interactive.input import (
     get_input_from_user_and_convert_to_type,
 )
 

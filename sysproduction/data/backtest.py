@@ -8,7 +8,7 @@ from syscore.objects import (
     resolve_function,
 )
 from syscore.constants import missing_data, arg_not_supplied, success, failure
-from syscore.interactive.interactive_menus import print_menu_of_values_and_get_response
+from syscore.interactive.menus import print_menu_of_values_and_get_response
 
 from sysdata.config.production_config import get_production_config
 from sysdata.data_blob import dataBlob

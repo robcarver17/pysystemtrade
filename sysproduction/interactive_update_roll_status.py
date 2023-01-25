@@ -7,13 +7,16 @@ NOTE: this does not update the roll calendar .csv files stored elsewhere. Under 
 from dataclasses import dataclass
 import numpy as np
 
-from syscore.interactive.interactive_input import (
+from syscore.interactive.input import (
     get_input_from_user_and_convert_to_type,
     true_if_answer_is_yes,
 )
-from syscore.interactive.interactive_menus import print_menu_of_values_and_get_response
+from syscore.interactive.menus import print_menu_of_values_and_get_response
 from syscore.constants import named_object, status, success, failure
-from syscore.text import landing_strip, print_with_landing_strips_around
+from syscore.interactive.display import (
+    print_with_landing_strips_around,
+    landing_strip,
+)
 
 from sysdata.data_blob import dataBlob
 

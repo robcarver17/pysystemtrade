@@ -1,6 +1,8 @@
 """
 Low level calculations that don't fit anywhere else
 """
+import math as maths
+
 import numpy as np
 
 from copy import copy
@@ -92,3 +94,10 @@ if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
+
+
+def magnitude(x):
+    """
+    Magnitude of a positive numeber. Used for calculating significant figures
+    """
+    return int(maths.log10(x))

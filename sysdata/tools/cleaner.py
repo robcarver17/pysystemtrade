@@ -1,7 +1,7 @@
 from collections import namedtuple
 from copy import copy
 
-from syscore.interactive.interactive_input import (
+from syscore.interactive.input import (
     true_if_answer_is_yes,
     input_field_names_for_named_tuple,
 )

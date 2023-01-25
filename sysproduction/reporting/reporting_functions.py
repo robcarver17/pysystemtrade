@@ -12,7 +12,11 @@ from syscore.objects import resolve_function
 from syscore.constants import missing_data, arg_not_supplied
 from syscore.fileutils import get_resolved_pathname
 from syscore.dateutils import datetime_to_long
-from syscore.text import landing_strip_from_str, landing_strip, centralise_text
+from syscore.interactive.display import (
+    landing_strip_from_str,
+    landing_strip,
+    centralise_text,
+)
 from sysdata.data_blob import dataBlob
 
 from syslogdiag.email_via_db_interface import (

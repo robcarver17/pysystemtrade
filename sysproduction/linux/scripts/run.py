@@ -9,7 +9,7 @@ import sys
 
 # import of system libraries required to make this work
 
-from syscore.interactive.interactively_run_functions import (
+from syscore.interactive.run_functions import (
     interactively_input_arguments_for_function,
 )
 
