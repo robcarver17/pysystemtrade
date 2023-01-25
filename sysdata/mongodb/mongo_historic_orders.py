@@ -1,7 +1,8 @@
 import datetime
 
 from syscore.exceptions import missingData
-from syscore.objects import success, missing_order, arg_not_supplied
+from syscore.objects import success, arg_not_supplied
+from sysexecution.orders.named_order_objects import missing_order
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 
 from sysexecution.orders.base_orders import Order

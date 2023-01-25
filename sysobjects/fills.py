@@ -3,7 +3,8 @@ from collections import namedtuple
 
 import pandas as pd
 
-from syscore.objects import missing_order, named_object
+from syscore.objects import named_object
+from sysexecution.orders.named_order_objects import missing_order
 from sysobjects.orders import SimpleOrder, ListOfSimpleOrders
 
 from sysexecution.orders.list_of_orders import listOfOrders

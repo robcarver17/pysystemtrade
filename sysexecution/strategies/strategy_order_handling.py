@@ -5,7 +5,7 @@ It then passes these to the 'virtual' order queue
 So called because it deals with instrument level trades, not contract implementation
 """
 
-from syscore.objects import zero_order
+from sysexecution.orders.named_order_objects import zero_order
 from sysdata.data_blob import dataBlob
 
 from sysexecution.orders.list_of_orders import listOfOrders

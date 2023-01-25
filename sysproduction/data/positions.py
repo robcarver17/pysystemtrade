@@ -3,7 +3,8 @@ from copy import copy
 import pandas as pd
 import datetime
 
-from syscore.objects import arg_not_supplied, success, failure, missing_order
+from syscore.objects import arg_not_supplied, success, failure
+from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData

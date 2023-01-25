@@ -18,7 +18,8 @@ from sysbrokers.IB.ib_translate_broker_order_objects import (
 from sysbrokers.IB.client.ib_orders_client import ibOrdersClient
 from sysbrokers.broker_execution_stack import brokerExecutionStackData
 
-from syscore.objects import missing_order, failure, success, arg_not_supplied
+from syscore.objects import failure, success, arg_not_supplied
+from sysexecution.orders.named_order_objects import missing_order
 
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.orders.list_of_orders import listOfOrders

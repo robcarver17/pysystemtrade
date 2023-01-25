@@ -2,7 +2,8 @@
 import datetime
 from sysdata.data_blob import dataBlob
 
-from syscore.objects import arg_not_supplied, body_text
+from syscore.objects import arg_not_supplied
+from sysproduction.reporting.reporting_functions import body_text
 from sysproduction.reporting.api import reportingApi
 
 SLIPPAGE_REPORT_TEXT = body_text(

@@ -1,4 +1,5 @@
-from syscore.objects import failure, success, missing_order
+from syscore.objects import failure, success
+from sysexecution.orders.named_order_objects import missing_order
 from sysexecution.stack_handler.fills import stackHandlerForFills
 from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.orders.contract_orders import contractOrder

@@ -3,12 +3,10 @@ import datetime
 
 from sysexecution.orders.base_orders import (
     Order,
-    no_order_id,
-    no_children,
-    no_parent,
     resolve_inputs_to_order,
     orderType,
 )
+from sysexecution.orders.named_order_objects import no_order_id, no_children, no_parent
 
 from sysexecution.trade_qty import tradeQuantity
 

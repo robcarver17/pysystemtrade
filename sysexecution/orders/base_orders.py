@@ -7,7 +7,7 @@ from syscore.genutils import (
     if_object_matches_return_empty_string,
     list_of_ints_with_highest_common_factor_positive_first,
 )
-from syscore.objects import no_order_id, no_children, no_parent
+from sysexecution.orders.named_order_objects import no_order_id, no_children, no_parent
 
 from sysexecution.trade_qty import tradeQuantity
 

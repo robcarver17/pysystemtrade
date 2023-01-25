@@ -92,7 +92,9 @@ def rename_files_with_extension_in_pathname_as_archive_files(
     """
 
     resolved_pathname = get_resolved_pathname(pathname)
-    list_of_files = files_with_extension_in_resolved_pathname(resolved_pathname)
+    list_of_files = files_with_extension_in_resolved_pathname(
+        resolved_pathname, extension=extension
+    )
 
     for filename in list_of_files:
         full_filename = os.path.join(resolved_pathname, filename)

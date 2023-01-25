@@ -1,7 +1,7 @@
 import numpy as np
 
 from syscore.genutils import sign
-from syscore.objects import missing_order
+from sysexecution.orders.named_order_objects import missing_order
 
 
 class tradeQuantity(list):

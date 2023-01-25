@@ -1,7 +1,8 @@
 from collections import namedtuple
 
 from syscore.genutils import sign
-from syscore.objects import missing_order, success, missing_data
+from syscore.objects import success, missing_data
+from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.data_blob import dataBlob
 

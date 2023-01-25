@@ -6,8 +6,8 @@ Do standard things to the instrument, order and broker stack (normally automated
 
 
 """
-
-from syscore.objects import missing_order
+import sysexecution.orders.named_order_objects
+from sysexecution.orders.named_order_objects import missing_order
 from syscore.interactive.interactive_input import (
     get_input_from_user_and_convert_to_type,
 )
@@ -493,7 +493,7 @@ def generate_generic_manual_fill(data):
     if len(order.trade) > 1:
         print("Can't manually fill spread orders; delete and replace with legs")
         return None
-    if not order.no_children():
+    if not sysexecution.orders.named_order_objects.no_children():
         print(
             "Don't manually fill order with children: can cause problems! Manually fill the child instead"
         )

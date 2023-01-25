@@ -1,5 +1,6 @@
 from typing import Optional
-from syscore.objects import body_text, ALL_ROLL_INSTRUMENTS
+from sysobjects.production.roll_state import ALL_ROLL_INSTRUMENTS
+from sysproduction.reporting.reporting_functions import body_text
 
 # We want a roll report (We could merge this into another kind of report)
 # We want to be able to have it emailed, or run it offline

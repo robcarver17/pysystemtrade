@@ -1,6 +1,7 @@
 import datetime
 
-from syscore.objects import missing_order, fill_exceeds_trade
+from syscore.objects import fill_exceeds_trade
+from sysexecution.orders.named_order_objects import missing_order
 from sysexecution.order_stacks.order_stack import orderStackData
 from sysexecution.orders.broker_orders import brokerOrder
 

@@ -1,7 +1,7 @@
 import datetime
 import pandas as pd
 
-from syscore.objects import header, table, body_text
+from sysproduction.reporting.reporting_functions import table, header, body_text
 from sysdata.data_blob import dataBlob
 from sysobjects.production.backtest_storage import interactiveBacktest
 from sysproduction.strategy_code.report_system_classic import (

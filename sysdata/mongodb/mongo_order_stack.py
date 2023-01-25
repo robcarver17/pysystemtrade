@@ -2,7 +2,8 @@ from syscore.exceptions import missingData
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log_to_screen import logtoscreen
 
-from sysexecution.order_stacks.order_stack import orderStackData, missing_order
+from sysexecution.order_stacks.order_stack import orderStackData
+from sysexecution.orders.named_order_objects import missing_order
 from sysexecution.orders.base_orders import Order
 from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.order_stacks.instrument_order_stack import instrumentOrderStackData

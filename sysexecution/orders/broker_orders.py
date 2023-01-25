@@ -1,11 +1,13 @@
 import datetime
 
-from syscore.objects import missing_order
-
-from sysexecution.orders.base_orders import (
+from sysexecution.orders.named_order_objects import (
+    missing_order,
     no_order_id,
     no_children,
     no_parent,
+)
+
+from sysexecution.orders.base_orders import (
     orderType,
 )
 from sysexecution.orders.base_orders import Order
