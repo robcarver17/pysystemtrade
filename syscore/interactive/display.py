@@ -1,3 +1,5 @@
+import pandas as pd
+
 from syscore.maths import magnitude
 
 
@@ -91,3 +93,10 @@ def calculate_multiplication_factor_for_nice_repr_of_value(some_value: float) ->
     mult_factor = 10.0 ** (-mag)
 
     return mult_factor
+
+
+def set_pd_print_options():
+    ## avoid annoying truncation in reports
+    pd.set_option("display.max_rows", 500)
+    pd.set_option("display.max_columns", 100)
+    pd.set_option("display.width", 1000)

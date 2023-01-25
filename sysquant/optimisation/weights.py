@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 
 from syscore.genutils import flatten_list
-from syscore.pandas.pdutils import get_row_of_df_aligned_to_weights_as_dict
+from syscore.pandas.find_data import get_row_of_df_aligned_to_weights_as_dict
 
 from sysquant.estimators.estimates import Estimates
 from sysquant.estimators.correlation_estimator import correlationEstimate

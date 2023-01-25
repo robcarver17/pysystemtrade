@@ -6,7 +6,7 @@ from copy import copy
 from syscore.constants import missing_data, arg_not_supplied, success, failure
 from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
-from syscore.pandas.pdutils import merge_data_with_different_freq
+from syscore.pandas.frequency import merge_data_with_different_freq
 
 from sysdata.data_blob import dataBlob
 from sysdata.tools.manual_price_checker import manual_price_checker

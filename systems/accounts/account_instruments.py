@@ -1,6 +1,6 @@
 import pandas as pd
 
-from syscore.pandas.pdutils import turnover
+from syscore.pandas.strategy_functions import turnover
 
 from systems.system_cache import diagnostic, dont_cache
 from systems.accounts.account_costs import accountCosts

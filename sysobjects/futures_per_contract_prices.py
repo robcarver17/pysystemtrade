@@ -3,7 +3,7 @@ import datetime
 from copy import copy
 
 from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
-from syscore.pandas.pdutils import (
+from syscore.pandas.frequency import (
     sumup_business_days_over_pd_series_without_double_counting_of_closing_data,
 )
 from syscore.pandas.merge_data_keeping_past_data import merge_newer_data

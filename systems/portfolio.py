@@ -5,11 +5,13 @@ from copy import copy
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 from syscore.genutils import str2Bool, list_union
 from syscore.pandas.pdutils import (
-    fix_weights_vs_position_or_forecast,
     from_dict_of_values_to_df,
     from_scalar_values_to_ts,
-    get_row_of_df_aligned_to_weights_as_dict,
+)
+from syscore.pandas.find_data import get_row_of_df_aligned_to_weights_as_dict
+from syscore.pandas.strategy_functions import (
     weights_sum_to_one,
+    fix_weights_vs_position_or_forecast,
 )
 from syscore.objects import resolve_function
 from syscore.constants import missing_data, arg_not_supplied

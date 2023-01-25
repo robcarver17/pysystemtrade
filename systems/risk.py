@@ -7,7 +7,7 @@ from systems.provided.dynamic_small_system_optimise.optimised_positions_stage im
 )
 from systems.system_cache import diagnostic
 
-from syscore.pandas.pdutils import listOfDataFrames
+from syscore.pandas.list_of_df import listOfDataFrames
 
 from sysquant.optimisation.weights import seriesOfPortfolioWeights
 

@@ -12,7 +12,8 @@ from sysquant.estimators.covariance import (
 )
 from syscore.interactive.progress_bar import progressBar
 from syscore.constants import arg_not_supplied
-from syscore.pandas.pdutils import calculate_cost_deflator, get_row_of_series
+from syscore.pandas.find_data import get_row_of_series
+from syscore.pandas.strategy_functions import calculate_cost_deflator
 from systems.provided.dynamic_small_system_optimise.optimisation import (
     objectiveFunctionForGreedy,
     constraintsForDynamicOpt,

@@ -3,7 +3,7 @@ import pandas as pd
 from syscore.maths import calculate_weighted_average_with_nans
 from syscore.genutils import str2Bool
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.pandas.pdutils import turnover
+from syscore.pandas.strategy_functions import turnover
 
 from sysquant.estimators.turnover import turnoverDataForTradingRule
 

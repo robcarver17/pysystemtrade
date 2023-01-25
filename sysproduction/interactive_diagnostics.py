@@ -14,7 +14,7 @@ from syscore.interactive.menus import (
     print_menu_of_values_and_get_response,
     print_menu_and_get_desired_option_index,
 )
-from syscore.pandas.pdutils import set_pd_print_options
+from syscore.interactive.display import set_pd_print_options
 from syscore.constants import missing_data, arg_not_supplied, user_exit
 from sysobjects.production.roll_state import ALL_ROLL_INSTRUMENTS
 from syscore.exceptions import missingContract, missingData

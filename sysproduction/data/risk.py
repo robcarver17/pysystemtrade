@@ -6,7 +6,7 @@ import pandas as pd
 from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
 from syscore.objects import resolve_function
 from syscore.constants import missing_data, arg_not_supplied
-from syscore.pandas.pdutils import resample_prices_to_business_day_index
+from syscore.pandas.frequency import resample_prices_to_business_day_index
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.prices import (
     get_current_price_of_instrument,

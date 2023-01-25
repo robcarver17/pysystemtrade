@@ -173,12 +173,14 @@ account.percent.stats()
 Looks like we did make a few bucks. `account`, by the way inherits from a pandas data frame. Here are some other things we can do with it:
 
 ```python
-account.sharpe() ## get the Sharpe Ratio (annualised), and any other statistic which is in the stats list
-account.curve().plot() ## plot the cumulative account curve (equivalent to account.cumsum().plot() inicidentally)
-account.percent ## gives a % curve
-account.percent.drawdown().plot() ## see the drawdowns as a percentage
-account.weekly ## weekly returns (also daily [default], monthly, annual)
-account.gross.ann_mean() ## annual mean for gross returns, also costs (there are none in this simple example)
+import syscore.pandas.strategy_functions
+
+account.sharpe()  ## get the Sharpe Ratio (annualised), and any other statistic which is in the stats list
+account.curve().plot()  ## plot the cumulative account curve (equivalent to account.cumsum().plot() inicidentally)
+account.percent  ## gives a % curve
+syscore.pandas.strategy_functions.drawdown().plot()  ## see the drawdowns as a percentage
+account.weekly  ## weekly returns (also daily [default], monthly, annual)
+account.gross.ann_mean()  ## annual mean for gross returns, also costs (there are none in this simple example)
 ```
 
 [Here](notebooks/introduction_with_fxdata.ipynb) you can find a modified version of this example using IB data instead of pre-baked CSV data files.

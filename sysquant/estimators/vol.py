@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.dateutils import BUSINESS_DAYS_IN_YEAR
-from syscore.pandas.pdutils import resample_prices_to_business_day_index
+from syscore.pandas.frequency import resample_prices_to_business_day_index
 
 
 def robust_daily_vol_given_price(price: pd.Series, **kwargs):

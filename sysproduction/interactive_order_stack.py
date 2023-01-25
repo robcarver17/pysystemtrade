@@ -16,7 +16,7 @@ from syscore.interactive.menus import (
     interactiveMenu,
     print_menu_of_values_and_get_response,
 )
-from syscore.pandas.pdutils import set_pd_print_options
+from syscore.interactive.display import set_pd_print_options
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.positions import diagPositions, dataOptimalPositions

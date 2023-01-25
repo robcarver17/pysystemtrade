@@ -13,8 +13,8 @@ from syscore.interactive.menus import (
 )
 from syscore.interactive.display import (
     calculate_multiplication_factor_for_nice_repr_of_value,
+    set_pd_print_options,
 )
-from syscore.pandas.pdutils import set_pd_print_options
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR, DAILY_PRICE_FREQ
 from syscore.genutils import round_significant_figures
 
