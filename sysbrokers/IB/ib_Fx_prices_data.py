@@ -8,7 +8,7 @@ from syscore.exceptions import missingData
 from sysobjects.spot_fx_prices import fxPrices
 from syslogdiag.log_to_screen import logtoscreen
 from syscore.fileutils import resolve_path_and_filename_for_package
-from syscore.objects import missing_instrument, missing_file
+from syscore.constants import missing_instrument, missing_file
 
 IB_CCY_CONFIG_FILE = resolve_path_and_filename_for_package(
     "sysbrokers.IB.ib_config_spot_FX.csv"

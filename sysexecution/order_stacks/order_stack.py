@@ -1,9 +1,6 @@
 import datetime
 from copy import copy
-from syscore.objects import (
-    success,
-    failure,
-)
+from syscore.constants import success, failure
 from sysexecution.orders.named_order_objects import (
     missing_order,
     no_order_id,

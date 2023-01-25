@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from syscore.genutils import sign
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysquant.optimisation.weights import portfolioWeights
 
 A_VERY_LARGE_NUMBER = 999999999

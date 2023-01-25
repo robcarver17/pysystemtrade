@@ -11,7 +11,7 @@ from syscore.fileutils import (
 )
 from syscore.pandas.pdutils import pd_readcsv
 from syscore.genutils import str_of_int
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
 
 CSV_MULTIPLE_PRICE_DIRECTORY = "data.futures.multiple_prices_csv"

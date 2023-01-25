@@ -5,12 +5,9 @@ from shutil import copyfile
 from syscore.dateutils import create_datetime_marker_string
 from syscore.fileutils import files_with_extension_in_pathname, get_resolved_pathname
 from syscore.objects import (
-    arg_not_supplied,
     resolve_function,
-    success,
-    failure,
-    missing_data,
 )
+from syscore.constants import missing_data, arg_not_supplied, success, failure
 from syscore.interactive.interactive_menus import print_menu_of_values_and_get_response
 
 from sysdata.config.production_config import get_production_config

@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysdata.data_blob import dataBlob
 from sysproduction.reporting.api import reportingApi

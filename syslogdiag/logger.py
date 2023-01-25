@@ -2,7 +2,7 @@ import datetime
 from copy import copy
 from typing import Union
 from syslogdiag.log_entry import LOG_MAPPING, DEFAULT_LOG_MSG_LEVEL, logEntry
-from syscore.objects import none_type
+from syscore.constants import none_type
 
 ALLOWED_LOG_LEVELS = ["off", "terse", "on"]
 DEFAULT_LOG_LEVEL = "off"

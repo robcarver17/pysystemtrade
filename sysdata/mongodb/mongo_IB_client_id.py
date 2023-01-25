@@ -1,5 +1,5 @@
 from sysbrokers.IB.client.ib_client_id import ibBrokerClientIdData
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log_to_screen import logtoscreen
 

@@ -47,7 +47,7 @@ from sysexecution.orders.instrument_orders import (
 )
 from sysexecution.algos.allocate_algo_to_order import list_of_algos
 from sysbrokers.IB.ib_connection import connectionIB
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysobjects.contracts import futuresContract
 

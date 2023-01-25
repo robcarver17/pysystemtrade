@@ -11,7 +11,7 @@ They can be stored, or worked out 'on the fly'
 """
 
 from sysdata.base_data import baseData
-from syscore.objects import success, failure, status
+from syscore.constants import status, success, failure
 
 # These are used when inferring prices in an incomplete series
 from sysobjects.multiple_prices import futuresMultiplePrices

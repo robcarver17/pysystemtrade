@@ -1,5 +1,5 @@
 from syscore.exceptions import missingData
-from syscore.objects import success, failure, arg_not_supplied
+from syscore.constants import arg_not_supplied, success, failure
 from syscore.interactive.interactive_input import (
     get_input_from_user_and_convert_to_type,
     true_if_answer_is_yes,

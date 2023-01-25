@@ -1,6 +1,6 @@
 from syscore.fileutils import does_filename_exist
 from syscore.fileutils import resolve_path_and_filename_for_package
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.config.private_directory import get_full_path_for_private_config
 
 import yaml

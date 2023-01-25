@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
 

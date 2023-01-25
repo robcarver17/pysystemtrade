@@ -19,7 +19,7 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 import time
 import sys
 from syscontrol.report_process_status import reportProcessStatus
-from syscore.objects import success, failure, status
+from syscore.constants import status, success, failure
 
 from syscontrol.timer_functions import get_list_of_timer_functions, listOfTimerFunctions
 

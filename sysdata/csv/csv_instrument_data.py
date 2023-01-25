@@ -2,7 +2,7 @@ import dataclasses
 
 from syscore.fileutils import resolve_path_and_filename_for_package
 from sysdata.futures.instruments import futuresInstrumentData
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysobjects.instruments import (
     futuresInstrument,
     futuresInstrumentWithMetaData,

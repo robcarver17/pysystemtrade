@@ -5,8 +5,7 @@ This 'core' is inherited by all the other classes and just initialises, plus doe
 
 """
 from collections import namedtuple
-from syscore.objects import arg_not_supplied, failure, success
-
+from syscore.constants import arg_not_supplied, success, failure
 
 from sysdata.data_blob import dataBlob
 

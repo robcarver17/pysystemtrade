@@ -1,5 +1,5 @@
 import datetime
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.mongodb.mongo_log import mongoLogData
 from sysdata.data_blob import dataBlob
 from syslogdiag.database_log import logToDb, logData

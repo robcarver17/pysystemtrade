@@ -10,7 +10,7 @@ from sysbrokers.IB.ib_positions import (
 from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract
 from syscore.exceptions import missingContract, missingData
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 
 

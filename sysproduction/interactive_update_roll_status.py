@@ -12,7 +12,7 @@ from syscore.interactive.interactive_input import (
     true_if_answer_is_yes,
 )
 from syscore.interactive.interactive_menus import print_menu_of_values_and_get_response
-from syscore.objects import success, failure, status, named_object
+from syscore.constants import named_object, status, success, failure
 from syscore.text import landing_strip, print_with_landing_strips_around
 
 from sysdata.data_blob import dataBlob

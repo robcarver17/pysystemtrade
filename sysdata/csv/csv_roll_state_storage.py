@@ -1,5 +1,5 @@
 from syscore.fileutils import resolve_path_and_filename_for_package
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.production.roll_state import rollStateData
 from syslogdiag.log_to_screen import logtoscreen
 

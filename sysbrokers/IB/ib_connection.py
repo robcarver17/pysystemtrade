@@ -9,7 +9,7 @@ from ib_insync import IB
 
 from sysbrokers.IB.ib_connection_defaults import ib_defaults
 from syscore.exceptions import missingData
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from syslogdiag.log_to_screen import logtoscreen
 

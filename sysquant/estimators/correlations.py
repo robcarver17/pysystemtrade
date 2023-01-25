@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 from dataclasses import dataclass
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.pandas.pdutils import get_index_of_columns_in_df_with_at_least_one_value
 
 from sysquant.fitting_dates import fitDates, listOfFittingDates

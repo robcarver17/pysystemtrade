@@ -3,7 +3,7 @@ This is the original 'best execution' algo I used in my legacy system
 """
 from typing import Union
 
-from syscore.objects import market_closed, missing_data
+from syscore.constants import missing_data, market_closed
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.data_blob import dataBlob

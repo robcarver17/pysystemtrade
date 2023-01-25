@@ -1,6 +1,6 @@
 import pandas as pd
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.pandas.merge_data_keeping_past_data import (
     merge_newer_data_no_checks,
     spike_check_merged_data,

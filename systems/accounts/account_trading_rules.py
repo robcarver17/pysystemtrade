@@ -1,6 +1,6 @@
 import pandas as pd
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from systems.system_cache import diagnostic
 from systems.accounts.account_forecast import accountForecast
 from systems.accounts.curves.dict_of_account_curves import (

@@ -4,7 +4,7 @@ import datetime
 import pandas as pd
 
 from syscore.exceptions import missingData
-from syscore.objects import success, arg_not_supplied
+from syscore.constants import arg_not_supplied, success
 
 DATE_KEY_NAME = "date"
 

@@ -3,7 +3,7 @@ import datetime
 import pandas as pd
 
 from syscore.exceptions import missingData
-from syscore.objects import arg_not_supplied, failure, missing_data
+from syscore.constants import missing_data, arg_not_supplied, failure
 from syscore.pandas.pdutils import uniquets
 
 from sysdata.data_blob import dataBlob

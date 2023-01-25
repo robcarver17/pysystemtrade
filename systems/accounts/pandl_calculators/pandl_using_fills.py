@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.constants import missing_data, arg_not_supplied
 from systems.accounts.pandl_calculators.pandl_calculation import (
     pandlCalculation,
     apply_weighting,

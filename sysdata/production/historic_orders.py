@@ -15,7 +15,7 @@ Doesn't have to reconcile with positions!
 """
 import datetime
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.base_data import baseData

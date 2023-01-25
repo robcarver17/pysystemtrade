@@ -2,7 +2,7 @@ import pandas as pd
 import datetime
 
 from syscore.dateutils import n_days_ago
-from syscore.objects import missing_data
+from syscore.constants import missing_data
 
 
 class spreadsForInstrument(pd.Series):

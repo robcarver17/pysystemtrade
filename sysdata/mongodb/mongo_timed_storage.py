@@ -3,7 +3,7 @@ from sysdata.production.timed_storage import (
     classStrWithListOfEntriesAsListOfDicts,
     listOfEntriesAsListOfDicts,
 )
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
 from syslogdiag.log_to_screen import logtoscreen

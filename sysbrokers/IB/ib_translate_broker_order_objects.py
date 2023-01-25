@@ -8,7 +8,7 @@ from ib_insync import Trade as ibTrade
 from sysbrokers.IB.ib_contracts import ibcontractWithLegs
 from sysbrokers.broker_trade import brokerTrade
 from syscore.exceptions import missingData
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysexecution.orders.named_order_objects import missing_order
 from sysexecution.orders.base_orders import resolve_multi_leg_price_to_single_price
 

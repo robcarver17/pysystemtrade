@@ -10,7 +10,7 @@ from syscore.pandas.merge_data_keeping_past_data import (
     mergingDataWithStatus,
     MERGED_DATA,
 )
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.pandas.pdutils import is_a_series, is_a_dataframe
 
 

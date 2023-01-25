@@ -19,7 +19,7 @@ from syscore.genutils import (
     if_empty_string_return_object,
     if_object_matches_return_empty_string,
 )
-from syscore.objects import success
+from syscore.constants import success
 
 
 class contractOrderType(orderType):

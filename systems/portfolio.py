@@ -11,7 +11,8 @@ from syscore.pandas.pdutils import (
     get_row_of_df_aligned_to_weights_as_dict,
     weights_sum_to_one,
 )
-from syscore.objects import resolve_function, missing_data, arg_not_supplied
+from syscore.objects import resolve_function
+from syscore.constants import missing_data, arg_not_supplied
 
 from sysdata.config.configdata import Config
 

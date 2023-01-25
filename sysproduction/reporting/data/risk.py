@@ -5,7 +5,7 @@ from statsmodels.formula import api as sm
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR, n_days_ago, CALENDAR_DAYS_IN_YEAR
 from syscore.interactive.progress_bar import progressBar
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.pandas.pdutils import resample_prices_to_business_day_index
 from sysdata.data_blob import dataBlob
 

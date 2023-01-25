@@ -3,7 +3,7 @@ from copy import copy
 import numpy as np
 import re
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.config.production_config import get_production_config
 
 LIST_OF_MONGO_PARAMS = ["mongo_db", "mongo_host", "mongo_port"]

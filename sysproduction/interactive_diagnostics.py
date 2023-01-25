@@ -15,11 +15,7 @@ from syscore.interactive.interactive_menus import (
     print_menu_and_get_desired_option_index,
 )
 from syscore.pandas.pdutils import set_pd_print_options
-from syscore.objects import (
-    user_exit,
-    arg_not_supplied,
-    missing_data,
-)
+from syscore.constants import missing_data, arg_not_supplied, user_exit
 from sysobjects.production.roll_state import ALL_ROLL_INSTRUMENTS
 from syscore.exceptions import missingContract, missingData
 from sysexecution.orders.list_of_orders import listOfOrders

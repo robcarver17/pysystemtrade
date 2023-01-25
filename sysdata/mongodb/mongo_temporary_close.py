@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysdata.production.temporary_close import temporaryCloseData
 from sysobjects.production.position_limits import positionLimitForInstrument

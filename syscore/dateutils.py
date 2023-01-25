@@ -13,7 +13,7 @@ import pandas as pd
 import numpy as np
 
 from syscore.exceptions import missingData
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.constants import missing_data, arg_not_supplied
 
 """
 

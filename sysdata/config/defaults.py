@@ -7,7 +7,7 @@ Order of preferences is - passed in command line to calculation method,
 
 """
 from syscore.fileutils import resolve_path_and_filename_for_package
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 import yaml
 
 DEFAULT_FILENAME = "sysdata.config.defaults.yaml"

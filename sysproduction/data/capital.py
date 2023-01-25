@@ -1,7 +1,7 @@
 import datetime
 import pandas as pd
 
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.constants import missing_data, arg_not_supplied
 
 from sysdata.production.new_capital import capitalData, totalCapitalCalculationData
 from sysdata.production.margin import marginData, seriesOfMargin

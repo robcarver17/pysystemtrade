@@ -3,7 +3,7 @@ from copy import copy
 import numpy as np
 import pandas as pd
 
-from syscore.objects import failure, success
+from syscore.constants import success, failure
 from sysdata.data_blob import dataBlob
 from sysobjects.adjusted_prices import futuresAdjustedPrices
 from sysobjects.contracts import futuresContract

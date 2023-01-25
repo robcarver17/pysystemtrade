@@ -9,7 +9,7 @@ from syscore.dateutils import (
     preceeding_midnight_of_datetime,
 )
 from syscore.genutils import intersection_intervals
-from syscore.objects import market_closed
+from syscore.constants import market_closed
 
 
 @dataclass()

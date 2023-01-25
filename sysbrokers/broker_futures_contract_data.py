@@ -1,6 +1,6 @@
 from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
 from syscore.exceptions import missingContract
-from syscore.objects import market_closed
+from syscore.constants import market_closed
 from sysdata.futures.contracts import futuresContractData
 
 from sysobjects.contract_dates_and_expiries import expiryDate

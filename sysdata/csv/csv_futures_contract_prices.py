@@ -8,7 +8,7 @@ from syscore.fileutils import (
     files_with_extension_in_pathname,
     resolve_path_and_filename_for_package,
 )
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.dateutils import MIXED_FREQ, Frequency
 from syscore.pandas.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT_FOR_CSV
 

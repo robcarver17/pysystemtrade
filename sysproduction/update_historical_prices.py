@@ -3,7 +3,7 @@ Update historical data per contract from interactive brokers data, dump into mon
 """
 
 from copy import copy
-from syscore.objects import success, failure, arg_not_supplied, missing_data
+from syscore.constants import missing_data, arg_not_supplied, success, failure
 from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
 from syscore.pandas.pdutils import merge_data_with_different_freq

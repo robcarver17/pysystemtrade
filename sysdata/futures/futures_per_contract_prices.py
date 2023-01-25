@@ -1,5 +1,5 @@
 from syscore.exceptions import missingData
-from syscore.objects import failure
+from syscore.constants import failure
 from syscore.dateutils import Frequency, MIXED_FREQ
 from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
 

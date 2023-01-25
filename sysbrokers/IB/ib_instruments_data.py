@@ -10,7 +10,7 @@ from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
 
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.genutils import return_another_value_if_nan
-from syscore.objects import missing_instrument, missing_file
+from syscore.constants import missing_instrument, missing_file
 
 from sysobjects.instruments import futuresInstrument
 

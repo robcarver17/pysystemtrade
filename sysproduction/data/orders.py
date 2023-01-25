@@ -1,5 +1,5 @@
 import datetime
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.constants import missing_data, arg_not_supplied
 from sysexecution.orders.named_order_objects import missing_order, no_parent
 
 from sysdata.mongodb.mongo_order_stack import (

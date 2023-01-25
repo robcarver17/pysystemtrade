@@ -2,7 +2,7 @@ from copy import copy
 import datetime
 
 from syscore.exceptions import missingData
-from syscore.objects import success, missing_data
+from syscore.constants import missing_data, success
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.capital import dataCapital, dataMargin

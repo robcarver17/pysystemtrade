@@ -2,7 +2,7 @@ from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.client.ib_accounting_client import ibAccountingClient
 from sysbrokers.broker_capital_data import brokerCapitalData
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysobjects.spot_fx_prices import listOfCurrencyValues
 

@@ -11,7 +11,7 @@ from syscore.dateutils import (
     get_approx_vol_scalar_versus_daily_vol_for_period,
 )
 from syscore.cache import Cache
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices, get_list_of_instruments
 

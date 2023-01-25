@@ -9,7 +9,7 @@ We then store those multiple prices in: (depending on options)
 - arctic
 - .csv
 """
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysobjects.dict_of_futures_per_contract_prices import (
     dictFuturesContractFinalPrices,
 )

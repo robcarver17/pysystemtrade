@@ -1,4 +1,4 @@
-from syscore.objects import named_object
+from syscore.constants import named_object
 
 missing_order = named_object("missing order")
 locked_order = named_object("locked order")

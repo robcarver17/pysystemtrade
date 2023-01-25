@@ -1,5 +1,5 @@
 ### An inheritance of a general order stack that includes methods for actually talking to the broker
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysexecution.order_stacks.broker_order_stack import brokerOrderStackData
 from sysexecution.order_stacks.broker_order_stack import orderWithControls

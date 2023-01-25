@@ -4,7 +4,7 @@ import pandas as pd
 
 from syscore.exceptions import missingData
 from syscore.genutils import transfer_object_attributes
-from syscore.objects import missing_data
+from syscore.constants import missing_data
 from syscore.pandas.pdutils import (
     make_df_from_list_of_named_tuple,
     sort_df_ignoring_missing,

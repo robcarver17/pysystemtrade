@@ -1,50 +1,26 @@
 """
 Do fun things with objects and classes
 """
+from typing import List
 import importlib
 
-none_type = type(None)
-
-
-class named_object:
-    def __init__(self, name):
-        self._name = str(name)
-
-    def __repr__(self):
-        return self._name
-
-
-missing_instrument = named_object("missing instrument")
-missing_file = named_object("missing file")
-missing_data = named_object("missing data")
-market_closed = named_object("market closed")
-fill_exceeds_trade = named_object("fill too big for trade")
-
-arg_not_supplied = named_object("arg not supplied")
-user_exit = named_object("exit")
-
-
-class status(named_object):
-    pass
-
-
-success = status("success")
-failure = status("failure")
-
-## FIXME HERE
+LIST_OF_RESERVED_METHOD_NAMES = ["log", "name", "parent", "description", "data"]
 
 
 def get_methods(a_stage_object) -> list:
+    """
+    Get methods from a stage object
+    """
     dir_list = dir(a_stage_object)
 
-    # remove "_"
-
+    # remove private "_"
     dir_list = [method_name for method_name in dir_list if method_name[0] != "_"]
 
     # remove special
-    special_list = ["log", "name", "parent", "description", "data"]
     dir_list = [
-        method_name for method_name in dir_list if method_name not in special_list
+        method_name
+        for method_name in dir_list
+        if method_name not in LIST_OF_RESERVED_METHOD_NAMES
     ]
 
     return dir_list
@@ -57,10 +33,6 @@ def resolve_function(func_or_func_name):
     If it is a string containing '.' then it is a function in a module, return the function
 
     :param func_or_func_name: Name of a function including package.module, or a callable function
-    :type func_or_func_name: int, float, or something else eg np.nan
-
-    :returns: function
-
     >>> resolve_function(str)
     <class 'str'>
 
@@ -100,28 +72,15 @@ def resolve_data_method(some_object, data_string: str):
     eg if data_string="data1.data2.method" then returns the method some_object.data1.data2.method
 
     :param some_object: The object with a method
-    :type some_object: object
-
     :param data_string: method or attribute within object
-    :type data_string: str
 
     :returns: method in some_object
 
-    >>> from sysdata.sim.sim_data import simData
+    >>> from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
     >>>
-    >>> data=simData()
-    >>> resolve_data_method(data, "get_instrument_price")
-    <bound method Data.get_instrument_price of Data object with 0 instruments>
-    >>>
-    >>> meta_data=simData()
-    >>> setattr(meta_data, "meta", data)
-    >>> resolve_data_method(meta_data, "meta.get_instrument_price")
-    <bound method Data.get_instrument_price of Data object with 0 instruments>
-    >>>
-    >>> meta_meta_data=simData()
-    >>> setattr(meta_meta_data, "moremeta", meta_data)
-    >>> resolve_data_method(meta_meta_data, "moremeta.meta.get_instrument_price")
-    <bound method Data.get_instrument_price of Data object with 0 instruments>
+    >>> data=csvFuturesSimData()
+    >>> resolve_data_method(data, "daily_prices")
+    <bound method simData.daily_prices of csvFuturesSimData object with 208 instruments>
 
     """
 
@@ -130,7 +89,7 @@ def resolve_data_method(some_object, data_string: str):
     return _recursively_get_attr_within_list(some_object, list_to_parse)
 
 
-def _recursively_get_attr_within_list(an_object, list_to_parse: list):
+def _recursively_get_attr_within_list(an_object, list_to_parse: List[str]):
     if len(list_to_parse) == 0:
         return an_object
 
@@ -140,40 +99,9 @@ def _recursively_get_attr_within_list(an_object, list_to_parse: list):
     return _recursively_get_attr_within_list(sub_object, list_to_parse)
 
 
-def update_recalc(stage_object, additional_protected=[]):
-    """
-    Update the recalculation dictionary
-
-    Used when a stage inherits from another
-
-    (see system.stage and systems.futures.rawdata for an example)
-
-    :param stage_object: The stage object with attributes to test
-    :type stage_object: object
-
-    :param additional_protected: Things to add to this attribute
-    :type additional_protected: list of str
-
-    :returns: None (changes stage_object)
-
-    """
-
-    original_dont_delete = getattr(stage_object, "_protected", [])
-
-    child_dont_delete = list(set(original_dont_delete + additional_protected))
-
-    setattr(stage_object, "_protected", child_dont_delete)
-
-
-def hasallattr(some_object, attrlist=[]):
+def hasallattr(some_object, attrlist: List[str]):
     """
     Check something has all the attributes you need
-
-    :param some_object: The object with attributes to test
-    :type some_object: object
-
-    :param attrlist: Attributes to check
-    :type attrlist: list of str
 
     :returns: bool
 
@@ -183,14 +111,11 @@ def hasallattr(some_object, attrlist=[]):
     >>> setattr(data, "two", 2)
     >>> hasallattr(data, ["one", "two"])
     True
-
     >>> hasallattr(data, ["one", "two","three"])
     False
-
-
     """
     return all([hasattr(some_object, attrname) for attrname in attrlist])
 
 
-def get_class_name(class_object):
+def get_class_name(class_object) -> str:
     return class_object.__name__

@@ -1,4 +1,4 @@
-from syscore.objects import missing_data
+from syscore.constants import missing_data
 
 LIST_OF_COMPOUND_METHODS = ["full", "half", "fixed"]
 

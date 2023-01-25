@@ -6,7 +6,7 @@ Code used when we interact with users (displaying stuff, getting input, monitori
 from typing import Union
 
 from syscore.genutils import str2Bool
-from syscore.objects import none_type
+from syscore.constants import none_type
 
 
 def true_if_answer_is_yes(

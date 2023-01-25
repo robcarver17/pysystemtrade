@@ -1,7 +1,7 @@
 import datetime
 import pandas as pd
 from syscore.genutils import str2Bool
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysquant.fitting_dates import fitDates
 from sysquant.estimators.correlations import (
     correlationEstimate,

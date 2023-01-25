@@ -4,7 +4,7 @@ from collections import namedtuple
 import pandas as pd
 
 from syscore.exceptions import missingContract, missingData
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.constants import missing_data, arg_not_supplied
 from sysobjects.contracts import futuresContract
 from sysobjects.production.tradeable_object import instrumentStrategy
 

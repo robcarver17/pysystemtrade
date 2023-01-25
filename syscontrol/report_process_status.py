@@ -1,6 +1,6 @@
 import datetime
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syslogdiag.logger import logger
 from syslogdiag.log_to_screen import logtoscreen
 

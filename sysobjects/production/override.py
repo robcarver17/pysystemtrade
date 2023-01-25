@@ -1,7 +1,7 @@
 import numpy as np
 
 from syscore.genutils import sign
-from syscore.objects import named_object
+from syscore.constants import named_object
 from sysexecution.orders.base_orders import Order
 from sysexecution.trade_qty import tradeQuantity
 

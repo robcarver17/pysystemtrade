@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysdata.futures.instruments import futuresInstrumentData
 from sysobjects.instruments import futuresInstrumentWithMetaData

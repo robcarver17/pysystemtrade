@@ -21,7 +21,7 @@ from syscore.dateutils import (
     WEEKS_IN_YEAR,
     MONTHS_IN_YEAR,
 )
-from syscore.objects import arg_not_supplied, missing_data, named_object, none_type
+from syscore.constants import none_type, named_object, missing_data, arg_not_supplied
 
 DEFAULT_DATE_FORMAT_FOR_CSV = "%Y-%m-%d %H:%M:%S"
 

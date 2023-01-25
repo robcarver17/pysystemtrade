@@ -6,7 +6,7 @@ from syscore.dateutils import (
     calculate_start_and_end_dates,
     get_date_from_period_and_end_date,
 )
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 
 def get_report_dates() -> Tuple[datetime.datetime, datetime.datetime]:
