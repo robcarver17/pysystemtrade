@@ -203,18 +203,21 @@ def create_balance_trade(data):
         instrument_code,
         contract_date_yyyy_mm,
     ) = get_valid_instrument_code_and_contractid_from_user(data)
-    fill_qty = get_input_from_user_and_convert_to_type(
-        "Quantity ", type_expected=int, allow_default=False
-    )
 
     ## We get from database, not broker, in case contract has expired
     actual_expiry_date = data_contracts.get_actual_expiry(
         instrument_code, contract_date_yyyy_mm
     )
-    contract_date = actual_expiry_date.as_str()
+    actual_contract_date = actual_expiry_date.as_str()
+
+    print("Actual contract expiry is %s" % str(actual_contract_date))
+
+    fill_qty = get_input_from_user_and_convert_to_type(
+        "Quantity ", type_expected=int, allow_default=False
+    )
 
     default_price = default_price_for_contract(
-        data, futuresContract(instrument_code, contract_date)
+        data, futuresContract(instrument_code, contract_date_yyyy_mm)
     )
     filled_price = get_input_from_user_and_convert_to_type(
         "Filled price",
@@ -228,6 +231,7 @@ def create_balance_trade(data):
     commission = get_input_from_user_and_convert_to_type(
         "Commission", type_expected=float, allow_default=True, default_value=0.0
     )
+
     broker_account = get_input_from_user_and_convert_to_type(
         "Account ID",
         type_expected=str,
@@ -238,7 +242,7 @@ def create_balance_trade(data):
     broker_order = brokerOrder(
         strategy_name,
         instrument_code,
-        contract_date,
+        actual_contract_date,
         fill_qty,
         fill=fill_qty,
         algo_used="balance_trade",
