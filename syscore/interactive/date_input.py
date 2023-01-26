@@ -161,9 +161,9 @@ def _get_input_for_datetime_prompt(
 
 
 def _resolve_datetime_input_str(ans) -> datetime.datetime:
-    if len(ans) == len(SHORT_DATETIME_FORMAT):
+    if len(ans) == len(SHORT_EXAMPLE):
         return_datetime = datetime.datetime.strptime(ans, SHORT_DATETIME_FORMAT)
-    elif len(ans) == len(LONG_DATETIME_FORMAT):
+    elif len(ans) == len(LONG_EXAMPLE):
         return_datetime = datetime.datetime.strptime(ans, LONG_DATETIME_FORMAT)
     else:
         # problems formatting will also raise value error

@@ -1412,6 +1412,8 @@ These are listed here for convenience, but more documentation is given below in 
 - run_capital_updates: Runs [update_strategy_capital](#allocate-capital-to-strategies), [update_total_capital](#update-capital-and-pl-by-polling-brokerage-account): update capital
 - run_cleaners: Runs [clean_truncate_backtest_states](#delete-old-pickled-backtest-state-objects), [clean_truncate_echo_files](#truncate-echo-files), [clean_truncate_log_files](#clean-up-old-logs): Clean up
 - run_daily_price_updates: Runs [update_fx_prices](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily), [update_sampled_contracts](#update-sampled-contracts-daily), [update_historical_prices](#update-futures-contract-historical-price-data-daily), [update_multiple_adjusted_prices](#update-multiple-and-adjusted-prices-daily): daily price and contract data updates
+- run_daily_fx_and_contract_updates: Runs [update_fx_prices](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily), [update_sampled_contracts](#update-sampled-contracts-daily).
+- run_daily_update_multiple_adjusted_prices: Runs [update_multiple_adjusted_prices](#update-multiple-and-adjusted-prices-daily): daily price and contract data updates
 - run_reports: Runs [all reports](#reports-1)
 - run_systems: Runs [update_system_backtests](#run-updated-backtest-systems-for-one-or-more-strategies): Runs a backtest to decide what optimal positions are required
 - run_strategy_order_generator: Runs [update_strategy_orders](#generate-orders-for-each-strategy): Creates trades based on the output of run_systems
@@ -1436,7 +1438,7 @@ Linux script:
 . $SCRIPT_PATH/update_fx_prices
 ```
 
-Called by: `run_daily_price_updates`
+Called by: `run_daily_fx_and_contract_updates`
 
 
 This will check for 'spikes', unusually large movements in FX rates either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-fx-price-data).
@@ -1460,7 +1462,7 @@ Linux script:
 . $SCRIPT_PATH/update_sampled_contracts
 ```
 
-Called by: `run_daily_price_updates`
+Called by: `run_daily_fx_and_contract_updates`
 
 
 ### Update futures contract historical price data (Daily)
@@ -1531,7 +1533,7 @@ Linux script:
 . $SCRIPT_PATH/update_multiple_adjusted_prices
 ```
 
-Called by: `run_daily_price_updates`
+Called by: `run_daily_update_multiple_adjusted_prices`
 
 
 Spike checks are not carried out on multiple and adjusted prices, since they should hopefully be clean if the underlying per contract prices are clean.

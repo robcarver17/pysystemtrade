@@ -1,0 +1,3 @@
+#!/bin/bash
+. ~/.profile
+. p sysproduction.run_daily_update_multiple_adjusted_prices.run_daily_update_multiple_adjusted_prices
