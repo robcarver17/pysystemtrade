@@ -27,6 +27,9 @@ from syslogdiag.email_via_db_interface import (
 from sysproduction.reporting.report_configs import reportConfig
 
 
+figure = namedtuple("figure", "pdf_filename")
+
+
 class ParsedReport(object):
     def __init__(
         self, text: str = arg_not_supplied, pdf_filename: str = arg_not_supplied
@@ -338,6 +341,3 @@ def _generate_temp_pdf_filename(data: dataBlob) -> str:
     full_filename = os.path.join(use_directory_resolved, filename)
 
     return full_filename
-
-
-figure = namedtuple("figure", "pdf_filename")
