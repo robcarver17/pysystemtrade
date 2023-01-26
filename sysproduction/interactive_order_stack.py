@@ -208,9 +208,10 @@ def create_balance_trade(data):
     )
 
     ## We get from database, not broker, in case contract has expired
-    contract_date = data_contracts.get_actual_expiry(
+    actual_expiry_date = data_contracts.get_actual_expiry(
         instrument_code, contract_date_yyyy_mm
     )
+    contract_date = actual_expiry_date.as_str()
 
     default_price = default_price_for_contract(
         data, futuresContract(instrument_code, contract_date)
