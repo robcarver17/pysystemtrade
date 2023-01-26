@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.fileutils import resolve_path_and_filename_for_package
 from sysdata.futures.rolls_parameters import rollParametersData
 from sysobjects.rolls import rollParameters

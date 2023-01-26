@@ -3,7 +3,7 @@ Populate a mongo DB collection with roll data from a csv
 """
 import argparse
 from syscore.genutils import new_removing_existing
-from syscore.interactive.interactive_input import true_if_answer_is_yes
+from syscore.interactive.input import true_if_answer_is_yes
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.csv.csv_roll_parameters import csvRollParametersData
 from sysdata.data_blob import dataBlob

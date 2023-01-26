@@ -3,16 +3,18 @@ from copy import copy
 import numpy as np
 import pandas as pd
 
-from syscore.interactive.interactive_input import (
+from syscore.interactive.input import (
     get_input_from_user_and_convert_to_type,
     true_if_answer_is_yes,
 )
-from syscore.interactive.interactive_menus import (
+from syscore.interactive.menus import (
     interactiveMenu,
     print_menu_and_get_desired_option_index,
 )
-from syscore.text import calculate_multiplication_factor_for_nice_repr_of_value
-from syscore.pandas.pdutils import set_pd_print_options
+from syscore.interactive.display import (
+    calculate_multiplication_factor_for_nice_repr_of_value,
+    set_pd_print_options,
+)
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR, DAILY_PRICE_FREQ
 from syscore.genutils import round_significant_figures
 

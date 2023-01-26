@@ -1,7 +1,7 @@
 from copy import copy
 from datetime import date, time
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.exceptions import missingData, existingData
 from sysdata.mongodb.mongo_connection import (
     mongoConnection,

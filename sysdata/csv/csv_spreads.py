@@ -8,7 +8,7 @@ from syscore.fileutils import (
     files_with_extension_in_pathname,
 )
 from syscore.pandas.pdutils import pd_readcsv
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
 
 DATE_INDEX_NAME = "DATETIME"

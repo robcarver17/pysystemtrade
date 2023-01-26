@@ -3,7 +3,7 @@ import socket
 
 from syscore.dateutils import SECONDS_PER_HOUR
 from syscore.genutils import str2Bool
-from syscore.objects import missing_data, named_object
+from syscore.constants import named_object, missing_data
 from syscontrol.timer_parameters import timerClassParameters
 
 from sysdata.config.control_config import get_control_config

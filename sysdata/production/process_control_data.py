@@ -6,7 +6,7 @@ from sysobjects.production.process_control import (
     controlProcess,
     was_running_pid_notok_closed,
 )
-from syscore.objects import named_object, success, missing_data
+from syscore.constants import named_object, missing_data, success
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
 

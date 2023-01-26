@@ -3,9 +3,9 @@ import matplotlib.pyplot as pyplot
 import pandas as pd
 
 from syscore.fileutils import full_filename_for_file_in_home_dir
-from syscore.objects import user_exit, missing_data
-from syscore.interactive.interactive_menus import print_menu_of_values_and_get_response
-from syscore.interactive.interactively_run_functions import (
+from syscore.constants import missing_data, user_exit
+from syscore.interactive.menus import print_menu_of_values_and_get_response
+from syscore.interactive.run_functions import (
     interactively_input_arguments_for_function,
 )
 

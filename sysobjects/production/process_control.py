@@ -21,12 +21,12 @@ from syscore.dateutils import (
     date_as_short_pattern_or_question_if_missing,
 )
 
-from syscore.objects import (
-    success,
-    failure,
+from syscore.constants import (
     named_object,
     missing_data,
     arg_not_supplied,
+    success,
+    failure,
 )
 
 process_stop = named_object("process stop")

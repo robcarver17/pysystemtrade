@@ -7,8 +7,7 @@ from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_contract_position_data import brokerContractPositionData
 
-from syscore.objects import arg_not_supplied
-
+from syscore.constants import arg_not_supplied
 
 from sysobjects.production.positions import contractPosition, listOfContractPositions
 from sysobjects.contracts import futuresContract
@@ -81,6 +80,7 @@ class ibContractPositionData(brokerContractPositionData):
         instrument_code = (
             self.futures_instrument_data.get_instrument_code_from_broker_code(ib_code)
         )
+
         expiry = position_entry["expiry"]
 
         contract = futuresContract(instrument_code, expiry)

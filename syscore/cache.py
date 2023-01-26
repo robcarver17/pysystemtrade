@@ -6,7 +6,7 @@ There is the caching in the base system, but that's special uses decorators etc
 Here's a more general one
 """
 from syscore.exceptions import missingData
-from syscore.objects import missing_data
+from syscore.constants import missing_data
 
 
 class Cache(object):

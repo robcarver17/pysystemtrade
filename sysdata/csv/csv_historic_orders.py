@@ -4,7 +4,7 @@ from sysdata.production.historic_orders import (
     contractHistoricOrdersData,
 )
 from syscore.fileutils import resolve_path_and_filename_for_package
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
 
 DATE_INDEX_NAME = "DATETIME"

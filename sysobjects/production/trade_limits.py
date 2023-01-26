@@ -1,7 +1,7 @@
 import datetime
 
 from syscore.genutils import sign
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysobjects.production.tradeable_object import instrumentStrategy
 

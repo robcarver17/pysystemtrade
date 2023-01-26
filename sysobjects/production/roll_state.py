@@ -1,5 +1,5 @@
 from enum import Enum
-from syscore.objects import named_object
+from syscore.constants import named_object
 
 RollState = Enum(
     "RollState",

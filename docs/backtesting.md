@@ -3399,17 +3399,21 @@ acc_curve.costs.annual.median() ## median of annual costs
 ... or other interesting methods:
 
 ```python
-acc_curve.rolling_ann_std() ## rolling annual standard deviation of daily (net) returns
-acc_curve.gross.curve() ## cumulated returns = account curve of gross daily returns
-acc_curve.net.monthly.drawdown() ## drawdown of monthly net returns
-acc_curve.costs.weekly.curve() ## cumulated weekly costs
+import syscore.pandas.strategy_functions
+
+acc_curve.rolling_ann_std()  ## rolling annual standard deviation of daily (net) returns
+acc_curve.gross.curve()  ## cumulated returns = account curve of gross daily returns
+syscore.pandas.strategy_functions.drawdown()  ## drawdown of monthly net returns
+acc_curve.costs.weekly.curve()  ## cumulated weekly costs
 ```
 
 Personally I prefer looking at statistics in percentage terms. This is easy.
 Just use the .percent property before you use any statistical method:
 
 ```python
-acc_curve.capital ## tells me the capital I will use to calculate %
+import syscore.pandas.strategy_functions
+
+acc_curve.capital  ## tells me the capital I will use to calculate %
 acc_curve.percent
 acc_curve.gross.daily.percent
 acc_curve.net.daily.percent
@@ -3421,7 +3425,7 @@ acc_curve.daily.percent.ann_std()
 acc_curve.costs.annual.percent.median()
 acc_curve.percent.rolling_ann_std()
 acc_curve.gross.percent.curve()
-acc_curve.net.monthly.percent.drawdown()
+syscore.pandas.strategy_functions.drawdown()
 acc_curve.costs.weekly.percent.curve()
 ```
 

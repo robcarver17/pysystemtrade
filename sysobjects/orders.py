@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from syscore.objects import arg_not_supplied, named_object
+from syscore.constants import named_object, arg_not_supplied
 
 
 @dataclass()

@@ -7,7 +7,7 @@ from syscore.fileutils import (
     resolve_path_and_filename_for_package,
     files_with_extension_in_pathname,
 )
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.pandas.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT_FOR_CSV
 from syslogdiag.log_to_screen import logtoscreen
 

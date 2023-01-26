@@ -4,7 +4,7 @@ Minimum viable system
 Note: This has no trading rules
 
 """
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysdata.sim.db_futures_sim_data import dbFuturesSimData

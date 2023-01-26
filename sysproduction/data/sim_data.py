@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysdata.sim.db_futures_sim_data import dbFuturesSimData
 from sysdata.data_blob import dataBlob

@@ -3,7 +3,7 @@ from copy import copy
 import numpy as np
 import re
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.config.production_config import get_production_config
 
 LIST_OF_MONGO_PARAMS = ["mongo_db", "mongo_host", "mongo_port"]
@@ -179,7 +179,6 @@ class mongoConnection(object):
             pass
         else:
             self.collection.create_index([(indexname, order)], unique=True)
-
 
     ## FIXME ISSUE https://github.com/robcarver17/pysystemtrade/discussions/948
     ## NOT CLEAR WHAT A LOT OF THIS CODE DOES

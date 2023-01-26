@@ -6,7 +6,7 @@ from syscore.dateutils import (
     calculate_start_and_end_dates,
     get_date_from_period_and_end_date,
 )
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 
 def get_report_dates() -> Tuple[datetime.datetime, datetime.datetime]:
@@ -161,9 +161,9 @@ def _get_input_for_datetime_prompt(
 
 
 def _resolve_datetime_input_str(ans) -> datetime.datetime:
-    if len(ans) == len(SHORT_DATETIME_FORMAT):
+    if len(ans) == len(SHORT_EXAMPLE):
         return_datetime = datetime.datetime.strptime(ans, SHORT_DATETIME_FORMAT)
-    elif len(ans) == len(LONG_DATETIME_FORMAT):
+    elif len(ans) == len(LONG_EXAMPLE):
         return_datetime = datetime.datetime.strptime(ans, LONG_DATETIME_FORMAT)
     else:
         # problems formatting will also raise value error

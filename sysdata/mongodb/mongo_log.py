@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.exceptions import existingData
 from sysdata.mongodb.mongo_connection import mongoDb
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey, MONGO_ID_KEY

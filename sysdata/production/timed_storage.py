@@ -3,11 +3,9 @@ Generic timed storage; more bullet proof than a data frame
 """
 from syscore.exceptions import missingData
 from syscore.objects import (
-    success,
-    failure,
     resolve_function,
-    arg_not_supplied,
 )
+from syscore.constants import arg_not_supplied, success, failure
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
 from sysobjects.production.timed_storage import (

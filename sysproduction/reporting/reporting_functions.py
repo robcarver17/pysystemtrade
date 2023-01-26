@@ -8,10 +8,15 @@ import shutil
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from syscore.objects import resolve_function, arg_not_supplied, missing_data
+from syscore.objects import resolve_function
+from syscore.constants import missing_data, arg_not_supplied
 from syscore.fileutils import get_resolved_pathname
 from syscore.dateutils import datetime_to_long
-from syscore.text import landing_strip_from_str, landing_strip, centralise_text
+from syscore.interactive.display import (
+    landing_strip_from_str,
+    landing_strip,
+    centralise_text,
+)
 from sysdata.data_blob import dataBlob
 
 from syslogdiag.email_via_db_interface import (
@@ -20,6 +25,9 @@ from syslogdiag.email_via_db_interface import (
 )
 
 from sysproduction.reporting.report_configs import reportConfig
+
+
+figure = namedtuple("figure", "pdf_filename")
 
 
 class ParsedReport(object):
@@ -333,6 +341,3 @@ def _generate_temp_pdf_filename(data: dataBlob) -> str:
     full_filename = os.path.join(use_directory_resolved, filename)
 
     return full_filename
-
-
-figure = namedtuple("figure", "pdf_filename")

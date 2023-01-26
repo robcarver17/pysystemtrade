@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 from syscore.exceptions import missingData
-from syscore.objects import arg_not_supplied, failure, missing_data
+from syscore.constants import missing_data, arg_not_supplied, failure
 
 from sysdata.base_data import baseData
 from sysobjects.production.capital import (

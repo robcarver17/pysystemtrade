@@ -20,7 +20,7 @@ import yaml
 
 from syscore.exceptions import missingData
 from syscore.fileutils import resolve_path_and_filename_for_package
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.constants import missing_data, arg_not_supplied
 from sysdata.config.defaults import get_system_defaults_dict
 from sysdata.config.private_config import (
     get_private_config_as_dict,

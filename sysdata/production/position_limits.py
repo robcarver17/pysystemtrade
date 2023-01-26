@@ -7,7 +7,7 @@ When we want to trade (create an instrument / strategy order) we check that the 
 
 """
 from syscore.exceptions import missingData
-from syscore.objects import missing_data
+from syscore.constants import missing_data
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
 

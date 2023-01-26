@@ -1,7 +1,7 @@
 """
 Copy from csv repo files to arctic for adjusted prices
 """
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 

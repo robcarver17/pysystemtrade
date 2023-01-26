@@ -25,7 +25,7 @@ from syscore.genutils import (
     if_empty_string_return_object,
     if_object_matches_return_empty_string,
 )
-from syscore.objects import fill_exceeds_trade, success
+from syscore.constants import fill_exceeds_trade, success
 
 
 class brokerOrderType(orderType):

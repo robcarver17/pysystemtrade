@@ -1,5 +1,5 @@
 from sysdata.data_blob import dataBlob
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 
 class productionDataLayerGeneric(object):

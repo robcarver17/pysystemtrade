@@ -5,7 +5,7 @@ from collections import namedtuple
 
 from syscore.genutils import quickTimer
 from syscore.exceptions import missingData
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.constants import missing_data, arg_not_supplied
 
 TICK_REQUIRED_COLUMNS = ["priceAsk", "priceBid", "sizeAsk", "sizeBid"]
 

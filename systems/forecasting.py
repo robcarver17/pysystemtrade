@@ -1,7 +1,7 @@
 import pandas as pd
 
 from systems.stage import SystemStage
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from systems.system_cache import output, dont_cache
 from systems.trading_rules import TradingRule

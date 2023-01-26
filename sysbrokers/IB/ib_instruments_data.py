@@ -10,7 +10,7 @@ from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
 
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.genutils import return_another_value_if_nan
-from syscore.objects import missing_instrument, missing_file
+from syscore.constants import missing_instrument, missing_file
 
 from sysobjects.instruments import futuresInstrument
 
@@ -69,6 +69,36 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
             raise Exception(msg)
 
         if len(config_row) > 1:
+            ## need to resolve with multiplier
+            instrument_code = self.get_instrument_code_from_broker_code_with_multiplier(
+                ib_code
+            )
+        else:
+            instrument_code = config_row.iloc[0].Instrument
+
+        return instrument_code
+
+    def get_instrument_code_from_broker_code_with_multiplier(self, ib_code: str) -> str:
+
+        # FIXME PATCH
+        if ib_code == "EOE":
+            return "AEX"
+        else:
+            msg = (
+                "Broker symbol %s appears more than once in configuration file and NOT AEX!!"
+                % ib_code
+            )
+            self.log.critical(msg)
+            raise Exception(msg)
+        """
+        this code will work but need to get multiplier from somewhere
+
+        config = self._get_ib_config()
+        config_rows = config[config.IBSymbol == ib_code]
+
+        config_row = config_rows[config.IBMultiplier == multiplier]
+        if len(config_row) > 1:
+
             msg = (
                 "Broker symbol %s appears more than once in configuration file!"
                 % ib_code
@@ -77,6 +107,7 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
             raise Exception(msg)
 
         return config_row.iloc[0].Instrument
+        """
 
     def _get_instrument_data_without_checking(self, instrument_code: str):
         return self.get_futures_instrument_object_with_IB_data(instrument_code)

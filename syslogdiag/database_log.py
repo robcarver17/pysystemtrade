@@ -1,7 +1,7 @@
 import datetime
 import itertools
 
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.constants import missing_data, arg_not_supplied
 from sysdata.base_data import baseData
 from syslogdiag.logger import logger, DEFAULT_LOG_LEVEL
 from syslogdiag.log_entry import INVERSE_MAP, LEVEL_ID, logEntry

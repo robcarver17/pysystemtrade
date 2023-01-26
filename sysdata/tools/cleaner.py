@@ -1,11 +1,11 @@
 from collections import namedtuple
 from copy import copy
 
-from syscore.interactive.interactive_input import (
+from syscore.interactive.input import (
     true_if_answer_is_yes,
     input_field_names_for_named_tuple,
 )
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysdata.data_blob import dataBlob
 

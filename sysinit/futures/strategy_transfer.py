@@ -2,7 +2,7 @@
 Code to transfer positions and/or capital from one strategy to another
 
 """
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.prices import diagPrices
 from sysexecution.stack_handler.balance_trades import stackHandlerCreateBalanceTrades

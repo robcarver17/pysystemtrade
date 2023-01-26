@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from dataclasses import dataclass
 
-from syscore.objects import missing_data, named_object
+from syscore.constants import named_object, missing_data
 from sysdata.config.instruments import generate_matching_duplicate_dict
 from sysdata.config.production_config import get_production_config
 from sysproduction.reporting.data.constants import (

@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Union
 
 from syscore.dateutils import SECONDS_PER_DAY
-from syscore.objects import arg_not_supplied, named_object
+from syscore.constants import named_object, arg_not_supplied
 from syscore.pandas.pdutils import is_a_series
 
 VERY_BIG_NUMBER = 99999999.0

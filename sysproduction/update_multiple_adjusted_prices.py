@@ -10,7 +10,7 @@ Two types of services:
 
 """
 
-from syscore.objects import success
+from syscore.constants import success
 
 from sysobjects.dict_of_named_futures_per_contract_prices import (
     dictNamedFuturesContractFinalPrices,

@@ -4,7 +4,7 @@ from typing import Union, Tuple, List
 import pandas as pd
 
 from syscore.pandas.full_merge_with_replacement import full_merge_of_existing_series
-from syscore.objects import named_object
+from syscore.constants import named_object
 
 
 def merge_data_series_with_label_column(

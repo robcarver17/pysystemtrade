@@ -1,5 +1,5 @@
 import datetime
-from syscore.objects import missing_data
+from syscore.constants import missing_data
 from sysobjects.rolls import contractDateWithRollParameters, rollParameters
 from sysobjects.contracts import contractDate
 from sysobjects.dict_of_futures_per_contract_prices import (

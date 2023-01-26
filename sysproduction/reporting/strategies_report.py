@@ -5,7 +5,7 @@ A strategy report is highly specific to a strategy, and will delve into the inte
 
 """
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.backtest import dataBacktest

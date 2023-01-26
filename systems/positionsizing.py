@@ -2,7 +2,7 @@ import pandas as pd
 
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.objects import missing_data
+from syscore.constants import missing_data
 
 from sysdata.config.configdata import Config
 from sysdata.sim.sim_data import simData

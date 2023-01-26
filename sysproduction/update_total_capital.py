@@ -1,4 +1,4 @@
-from syscore.objects import success, failure
+from syscore.constants import success, failure
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.capital import dataCapital, dataMargin

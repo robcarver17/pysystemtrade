@@ -2,10 +2,7 @@ from copy import copy
 from dataclasses import dataclass
 
 from syscore.exceptions import missingContract
-from syscore.objects import (
-    arg_not_supplied,
-    missing_data,
-)
+from syscore.constants import missing_data, arg_not_supplied
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.data_blob import dataBlob

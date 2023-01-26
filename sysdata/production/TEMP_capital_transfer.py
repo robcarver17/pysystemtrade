@@ -1,4 +1,4 @@
-from syscore.interactive.interactive_input import true_if_answer_is_yes
+from syscore.interactive.input import true_if_answer_is_yes
 from sysdata.production.TEMP_old_capital_objects import (
     get_old_capital,
     delete_old_total_capital,

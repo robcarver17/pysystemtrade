@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from syslogdiag.logger import logger, nullLog
 
