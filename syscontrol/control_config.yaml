@@ -22,6 +22,12 @@ process_configuration_stop_time:
   run_backups: '23:50'
   run_cleaners: '23:50'
   run_reports: '23:50'
+process_arguments:
+  run_daily_prices_updates:
+    download_by_zone:
+      Asia: '07:00'
+      EMEA: '18:00'
+      US: '20:00'
 # Examples:
 #process_configuration_previous_process:
 #  run_systems: 'run_daily_prices_updates'

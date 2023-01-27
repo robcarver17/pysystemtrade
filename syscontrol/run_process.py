@@ -122,8 +122,10 @@ class processToRun(object):
                     return None
 
                 we_should_pause = check_for_pause_and_log(self)
-                if not we_should_pause:
-                    timer_class.check_and_run()
+                if we_should_pause:
+                    continue
+
+                timer_class.check_and_run()
 
     def _finish(self):
         self.list_of_timer_functions.run_methods_which_run_on_exit_only()

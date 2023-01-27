@@ -11,6 +11,7 @@ from sysdata.data_blob import dataBlob
 from sysdata.mongodb.mongo_process_control import mongoControlProcessData
 from sysdata.production.process_control_data import controlProcessData
 
+
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
 DEFAULT_METHOD_FREQUENCY = 60
@@ -341,7 +342,7 @@ class diagControlProcess(productionDataLayerGeneric):
     def get_process_configuration_for_item_name(self, item_name: str) -> dict:
         config = getattr(self, "_process_config_%s" % item_name, {})
         if config == {}:
-            config = get_key_value_from_control_config(
+            config = self.get_key_value_from_control_config(
                 "process_configuration_%s" % item_name
             )
             if config is missing_data:
@@ -381,12 +382,18 @@ class diagControlProcess(productionDataLayerGeneric):
         result = self.db_control_process_data.get_list_of_process_names()
         return result
 
+    def get_key_value_from_control_config(self, item_name: str):
+        config = self.get_control_config()
+        item = config.get_element_or_missing_data(item_name)
 
-def get_key_value_from_control_config(item_name: str):
-    config = get_control_config()
-    item = config.get_element_or_missing_data(item_name)
+        return item
 
-    return item
+    ## Cache to avoid multiple reads of a yaml file
+    def get_control_config(self):
+        return self.cache.get(self._get_control_config)
+
+    def _get_control_config(self):
+        return get_control_config()
 
 
 def get_list_of_strategies_for_process(data: dataBlob, process_name: str) -> list:
