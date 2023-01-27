@@ -63,7 +63,7 @@ def update_historical_prices_with_data(
 
 
 def download_all_instrument_prices_now(data: dataBlob):
-    data.log("Downloading everything")
+    data.log.msg("Downloading everything")
 
     price_data = diagPrices(data)
 
@@ -156,7 +156,7 @@ def manage_download_given_dict_of_instrument_codes(
         ) = download_time_manager.list_of_instruments_and_region_to_download_now()
         if len(list_of_instruments_to_download_now) > 0:
 
-            data.log(
+            data.log.msg(
                 "Now time to download region %s: %s"
                 % (region, str(list_of_instruments_to_download_now))
             )
@@ -164,12 +164,12 @@ def manage_download_given_dict_of_instrument_codes(
                 data, list_of_instrument_codes=list_of_instruments_to_download_now
             )
             download_time_manager.mark_region_as_download_completed(region)
-            data.log("Finished downloading region %s" % region)
+            data.log.msg("Finished downloading region %s" % region)
 
         if download_time_manager.finished_downloading_everything():
             ## NOTE this means we could go beyond the STOP time in the report, since this i
             ##    happening outside of the python process manager
-            data.log("All instruments downloaded today, finished")
+            data.log.msg("All instruments downloaded today, finished")
             break
 
         ## No rush...
