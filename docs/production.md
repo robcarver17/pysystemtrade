@@ -1516,11 +1516,33 @@ reproduced here:
 
 More details and latest prices on the [Interactive Brokers site](https://www.interactivebrokers.com/en/index.php?f=14193)
 
+#### Set times when different regions download prices
+
+To maximise efficiency, rather than doing a big end of day download, you might prefer to download different regions throughout the day.
+
+To achieve this, add code like the following to your `private_control_config.yaml` file:
+
+```
+arguments:
+  run_daily_prices_updates:
+    update_historical_prices: # everything in this block is passed as **kwargs to this method
+      download_by_zone:
+        ASIA: '07:00'
+        EMEA: '18:00'
+        US: '20:00'
+
+```
+
+This will download Asian regional instruments at 7am, local machine time; Europe Middle East Africa at 6pm, and US at 8pm. Regions are set in the instrument configuration (provided .csv file which is then written to the database using interactive_controls, options to update configuration).
+
+You should also ensure that `run_daily_price_updates` has a start time set in `private_control_config.yaml` earlier than 7am, and is started by the crontab or other scheduler before 7am.
+
+
 ### Update multiple and adjusted prices (Daily)
 
 This will update both multiple and adjusted prices with new futures per contract price data.
 
-It should be scheduled to run once the daily prices for individual contracts have been updated.
+It should be scheduled to run once the daily prices for individual contracts have been updated, although you can also schedule it to run without any dependencies if you don't want to be affected by a slow download of individual prices.
 
 Python:
 ```python
@@ -2630,6 +2652,22 @@ process_configuration_methods:
       object: sysexecution.strategies.classic_buffered_positions.orderGeneratorForBufferedPositions # additional parameter passed
       max_executions: 1
 ```
+
+Finally you can optionally include arguments, which will be passed to certain methods within a process (or to all methods that are run on completion for a given process). For example:
+
+```
+arguments:
+  run_daily_prices_updates:# name of process
+    update_historical_prices: # everything in this block is passed as **kwargs to this method
+      download_by_zone:
+        ASIA: '07:00'
+        EMEA: '18:00'
+        US: '20:00'
+    _methods_on_completion: # and this block is passed to all methods that run on completion only - make sure you use **kwargs to trap if required
+        a: 'test'
+
+```
+
 
 ### System monitor and dashboard
 

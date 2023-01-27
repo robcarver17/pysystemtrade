@@ -81,6 +81,7 @@ def manage_download_over_multiple_time_zones(data: dataBlob, download_by_zone: d
     """
     data.log.msg(
         "Passed multiple time zones: %s, if started before first time will download at specified times"
+        % str(download_by_zone)
     )
     dict_of_instrument_codes_by_timezone = get_dict_of_instrument_codes_by_timezone(
         data, download_by_zone=download_by_zone
