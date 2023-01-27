@@ -79,7 +79,7 @@ def manage_download_over_multiple_time_zones(data: dataBlob, download_by_zone: d
     Example download_by_zone = {'ASIA': '07:00', 'EMEA': '18:00', 'US': '20:00'}
 
     """
-    data.log(
+    data.log.msg(
         "Passed multiple time zones: %s, if started before first time will download at specified times"
     )
     dict_of_instrument_codes_by_timezone = get_dict_of_instrument_codes_by_timezone(
