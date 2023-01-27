@@ -19,6 +19,7 @@ DEFAULT_MAX_EXECUTIONS = 1
 DEFAULT_START_TIME_STRING = "00:01"
 DEFAULT_STOP_TIME_STRING = "23:50"
 NAME_OF_TRADING_PROCESS = "run_stack_handler"
+LABEL_FOR_ARGS_METHOD_ON_COMPLETION = "_methods_on_completion"
 
 
 class dataControlProcess(productionDataLayerGeneric):
@@ -381,6 +382,37 @@ class diagControlProcess(productionDataLayerGeneric):
     def get_list_of_process_names(self) -> list:
         result = self.db_control_process_data.get_list_of_process_names()
         return result
+
+    def get_configured_kwargs_for_process_name_and_methods_that_run_on_completion(
+        self, process_name: str
+    ) -> dict:
+        return self.get_configured_kwargs_for_process_name_and_method(
+            process_name=process_name, method=LABEL_FOR_ARGS_METHOD_ON_COMPLETION
+        )
+
+    def get_configured_kwargs_for_process_name_and_method(
+        self, process_name: str, method: str
+    ) -> dict:
+        configured_kwargs_for_process_name = (
+            self.get_configured_kwargs_for_process_name(process_name)
+        )
+        configured_kwargs_for_process_name_and_method = (
+            configured_kwargs_for_process_name.get(method, {})
+        )
+
+        return configured_kwargs_for_process_name_and_method
+
+    def get_configured_kwargs_for_process_name(self, process_name: str) -> dict:
+        configured_kwargs = self.configured_kwargs()
+        configured_kwargs_for_process_name = configured_kwargs.get(process_name, {})
+
+        return configured_kwargs_for_process_name
+
+    def configured_kwargs(self) -> dict:
+        kwargs = self.get_key_value_from_control_config("arguments")
+        if kwargs is missing_data:
+            return {}
+        return kwargs
 
     def get_key_value_from_control_config(self, item_name: str):
         config = self.get_control_config()

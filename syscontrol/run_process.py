@@ -125,12 +125,24 @@ class processToRun(object):
                 if we_should_pause:
                     continue
 
-                timer_class.check_and_run()
+                kwargs = self._kwargs_for_method_and_process(timer_class.method_name)
+                timer_class.check_and_run(**kwargs)
+
+    def _kwargs_for_method_and_process(self, method_name: str) -> dict:
+        return self.diag_process.get_configured_kwargs_for_process_name_and_method(
+            process_name=self.process_name, method=method_name
+        )
 
     def _finish(self):
-        self.list_of_timer_functions.run_methods_which_run_on_exit_only()
+        kwargs = self._kwargs_for_exit_only_method_and_process()
+        self.list_of_timer_functions.run_methods_which_run_on_exit_only(**kwargs)
         self._finish_control_process()
         self.data.close()
+
+    def _kwargs_for_exit_only_method_and_process(self) -> dict:
+        return self.diag_process.get_configured_kwargs_for_process_name_and_methods_that_run_on_completion(
+            self.process_name
+        )
 
     def _finish_control_process(self):
         result_of_finish = self.data_control.finish_process(self.process_name)

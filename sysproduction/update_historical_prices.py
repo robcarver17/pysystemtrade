@@ -40,7 +40,8 @@ class updateHistoricalPrices(object):
     def __init__(self, data):
         self.data = data
 
-    def update_historical_prices(self):
+    def update_historical_prices(self, **kwargs):
+        print("**kwargs** I am ignoring for now %s" % str(kwargs))
         data = self.data
         update_historical_prices_with_data(data)
 
