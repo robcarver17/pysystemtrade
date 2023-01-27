@@ -1533,7 +1533,7 @@ arguments:
 
 ```
 
-This will download Asian regional instruments at 7am, local machine time; Europe Middle East Africa at 6pm, and US at 8pm. Regions are set in the instrument configuration (provided .csv file which is then written to the database using interactive_controls, options to update configuration).
+This will download Asian regional instruments at 7am, local machine time; Europe Middle East Africa at 6pm, and US at 8pm. Regions are set in the instrument configuration (provided .csv file which is then written to the database using interactive_controls, options to update configuration). 
 
 You should also ensure that `run_daily_price_updates` has a start time set in `private_control_config.yaml` earlier than 7am, and is started by the crontab or other scheduler before 7am.
 
