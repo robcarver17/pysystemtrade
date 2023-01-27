@@ -242,7 +242,7 @@ def create_balance_trade(data):
     broker_order = brokerOrder(
         strategy_name,
         instrument_code,
-        actual_contract_date,
+        contract_date_yyyy_mm,
         fill_qty,
         fill=fill_qty,
         algo_used="balance_trade",

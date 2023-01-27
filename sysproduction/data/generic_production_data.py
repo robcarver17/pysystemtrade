@@ -1,5 +1,6 @@
 from sysdata.data_blob import dataBlob
 from syscore.constants import arg_not_supplied
+from syscore.cache import Cache
 
 
 class productionDataLayerGeneric(object):
@@ -9,6 +10,11 @@ class productionDataLayerGeneric(object):
 
         data = self._add_required_classes_to_data(data)
         self._data = data
+        self._cache = Cache(self)
+
+    @property
+    def cache(self) -> Cache:
+        return self._cache
 
     @property
     def data(self) -> dataBlob:

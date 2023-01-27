@@ -6,7 +6,9 @@
 #
 15 00  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_stack_handler  >> $ECHO_PATH/run_stack_handler.txt 2>&1
 45 00  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_capital_update  >> $ECHO_PATH/run_capital_update.txt 2>&1
-05 20  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_daily_price_updates  >> $ECHO_PATH/run_daily_price_updates.txt 2>&1
+05 07  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_daily_price_updates  >> $ECHO_PATH/run_daily_price_updates.txt 2>&1
+05 07  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_daily_fx_and_contract_updates  >> $ECHO_PATH/run_daily_fx_and_contract_updates.txt 2>&1
+00 23  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_daily_update_multiple_adjusted_prices  >> $ECHO_PATH/run_daily_update_multiple_adjusted_prices.txt 2>&1
 30 20  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_systems  >> $ECHO_PATH/run_systems.txt 2>&1
 45 20  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_strategy_order_generator  >> $ECHO_PATH/run_strategy_order_generator.txt 2>&1
 00 21  * * 1-5     $HOME/.profile; $SCRIPT_PATH/run_cleaners  >> $ECHO_PATH/run_cleaners.txt 2>&1
