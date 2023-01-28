@@ -1,6 +1,6 @@
 
 
-Here is a whistlestop tour of what pysystemtrade can currently do. You'll probably want to read the [users guide](backtesting.md) after this.
+Here is a whistle-stop tour of what pysystemtrade can currently do. You'll probably want to read the [users guide](backtesting.md) after this.
 Notice that you will see different results than shown here, as you will be using more up to date data.
 
 ## A simple trading rule
@@ -281,7 +281,7 @@ ewmac_rule
 TradingRule; function: <function ewmac_forecast_with_defaults at 0xb734ca4c>, data:  and other_args:
 ```
 
-Time to reveal what the mysterious object is. A `TradingRule` contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function. So the function is just the `ewmac` function that we imported earlier, and in this trivial case there is no data, and no arguments. Having no data is fine, because the code assumes that you'd normally want to pass the price of an instrument to a trading rule if you don't tell it otherwise. Furthermore on this occassion having no arguments is also no problem since the ewmac function we're using includes some defaults.
+Time to reveal what the mysterious object is. A `TradingRule` contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function. So the function is just the `ewmac` function that we imported earlier, and in this trivial case there is no data, and no arguments. Having no data is fine, because the code assumes that you'd normally want to pass the price of an instrument to a trading rule if you don't tell it otherwise. Furthermore on this occasion having no arguments is also no problem since the ewmac function we're using includes some defaults.
 
 *If you're familiar with the concept in python of args and kwargs; `data` is a bit like args - we always pass a list of positional arguments to `function`; and `other_args` are a bit like kwargs - we always pass in a dict of named arguments to `function`*
 
@@ -631,7 +631,7 @@ profits.gross.percent.stats() ## all other things work eg profits.gross.sharpe()
 profits.costs.percent.stats()
 ```
 
-For more see the costs and accountCurve section of the userguide.
+For more see the costs and accountCurve section of the user guide.
 
 
 ## Getting config from dictionaries and files
