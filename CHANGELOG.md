@@ -2,7 +2,7 @@
 
 ## Version 1.50
 
-- Added optional code to run price collection throughout the day, see [announcement](TBC)
+- Added optional code to run price collection throughout the day, see [announcement](https://github.com/robcarver17/pysystemtrade/discussions/961)
 - Added ability to pass arguments to methods through control_config.yaml
 - Added regions to instrument.csv configuration; use interactive_controls, option 5, option 52 to apply
 
