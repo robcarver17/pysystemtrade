@@ -120,7 +120,7 @@ The data source objects all inherit from the classes in the `sysbrokers/` direct
 
 Data source objects are instanced with and contain a *connection object* (and optionally a logger). They contain, and make calls to, *client objects*. They are in this [module](/sysbrokers/IB/)
 
-You can acccess the client object and connection used by a particular data source, for example:
+You can access the client object and connection used by a particular data source, for example:
 
 ```
 from sysbrokers.IB.ib_orders_data import ibOrdersData
