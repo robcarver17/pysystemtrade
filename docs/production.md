@@ -399,7 +399,7 @@ Everything else should be allowed to run as normal.
 
 ### Machines, containers and clouds
 
-Pysystemtrade can be run locally in the normal way, on a single machine. But you may also want to consider containerisation (see [my blog post](https://qoppac.blogspot.com/2017/01/playing-with-docker-some-initial.html)), or even implementing on AWS or another cloud solution. You could also spread your implemetation across several local machines.
+Pysystemtrade can be run locally in the normal way, on a single machine. But you may also want to consider containerisation (see [my blog post](https://qoppac.blogspot.com/2017/01/playing-with-docker-some-initial.html)), or even implementing on AWS or another cloud solution. You could also spread your implementation across several local machines.
 
 If spreading your implementation across several machines bear in mind:
 
@@ -415,7 +415,7 @@ If spreading your implementation across several machines bear in mind:
 
 ### Backup machine
 
-If you are running your implementation locally, or on a remote server that is not a cloud, then you should seriously consider a backup machine. The backup machine should have an up to date environment containing all the relevant applications, code and libaries, and on a regular basis you should update the local data stored on that machine (see [backup](#data-backup)). The backup machine doesn't need to be turned on at all times, unless you are trading in such a way that a one hour period without trading would be critical (in my experience, one hour is the maximum time to get a backup machine on line assuming the code is up to date, and the data is less than 24 hours stale). I also encourage you to perform a scheduled 'failover' on regular basis: stop the live machine running (best to do this at a weekend), copy across any data to the backup machine, start up the backup machine. The live machine then becomes the backup.
+If you are running your implementation locally, or on a remote server that is not a cloud, then you should seriously consider a backup machine. The backup machine should have an up to date environment containing all the relevant applications, code and libraries, and on a regular basis you should update the local data stored on that machine (see [backup](#data-backup)). The backup machine doesn't need to be turned on at all times, unless you are trading in such a way that a one hour period without trading would be critical (in my experience, one hour is the maximum time to get a backup machine on line assuming the code is up to date, and the data is less than 24 hours stale). I also encourage you to perform a scheduled 'failover' on regular basis: stop the live machine running (best to do this at a weekend), copy across any data to the backup machine, start up the backup machine. The live machine then becomes the backup.
 
 ### Multiple systems
 
@@ -622,7 +622,7 @@ mongorestore
 
 As I am super paranoid, I also like to output all my mongo_db data into .csv files, which I then regularly backup. This will allow a system recovery, should the mongo files be corrupted.
 
-This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
+This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a little work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
 
 
 Linux script:
@@ -661,7 +661,7 @@ Note: the configuration variable echo_extension will need changing in `private_c
 
 ### Logging
 
-Logging in pysystemtrade is done via loggers. See the [userguide for more detail](/docs/backtesting.md#logging). The logging levels are:
+Logging in pysystemtrade is done via loggers. See the [user guide for more detail](/docs/backtesting.md#logging). The logging levels are:
 
 ```
 self.log.msg("this is a normal message")
@@ -837,7 +837,7 @@ Broker orders are issued by execution algos (as allocated to the relevant contra
 
 There are no positions at broker level, but we can compare broker level trades to trade information from the broker API.
 
-Fills, once received from the broker API, are propogated upwards: broker orders are filled, then contract orders, and finally instrument orders.
+Fills, once received from the broker API, are propagated upwards: broker orders are filled, then contract orders, and finally instrument orders.
 
 Once all the child orders of an order are completed, then a parent order can also be completed. Completed orders are removed from the stack and put in historic order databases.
 
@@ -866,7 +866,7 @@ An optimal position doesn't specify which contract or contracts the position is 
 Optimal positions come with reference information attached. This is we can calculate the slippage caused by the delay between running the backtest and actually executing the order (normally in a backtest we assume this is one working day, but in production it will be less). We save:
 
 - A reference price (basically the last price in the adjusted price series when the backtest was run)
-- The contract that the price was snapshotted in (the current priced contract, which will give the same price as the adjusted price series). This is in case we trade a different contract than the price was referenced to (which we'll do if we're passively rolling, or if a roll occured).
+- The contract that the price was snapshotted in (the current priced contract, which will give the same price as the adjusted price series). This is in case we trade a different contract than the price was referenced to (which we'll do if we're passively rolling, or if a roll occurred).
 - A reference date/time so we can calculate the delay in minutes between when the backtest thought we could execute, and when we actually execute.
 
 Limit orders will also need to include a price, and a contract (in case the price that is referenced by the contract is wrong).
@@ -886,7 +886,7 @@ For example:
 
 - A simple optimal position would take the difference between the current recorded position and the required optimal position, and produce a trade (not implemented).
 - A buffered optimal position, eg optimal position should be between +10.87 and +13.32 contracts. If the current position is above +13 contracts; sell down to +13 (rounded). If it's currently below +11 contracts, then buy up to +11 contracts. This is what is used in the default provided backtest systems.
-- A conditional optimal position would depend on price levels as well as current recorded postions. Such a system will probably need to generate strategy orders multiple times a day.
+- A conditional optimal position would depend on price levels as well as current recorded positions. Such a system will probably need to generate strategy orders multiple times a day.
 
 Positions once generated are put on the instrument order stack, with the following behaviour:
 
@@ -1152,7 +1152,7 @@ The ibOrderWithControls is then returned by the algo to the stack handler, with 
 
 The broker order component of the ibOrderWithControls object is then added to the order stack database for broker orders as a new order (we don't save the 'control' part; this has implications for collecting fills). At this point the orderid will be set, and it will be added as a child to the parent contract order.
 
-An important feature is that a broker order that does not succesfully make it to the broker won't be saved in the database, or recorded in any way (except in log and echo files). The **broker** order database is for orders that have gone to the **broker**; even if they are subsequently cancelled. Also, if a broker order doesn't make it to the database we need to make sure we release the contract order from algo control.
+An important feature is that a broker order that does not successfully make it to the broker won't be saved in the database, or recorded in any way (except in log and echo files). The **broker** order database is for orders that have gone to the **broker**; even if they are subsequently cancelled. Also, if a broker order doesn't make it to the database we need to make sure we release the contract order from algo control.
 
 
 ### Managing the trade
@@ -1219,7 +1219,7 @@ We then call code to fill the parent contract order.
 
 ### Contract order fills and position updates
 
-In the stack handler the method apply_broker_fills_to_contract_order will propogate fills upwards to contracts. This will be called either by (a) a completed order being handed off from the Algo, (b) a regular scheduled call of pass_fills_from_broker_to_broker_stack if the order wasn't fully filled, (c) a regular scheduled call of pass_fills_from_broker_up_to_contract, or (d) manually from interactive_order_stack.
+In the stack handler the method apply_broker_fills_to_contract_order will propagate fills upwards to contracts. This will be called either by (a) a completed order being handed off from the Algo, (b) a regular scheduled call of pass_fills_from_broker_to_broker_stack if the order wasn't fully filled, (c) a regular scheduled call of pass_fills_from_broker_up_to_contract, or (d) manually from interactive_order_stack.
 
 Because we can have one:many relationships between contract and broker orders, we do this by getting all the fills from all the broker orders that are children of a given contract order. Note that the tradeable object (instrument/strategy/ and one or more contract dates) will be the same. We calculate the following:
 
@@ -1237,7 +1237,7 @@ We then call code to apply the contract fill to the instrument order
 
 ### Instrument order fills and position updates
 
-The stack handler uses apply_contract_fills_for_instrument_order to propogate fills upwards from contract orders. This will be called from (a) apply_broker_fills_to_contract_order (in the normal run of things this would happen after a broker order is filled), (b) a regular scheduled call of pass_fills_from_contract_up_to_instrument, or (c) manually from interactive_order_stack. 
+The stack handler uses apply_contract_fills_for_instrument_order to propagate fills upwards from contract orders. This will be called from (a) apply_broker_fills_to_contract_order (in the normal run of things this would happen after a broker order is filled), (b) a regular scheduled call of pass_fills_from_contract_up_to_instrument, or (c) manually from interactive_order_stack. 
 
 Instrument orders can have one:many relationships with contract orders, so there are a few different cases.
 
@@ -1402,7 +1402,7 @@ The following prefixes are used for scripts:
 - startup: run when the machine starts
 - _run: run a regularly scheduled process.
 
-Normally it's possible to call a process directly (eg _backup_files) on an ad-hoc basis, or it will be called regularly through a 'run' process that may do other stuff as well  (eg run_backups, runs all backup processses). Run processes are a bit complicated, as I've foolishly written my own scheduling code, so see [this section](#pysystemtrade-scheduling) for more. Some exceptions are interactive scripts which only run when called, and run_stack_handler which does not have a separate script.
+Normally it's possible to call a process directly (eg _backup_files) on an ad-hoc basis, or it will be called regularly through a 'run' process that may do other stuff as well  (eg run_backups, runs all backup processes). Run processes are a bit complicated, as I've foolishly written my own scheduling code, so see [this section](#pysystemtrade-scheduling) for more. Some exceptions are interactive scripts which only run when called, and run_stack_handler which does not have a separate script.
 
 ## Run processes
 
@@ -1444,7 +1444,7 @@ Called by: `run_daily_fx_and_contract_updates`
 This will check for 'spikes', unusually large movements in FX rates either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-fx-price-data).
 .
 
-The threshold for spikes is set in the default.yaml file, or overidden in the private config, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
+The threshold for spikes is set in the default.yaml file, or overridden in the private config, using the parameter `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
 
 
 ### Update sampled contracts (Daily)
@@ -1497,7 +1497,7 @@ It performs the following cleaning on data that it receives, depending on the .y
 This will also check for 'spikes', unusually large movements in price either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
 .
 
-The threshold for spikes is set in the default.yaml file, or overidden in the private config .yaml file, using the paramater `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=8`, then a price change larger than 4 units will trigger a spike.
+The threshold for spikes is set in the default.yaml file, or overridden in the private config .yaml file, using the parameter `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=8`, then a price change larger than 4 units will trigger a spike.
 
 In order for this step to work, you'll need an active IB market data subscription for the instruments you wish to trade. I detailed 
 my own market data subscriptions on [my blog](https://qoppac.blogspot.com/2021/05/adding-new-instruments-or-how-i-learned.html), 
@@ -1516,11 +1516,33 @@ reproduced here:
 
 More details and latest prices on the [Interactive Brokers site](https://www.interactivebrokers.com/en/index.php?f=14193)
 
+#### Set times when different regions download prices
+
+To maximise efficiency, rather than doing a big end of day download, you might prefer to download different regions throughout the day.
+
+To achieve this, add code like the following to your `private_control_config.yaml` file:
+
+```
+arguments:
+  run_daily_prices_updates:
+    update_historical_prices: # everything in this block is passed as **kwargs to this method
+      download_by_zone:
+        ASIA: '07:00'
+        EMEA: '18:00'
+        US: '20:00'
+
+```
+
+This will download Asian regional instruments at 7am, local machine time; Europe Middle East Africa at 6pm, and US at 8pm. Regions are set in the instrument configuration (provided .csv file which is then written to the database using interactive_controls, options to update configuration). 
+
+You should also ensure that `run_daily_price_updates` has a start time set in `private_control_config.yaml` earlier than 7am, and is started by the crontab or other scheduler before 7am.
+
+
 ### Update multiple and adjusted prices (Daily)
 
 This will update both multiple and adjusted prices with new futures per contract price data.
 
-It should be scheduled to run once the daily prices for individual contracts have been updated.
+It should be scheduled to run once the daily prices for individual contracts have been updated, although you can also schedule it to run without any dependencies if you don't want to be affected by a slow download of individual prices.
 
 Python:
 ```python
@@ -1900,7 +1922,7 @@ Overrides are also set as a result of configured information about different ins
 Instrument trades will be modified to achieve any required override effect (this occurs when run_strategy_order_generator is run). We can:
 
 - View overrides
-- Update / add / remove overide (for strategy, instrument, or instrument & strategy)
+- Update / add / remove override (for strategy, instrument, or instrument & strategy)
 
 See the [instruments documentation](instruments.md) for more discussion on overrides.
 
@@ -2155,7 +2177,7 @@ To get round this you should submit a balance trade, which will ripple through t
 
 ##### Balance instrument trade: Create a trade just at the strategy level and fill (not actually executed)
 
-Ordinarly the strategy level positions (for instruments, per strategy, summed across contracts) should match the contract level positions (for instruments and contracts, summed across strategies). However if for some reason an order goes astray you will end up with a mismatch (which will be reported in the [reconcile report](#reconcile-report)). To solve this you can submit an order just at the strategy level (not allocated to a specific contract) which will solve the problem but isn't actually executed.
+Ordinarily the strategy level positions (for instruments, per strategy, summed across contracts) should match the contract level positions (for instruments and contracts, summed across strategies). However if for some reason an order goes astray you will end up with a mismatch (which will be reported in the [reconcile report](#reconcile-report)). To solve this you can submit an order just at the strategy level (not allocated to a specific contract) which will solve the problem but isn't actually executed.
 
 
 ##### Manual trade: Create a series of trades to be executed
@@ -2185,7 +2207,7 @@ The complexity of the order stacks is there for a reason; it allows different ki
 
 ##### Lock/unlock order
 
-There is a 'lock' in the order database, basically an explicit flag preventing the order from being modified. Certain operations which span multiple data tables will impose locks first so the commit does not partially fail (I'm using noSQL so there is no explicit cross table commit available). If operations fail mid lock they will usually try and fall back and remove locks, but this doesn't always work out. So it sometimes necessary to manually unlock orders, and for symmettry manually lock them.
+There is a 'lock' in the order database, basically an explicit flag preventing the order from being modified. Certain operations which span multiple data tables will impose locks first so the commit does not partially fail (I'm using noSQL so there is no explicit cross table commit available). If operations fail mid lock they will usually try and fall back and remove locks, but this doesn't always work out. So it sometimes necessary to manually unlock orders, and for symmetry manually lock them.
 
 
 ##### Lock/unlock instrument code
@@ -2435,8 +2457,8 @@ Things to consider when constructing a schedule include:
 
 - Machine load   (eg avoid running computationally intensive processes when also trading where latency could be important). This is less important if you are running multiple machines.
 - Database thrashing (eg avoid running input intensive reporting processes on database tables that are being actively read / written to by more important live trading processes)
-- File lock / integrity (eg avoid running backups whilst active writes are occuring)
-- Robustness (eg it's probably better to have trading processes shutting down each night and then restarting in the morning, than trying to keep them running continously)
+- File lock / integrity (eg avoid running backups whilst active writes are occurring)
+- Robustness (eg it's probably better to have trading processes shutting down each night and then restarting in the morning, than trying to keep them running continuously)
 
 
 ## Choice of scheduling systems
@@ -2631,6 +2653,22 @@ process_configuration_methods:
       max_executions: 1
 ```
 
+Finally you can optionally include arguments, which will be passed to certain methods within a process (or to all methods that are run on completion for a given process). For example:
+
+```
+arguments:
+  run_daily_prices_updates:# name of process
+    update_historical_prices: # everything in this block is passed as **kwargs to this method
+      download_by_zone:
+        ASIA: '07:00'
+        EMEA: '18:00'
+        US: '20:00'
+    _methods_on_completion: # and this block is passed to all methods that run on completion only - make sure you use **kwargs to trap if required
+        a: 'test'
+
+```
+
+
 ### System monitor and dashboard
 
 There is a crude monitoring tool, and a more sophisticated fancy dashboard, which you can use to monitor what the system is up to. [Read the doc file here.](/docs/dashboard_and_monitor.md)
@@ -2645,7 +2683,7 @@ Why won't my process run?
 - is it launching in the cron or equivalent scheduler?
 - is it set to STOP or DONT RUN? Fix with interactive_controls
 - is it before the start_time? Change the start time, or wait
-- is it after the end_time? Change the end time, or wait until tommorrow
+- is it after the end_time? Change the end time, or wait until tomorrow
 - has the previous process close? Wait, or remove dependency
 - is it already running, or at least thinks it is already running because a previous iteration didn't fail? Mark the process as close with interactive_controls
 
@@ -2803,7 +2841,7 @@ The method above is neat in that it 'self recovers'; if you don't collect capita
 
 If you forget to do this, you should select 'Delete values of capital since time T' in the interactive tool. You can then delete the erroneous rows of capital, account for the withdrawal, and finally 'Update capital from IB account value' to make sure it has worked properly.
 
-If you want the p&l to be correct, but do want your capital to reduce (increase), then you should use option 'Modify any/all values' after accounting for the withdrawal. Decrease (increase) the total capital figure accordingly. If you are using half compounding you also need to increase the maximium capital figure if it is lower than the new total capital figure.
+If you want the p&l to be correct, but do want your capital to reduce (increase), then you should use option 'Modify any/all values' after accounting for the withdrawal. Decrease (increase) the total capital figure accordingly. If you are using half compounding you also need to increase the maximum capital figure if it is lower than the new total capital figure.
 
 
 ### Change in capital methodology or capital base
@@ -2949,7 +2987,7 @@ Here's some general advice about recovering from a crash:
 
 Let's first consider an awful case where your mongo DB is corrupted, and the backups are also corrupted. In this case you can use the backed up .csv database dump files to recover the following: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Note that scripts don't necessarily exist to do all this automatically yet FIX ME TO DO.
 
-Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a litle work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
+Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a little work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
 
 The better case is when the mongo DB is fine. In this case (once you've [restored](#mongo-data) it) you will have only lost everything from your last nightly backup onwards. Here is what you do to get it back (if possible)
 
@@ -2976,7 +3014,7 @@ A lot of the information in the reports described below can also be found in the
 
 ### Roll report (Daily)
 
-The roll report can be run for all markets (default for the email), or for a single individual market (if run on an ad hoc basis). It will also be run when you run the interactive [update roll status](#menu-driven-interactive-scripts) process for the relevant market. Here's an example of a roll report, which I've annoted with comments (marked with quotes ""):
+The roll report can be run for all markets (default for the email), or for a single individual market (if run on an ad hoc basis). It will also be run when you run the interactive [update roll status](#menu-driven-interactive-scripts) process for the relevant market. Here's an example of a roll report, which I've annotated with comments (marked with quotes ""):
 
 ```
 ********************************************************************************
@@ -3899,7 +3937,7 @@ via email, to saving the report as a file Files would be stored in according to 
     calendar_days_back: 250
 
 ```
-The available reports can be found by interogating the `dataReports` object,
+The available reports can be found by interrogating the `dataReports` object,
 e.g.:
 ```python
 from sysproduction.data.reports import dataReports

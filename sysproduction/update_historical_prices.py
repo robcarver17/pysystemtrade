@@ -2,7 +2,12 @@
 Update historical data per contract from interactive brokers data, dump into mongodb
 """
 
+import time
+import datetime
+
 from copy import copy
+from typing import List, Tuple
+
 from syscore.constants import missing_data, arg_not_supplied, success, failure
 from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
@@ -10,6 +15,7 @@ from syscore.pandas.frequency import merge_data_with_different_freq
 
 from sysdata.data_blob import dataBlob
 from sysdata.tools.manual_price_checker import manual_price_checker
+from sysdata.tools.cleaner import priceFilterConfig, get_config_for_price_filtering
 
 from syslogdiag.email_via_db_interface import send_production_mail_msg
 
@@ -18,7 +24,7 @@ from sysobjects.futures_per_contract_prices import futuresContractPrices
 
 from sysproduction.data.prices import diagPrices, updatePrices
 from sysproduction.data.broker import dataBroker
-from sysdata.tools.cleaner import priceFilterConfig, get_config_for_price_filtering
+from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.contracts import dataContracts
 
 NO_SPIKE_CHECKING = 99999999999.0
@@ -40,26 +46,225 @@ class updateHistoricalPrices(object):
     def __init__(self, data):
         self.data = data
 
-    def update_historical_prices(self, **kwargs):
-        print("**kwargs** I am ignoring for now %s" % str(kwargs))
+    def update_historical_prices(self, download_by_zone: dict = arg_not_supplied):
         data = self.data
-        update_historical_prices_with_data(data)
+        update_historical_prices_with_data(data, download_by_zone=download_by_zone)
 
 
-def update_historical_prices_with_data(data: dataBlob, interactive_mode: bool = False):
-    cleaning_config = get_config_for_price_filtering(data)
+def update_historical_prices_with_data(
+    data: dataBlob, download_by_zone: dict = arg_not_supplied
+):
+    if download_by_zone is arg_not_supplied:
+        download_all_instrument_prices_now(data)
+    else:
+        manage_download_over_multiple_time_zones(
+            data=data, download_by_zone=download_by_zone
+        )
+
+
+def download_all_instrument_prices_now(data: dataBlob):
+    data.log.msg("Downloading everything")
+
     price_data = diagPrices(data)
-    list_of_codes_all = price_data.get_list_of_instruments_in_multiple_prices()
-    for instrument_code in list_of_codes_all:
+
+    list_of_instrument_codes = price_data.get_list_of_instruments_in_multiple_prices()
+    update_historical_prices_for_list_of_instrument_codes(
+        data=data,
+        list_of_instrument_codes=list_of_instrument_codes,
+    )
+
+
+def manage_download_over_multiple_time_zones(data: dataBlob, download_by_zone: dict):
+    """
+    Example download_by_zone = {'ASIA': '07:00', 'EMEA': '18:00', 'US': '20:00'}
+
+    """
+    data.log.msg(
+        "Passed multiple time zones: %s, if started before first time will download at specified times"
+        % str(download_by_zone)
+    )
+    dict_of_instrument_codes_by_timezone = get_dict_of_instrument_codes_by_timezone(
+        data, download_by_zone=download_by_zone
+    )
+
+    manage_download_given_dict_of_instrument_codes(
+        data=data,
+        dict_of_instrument_codes_by_timezone=dict_of_instrument_codes_by_timezone,
+        download_by_zone=download_by_zone,
+    )
+
+
+def get_dict_of_instrument_codes_by_timezone(
+    data: dataBlob, download_by_zone: dict
+) -> dict:
+    """
+    Example download_by_zone = {'Asia': '07:00', 'EMEA': '18:00', 'US': '20:00'}
+
+    """
+
+    price_data = diagPrices(data)
+    list_of_instrument_codes = price_data.get_list_of_instruments_in_multiple_prices()
+
+    regions = list(download_by_zone.keys())
+    dict_by_region = dict(
+        [
+            (
+                region,
+                get_list_of_instruments_in_region(
+                    region=region,
+                    data=data,
+                    list_of_instrument_codes=list_of_instrument_codes,
+                ),
+            )
+            for region in regions
+        ]
+    )
+
+    return dict_by_region
+
+
+def get_list_of_instruments_in_region(
+    region: str, data: dataBlob, list_of_instrument_codes: list
+) -> list:
+    diag_instruments = diagInstruments(data)
+
+    list_of_codes_in_region = [
+        instrument_code
+        for instrument_code in list_of_instrument_codes
+        if diag_instruments.get_region(instrument_code) == region
+    ]
+
+    return list_of_codes_in_region
+
+
+def manage_download_given_dict_of_instrument_codes(
+    data: dataBlob, dict_of_instrument_codes_by_timezone: dict, download_by_zone: dict
+):
+    """
+    Example download_by_zone = {'Asia': '07:00', 'EMEA': '18:00', 'US': '20:00'}
+            dict_of_instrument_codes_by_timezone = {'Asia': ['JGB','SPX,...], 'EMEA': [...]... }
+    """
+
+    finished = False
+    download_time_manager = downloadTimeManager(
+        dict_of_instrument_codes_by_timezone=dict_of_instrument_codes_by_timezone,
+        download_by_zone=download_by_zone,
+    )
+    while not finished:
+        (
+            list_of_instruments_to_download_now,
+            region,
+        ) = download_time_manager.list_of_instruments_and_region_to_download_now()
+        if len(list_of_instruments_to_download_now) > 0:
+
+            data.log.msg(
+                "Now time to download region %s: %s"
+                % (region, str(list_of_instruments_to_download_now))
+            )
+            update_historical_prices_for_list_of_instrument_codes(
+                data, list_of_instrument_codes=list_of_instruments_to_download_now
+            )
+            download_time_manager.mark_region_as_download_completed(region)
+            data.log.msg("Finished downloading region %s" % region)
+
+        if download_time_manager.finished_downloading_everything():
+            ## NOTE this means we could go beyond the STOP time in the report, since this i
+            ##    happening outside of the python process manager
+            data.log.msg("All instruments downloaded today, finished")
+            break
+
+        ## No rush...
+        time.sleep(60)
+
+
+class downloadTimeManager:
+    def __init__(
+        self, dict_of_instrument_codes_by_timezone: dict, download_by_zone: dict
+    ):
+
+        self._download_by_zone = download_by_zone
+        self._dict_of_instrument_codes_by_timezone = (
+            dict_of_instrument_codes_by_timezone
+        )
+        self._init_progress_dict()
+
+    def _init_progress_dict(self):
+        region_list = self.list_of_regions
+        progress_dict = dict([(region, False) for region in region_list])
+        self._progress_dict = progress_dict
+
+    def list_of_instruments_and_region_to_download_now(self) -> Tuple[list, str]:
+        for region in self.list_of_regions:
+            if self.can_region_be_downloaded_now(region):
+                return self.dict_of_instrument_codes_by_timezone[region], region
+
+        return [], ""
+
+    def can_region_be_downloaded_now(self, region: str) -> bool:
+        already_done = self.progress_dict[region]
+        if already_done:
+            return False
+
+        time_to_start = self.is_it_time_to_start_region(region)
+
+        return time_to_start
+
+    def is_it_time_to_start_region(self, region: str) -> bool:
+        time_to_start = self.time_to_start_downloading(region)
+        now = datetime.datetime.now().time()
+        return now >= time_to_start
+
+    def time_to_start_downloading(self, region: str) -> datetime.time:
+        time_str = self.download_by_zone[region]
+        time_object = datetime.datetime.strptime(time_str, "%H:%M").time()
+
+        return time_object
+
+    def mark_region_as_download_completed(self, region: str):
+        ## we don't use the getter here as we don't want to use a setter to update
+        progress_dict = self._progress_dict
+        progress_dict[region] = region
+
+    def finished_downloading_everything(self) -> bool:
+        progress_dict = self.progress_dict
+        finished = [progress_for_region for progress_for_region in progress_dict]
+        all_finished = all(finished)
+
+        return all_finished
+
+    @property
+    def list_of_regions(self):
+        return list(self.dict_of_instrument_codes_by_timezone.keys())
+
+    @property
+    def progress_dict(self) -> dict:
+        return self._progress_dict
+
+    @property
+    def download_by_zone(self) -> dict:
+        return self._download_by_zone
+
+    @property
+    def dict_of_instrument_codes_by_timezone(self) -> dict:
+        return self._dict_of_instrument_codes_by_timezone
+
+
+def update_historical_prices_for_list_of_instrument_codes(
+    data: dataBlob, list_of_instrument_codes: List[str]
+):
+    cleaning_config = get_config_for_price_filtering(data)
+
+    for instrument_code in list_of_instrument_codes:
         data.log.label(instrument_code=instrument_code)
         update_historical_prices_for_instrument(
             instrument_code,
             data,
             cleaning_config=cleaning_config,
-            interactive_mode=interactive_mode,
+            interactive_mode=False,
         )
 
 
+## This is also called by the interactive update
 def update_historical_prices_for_instrument(
     instrument_code: str,
     data: dataBlob,

@@ -1,5 +1,11 @@
 # Release notes
 
+## Version 1.50
+
+- Added optional code to run price collection throughout the day, see [announcement](https://github.com/robcarver17/pysystemtrade/discussions/961)
+- Added ability to pass arguments to methods through control_config.yaml
+- Added regions to instrument.csv configuration; use interactive_controls, option 5, option 52 to apply
+
 ## Version 1.48
 
 - Added new run_ processes, breaking out FX, update sampled contracts, and update multiple/adjusted prices from daily price updates. You will need to update your crontab and control_config.yaml, see **discussion here**
