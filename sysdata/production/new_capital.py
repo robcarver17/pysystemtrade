@@ -32,9 +32,6 @@ class capitalData(baseData):
 
     def get_current_total_capital(self) -> float:
         pd_series = self.get_total_capital_pd_series()
-        if pd_series is missing_data:
-            return missing_data
-
         return float(pd_series[-1])
 
     def get_current_broker_account_value(self) -> float:
@@ -51,11 +48,7 @@ class capitalData(baseData):
         return float(pd_series[-1])
 
     def get_total_capital_pd_series(self) -> pd.Series:
-        try:
-            all_capital_series = self.get_df_of_all_global_capital()
-        except missingData:
-            return missing_data
-
+        all_capital_series = self.get_df_of_all_global_capital()
         return all_capital_series[CURRENT_CAPITAL_LABEL]
 
     def get_broker_account_value_pd_series(self) -> pd.Series:
