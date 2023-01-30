@@ -44,9 +44,6 @@ class capitalData(baseData):
 
     def get_current_maximum_capital_value(self) -> float:
         pd_series = self.get_maximum_account_value_pd_series()
-        if pd_series is missing_data:
-            return missing_data
-
         return float(pd_series[-1])
 
     def get_current_pandl_account(self) -> float:
@@ -66,11 +63,7 @@ class capitalData(baseData):
         return all_capital_series[BROKER_CAPITAL_LABEL]
 
     def get_maximum_account_value_pd_series(self) -> pd.Series:
-        try:
-            all_capital_series = self.get_df_of_all_global_capital()
-        except missingData:
-            return missing_data
-
+        all_capital_series = self.get_df_of_all_global_capital()
         return all_capital_series[MAX_CAPITAL_LABEL]
 
     def get_profit_and_loss_account_pd_series(self) -> pd.Series:
