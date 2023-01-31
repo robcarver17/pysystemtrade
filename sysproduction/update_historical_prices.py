@@ -260,7 +260,7 @@ class downloadTimeManager:
 
     @property
     def list_of_progress(self) -> List[bool]:
-        return list(self.dict_of_instrument_codes_by_timezone.keys())
+        return list(self.dict_of_instrument_codes_by_timezone.values())
 
     @property
     def progress_dict(self) -> dict:
