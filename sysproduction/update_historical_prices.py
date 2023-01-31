@@ -189,10 +189,10 @@ class downloadTimeManager:
         self._dict_of_instrument_codes_by_timezone = (
             dict_of_instrument_codes_by_timezone
         )
-        self._init_progress_dict()
+        region_list = list(download_by_zone.keys())
+        self._init_progress_dict(region_list)
 
-    def _init_progress_dict(self):
-        region_list = self.list_of_regions
+    def _init_progress_dict(self, region_list: List[str]):
         progress_dict = dict([(region, False) for region in region_list])
         self._progress_dict = progress_dict
 
