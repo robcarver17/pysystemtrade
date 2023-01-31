@@ -94,7 +94,7 @@ setup(
         "pandas==1.0.5",
         "matplotlib>=3.0.0",
         "ib-insync==0.9.70",
-        "PyYAML>==5.4",
+        "PyYAML>=5.4",
         "numpy>=1.19.4,<1.24.0",
         "scipy>=1.0.0",
         "pymongo==3.9.0",

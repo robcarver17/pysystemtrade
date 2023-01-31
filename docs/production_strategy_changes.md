@@ -158,7 +158,7 @@ I'd recommend running the full suite of reports to make sure everything works, a
 
 You can now restart your running processes.
 
-Check that any new instruments can actually trade, i.e. you don't have any unforseen regulatory issues.
+Check that any new instruments can actually trade, i.e. you don't have any unforeseen regulatory issues.
 
 
 

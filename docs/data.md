@@ -1,4 +1,4 @@
-This document is specifically about storing and processsing *futures data*. 
+This document is specifically about storing and processing *futures data*. 
 
 Related documents:
 
@@ -35,7 +35,7 @@ Table of Contents
    * [Getting and storing FX data](#getting-and-storing-fx-data)
    * [Finished!](#finished)
 * [Part 2: Overview of futures data in pysystemtrade](#part-2-overview-of-futures-data-in-pysystemtrade)
-   * [Heirarchy of data storage and access objects](#heirarchy-of-data-storage-and-access-objects)
+   * [Hierarchy of data storage and access objects](#heirarchy-of-data-storage-and-access-objects)
    * [Directory structure (not the whole package! Just related to data objects, storage and interfaces)](#directory-structure-not-the-whole-package-just-related-to-data-objects-storage-and-interfaces)
 * [Part 3: Storing and representing futures data](#part-3-storing-and-representing-futures-data)
    * [Futures data objects and their generic data storage objects](#futures-data-objects-and-their-generic-data-storage-objects)
@@ -116,7 +116,7 @@ Hence there are five possible use cases:
 - You want to update the .csv data used for backtests that is shipped with pysystemtrade
 - You want to run backtests, but from faster databases rather than silly old .csv files, as I discuss how to do [later](#dbfuturessimdata)
 - You want to run pysystemtrade in [production](/docs/production.md), which requires database storage.
-- You want both database storage and updated .csv files, maybe because you want to keep a backup of your data in .csv (someting that the production code does automatically, FWIW) or use that for backtesting
+- You want both database storage and updated .csv files, maybe because you want to keep a backup of your data in .csv (something that the production code does automatically, FWIW) or use that for backtesting
 
 Because of this it's possible at (almost) every stage to store data in either .csv or databases (the exception are roll calendars, which only live in .csv format).
 
@@ -324,7 +324,7 @@ Then the roll calendar, plus the individual futures contract prices, can be used
 <a name="roll_calendars_from_approx"></a>
 ### Generate a roll calendar from actual futures prices
 
-This is the method you'd use if you were really starting from scratch, and you'd just got some prices for each futures contract. The relevant script is [here](/sysinit/futures/rollcalendars_from_arcticprices_to_csv.py); you should call the function `build_and_write_roll_calendar`. It is only set up to run a single instrument at a time: creating roll calendars is careful craftmanship, not suited to a batch process.
+This is the method you'd use if you were really starting from scratch, and you'd just got some prices for each futures contract. The relevant script is [here](/sysinit/futures/rollcalendars_from_arcticprices_to_csv.py); you should call the function `build_and_write_roll_calendar`. It is only set up to run a single instrument at a time: creating roll calendars is careful craftsmanship, not suited to a batch process.
 
 In this script (which you should run for each instrument in turn):
 
@@ -577,7 +577,7 @@ To further hide the data, I use two kinds of additional interface which embed `d
 
 Finally in production I use the objects in [this module](/sysproduction/data) to act as [interfaces](#production_interface) between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
 
-## Heirarchy of data storage and access objects
+## Hierarchy of data storage and access objects
 
 Generic data storage objects, used in both production and backtesting:
 
@@ -985,7 +985,7 @@ data.db_futures_adjusted_prices.get_list_of_instruments()
 
 A .csv is just another type of database as far as dataBlob is concerned. It's replaced the attribute we had before with a new one that now links to .csv files. 
 
-Here's a quick whistlestop tour of dataBlob's other features:
+Here's a quick whistle-stop tour of dataBlob's other features:
 
 
 - you can create it with a starting class list by passing the `parameter class_list=...`
@@ -998,7 +998,7 @@ Here's a quick whistlestop tour of dataBlob's other features:
 <a name="simData_objects"></a>
 ## simData objects
 
-The `simData` object is a compulsory part of the psystemtrade system object which runs simulations (or in live trading generates desired positions). The API required for that is laid out in the userguide, [here](/docs/backtesting.md#using-the-standard-data-objects). It's an interface between the contents of a dataBlob, and the simulation code.
+The `simData` object is a compulsory part of the pysystemtrade system object which runs simulations (or in live trading generates desired positions). The API required for that is laid out in the user guide, [here](/docs/backtesting.md#using-the-standard-data-objects). It's an interface between the contents of a dataBlob, and the simulation code.
 
 This modularity allows us to easily replace the data objects, so we could load our adjusted prices from mongo DB, or do 'back adjustment' of futures prices 'on the fly'.
 
