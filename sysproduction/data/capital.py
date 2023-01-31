@@ -12,6 +12,8 @@ from sysdata.data_blob import dataBlob
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
+from systems.accounts.from_returns import account_curve_from_returns
+
 
 class dataCapital(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
@@ -26,7 +28,7 @@ class dataCapital(productionDataLayerGeneric):
     ## TOTAL CAPITAL...
 
     def get_percentage_returns_as_account_curve(self) -> pd.DataFrame:
-        return self.total_capital_calculator.get_percentage_returns_as_pd()
+        return account_curve_from_returns(self.get_percentage_returns_as_pd())
 
     def get_percentage_returns_as_pd(self) -> pd.DataFrame:
         return self.total_capital_calculator.get_percentage_returns_as_pd()
