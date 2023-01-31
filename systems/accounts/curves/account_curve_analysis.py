@@ -66,3 +66,22 @@ def _prepare_returns_data_for_t_test(
     standardised_df_returns = df_returns / (df_returns.std(axis=0) + 1e-100)
 
     return standardised_df_returns
+
+
+def get_system_level_results(system):
+    acc = system.accounts.portfolio().percent
+    costs = acc.costs.ann_mean()
+    print("Ann Mean %.1f" % acc.ann_mean())
+    print("Gross ann mean %.1f" % acc.gross.ann_mean())
+    print("costs %.2f" % costs)
+    print("drawdown %.1f" % acc.avg_drawdown())
+    print("std dev %.1f" % acc.ann_std())
+    print("SR %.2f" % acc.sharpe())
+    print("turnover %.1f" % system.accounts.total_portfolio_level_turnover())
+    print("daily skew %.2f" % acc.daily.skew())
+    print("weekly skew %.2f" % acc.weekly.skew())
+    print("monthly skew %.2f" % acc.monthly.skew())
+    print("annual skew %.2f" % acc.annual.skew())
+
+    print("lpr %.2f" % acc.quant_ratio_lower())
+    print("upr %.2f" % acc.quant_ratio_upper())

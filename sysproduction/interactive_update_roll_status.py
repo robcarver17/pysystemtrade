@@ -599,7 +599,8 @@ def roll_adjusted_and_multiple_prices(
 
 
 def get_roll_adjusted_multiple_prices_object(
-    data: dataBlob, instrument_code: str
+    data: dataBlob,
+    instrument_code: str,
 ) -> rollingAdjustedAndMultiplePrices:
 
     ## returns failure if goes wrong
@@ -609,6 +610,7 @@ def get_roll_adjusted_multiple_prices_object(
         )
         ## We do this as getting the object doesn't guarantee it works
         _unused_ = rolling_adj_and_mult_object.updated_multiple_prices
+        _unused_ = rolling_adj_and_mult_object.new_adjusted_prices
 
     except Exception as e:
         print("Error %s when trying to calculate roll prices" % str(e))

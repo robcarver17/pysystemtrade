@@ -6,10 +6,12 @@ Do standard things to the instrument, order and broker stack (normally automated
 
 
 """
+from typing import Tuple
 import sysexecution.orders.named_order_objects
 from sysexecution.orders.named_order_objects import missing_order
 from syscore.interactive.input import (
     get_input_from_user_and_convert_to_type,
+    true_if_answer_is_yes,
 )
 from syscore.interactive.date_input import get_datetime_input
 from syscore.interactive.menus import (
@@ -170,9 +172,10 @@ def spawn_contracts_from_instrument_orders(data):
         default_value="ALL",
         default_str="All",
     )
-    check_ans = input("Are you sure? (Y/other)")
-    if check_ans != "Y":
+    check_ans = true_if_answer_is_yes("Are you sure?")
+    if not check_ans:
         return None
+
     if order_id == "ALL":
         stack_handler.spawn_children_from_new_instrument_orders()
     else:
@@ -185,10 +188,6 @@ def spawn_contracts_from_instrument_orders(data):
 
 
 def create_balance_trade(data):
-    data_broker = dataBroker(data)
-    data_contracts = dataContracts(data)
-
-    default_account = data_broker.get_broker_account()
 
     print(
         "Most likely use case here is that IB has closed one of your positions as close to the expiry"
@@ -198,23 +197,35 @@ def create_balance_trade(data):
     )
     print("Or perhaps you are trading manually")
     print("Trades have to be attributed to a strategy (even roll trades)")
-    strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
-    (
-        instrument_code,
-        contract_date_yyyy_mm,
-    ) = get_valid_instrument_code_and_contractid_from_user(data)
 
-    ## We get from database, not broker, in case contract has expired
-    actual_expiry_date = data_contracts.get_actual_expiry(
-        instrument_code, contract_date_yyyy_mm
+    broker_order = get_broker_order_details_for_balance_trade(data)
+
+    print(broker_order)
+    ans = input("Are you sure? (Y/other)")
+    if ans != "Y":
+        return None
+
+    stack_handler = stackHandlerCreateBalanceTrades(data)
+
+    stack_handler.create_balance_trade(broker_order)
+
+
+def get_broker_order_details_for_balance_trade(data: dataBlob) -> brokerOrder:
+    ans = true_if_answer_is_yes(
+        "Auto close an existing position (if not, manually enter details?"
     )
-    actual_contract_date = actual_expiry_date.as_str()
-
-    print("Actual contract expiry is %s" % str(actual_contract_date))
-
-    fill_qty = get_input_from_user_and_convert_to_type(
-        "Quantity ", type_expected=int, allow_default=False
-    )
+    if ans:
+        (
+            instrument_code,
+            contract_date_yyyy_mm,
+            fill_qty,
+        ) = get_futures_contract_and_qty_to_close_position(data)
+    else:
+        (
+            instrument_code,
+            contract_date_yyyy_mm,
+            fill_qty,
+        ) = manually_get_futures_contract_and_qty(data)
 
     default_price = default_price_for_contract(
         data, futuresContract(instrument_code, contract_date_yyyy_mm)
@@ -232,6 +243,10 @@ def create_balance_trade(data):
         "Commission", type_expected=float, allow_default=True, default_value=0.0
     )
 
+    strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
+
+    data_broker = dataBroker(data)
+    default_account = data_broker.get_broker_account()
     broker_account = get_input_from_user_and_convert_to_type(
         "Account ID",
         type_expected=str,
@@ -255,14 +270,55 @@ def create_balance_trade(data):
         active=False,
     )
 
-    print(broker_order)
-    ans = input("Are you sure? (Y/other)")
-    if ans != "Y":
-        return None
+    return broker_order
 
-    stack_handler = stackHandlerCreateBalanceTrades(data)
 
-    stack_handler.create_balance_trade(broker_order)
+def manually_get_futures_contract_and_qty(data: dataBlob) -> Tuple[str, str, int]:
+    data_contracts = dataContracts(data)
+
+    (
+        instrument_code,
+        contract_date_yyyy_mm,
+    ) = get_valid_instrument_code_and_contractid_from_user(data)
+
+    actual_expiry_date = data_contracts.get_actual_expiry(
+        instrument_code, contract_date_yyyy_mm
+    )
+    actual_contract_date = actual_expiry_date.as_str()
+
+    print("Actual contract expiry is %s" % str(actual_contract_date))
+
+    fill_qty = get_input_from_user_and_convert_to_type(
+        "Quantity ", type_expected=int, allow_default=False
+    )
+
+    return instrument_code, contract_date_yyyy_mm, fill_qty
+
+
+def get_futures_contract_and_qty_to_close_position(
+    data: dataBlob,
+) -> Tuple[str, str, int]:
+    diag_positions = diagPositions(data)
+    contract_positions = diag_positions.get_all_current_contract_positions()
+    print("Current contract positions in DB")
+    print(contract_positions)
+
+    while True:
+        position_index = get_input_from_user_and_convert_to_type(
+            "Which position to close?", type_expected=int, allow_default=False
+        )
+        if position_index not in range(len(contract_positions)):
+            print("Not a valid row")
+            continue
+        else:
+            break
+
+    relevant_row = contract_positions[position_index]
+    instrument_code = relevant_row.instrument_code
+    contract_date_yyyy_mm = relevant_row.date_str
+    fill_qty = int(-relevant_row.position)
+
+    return instrument_code, contract_date_yyyy_mm, fill_qty
 
 
 def default_price_for_contract(data: dataBlob, futures_contract: futuresContract):
@@ -274,7 +330,6 @@ def default_price_for_contract(data: dataBlob, futures_contract: futuresContract
 
 
 def create_instrument_balance_trade(data):
-    data_broker = dataBroker(data)
 
     print("Use to fix breaks between instrument strategy and contract level positions")
     strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
