@@ -24,7 +24,7 @@ from syslogdiag.log_to_screen import logtoscreen
 from sysobjects.contracts import futuresContract
 from sysexecution.trade_qty import tradeQuantity
 
-TIMEOUT_SECONDS_ON_HISTORICAL_DATA = 10
+TIMEOUT_SECONDS_ON_HISTORICAL_DATA = 20
 
 
 class tickerWithBS(object):
