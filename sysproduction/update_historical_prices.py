@@ -151,21 +151,10 @@ def manage_download_given_dict_of_instrument_codes(
         download_by_zone=download_by_zone,
     )
     while not finished:
-        (
-            list_of_instruments_to_download_now,
-            region,
-        ) = download_time_manager.list_of_instruments_and_region_to_download_now()
-        if len(list_of_instruments_to_download_now) > 0:
-
-            data.log.msg(
-                "Now time to download region %s: %s"
-                % (region, str(list_of_instruments_to_download_now))
-            )
-            update_historical_prices_for_list_of_instrument_codes(
-                data, list_of_instrument_codes=list_of_instruments_to_download_now
-            )
-            download_time_manager.mark_region_as_download_completed(region)
-            data.log.msg("Finished downloading region %s" % region)
+        if download_time_manager.nothing_to_download_but_not_finished():
+            ## No rush...
+            time.sleep(60)
+            continue
 
         if download_time_manager.finished_downloading_everything():
             ## NOTE this means we could go beyond the STOP time in the report, since this i
@@ -173,8 +162,22 @@ def manage_download_given_dict_of_instrument_codes(
             data.log.msg("All instruments downloaded today, finished")
             break
 
-        ## No rush...
-        time.sleep(60)
+        ## Something to download - this will return the first if more than one
+        ##  eg. because we have missed a download
+        (
+            list_of_instruments_to_download_now,
+            region,
+        ) = download_time_manager.list_of_instruments_and_region_to_download_now()
+
+        data.log.msg(
+            "Now it's time to download region %s: %s"
+            % (region, str(list_of_instruments_to_download_now))
+        )
+        update_historical_prices_for_list_of_instrument_codes(
+            data, list_of_instrument_codes=list_of_instruments_to_download_now
+        )
+        download_time_manager.mark_region_as_download_completed(region)
+        data.log.msg("Finished downloading region %s" % region)
 
 
 class downloadTimeManager:
@@ -182,7 +185,7 @@ class downloadTimeManager:
         self, dict_of_instrument_codes_by_timezone: dict, download_by_zone: dict
     ):
 
-        self._download_by_zone = download_by_zone
+        self._download_times_by_zone = download_by_zone
         self._dict_of_instrument_codes_by_timezone = (
             dict_of_instrument_codes_by_timezone
         )
@@ -192,6 +195,22 @@ class downloadTimeManager:
         region_list = self.list_of_regions
         progress_dict = dict([(region, False) for region in region_list])
         self._progress_dict = progress_dict
+
+    def nothing_to_download_but_not_finished(self) -> bool:
+        all_finished = self.finished_downloading_everything()
+        if all_finished:
+            return False
+
+        (
+            list_of_instruments,
+            region,
+        ) = self.list_of_instruments_and_region_to_download_now()
+
+        if len(list_of_instruments) == 0:
+            ## nothing to do right now
+            return True
+        else:
+            return False
 
     def list_of_instruments_and_region_to_download_now(self) -> Tuple[list, str]:
         for region in self.list_of_regions:
@@ -215,7 +234,7 @@ class downloadTimeManager:
         return now >= time_to_start
 
     def time_to_start_downloading(self, region: str) -> datetime.time:
-        time_str = self.download_by_zone[region]
+        time_str = self.download_times_by_zone[region]
         time_object = datetime.datetime.strptime(time_str, "%H:%M").time()
 
         return time_object
@@ -224,16 +243,23 @@ class downloadTimeManager:
         ## we don't use the getter here as we don't want to use a setter to update
         progress_dict = self._progress_dict
         progress_dict[region] = region
+        self._progress_dict = progress_dict  ## not strictly required, but...
 
     def finished_downloading_everything(self) -> bool:
-        progress_dict = self.progress_dict
-        finished = [progress_for_region for progress_for_region in progress_dict]
-        all_finished = all(finished)
+        list_of_progress_bool = self.list_of_progress
+        which_regions_are_finished = [
+            progress_for_region for progress_for_region in list_of_progress_bool
+        ]
+        all_finished = all(which_regions_are_finished)
 
         return all_finished
 
     @property
-    def list_of_regions(self):
+    def list_of_regions(self) -> List[str]:
+        return list(self.dict_of_instrument_codes_by_timezone.keys())
+
+    @property
+    def list_of_progress(self) -> List[bool]:
         return list(self.dict_of_instrument_codes_by_timezone.keys())
 
     @property
@@ -241,8 +267,8 @@ class downloadTimeManager:
         return self._progress_dict
 
     @property
-    def download_by_zone(self) -> dict:
-        return self._download_by_zone
+    def download_times_by_zone(self) -> dict:
+        return self._download_times_by_zone
 
     @property
     def dict_of_instrument_codes_by_timezone(self) -> dict:

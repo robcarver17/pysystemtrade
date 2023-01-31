@@ -313,8 +313,10 @@ class PdfOutputWithTempFileName:
 
     """
 
-    def __init__(self, data: dataBlob):
-        self._temp_file_name = _generate_temp_pdf_filename(data)
+    def __init__(self, data: dataBlob, reporting_directory=arg_not_supplied):
+        self._temp_file_name = _generate_temp_pdf_filename(
+            data, reporting_directory=reporting_directory
+        )
 
     def save_chart_close_and_return_figure(self) -> figure:
         with PdfPages(self.temp_file_name) as export_pdf:
@@ -331,8 +333,14 @@ class PdfOutputWithTempFileName:
 TEMPFILE_PATTERN = "_tempfile"
 
 
-def _generate_temp_pdf_filename(data: dataBlob) -> str:
-    use_directory = get_directory_for_reporting(data)
+def _generate_temp_pdf_filename(
+    data: dataBlob, reporting_directory=arg_not_supplied
+) -> str:
+    if reporting_directory is arg_not_supplied:
+        use_directory = get_directory_for_reporting(data)
+    else:
+        use_directory = reporting_directory
+
     use_directory_resolved = get_resolved_pathname(use_directory)
     filename = "%s_%s.pdf" % (
         TEMPFILE_PATTERN,
