@@ -184,7 +184,7 @@ class downloadTimeManager:
     def __init__(
         self, dict_of_instrument_codes_by_timezone: dict, download_by_zone: dict
     ):
-
+        # keys of each dict must match
         self._download_times_by_zone = download_by_zone
         self._dict_of_instrument_codes_by_timezone = (
             dict_of_instrument_codes_by_timezone
@@ -256,11 +256,11 @@ class downloadTimeManager:
 
     @property
     def list_of_regions(self) -> List[str]:
-        return list(self.dict_of_instrument_codes_by_timezone.keys())
+        return list(self.progress_dict.keys())
 
     @property
     def list_of_progress(self) -> List[bool]:
-        return list(self.dict_of_instrument_codes_by_timezone.values())
+        return list(self.progress_dict.values())
 
     @property
     def progress_dict(self) -> dict:
