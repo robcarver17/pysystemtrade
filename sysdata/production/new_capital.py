@@ -169,9 +169,9 @@ class capitalData(baseData):
         try:
             capital_df = self.get_capital_pd_df_for_strategy(strategy_name)
         except missingData:
-            capital_df = missing_data
-
-        capital_series = df_to_series(capital_df)
+            capital_series = pd.Series(dtype=float)
+        else:
+            capital_series = df_to_series(capital_df)
 
         new_capital_item = pd.Series([new_capital_value], [date])
         updated_capital_series = pd.concat([capital_series, new_capital_item], axis=0)
@@ -223,9 +223,7 @@ class capitalData(baseData):
 
 
 def df_to_series(x: pd.DataFrame) -> pd.Series:
-    if x is missing_data:
-        y = pd.Series(dtype=float)
-    elif len(x) == 1:
+    if len(x) == 1:
         y = pd.Series(float(x.values[0]), index=x.index)
     else:
         y = x.squeeze()
