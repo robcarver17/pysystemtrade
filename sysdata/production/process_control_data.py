@@ -6,7 +6,7 @@ from sysobjects.production.process_control import (
     controlProcess,
     was_running_pid_notok_closed,
 )
-from syscore.constants import named_object, missing_data, success
+from syscore.constants import named_object, success
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
 
@@ -42,7 +42,10 @@ class controlProcessData(baseData):
     def _get_control_for_process_name_without_default(
         self, process_name
     ) -> controlProcess:
-        control = self._control_store.get(process_name, missing_data)
+        try:
+            control = self._control_store[process_name]
+        except KeyError:
+            raise missingData("Process %s not found in control store" % process_name)
         return control
 
     def _update_control_for_process_name(self, process_name, new_control_object):
