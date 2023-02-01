@@ -68,8 +68,8 @@ def _prepare_returns_data_for_t_test(
     return standardised_df_returns
 
 
-def get_system_level_results(system):
-    acc = system.accounts.portfolio().percent
+def standard_statistics(account_curve: accountCurve):
+    acc = account_curve.percent
     costs = acc.costs.ann_mean()
     print("Ann Mean %.1f" % acc.ann_mean())
     print("Gross ann mean %.1f" % acc.gross.ann_mean())
