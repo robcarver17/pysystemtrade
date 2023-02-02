@@ -303,6 +303,7 @@ PRECIOUS_small,Small precious metals,100,USD,Metals,0,0,0,0,US
 R1000,E-Mini Russell 1000 Value Index Futures,50,USD,Equity,0.4,1.5,0,0,US
 R1000GROWTH-mini,E-mini Russell 1000 Growth Index Futures,50,USD,Equity,0.4,0.85,0,0,US
 R1000_mini,E-mini Russell 1000 Index Futures,50,USD,Equity,0.45,0.85,0,0,US
+RAPESEED,European Rapeseed Future,50,EUR,Ags,0,0,0,0,EMEA
 REDWHEAT,Hard Red Winter Wheat -KCBOT-,50,USD,Ags,0.3,2.9,0,0,US
 RICE,Rough Rice,2000,USD,Ags,0.022,1.5,0,0,US
 ROBUSTA,Robusta Coffee,10,USD,Ags,0.5,3,0,0,EMEA
@@ -405,4 +406,5 @@ WHEAT_mini,Wheat mini,10,USD,Ags,0.5,2.9,0,0,US
 WHEY,CME DRY WHEY INDEX ,440,USD,Ags,0.25,3,0,0,US
 WTI_small,Small US Crude Oil,100,USD,OilGas,0,2.85,0,0,US
 YENEUR,YENEUR currency,125000,JPY,FX,0.011,85,0,0,US
+ZAR,South African Rand,500000,USD,FX,0,0,0,0,US
 ZINC_LME,Zinc – LME,25,USD,Metals,0,0,0,0,EMEA
