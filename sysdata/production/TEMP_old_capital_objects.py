@@ -94,11 +94,7 @@ class capitalData(listOfEntriesData):
     def get_date_of_last_entry_for_strategy(
         self, strategy_name: str
     ) -> datetime.datetime:
-        try:
-            current_capital_entry = self.get_last_entry_for_strategy(strategy_name)
-        except missingData:
-            return missing_data
-
+        current_capital_entry = self.get_last_entry_for_strategy(strategy_name)
         entry_date = current_capital_entry.date
 
         return entry_date
@@ -234,8 +230,11 @@ class capitalData(listOfEntriesData):
     ):
         have_capital_to_delete = True
         while have_capital_to_delete:
-            last_date_in_data = self.get_date_of_last_entry_for_strategy(strategy_name)
-            if last_date_in_data is missing_data:
+            try:
+                last_date_in_data = self.get_date_of_last_entry_for_strategy(
+                    strategy_name
+                )
+            except missingData:
                 ## gone to the start, nothing left
                 break
             if last_date_in_data < start_date:
