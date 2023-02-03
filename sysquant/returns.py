@@ -1,12 +1,12 @@
 import pandas as pd
 import numpy as np
 
-import syscore.pandas.list_of_df
 from systems.accounts.curves.account_curve_group import accountCurveGroup
 from syscore.genutils import flatten_list
 from syscore.dateutils import ROOT_BDAYS_INYEAR
 
 from syscore.pandas.list_of_df import listOfDataFrames
+from syscore.pandas.list_of_df import stacked_df_with_added_time_from_list
 
 SINGLE_NAME = "asset"
 
@@ -129,8 +129,8 @@ class dictOfReturnsForOptimisation(dict):
             returns_as_list_downsampled.reindex_to_common_index()
         )
 
-        returns_for_optimisation = (
-            syscore.pandas.list_of_df.stacked_df_with_added_time_from_list()
+        returns_for_optimisation = stacked_df_with_added_time_from_list(
+            returns_as_list_common_ts
         )
         returns_for_optimisation = returnsForOptimisation(
             returns_for_optimisation, frequency=frequency, pooled_length=pooled_length
