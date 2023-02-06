@@ -229,8 +229,8 @@ class RawData(SystemStage):
         """
         denom_price = self.daily_denominator_price(instrument_code)
         return_vol = self.daily_returns_volatility(instrument_code)
-        (denom_price, return_vol) = denom_price.align(return_vol, join="right").abs()
-        perc_vol = 100.0 * (return_vol / denom_price.ffill())
+        (denom_price, return_vol) = denom_price.align(return_vol, join="right")
+        perc_vol = 100.0 * (return_vol / denom_price.ffill().abs())
 
         return perc_vol
 
