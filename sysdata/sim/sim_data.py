@@ -3,7 +3,6 @@ import datetime
 
 from syscore.exceptions import missingData
 from syscore.objects import get_methods
-from syscore.constants import missing_data
 from syscore.dateutils import ARBITRARY_START
 from syscore.pandas.frequency import (
     get_intraday_pdf_at_frequency,
