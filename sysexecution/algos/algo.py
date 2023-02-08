@@ -1,7 +1,7 @@
 from copy import copy
 from dataclasses import dataclass
 
-from syscore.exceptions import missingContract
+from syscore.exceptions import missingContract, missingData
 from syscore.constants import missing_data, arg_not_supplied
 from sysexecution.orders.named_order_objects import missing_order
 
@@ -165,20 +165,20 @@ class Algo(object):
         log = contract_order.log_with_attributes(self.data.log)
 
         # Get the first 'reference' tick
-        reference_tick = (
-            ticker_object.wait_for_valid_bid_and_ask_and_return_current_tick(
-                wait_time_seconds=10
+        try:
+            reference_tick = (
+                ticker_object.wait_for_valid_bid_and_ask_and_return_current_tick(
+                    wait_time_seconds=10
+                )
             )
-        )
-
-        tick_analysis = ticker_object.analyse_for_tick(reference_tick)
-
-        if tick_analysis is missing_data:
+        except missingData:
             log.warn(
                 "Can't get market data for %s so not trading with limit order %s"
                 % (contract_order.instrument_code, str(contract_order))
             )
             return missing_data
+
+        tick_analysis = ticker_object.analyse_for_tick(reference_tick)
 
         ticker_object.clear_and_add_reference_as_first_tick(reference_tick)
 
