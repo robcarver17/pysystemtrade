@@ -1,8 +1,8 @@
 import pandas as pd
 import datetime
 
+from syscore.exceptions import missingData
 from syscore.objects import get_methods
-from syscore.constants import missing_data
 from syscore.dateutils import ARBITRARY_START
 from syscore.pandas.frequency import (
     get_intraday_pdf_at_frequency,
@@ -79,9 +79,9 @@ class simData(baseData):
         return self._parent
 
     def start_date_for_data(self):
-        start_date = getattr(self, "_start_date_for_data_from_config", missing_data)
-
-        if start_date is missing_data:
+        try:
+            start_date = getattr(self, "_start_date_for_data_from_config")
+        except AttributeError:
             start_date = self._get_and_set_start_date_for_data_from_config()
         return start_date
 
@@ -296,29 +296,26 @@ class simData(baseData):
 
 def _resolve_start_date(sim_data: simData):
 
-    config = _resolve_config(sim_data)
-
-    if config is missing_data:
-        start_date = missing_data
-    else:
-        start_date = getattr(config, "start_date", missing_data)
-
-    if start_date is missing_data:
+    try:
+        config = _resolve_config(sim_data)
+    except missingData:
         start_date = ARBITRARY_START
     else:
-        if isinstance(start_date, datetime.date):
-            # yaml parses unquoted date like 2000-01-01 to datetime.date
-            start_date = datetime.datetime.combine(
-                start_date, datetime.datetime.min.time()
+        start_date = getattr(config, "start_date", ARBITRARY_START)
+
+    if isinstance(start_date, datetime.date):
+        # yaml parses unquoted date like 2000-01-01 to datetime.date
+        start_date = datetime.datetime.combine(
+            start_date, datetime.datetime.min.time()
+        )
+    elif not isinstance(start_date, datetime.datetime):
+        try:
+            start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        except:
+            raise Exception(
+                "Parameter start_date %s in config file does not conform to pattern 2020-03-19"
+                % str(start_date)
             )
-        elif not isinstance(start_date, datetime.datetime):
-            try:
-                start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-            except:
-                raise Exception(
-                    "Parameter start_date %s in config file does not conform to pattern 2020-03-19"
-                    % str(start_date)
-                )
 
     return start_date
 
@@ -327,5 +324,5 @@ def _resolve_config(sim_data: simData):
     try:
         config = sim_data.parent.config
         return config
-    except:
-        return missing_data
+    except AttributeError:
+        raise missingData
