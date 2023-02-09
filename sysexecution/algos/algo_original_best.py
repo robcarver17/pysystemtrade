@@ -4,6 +4,7 @@ This is the original 'best execution' algo I used in my legacy system
 from typing import Union
 
 from syscore.constants import missing_data, market_closed
+from syscore.exceptions import missingData
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.data_blob import dataBlob
@@ -353,15 +354,17 @@ def required_to_switch_to_aggressive(reason):
 def adverse_size_issue(
     ticker_object: tickerObject, log: logger, wait_for_valid_tick=False
 ) -> bool:
+    try:
+        if wait_for_valid_tick:
+            # FIXME: THIS CAN RETURN missing_data; REFACTOR TO DEAL WITH EXCEPTIONS INSTEAD
+            current_tick_analysis = (
+                ticker_object.wait_for_valid_bid_and_ask_and_analyse_current_tick()
+            )
+        else:
+             current_tick_analysis = ticker_object.current_tick_analysis
+    except missingData:
+        current_tick_analysis = missing_data
 
-    if wait_for_valid_tick:
-        current_tick_analysis = (
-            ticker_object.wait_for_valid_bid_and_ask_and_analyse_current_tick()
-        )
-    else:
-        current_tick_analysis = ticker_object.current_tick_analysis
-
-    ## FIXME: REFACTOR SO DEALS WITH EXCEPTIONS
     if current_tick_analysis is missing_data:
         ## serious problem with data, return True so switch to market order
         ## most likely case is order will be cancelled which is fine
