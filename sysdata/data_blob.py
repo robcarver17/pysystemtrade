@@ -124,11 +124,11 @@ class dataBlob(object):
     def _add_ib_class(self, class_object):
         log = self._get_specific_logger(class_object)
         try:
-            resolved_instance = class_object(self.ib_conn, log=log)
+            resolved_instance = class_object(self.ib_conn, self, log=log)
         except Exception as e:
             class_name = get_class_name(class_object)
             msg = (
-                "Error %s couldn't evaluate %s(self.ib_conn, log = self.log.setup(component = %s)) This might be because (a) IB gateway not running, or (b) import is missing\
+                "Error %s couldn't evaluate %s(self.ib_conn, self, log = self.log.setup(component = %s)) This might be because (a) IB gateway not running, or (b) import is missing\
                          or (c) arguments don't follow pattern"
                 % (str(e), class_name, class_name)
             )

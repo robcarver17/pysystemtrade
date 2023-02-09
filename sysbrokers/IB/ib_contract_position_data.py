@@ -1,7 +1,7 @@
 from syscore.exceptions import missingContract
 from syslogdiag.log_to_screen import logtoscreen
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
-
+from sysdata.data_blob import dataBlob
 from sysbrokers.IB.client.ib_positions_client import ibPositionsClient
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_connection import connectionIB
@@ -15,10 +15,18 @@ from sysobjects.contracts import futuresContract
 
 class ibContractPositionData(brokerContractPositionData):
     def __init__(
-        self, ibconnection: connectionIB, log=logtoscreen("ibContractPositionData")
+        self,
+        ibconnection: connectionIB,
+        data_blob: dataBlob,
+        log=logtoscreen("ibContractPositionData"),
     ):
-        self._ibconnection = ibconnection
         super().__init__(log=log)
+        self._ibconnection = ibconnection
+        self._dataBlob = data_blob
+
+    @property
+    def data(self):
+        return self._dataBlob
 
     @property
     def ibconnection(self) -> connectionIB:
@@ -39,11 +47,11 @@ class ibContractPositionData(brokerContractPositionData):
 
     @property
     def futures_contract_data(self) -> ibFuturesContractData:
-        return ibFuturesContractData(self.ibconnection, log=self.log)
+        return self.data.broker_futures_contract
 
     @property
     def futures_instrument_data(self) -> ibFuturesInstrumentData:
-        return ibFuturesInstrumentData(self.ibconnection, log=self.log)
+        return self.data.broker_futures_instrument
 
     def get_all_current_positions_as_list_with_contract_objects(
         self, account_id=arg_not_supplied
