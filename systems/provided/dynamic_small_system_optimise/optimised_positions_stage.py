@@ -3,19 +3,17 @@ from copy import copy
 
 import pandas as pd
 
-from sysquant.estimators.stdev_estimator import stdevEstimates, seriesOfStdevEstimates
+from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.estimators.correlations import (
     correlationEstimate,
-    create_boring_corr_matrix,
-    CorrelationList,
 )
 from sysquant.estimators.covariance import (
-    covarianceEstimate,
     covariance_from_stdev_and_correlation,
 )
-from syscore.genutils import progressBar
-from syscore.objects import arg_not_supplied, missing_data
-from syscore.pdutils import calculate_cost_deflator, get_row_of_series
+from syscore.interactive.progress_bar import progressBar
+from syscore.constants import arg_not_supplied
+from syscore.pandas.find_data import get_row_of_series
+from syscore.pandas.strategy_functions import calculate_cost_deflator
 from systems.provided.dynamic_small_system_optimise.optimisation import (
     objectiveFunctionForGreedy,
     constraintsForDynamicOpt,
@@ -58,8 +56,8 @@ class optimisedPositions(SystemStage):
         progress = progressBar(
             len(common_index),
             suffix="Optimising positions",
-            show_timings=True,
             show_each_time=True,
+            show_timings=True,
         )
         previous_optimal_positions = portfolioWeights.allzeros(self.instrument_list())
         position_list = []
@@ -71,7 +69,7 @@ class optimisedPositions(SystemStage):
             position_list.append(optimal_positions)
             previous_optimal_positions = copy(optimal_positions)
             progress.iterate()
-        progress.finished()
+        progress.close()
         position_df = pd.DataFrame(position_list, index=common_index)
 
         return position_df

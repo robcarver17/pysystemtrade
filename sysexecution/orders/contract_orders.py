@@ -3,12 +3,10 @@ import datetime
 
 from sysexecution.orders.base_orders import (
     Order,
-    no_order_id,
-    no_children,
-    no_parent,
     resolve_inputs_to_order,
     orderType,
 )
+from sysexecution.orders.named_order_objects import no_order_id, no_children, no_parent
 
 from sysexecution.trade_qty import tradeQuantity
 
@@ -17,8 +15,11 @@ from sysobjects.production.tradeable_object import (
     instrumentStrategy,
     futuresContract,
 )
-from syscore.genutils import none_to_object, object_to_none
-from syscore.objects import success
+from syscore.genutils import (
+    if_empty_string_return_object,
+    if_object_matches_return_empty_string,
+)
+from syscore.constants import success
 
 
 class contractOrderType(orderType):
@@ -143,9 +144,13 @@ class contractOrder(Order):
         fill_datetime = order_as_dict.pop("fill_datetime")
 
         locked = order_as_dict.pop("locked")
-        order_id = none_to_object(order_as_dict.pop("order_id"), no_order_id)
-        parent = none_to_object(order_as_dict.pop("parent"), no_parent)
-        children = none_to_object(order_as_dict.pop("children"), no_children)
+        order_id = if_empty_string_return_object(
+            order_as_dict.pop("order_id"), no_order_id
+        )
+        parent = if_empty_string_return_object(order_as_dict.pop("parent"), no_parent)
+        children = if_empty_string_return_object(
+            order_as_dict.pop("children"), no_children
+        )
         active = order_as_dict.pop("active")
         order_type = order_as_dict.pop("order_type", None)
         order_type = contractOrderType(order_type)
@@ -284,8 +289,12 @@ class contractOrder(Order):
         new_log = log.setup(
             strategy_name=self.strategy_name,
             instrument_code=self.instrument_code,
-            contract_order_id=object_to_none(self.order_id, no_order_id),
-            instrument_order_id=object_to_none(self.parent, no_parent, 0),
+            contract_order_id=if_object_matches_return_empty_string(
+                self.order_id, no_order_id
+            ),
+            instrument_order_id=if_object_matches_return_empty_string(
+                self.parent, no_parent
+            ),
         )
 
         return new_log

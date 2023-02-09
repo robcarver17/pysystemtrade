@@ -1,5 +1,5 @@
 from enum import Enum
-from syscore.objects import named_object
+from syscore.constants import named_object
 
 RollState = Enum(
     "RollState",
@@ -81,3 +81,6 @@ def allowable_roll_state_from_current_and_position(
         raise Exception("State plus position %s not recognised" % status_plus_position)
 
     return allowable_states
+
+
+ALL_ROLL_INSTRUMENTS = "ALL"

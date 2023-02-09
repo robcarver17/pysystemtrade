@@ -5,7 +5,7 @@ import pandas as pd
 from systems.stage import SystemStage
 from syscore.objects import resolve_function
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.pdutils import prices_to_daily_prices
+from syscore.exceptions import missingData
 from systems.system_cache import input, diagnostic, output
 
 from sysdata.sim.futures_sim_data import futuresSimData
@@ -230,7 +230,7 @@ class RawData(SystemStage):
         denom_price = self.daily_denominator_price(instrument_code)
         return_vol = self.daily_returns_volatility(instrument_code)
         (denom_price, return_vol) = denom_price.align(return_vol, join="right")
-        perc_vol = 100.0 * (return_vol / denom_price.ffill())
+        perc_vol = 100.0 * (return_vol / denom_price.ffill().abs())
 
         return perc_vol
 
@@ -406,7 +406,7 @@ class RawData(SystemStage):
 
         instrcarrydata = self.parent.data.get_instrument_raw_carry_data(instrument_code)
         if len(instrcarrydata) == 0:
-            raise Exception(
+            raise missingData(
                 "Data for %s not found! Remove from instrument list, or add to config.ignore_instruments"
                 % instrument_code
             )
@@ -640,7 +640,15 @@ class RawData(SystemStage):
         2015-12-11    97.9875
         Freq: B, Name: PRICE, dtype: float64
         """
-        prices = self.get_instrument_raw_carry_data(instrument_code).PRICE
+        try:
+            prices = self.get_instrument_raw_carry_data(instrument_code).PRICE
+        except missingData:
+            self.log.warn(
+                "No carry data found for %s, using adjusted prices to calculate percentage returns"
+                % instrument_code
+            )
+            return self.get_daily_prices(instrument_code)
+
         daily_prices = prices.resample("1B").last()
 
         return daily_prices

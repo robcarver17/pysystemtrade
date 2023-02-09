@@ -1,6 +1,6 @@
 from copy import copy
 
-from syscore.objects import ALL_ROLL_INSTRUMENTS
+from sysobjects.production.roll_state import ALL_ROLL_INSTRUMENTS
 
 
 class reportConfig(object):

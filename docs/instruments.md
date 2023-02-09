@@ -311,6 +311,11 @@ system.get_list_of_bad_markets()
 ```
 
 
+### Automatically excluded
+
+It's also possible that there are some instruments that have zero positions. The most likely explanation for this is that you have set a speed limit on trading costs, and there are no trading rules that are cheap enough to trade the given instrument. These are automatically added to the list of markets given a zero weight for optimisation. 
+
+
 ## Customising the list of 'all instruments' and 'excluded for optimisation'
 
 If you make two calls to system *before you do anything else with a system* you can decide exactly what is, or is not, included in the instrument lists. The following calls will reproduce the default system behaviour, but you can modify them if desired. IMPORTANT: they must be called in this order if you want to change the instrument_list() call.
@@ -337,7 +342,7 @@ system.get_list_of_markets_not_trading_but_with_data(
 ```
 
 
-# Operating in production 
+# Operating in production environment
 
 Operating in the production environment is a bit more complex, due to the interaction of configuration files, the way that constraints operate, and the possibility of pulling in additional constraints from a database.
 

@@ -2,7 +2,7 @@
 Simplest possible execution method, one market order
 """
 from copy import copy
-from syscore.objects import missing_order
+from sysexecution.orders.named_order_objects import missing_order
 from sysproduction.data.broker import dataBroker
 
 from sysexecution.algos.algo import Algo, limit_price_from_input, limit_order_type

@@ -1,12 +1,13 @@
 import pandas as pd
 
-from syscore.objects import arg_not_supplied
-from syscore.merge_data import (
-    full_merge_of_existing_data_no_checks,
+from syscore.constants import arg_not_supplied
+from syscore.pandas.merge_data_keeping_past_data import (
     merge_newer_data_no_checks,
     spike_check_merged_data,
 )
-
+from syscore.pandas.full_merge_with_replacement import (
+    full_merge_of_existing_data_no_checks,
+)
 
 NO_SPIKE_CHECKING = 9999999999.0
 
@@ -63,7 +64,7 @@ def manual_price_checker(
 
         merged_data_with_status = spike_check_merged_data(
             merged_data_with_status,
-            column_to_check=column_to_check,
+            column_to_check_for_spike=column_to_check,
             max_spike=max_price_spike,
         )
         spike_present = merged_data_with_status.spike_present
@@ -73,7 +74,7 @@ def manual_price_checker(
             data_iterating = False
             break
 
-        first_spike = merged_data_with_status.date_of_spike
+        first_spike = merged_data_with_status.spike_date
         merged_data = merged_data_with_status.merged_data
 
         position_of_spike_in_newdata = list(new_data.index).index(first_spike)

@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.exceptions import missingContract
-from syscore.genutils import progressBar
+from syscore.interactive.progress_bar import progressBar
 
 from sysdata.data_blob import dataBlob
 
@@ -359,7 +359,7 @@ def get_table_of_SR_costs(
         )
         p.iterate()
 
-    p.finished()
+    p.close()
     SR_costs = pd.DataFrame(SR_costs)
     SR_costs = SR_costs.transpose()
     SR_costs = SR_costs.sort_values("SR_cost", ascending=False)

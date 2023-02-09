@@ -2,10 +2,12 @@ import matplotlib.pyplot as pyplot
 
 import pandas as pd
 
-from syscore.fileutils import file_in_home_dir
-from syscore.objects import user_exit, missing_data
-from syscore.interactive import print_menu_of_values_and_get_response
-from syscore.interactively_run_functions import fill_args_and_run_func
+from syscore.fileutils import full_filename_for_file_in_home_dir
+from syscore.constants import missing_data, user_exit
+from syscore.interactive.menus import print_menu_of_values_and_get_response
+from syscore.interactive.run_functions import (
+    interactively_input_arguments_for_function,
+)
 
 
 class interactiveBacktest(object):
@@ -107,7 +109,7 @@ class interactiveBacktest(object):
         data = self.interactively_get_data_for_stage_and_method()
         if data is user_exit or data is missing_data:
             return data
-        filename = file_in_home_dir("temp.html")
+        filename = full_filename_for_file_in_home_dir("temp.html")
         try:
             data_as_pd = pd.DataFrame(data)
             data_as_pd.to_html(filename)
@@ -165,7 +167,7 @@ class interactiveBacktest(object):
 
     def get_result_of_method_for_stage(self, stage_name, method_name):
         func = self.get_method_for_stage(stage_name, method_name)
-        args, kwargs = fill_args_and_run_func(func, method_name)
+        args, kwargs = interactively_input_arguments_for_function(func, method_name)
         try:
             ans = func(*args, **kwargs)
         except Exception as e:

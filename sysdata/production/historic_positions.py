@@ -1,5 +1,7 @@
 import pandas as pd
-from syscore.objects import arg_not_supplied, missing_data
+
+from syscore.exceptions import missingData
+from syscore.constants import arg_not_supplied
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 
 from sysdata.production.timed_storage import (
@@ -69,10 +71,13 @@ class strategyPositionData(listOfEntriesData):
         self, instrument_strategy: instrumentStrategy
     ) -> int:
 
-        position_entry = self.get_current_position_entry_for_instrument_strategy_object(
-            instrument_strategy
-        )
-        if position_entry is missing_data:
+        try:
+            position_entry = (
+                self.get_current_position_entry_for_instrument_strategy_object(
+                    instrument_strategy
+                )
+            )
+        except missingData:
             return 0
         else:
             # ignore warning it's because we dynamically assign attributes
@@ -273,10 +278,11 @@ class contractPositionData(listOfEntriesData):
         return df_object
 
     def get_current_position_for_contract_object(self, contract_object):
-        position_entry = self.get_current_position_entry_for_contract_object(
-            contract_object
-        )
-        if position_entry is missing_data:
+        try:
+            position_entry = self.get_current_position_entry_for_contract_object(
+                contract_object
+            )
+        except missingData:
             return 0.0
 
         return position_entry.position
@@ -413,8 +419,9 @@ class contractPositionData(listOfEntriesData):
         end_date: datetime.datetime,
     ) -> bool:
 
-        df_positions = self.get_position_as_df_for_contract_object(contract)
-        if df_positions is missing_data:
+        try:
+            df_positions = self.get_position_as_df_for_contract_object(contract)
+        except missingData:
             return False
         any_positions = any_positions_since_start_date(
             df_positions, start_date, end_date

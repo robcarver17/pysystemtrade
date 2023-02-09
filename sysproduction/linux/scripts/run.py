@@ -9,7 +9,9 @@ import sys
 
 # import of system libraries required to make this work
 
-from syscore.interactively_run_functions import fill_args_and_run_func
+from syscore.interactive.run_functions import (
+    interactively_input_arguments_for_function,
+)
 
 
 def resolve_func(func_reference_name):
@@ -59,7 +61,7 @@ if __name__ == "__main__":
     func = resolve_func(func_reference_name)
 
     # get arguments
-    args, kwargs = fill_args_and_run_func(func, func_reference_name)
+    args, kwargs = interactively_input_arguments_for_function(func, func_reference_name)
 
     # call the function
     func(*args, **kwargs)

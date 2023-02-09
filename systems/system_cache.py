@@ -12,7 +12,7 @@ There are 3 kinds of things in a cache with different levels of persistence:
 
 """
 
-from syscore.fileutils import get_filename_for_package
+from syscore.fileutils import resolve_path_and_filename_for_package
 import pickle
 from functools import wraps
 
@@ -207,7 +207,7 @@ class systemCache(dict):
 
         """
 
-        filename = get_filename_for_package(relativefilename)
+        filename = resolve_path_and_filename_for_package(relativefilename)
 
         pickable_cache_refs = self._get_pickable_items()
 
@@ -246,7 +246,7 @@ class systemCache(dict):
 
         """
 
-        filename = get_filename_for_package(relativefilename)
+        filename = resolve_path_and_filename_for_package(relativefilename)
 
         with open(filename, "rb") as fhandle:
             cache_from_pickled = pickle.load(fhandle)

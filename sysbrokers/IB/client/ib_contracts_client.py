@@ -85,7 +85,7 @@ class ibContractsClient(ibClient):
             )
         except missingContract:
             specific_log.warn("Contract is missing can't get expiry")
-            raise
+            raise missingContract
 
         expiry_date = ibcontract.lastTradeDateOrContractMonth
 
@@ -396,6 +396,7 @@ class ibContractsClient(ibClient):
 
         return ibcontract_with_legs
 
+    ## FIXME USE GENERIC CACHING CODE
     @property
     def cache(self) -> Cache:
         ## dynamically create because don't have access to __init__ method

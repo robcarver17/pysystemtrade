@@ -8,13 +8,9 @@ from syscore.dateutils import (
     calculate_start_and_end_dates,
     get_date_from_period_and_end_date,
 )
-from syscore.objects import (
-    arg_not_supplied,
-    missing_data,
-    body_text,
-    ALL_ROLL_INSTRUMENTS,
-)
-from syscore.pdutils import top_and_tail
+from syscore.constants import missing_data, arg_not_supplied
+from sysobjects.production.roll_state import ALL_ROLL_INSTRUMENTS
+from syscore.pandas.pdutils import top_and_tail
 from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import annonate_df_index_with_positions_held
@@ -31,6 +27,7 @@ from sysproduction.reporting.reporting_functions import (
     table,
     PdfOutputWithTempFileName,
     figure,
+    body_text,
 )
 from sysproduction.reporting.data.costs import (
     get_table_of_SR_costs,

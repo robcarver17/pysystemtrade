@@ -3,23 +3,21 @@ from sysobjects.production.trading_hours.trading_hours import (
     tradingHours,
     listOfTradingHours,
 )
-from syscore.interactive import (
-    get_and_convert,
-    run_interactive_menu,
-    print_menu_of_values_and_get_response,
-    print_menu_and_get_response,
+from syscore.interactive.input import (
+    get_input_from_user_and_convert_to_type,
     true_if_answer_is_yes,
-    get_report_dates,
 )
-from syscore.genutils import progressBar
-from syscore.pdutils import set_pd_print_options
-from syscore.objects import (
-    user_exit,
-    arg_not_supplied,
-    ALL_ROLL_INSTRUMENTS,
-    missing_data,
+from syscore.interactive.progress_bar import progressBar
+from syscore.interactive.date_input import get_report_dates
+from syscore.interactive.menus import (
+    interactiveMenu,
+    print_menu_of_values_and_get_response,
+    print_menu_and_get_desired_option_index,
 )
-from syscore.exceptions import missingContract
+from syscore.interactive.display import set_pd_print_options
+from syscore.constants import missing_data, arg_not_supplied, user_exit
+from sysobjects.production.roll_state import ALL_ROLL_INSTRUMENTS
+from syscore.exceptions import missingContract, missingData
 from sysexecution.orders.list_of_orders import listOfOrders
 
 from sysdata.data_blob import dataBlob
@@ -74,23 +72,11 @@ def interactive_diagnostics():
     print("\n\n INTERACTIVE DIAGNOSTICS\n\n")
     set_pd_print_options()
     with dataBlob(log_name="Interactive-Diagnostics") as data:
-        menu = run_interactive_menu(
-            top_level_menu_of_options,
-            nested_menu_of_options,
-            exit_option=-1,
-            another_menu=-2,
+        set_pd_print_options()
+        menu = interactiveMenu(
+            top_level_menu_of_options, nested_menu_of_options, dict_of_functions, data
         )
-        still_running = True
-        while still_running:
-            option_chosen = menu.propose_options_and_get_input()
-            if option_chosen == -1:
-                print("FINISHED")
-                return None
-            if option_chosen == -2:
-                continue
-
-            method_chosen = dict_of_functions[option_chosen]
-            method_chosen(data)
+        menu.run_menu()
 
 
 top_level_menu_of_options = {
@@ -305,12 +291,12 @@ def account_curve_report(data: dataBlob):
 
 
 def email_or_print_or_file(report_config):
-    ans = get_and_convert(
+    ans = get_input_from_user_and_convert_to_type(
         "1: Print or 2: email or 3: file or 4: email and file?",
         type_expected=int,
         allow_default=True,
-        default_str="Print",
         default_value=1,
+        default_str="Print",
     )
     if ans == 1:
         report_config = report_config.new_config_with_modified_output("console")
@@ -336,11 +322,11 @@ def view_errors(data):
     msg_levels = diag_logs.get_possible_log_level_mapping()
     print("This will get all log messages with a given level of criticality")
     print("Use view logs to filter by log attributes")
-    lookback_days = get_and_convert(
+    lookback_days = get_input_from_user_and_convert_to_type(
         "How many days?", type_expected=int, default_value=7
     )
     print("Which level of error/message?")
-    log_level = print_menu_and_get_response(msg_levels)
+    log_level = print_menu_and_get_desired_option_index(msg_levels)
     log_item_list = diag_logs.get_log_items_with_level(
         log_level, attribute_dict=dict(), lookback_days=lookback_days
     )
@@ -349,7 +335,7 @@ def view_errors(data):
 
 def view_logs(data):
     diag_logs = diagLogs(data)
-    lookback_days = get_and_convert(
+    lookback_days = get_input_from_user_and_convert_to_type(
         "How many days?", type_expected=int, default_value=7
     )
     attribute_dict = build_attribute_dict(diag_logs, lookback_days)
@@ -386,7 +372,7 @@ def build_attribute_dict(diag_logs, lookback_days):
             list_of_attribute_values
         )
         attribute_dict[attribute_name] = attribute_value
-        ans = input("Have you finished? (RETURN: No, anything else YES)")
+        ans = input("Have you close? (RETURN: No, anything else YES)")
         if not ans == "":
             not_finished = False
             break
@@ -463,8 +449,9 @@ def capital_strategy(data):
 
 def total_current_capital(data):
     data_capital = dataCapital(data)
-    capital_series = data_capital.get_series_of_all_global_capital()
-    if capital_series is missing_data:
+    try:
+        capital_series = data_capital.get_series_of_all_global_capital()
+    except missingData:
         print("No total capital in database")
         return None
     print(capital_series.tail(30))
@@ -488,10 +475,14 @@ def optimal_positions(data):
     instrument_strategy = instrumentStrategy(
         instrument_code=instrument_code, strategy_name=strategy_name
     )
-    data_series = optimal_data.get_optimal_position_as_df_for_instrument_strategy(
-        instrument_strategy
-    )
-    print(data_series)
+    try:
+        data_series = optimal_data.get_optimal_position_as_df_for_instrument_strategy(
+            instrument_strategy
+        )
+    except missingData:
+        print("missing data")
+    else:
+        print(data_series)
 
     return None
 
@@ -527,10 +518,14 @@ def actual_instrument_position(data):
         strategy_name=strategy_name, instrument_code=instrument_code
     )
 
-    pos_series = diag_positions.get_position_df_for_instrument_strategy(
-        instrument_strategy
-    )
-    print(pos_series)
+    try:
+        pos_series = diag_positions.get_position_df_for_instrument_strategy(
+            instrument_strategy
+        )
+    except missingData:
+        print("missing data")
+    else:
+        print(pos_series)
     return None
 
 
@@ -553,8 +548,12 @@ def actual_contract_position(data):
     # ignore warnings can be str
     contract = futuresContract(instrument_code, contract_date_str)
 
-    pos_series = diag_positions.get_position_df_for_contract(contract)
-    print(pos_series)
+    try:
+        pos_series = diag_positions.get_position_df_for_contract(contract)
+    except missingData:
+        print("missing data")
+    else:
+        print(pos_series)
     return None
 
 
@@ -615,7 +614,7 @@ def view_individual_order(data):
     ]
     print("Which order queue?")
     order_type = print_menu_of_values_and_get_response(list_of_order_types)
-    order_id = get_and_convert(
+    order_id = get_input_from_user_and_convert_to_type(
         "Order number?", type_expected=int, default_value=None, default_str="CANCEL"
     )
     if order_id is None:
@@ -737,7 +736,7 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied):
         check_trading_hours(trading_hours, instrument_code)
         all_trading_hours[instrument_code] = trading_hours
 
-    p.finished()
+    p.close()
 
     return all_trading_hours
 

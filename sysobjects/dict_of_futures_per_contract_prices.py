@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 import pandas as pd
 
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.constants import missing_data, arg_not_supplied
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 
 

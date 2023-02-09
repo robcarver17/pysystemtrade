@@ -2,8 +2,9 @@ from copy import copy
 import datetime
 import pandas as pd
 
-from syscore.objects import arg_not_supplied, failure, missing_data
-from syscore.pdutils import uniquets
+from syscore.exceptions import missingData
+from syscore.constants import arg_not_supplied, failure
+from syscore.pandas.pdutils import uniquets
 
 from sysdata.data_blob import dataBlob
 from sysdata.production.capital import capitalEntry, capitalForStrategy
@@ -82,8 +83,6 @@ class capitalData(listOfEntriesData):
 
     def get_current_capital_for_strategy(self, strategy_name: str) -> float:
         current_capital_entry = self.get_last_entry_for_strategy(strategy_name)
-        if current_capital_entry is missing_data:
-            return missing_data
 
         capital_value = current_capital_entry.capital_value
 
@@ -93,9 +92,6 @@ class capitalData(listOfEntriesData):
         self, strategy_name: str
     ) -> datetime.datetime:
         current_capital_entry = self.get_last_entry_for_strategy(strategy_name)
-        if current_capital_entry is missing_data:
-            return missing_data
-
         entry_date = current_capital_entry.date
 
         return entry_date
@@ -231,8 +227,11 @@ class capitalData(listOfEntriesData):
     ):
         have_capital_to_delete = True
         while have_capital_to_delete:
-            last_date_in_data = self.get_date_of_last_entry_for_strategy(strategy_name)
-            if last_date_in_data is missing_data:
+            try:
+                last_date_in_data = self.get_date_of_last_entry_for_strategy(
+                    strategy_name
+                )
+            except missingData:
                 ## gone to the start, nothing left
                 break
             if last_date_in_data < start_date:
@@ -350,14 +349,6 @@ class totalCapitalCalculationData(object):
         acc_pandl = self.get_profit_and_loss_account()
         broker_acc = self.get_broker_account()
 
-        if (
-            total_capital is missing_data
-            or max_capital is missing_data
-            or acc_pandl is missing_data
-            or broker_acc is missing_data
-        ):
-            return missing_data
-
         all_capital = pd.concat(
             [total_capital, max_capital, acc_pandl, broker_acc], axis=1
         )
@@ -419,8 +410,9 @@ class totalCapitalCalculationData(object):
     def _get_prev_broker_account_value_create_if_no_data(
         self, new_broker_account_value: float
     ) -> float:
-        prev_broker_account_value = self.capital_data.get_broker_account_value()
-        if prev_broker_account_value is missing_data:
+        try:
+            prev_broker_account_value = self.capital_data.get_broker_account_value()
+        except missingData:
             # No previous capital, need to set everything up
             self.create_initial_capital(
                 new_broker_account_value, are_you_really_sure=True
@@ -467,11 +459,13 @@ class totalCapitalCalculationData(object):
         :return: None
         """
 
-        prev_broker_account_value = self.capital_data.get_broker_account_value()
-        if prev_broker_account_value is missing_data:
+        try:
+            prev_broker_account_value = self.capital_data.get_broker_account_value()
+        except missingData:
             self._capital_data.log.warn(
                 "Can't apply a delta to broker account value, since no value in data"
             )
+            raise
 
         broker_account_value = prev_broker_account_value + delta_value
 

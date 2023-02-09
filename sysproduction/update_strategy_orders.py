@@ -1,4 +1,4 @@
-from syscore.interactive import print_menu_of_values_and_get_response
+from syscore.interactive.menus import print_menu_of_values_and_get_response
 from syscontrol.strategy_tools import strategyRunner
 
 from sysdata.data_blob import dataBlob
@@ -6,7 +6,6 @@ from sysproduction.data.control_process import get_list_of_strategies_for_proces
 from sysexecution.strategies.strategy_order_handling import (
     name_of_main_generator_method,
 )
-from sysproduction.data.strategies import get_valid_strategy_name_from_user
 
 process_name = "run_strategy_order_generator"
 

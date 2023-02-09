@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysbrokers.IB.client.ib_client import ibClient
 from sysbrokers.IB.ib_positions import from_ib_positions_to_dict, positionsFromIB
 

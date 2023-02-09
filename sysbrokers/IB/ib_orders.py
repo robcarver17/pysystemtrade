@@ -18,7 +18,9 @@ from sysbrokers.IB.ib_translate_broker_order_objects import (
 from sysbrokers.IB.client.ib_orders_client import ibOrdersClient
 from sysbrokers.broker_execution_stack import brokerExecutionStackData
 
-from syscore.objects import missing_order, failure, success, arg_not_supplied
+from syscore.constants import arg_not_supplied, success, failure
+from syscore.exceptions import orderCannotBeModified
+from sysexecution.orders.named_order_objects import missing_order
 
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.orders.list_of_orders import listOfOrders
@@ -404,25 +406,10 @@ class ibExecutionStackData(brokerExecutionStackData):
     def check_order_is_cancelled_given_control_object(
         self, broker_order_with_controls: ibOrderWithControls
     ) -> bool:
-        status = self._get_status_for_control_object(broker_order_with_controls)
+        status = self.get_status_for_control_object(broker_order_with_controls)
         cancellation_status = status == "Cancelled"
 
         return cancellation_status
-
-    def check_order_can_be_modified_given_control_object(
-        self, broker_order_with_controls: ibOrderWithControls
-    ) -> bool:
-        status = self._get_status_for_control_object(broker_order_with_controls)
-        modification_status = status in ["Submitted"]
-        return modification_status
-
-    def _get_status_for_control_object(
-        self, broker_order_with_controls: ibOrderWithControls
-    ) -> str:
-        original_trade_object = broker_order_with_controls.control_object.trade
-        status = self._get_status_for_trade_object(original_trade_object)
-
-        return status
 
     def _get_status_for_trade_object(self, original_trade_object: ibTrade) -> str:
         self.ib_client.refresh()
@@ -438,6 +425,12 @@ class ibExecutionStackData(brokerExecutionStackData):
         :param new_limit_price:
         :return:
         """
+
+        ## throws orderCannotBeModified
+        self.check_order_can_be_modified_given_control_object_throw_error_if_not(
+            broker_order_with_controls
+        )
+
         original_order_object = broker_order_with_controls.control_object.trade.order
         original_contract_object_with_legs = (
             broker_order_with_controls.control_object.ibcontract_with_legs
@@ -457,6 +450,26 @@ class ibExecutionStackData(brokerExecutionStackData):
         broker_order_with_controls.update_order()
 
         return broker_order_with_controls
+
+    def check_order_can_be_modified_given_control_object_throw_error_if_not(
+        self, broker_order_with_controls: ibOrderWithControls
+    ):
+        status = self.get_status_for_control_object(broker_order_with_controls)
+        STATUS_WE_CAN_MODIFY_IN = ["Submitted"]
+        can_be_modified = status in STATUS_WE_CAN_MODIFY_IN
+        if not can_be_modified:
+            raise orderCannotBeModified(
+                "Order can't be modified as status is %s, not in %s"
+                % (status, STATUS_WE_CAN_MODIFY_IN)
+            )
+
+    def get_status_for_control_object(
+        self, broker_order_with_controls: ibOrderWithControls
+    ) -> str:
+        original_trade_object = broker_order_with_controls.control_object.trade
+        status = self._get_status_for_trade_object(original_trade_object)
+
+        return status
 
 
 def add_trade_info_to_broker_order(

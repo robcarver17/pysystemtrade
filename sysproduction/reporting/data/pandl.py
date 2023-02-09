@@ -3,8 +3,8 @@ from collections import namedtuple
 
 import pandas as pd
 
-from syscore.exceptions import missingContract
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.exceptions import missingContract, missingData
+from syscore.constants import missing_data, arg_not_supplied
 from sysobjects.contracts import futuresContract
 from sysobjects.production.tradeable_object import instrumentStrategy
 
@@ -458,10 +458,11 @@ def get_position_series_for_instrument_strategy(data, instrument_code, strategy_
         strategy_name=strategy_name, instrument_code=instrument_code
     )
 
-    pos_series = diag_positions.get_position_df_for_instrument_strategy(
-        instrument_strategy
-    )
-    if pos_series is missing_data:
+    try:
+        pos_series = diag_positions.get_position_df_for_instrument_strategy(
+            instrument_strategy
+        )
+    except missingData:
         return pd.Series()
 
     return pd.Series(pos_series.position)
@@ -492,8 +493,9 @@ def get_position_series_for_contract(data, instrument_code: str, contract_id: st
     diag_positions = diagPositions(data)
     contract = futuresContract(instrument_code, contract_id)
 
-    pos_series = diag_positions.get_position_df_for_contract(contract)
-    if pos_series is missing_data:
+    try:
+        pos_series = diag_positions.get_position_df_for_contract(contract)
+    except missingData:
         return pd.Series()
 
     return pd.Series(pos_series.position)

@@ -3,11 +3,11 @@ from copy import copy
 import datetime
 
 from syscore.genutils import (
-    none_to_object,
-    object_to_none,
+    if_empty_string_return_object,
+    if_object_matches_return_empty_string,
     list_of_ints_with_highest_common_factor_positive_first,
 )
-from syscore.objects import no_order_id, no_children, no_parent
+from sysexecution.orders.named_order_objects import no_order_id, no_children, no_parent
 
 from sysexecution.trade_qty import tradeQuantity
 
@@ -384,9 +384,15 @@ class Order(object):
         object_dict["fill_datetime"] = self.fill_datetime
         object_dict["filled_price"] = self.filled_price
         object_dict["locked"] = self._locked
-        object_dict["order_id"] = object_to_none(self.order_id, no_order_id)
-        object_dict["parent"] = object_to_none(self.parent, no_parent)
-        object_dict["children"] = object_to_none(self.children, no_children)
+        object_dict["order_id"] = if_object_matches_return_empty_string(
+            self.order_id, no_order_id
+        )
+        object_dict["parent"] = if_object_matches_return_empty_string(
+            self.parent, no_parent
+        )
+        object_dict["children"] = if_object_matches_return_empty_string(
+            self.children, no_children
+        )
         object_dict["active"] = self.active
         object_dict["order_type"] = self.order_type.as_string()
         for info_key, info_value in self.order_info.items():
@@ -403,9 +409,13 @@ class Order(object):
         fill = order_as_dict.pop("fill")
         filled_price = order_as_dict.pop("filled_price")
         fill_datetime = order_as_dict.pop("fill_datetime")
-        order_id = none_to_object(order_as_dict.pop("order_id"), no_order_id)
-        parent = none_to_object(order_as_dict.pop("parent"), no_parent)
-        children = none_to_object(order_as_dict.pop("children"), no_children)
+        order_id = if_empty_string_return_object(
+            order_as_dict.pop("order_id"), no_order_id
+        )
+        parent = if_empty_string_return_object(order_as_dict.pop("parent"), no_parent)
+        children = if_empty_string_return_object(
+            order_as_dict.pop("children"), no_children
+        )
         active = order_as_dict.pop("active")
         order_type = orderType(order_as_dict.pop("order_type", None))
 

@@ -1,6 +1,6 @@
 CONTRACT_COLLECTION = "futures_contracts"
 
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.constants import arg_not_supplied
 from sysdata.futures.contracts import futuresContractData
 from sysobjects.contracts import (
     contract_key_from_code_and_id,
@@ -92,9 +92,6 @@ class mongoFuturesContractData(futuresContractData):
     def _get_contract_data_from_key_without_checking(self, key: str) -> futuresContract:
 
         result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(key)
-        if result_dict is missing_data:
-            # shouldn't happen...
-            raise Exception("Data for %s gone AWOL" % key)
 
         contract_object = futuresContract.create_from_dict(result_dict)
 

@@ -4,7 +4,7 @@ import datetime
 
 import pandas as pd
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
 
 

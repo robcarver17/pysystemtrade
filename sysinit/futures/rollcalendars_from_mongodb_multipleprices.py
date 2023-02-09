@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysobjects.roll_calendars import rollCalendar
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData

@@ -1,6 +1,7 @@
 import pandas as pd
 from syscore.dateutils import long_to_datetime, datetime_to_long
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.exceptions import missingData
+from syscore.constants import arg_not_supplied
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 
 from sysdata.production.margin import marginData, seriesOfMargin
@@ -44,10 +45,11 @@ class mongoMarginData(marginData):
         return series_of_margin
 
     def _get_data_dict_for_strategy_margin(self, strategy_name: str) -> dict:
-        data_dict = self.mongo_data.get_result_dict_for_key_without_key_value(
-            strategy_name
-        )
-        if data_dict is missing_data:
+        try:
+            data_dict = self.mongo_data.get_result_dict_for_key_without_key_value(
+                strategy_name
+            )
+        except missingData:
             return dict()
 
         return data_dict

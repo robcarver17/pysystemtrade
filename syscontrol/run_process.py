@@ -19,7 +19,7 @@ We kick them all off in the crontab at a specific time (midnight is easiest), bu
 import time
 import sys
 from syscontrol.report_process_status import reportProcessStatus
-from syscore.objects import success, failure, status
+from syscore.constants import status, success, failure
 
 from syscontrol.timer_functions import get_list_of_timer_functions, listOfTimerFunctions
 
@@ -122,24 +122,38 @@ class processToRun(object):
                     return None
 
                 we_should_pause = check_for_pause_and_log(self)
-                if not we_should_pause:
-                    timer_class.check_and_run()
+                if we_should_pause:
+                    continue
+
+                kwargs = self._kwargs_for_method_and_process(timer_class.method_name)
+                timer_class.check_and_run(**kwargs)
+
+    def _kwargs_for_method_and_process(self, method_name: str) -> dict:
+        return self.diag_process.get_configured_kwargs_for_process_name_and_method(
+            process_name=self.process_name, method=method_name
+        )
 
     def _finish(self):
-        self.list_of_timer_functions.run_methods_which_run_on_exit_only()
+        kwargs = self._kwargs_for_exit_only_method_and_process()
+        self.list_of_timer_functions.run_methods_which_run_on_exit_only(**kwargs)
         self._finish_control_process()
         self.data.close()
+
+    def _kwargs_for_exit_only_method_and_process(self) -> dict:
+        return self.diag_process.get_configured_kwargs_for_process_name_and_methods_that_run_on_completion(
+            self.process_name
+        )
 
     def _finish_control_process(self):
         result_of_finish = self.data_control.finish_process(self.process_name)
 
         if result_of_finish is failure:
             self.log.warn(
-                "Process %s won't finish in process control as already finished: weird!"
+                "Process %s won't finish in process control as already close: weird!"
                 % self.process_name
             )
         elif result_of_finish is success:
-            self.log.msg("Process control %s marked finished" % self.process_name)
+            self.log.msg("Process control %s marked close" % self.process_name)
 
 
 ### STARTUP CODE

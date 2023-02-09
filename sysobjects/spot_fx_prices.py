@@ -2,11 +2,11 @@ from collections import namedtuple
 
 import pandas as pd
 
-from syscore.merge_data import (
+from syscore.pandas.merge_data_keeping_past_data import (
     merge_newer_data,
-    full_merge_of_existing_data,
-    spike_in_data,
+    SPIKE_IN_DATA,
 )
+from syscore.pandas.full_merge_with_replacement import full_merge_of_existing_data
 
 
 class fxPrices(pd.Series):
@@ -81,8 +81,8 @@ class fxPrices(pd.Series):
         merged_fx_prices = merge_newer_data(
             self, new_fx_prices, check_for_spike=check_for_spike
         )
-        if merged_fx_prices is spike_in_data:
-            return spike_in_data
+        if merged_fx_prices is SPIKE_IN_DATA:
+            return SPIKE_IN_DATA
 
         merged_fx_prices = fxPrices(merged_fx_prices)
 

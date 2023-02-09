@@ -2,7 +2,7 @@ from scipy.stats import ttest_1samp
 
 import numpy as np
 from syscore.dateutils import Frequency
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.constants import missing_data, arg_not_supplied
 from systems.accounts.curves.account_curve import accountCurve
 from systems.accounts.pandl_calculators.pandl_generic_costs import (
     GROSS_CURVE,

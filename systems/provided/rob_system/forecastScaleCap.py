@@ -1,4 +1,4 @@
-from syscore.pdutils import quantile_of_points_in_data_series
+from syscore.pandas.strategy_functions import quantile_of_points_in_data_series
 from systems.forecast_scale_cap import *
 
 

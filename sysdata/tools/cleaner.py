@@ -1,8 +1,11 @@
 from collections import namedtuple
 from copy import copy
 
-from syscore.interactive import get_field_names_for_named_tuple, true_if_answer_is_yes
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.interactive.input import (
+    true_if_answer_is_yes,
+    input_field_names_for_named_tuple,
+)
+from syscore.constants import arg_not_supplied
 
 from sysdata.data_blob import dataBlob
 
@@ -162,7 +165,7 @@ def interactively_get_config_overrides_for_cleaning(data) -> priceFilterConfig:
     print("Current data cleaning configuration: %s" % str(default_config))
     make_changes = true_if_answer_is_yes("Make changes?")
     if make_changes:
-        new_config = get_field_names_for_named_tuple(default_config)
+        new_config = input_field_names_for_named_tuple(default_config)
         print("New config %s" % str(new_config))
         return new_config
     else:

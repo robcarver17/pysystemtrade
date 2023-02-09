@@ -1,7 +1,7 @@
 from syscore.exceptions import missingData
-from syscore.objects import missing_data, failure
-from syscore.dateutils import Frequency, DAILY_PRICE_FREQ, MIXED_FREQ
-from syscore.merge_data import spike_in_data
+from syscore.constants import failure
+from syscore.dateutils import Frequency, MIXED_FREQ
+from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
 
 from sysdata.base_data import baseData
 
@@ -253,7 +253,7 @@ class futuresContractPriceData(baseData):
             if return_empty:
                 return futuresContractPrices.create_empty()
             else:
-                return missing_data
+                raise missingData
 
         return prices
 
@@ -274,17 +274,14 @@ class futuresContractPriceData(baseData):
         if self.has_price_data_for_contract_at_frequency(
             contract_object, frequency=frequency
         ):
-            try:
-                return self._get_prices_at_frequency_for_contract_object_no_checking(
-                    contract_object, frequency=frequency
-                )
-            except missingData:
-                return missing_data
+            return self._get_prices_at_frequency_for_contract_object_no_checking(
+                contract_object, frequency=frequency
+            )
         else:
             if return_empty:
                 return futuresContractPrices.create_empty()
             else:
-                return missing_data
+                raise missingData
 
     def write_merged_prices_for_contract_object(
         self,
@@ -375,11 +372,11 @@ class futuresContractPriceData(baseData):
             max_price_spike=max_price_spike,
         )
 
-        if merged_prices is spike_in_data:
+        if merged_prices is SPIKE_IN_DATA:
             new_log.msg(
                 "Price has moved too much - will need to manually check - no price update done"
             )
-            return spike_in_data
+            return SPIKE_IN_DATA
 
         old_prices = old_prices[~old_prices.index.duplicated(keep="first")]
         rows_added = len(merged_prices) - len(old_prices)

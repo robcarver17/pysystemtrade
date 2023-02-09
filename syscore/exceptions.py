@@ -13,3 +13,7 @@ class missingData(Exception):
 
 class existingData(Exception):
     pass
+
+
+class orderCannotBeModified(Exception):
+    pass

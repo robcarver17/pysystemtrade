@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData

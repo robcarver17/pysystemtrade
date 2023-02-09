@@ -1,4 +1,4 @@
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 from sysobjects.roll_calendars import rollCalendar
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData

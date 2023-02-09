@@ -1,15 +1,14 @@
-from dataclasses import dataclass
 from copy import copy
 
 import pandas as pd
 
 from syscore.objects import (
-    arg_not_supplied,
     resolve_data_method,
     resolve_function,
     hasallattr,
 )
-from syscore.pdutils import replace_all_zeros_with_nan
+from syscore.constants import arg_not_supplied
+from syscore.pandas.strategy_functions import replace_all_zeros_with_nan
 from syscore.text import (
     sort_dict_by_underscore_length,
     strip_underscores_from_dict_keys,

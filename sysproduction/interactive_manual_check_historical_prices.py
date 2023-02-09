@@ -4,7 +4,7 @@ Update historical data per contract from interactive brokers data, dump into mon
 Apply a check to each price series
 """
 
-from syscore.objects import success
+from syscore.constants import success
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.prices import (

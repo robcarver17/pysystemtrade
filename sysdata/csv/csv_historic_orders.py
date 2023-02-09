@@ -3,8 +3,8 @@ from sysdata.production.historic_orders import (
     strategyHistoricOrdersData,
     contractHistoricOrdersData,
 )
-from syscore.fileutils import get_filename_for_package
-from syscore.objects import arg_not_supplied
+from syscore.fileutils import resolve_path_and_filename_for_package
+from syscore.constants import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
 
 DATE_INDEX_NAME = "DATETIME"
@@ -39,7 +39,7 @@ class csvStrategyHistoricOrdersData(strategyHistoricOrdersData):
         self._datapath = datapath
 
     def write_orders(self, list_of_orders):
-        filename = get_filename_for_package(
+        filename = resolve_path_and_filename_for_package(
             self._datapath, "%s.csv" % ("strategy_orders")
         )
         df = from_list_of_orders_to_df(list_of_orders)
@@ -59,7 +59,7 @@ class csvContractHistoricOrdersData(contractHistoricOrdersData):
         self._datapath = datapath
 
     def write_orders(self, list_of_orders):
-        filename = get_filename_for_package(
+        filename = resolve_path_and_filename_for_package(
             self._datapath, "%s.csv" % ("contract_orders")
         )
         df = from_list_of_orders_to_df(list_of_orders)
@@ -79,7 +79,7 @@ class csvBrokerHistoricOrdersData(contractHistoricOrdersData):
         self._datapath = datapath
 
     def write_orders(self, list_of_orders):
-        filename = get_filename_for_package(
+        filename = resolve_path_and_filename_for_package(
             self._datapath, "%s.csv" % ("broker_orders")
         )
         df = from_list_of_orders_to_df(list_of_orders)

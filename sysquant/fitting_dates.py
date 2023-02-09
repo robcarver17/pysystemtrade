@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import pandas as pd
 import datetime
 
-from syscore.pdutils import listOfDataFrames
+from syscore.pandas.list_of_df import listOfDataFrames
 
 
 @dataclass

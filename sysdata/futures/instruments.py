@@ -3,7 +3,6 @@ Read / write and represent instrument data
 """
 
 import pandas as pd
-from syscore.objects import missing_data
 from sysdata.base_data import baseData
 from sysobjects.instruments import (
     futuresInstrumentWithMetaData,
@@ -42,8 +41,9 @@ class futuresInstrumentData(baseData):
     def upate_meta_data(self, instrument_code: str, meta_name: str, new_value):
         instrument_object = self.get_instrument_data(instrument_code)
         existing_meta_data = instrument_object.meta_data
-        existing_meta_data_value = getattr(existing_meta_data, meta_name, missing_data)
-        if existing_meta_data_value is missing_data:
+        try:
+            existing_meta_data_value = getattr(existing_meta_data, meta_name)
+        except AttributeError:
             raise Exception(
                 "Meta data %s does not exist for instrument %s"
                 % (meta_name, instrument_code)

@@ -1,9 +1,13 @@
+import datetime
 from copy import copy
-
+from typing import Union
 from syslogdiag.log_entry import LOG_MAPPING, DEFAULT_LOG_MSG_LEVEL, logEntry
+from syscore.constants import none_type
 
 ALLOWED_LOG_LEVELS = ["off", "terse", "on"]
 DEFAULT_LOG_LEVEL = "off"
+
+SECONDS_BETWEEN_IDENTICAL_LOGS = 60
 
 
 class logger(object):
@@ -158,18 +162,77 @@ class logger(object):
 
     def log(
         self, text: str, msglevel: int = DEFAULT_LOG_MSG_LEVEL, **kwargs
-    ) -> logEntry:
+    ) -> Union[logEntry, none_type]:
         log_attributes = self.attributes
         passed_attributes = kwargs
 
-        log_id = self.get_next_log_id()
         use_attributes = get_update_attributes_list(log_attributes, passed_attributes)
 
+        same_msg_logged_recently = self._check_msg_logged_recently_or_update_hash(
+            text=text, attributes=use_attributes, msglevel=msglevel
+        )
+        if same_msg_logged_recently:
+            ## Don't spam the poor user!
+            return None
+
+        log_id = self.get_next_log_id()
         log_result = self.log_handle_caller(
             msglevel=msglevel, text=text, attributes=use_attributes, log_id=log_id
         )
 
         return log_result
+
+    def _check_msg_logged_recently_or_update_hash(
+        self, text: str, msglevel: int, attributes: dict
+    ) -> bool:
+        msg_hash = "%s %s %d" % (text, str(attributes), msglevel)
+        recently_logged = self._msg_hash_logged_recently(msg_hash)
+        if recently_logged:
+            return True
+        else:
+            self._update_msg_hash_and_date(msg_hash)
+            return False
+
+    def _msg_hash_logged_recently(self, msg_hash: str) -> bool:
+        last_hash = self.last_msg_hash
+        if not msg_hash == last_hash:
+            ## genuinely new
+            return False
+
+        seconds_elapsed = self._seconds_since_last_log()
+        if seconds_elapsed > SECONDS_BETWEEN_IDENTICAL_LOGS:
+            # treat as new
+            return False
+
+        ## same hash and recently logged, so...
+        return True
+
+    def _seconds_since_last_log(self) -> float:
+        ## repeat message but is is stale?
+        last_date = self.last_msg_date
+
+        date_diff = datetime.datetime.now() - last_date
+        return date_diff.seconds
+
+    def _update_msg_hash_and_date(self, msg_hash: str):
+        self.last_msg_hash = msg_hash
+        self.last_msg_date = datetime.datetime.now()
+
+    @property
+    def last_msg_hash(self):
+        return getattr(self, "_last_msg_hash", "")
+
+    @last_msg_hash.setter
+    def last_msg_hash(self, msg_hash: str):
+        self._last_msg_hash = msg_hash
+
+    @property
+    def last_msg_date(self) -> datetime.datetime:
+        return getattr(self, "_last_msg_date", datetime.datetime.now())
+
+    @last_msg_date.setter
+    def last_msg_date(self, msg_date: datetime.datetime):
+        self._last_msg_date = msg_date
 
     def get_next_log_id(self) -> int:
         """

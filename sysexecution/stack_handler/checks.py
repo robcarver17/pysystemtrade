@@ -1,23 +1,4 @@
-from syscore.objects import (
-    missing_order,
-    success,
-    failure,
-    locked_order,
-    duplicate_order,
-    no_order_id,
-    no_children,
-    no_parent,
-    rolling_cant_trade,
-    ROLL_PSEUDO_STRATEGY,
-    missing_order,
-    order_is_in_status_reject_modification,
-    order_is_in_status_finished,
-    locked_order,
-    order_is_in_status_modified,
-    resolve_function,
-    arg_not_supplied,
-    missing_data,
-)
+from syscore.constants import arg_not_supplied
 
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 

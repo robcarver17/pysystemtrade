@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 
 from syscore.exceptions import missingData
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.constants import missing_data, arg_not_supplied
 from syscore.dateutils import Frequency, from_config_frequency_to_frequency, n_days_ago
 
 from sysobjects.contracts import futuresContract

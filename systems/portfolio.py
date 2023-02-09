@@ -3,15 +3,18 @@ import datetime
 from copy import copy
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.pdutils import (
-    fix_weights_vs_position_or_forecast,
+from syscore.genutils import str2Bool, list_union
+from syscore.pandas.pdutils import (
     from_dict_of_values_to_df,
     from_scalar_values_to_ts,
-    get_row_of_df_aligned_to_weights_as_dict,
-    weights_sum_to_one,
 )
-from syscore.objects import resolve_function, missing_data, arg_not_supplied
-from syscore.genutils import str2Bool
+from syscore.pandas.find_data import get_row_of_df_aligned_to_weights_as_dict
+from syscore.pandas.strategy_functions import (
+    weights_sum_to_one,
+    fix_weights_vs_position_or_forecast,
+)
+from syscore.objects import resolve_function
+from syscore.constants import missing_data, arg_not_supplied
 
 from sysdata.config.configdata import Config
 
@@ -449,13 +452,9 @@ class Portfolios(SystemStage):
 
         instrument_list = list(raw_instrument_weights.columns)
 
-        subsystem_positions = [
-            self.get_subsystem_position(instrument_code)
-            for instrument_code in instrument_list
-        ]
-
-        subsystem_positions = pd.concat(subsystem_positions, axis=1).ffill()
-        subsystem_positions.columns = instrument_list
+        subsystem_positions = self.get_subsystem_positions_for_instrument_list(
+            instrument_list
+        )
 
         ## this should remove when have NAN's
         ## FIXME CHECK
@@ -469,6 +468,20 @@ class Portfolios(SystemStage):
         daily_unsmoothed_instrument_weights = instrument_weights.resample("1B").mean()
 
         return daily_unsmoothed_instrument_weights
+
+    @diagnostic()
+    def get_subsystem_positions_for_instrument_list(
+        self, instrument_list: list
+    ) -> pd.DataFrame:
+        subsystem_positions = [
+            self.get_subsystem_position(instrument_code)
+            for instrument_code in instrument_list
+        ]
+
+        subsystem_positions = pd.concat(subsystem_positions, axis=1).ffill()
+        subsystem_positions.columns = instrument_list
+
+        return subsystem_positions
 
     @diagnostic()
     def get_unsmoothed_raw_instrument_weights(self) -> pd.DataFrame:
@@ -591,13 +604,9 @@ class Portfolios(SystemStage):
 
         :return: single pd.matrix of all the positions
         """
-        instrument_codes = self.get_instrument_list()
+        instrument_list = self.get_instrument_list()
 
-        positions = [
-            self.get_subsystem_position(instr_code) for instr_code in instrument_codes
-        ]
-        positions = pd.concat(positions, axis=1)
-        positions.columns = instrument_codes
+        positions = self.get_subsystem_positions_for_instrument_list(instrument_list)
 
         return positions
 
@@ -713,31 +722,58 @@ class Portfolios(SystemStage):
     def allocate_zero_instrument_weights_to_these_instruments(
         self, auto_remove_bad_instruments: bool = False
     ) -> list:
-        likely_bad = self.parent.get_list_of_markets_not_trading_but_with_data()
-        config = self.config
-        allocate_zero_instrument_weights_to_these_instruments = getattr(
-            config, "allocate_zero_instrument_weights_to_these_instruments", []
-        )
-        instrument_list = self.get_instrument_list()
-        likely_bad_in_instrument_list = list(
-            set(instrument_list).intersection(set(likely_bad))
-        )
-        likely_bad_no_zero_allocation = list(
-            set(likely_bad_in_instrument_list).difference(
-                set(allocate_zero_instrument_weights_to_these_instruments)
+
+        config_allocate_zero_instrument_weights_to_these_instruments = (
+            self.config_allocates_zero_instrument_weights_to_these_instruments(
+                auto_remove_bad_instruments=auto_remove_bad_instruments
             )
         )
 
-        if len(likely_bad_no_zero_allocation) > 0:
+        instruments_without_data_or_weights = self.instruments_without_data_or_weights()
+
+        all_instruments_to_allocate_zero_to = list_union(
+            instruments_without_data_or_weights,
+            config_allocate_zero_instrument_weights_to_these_instruments,
+        )
+
+        return all_instruments_to_allocate_zero_to
+
+    def config_allocates_zero_instrument_weights_to_these_instruments(
+        self, auto_remove_bad_instruments: bool = False
+    ):
+
+        bad_from_config = self.parent.get_list_of_markets_not_trading_but_with_data()
+        config = self.config
+        config_allocates_zero_instrument_weights_to_these_instruments = getattr(
+            config, "allocate_zero_instrument_weights_to_these_instruments", []
+        )
+        instrument_list = self.get_instrument_list()
+        config_marks_bad_and_in_instrument_list = list(
+            set(instrument_list).intersection(set(bad_from_config))
+        )
+        configured_bad_but_not_configured_zero_allocation = list(
+            set(config_marks_bad_and_in_instrument_list).difference(
+                set(config_allocates_zero_instrument_weights_to_these_instruments)
+            )
+        )
+
+        allocate_zero_instrument_weights_to_these_instruments = copy(
+            config_allocates_zero_instrument_weights_to_these_instruments
+        )
+        if len(configured_bad_but_not_configured_zero_allocation) > 0:
             if auto_remove_bad_instruments:
+                self.log.warn(
+                    "*** Following instruments are listed as trading_restrictions and/or bad_markets and will be removed from instrument weight optimisation: ***\n%s"
+                    % str(configured_bad_but_not_configured_zero_allocation)
+                )
                 allocate_zero_instrument_weights_to_these_instruments = (
                     allocate_zero_instrument_weights_to_these_instruments
-                    + likely_bad_no_zero_allocation
+                    + configured_bad_but_not_configured_zero_allocation
                 )
             else:
                 self.log.warn(
                     "*** Following instruments are listed as trading_restrictions and/or bad_markets but still included in instrument weight optimisation: ***\n%s"
-                    % str(likely_bad_no_zero_allocation)
+                    % str(configured_bad_but_not_configured_zero_allocation)
                 )
                 self.log.warn(
                     "This is fine for dynamic systems where we remove them in later optimisation, but may be problematic for static systems"
@@ -748,11 +784,30 @@ class Portfolios(SystemStage):
 
         if len(allocate_zero_instrument_weights_to_these_instruments) > 0:
             self.log.msg(
-                "Following instruments will have zero weight in optimisation of instrument weights%s"
+                "Following instruments will have zero weight in optimisation of instrument weights as configured zero or auto removal of configured bad%s"
                 % str(allocate_zero_instrument_weights_to_these_instruments)
             )
 
         return allocate_zero_instrument_weights_to_these_instruments
+
+    def instruments_without_data_or_weights(self) -> list:
+
+        subsystem_positions = copy(self._get_all_subsystem_positions())
+        subsystem_positions[subsystem_positions.isna()] = 0
+        not_zero = subsystem_positions != 0
+        index_of_empty_markets = not_zero.sum(axis=0) == 0
+        list_of_empty_markets = [
+            instrument_code
+            for instrument_code, empty in index_of_empty_markets.items()
+            if empty
+        ]
+
+        self.log.msg(
+            "Following instruments will have zero weight in optimisation of instrument weights as they have no positions (possible too expensive?) %s"
+            % str(list_of_empty_markets)
+        )
+
+        return list_of_empty_markets
 
     @input
     def get_subsystem_position(self, instrument_code: str) -> pd.Series:

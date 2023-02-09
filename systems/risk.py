@@ -1,7 +1,4 @@
-import datetime
-import numpy as np
 import pandas as pd
-from syscore.genutils import progressBar
 
 from systems.stage import SystemStage
 from systems.portfolio import Portfolios
@@ -10,9 +7,7 @@ from systems.provided.dynamic_small_system_optimise.optimised_positions_stage im
 )
 from systems.system_cache import diagnostic
 
-from syscore.objects import arg_not_supplied
-from syscore.pdutils import listOfDataFrames, get_row_of_df_aligned_to_weights_as_dict
-
+from syscore.pandas.list_of_df import listOfDataFrames
 
 from sysquant.optimisation.weights import seriesOfPortfolioWeights
 

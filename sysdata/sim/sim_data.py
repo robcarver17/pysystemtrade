@@ -1,13 +1,17 @@
 import pandas as pd
 import datetime
 
-from syscore.objects import get_methods, missing_data
+from syscore.exceptions import missingData
+from syscore.objects import get_methods
 from syscore.dateutils import ARBITRARY_START
-from syscore.pdutils import prices_to_daily_prices, get_intraday_df_at_frequency
+from syscore.pandas.frequency import (
+    get_intraday_pdf_at_frequency,
+    resample_prices_to_business_day_index,
+)
 from sysdata.base_data import baseData
 
 from sysobjects.spot_fx_prices import fxPrices
-from sysobjects.instruments import instrumentCosts, instrumentMetaData
+from sysobjects.instruments import instrumentCosts
 
 
 class simData(baseData):
@@ -75,9 +79,9 @@ class simData(baseData):
         return self._parent
 
     def start_date_for_data(self):
-        start_date = getattr(self, "_start_date_for_data_from_config", missing_data)
-
-        if start_date is missing_data:
+        try:
+            start_date = getattr(self, "_start_date_for_data_from_config")
+        except AttributeError:
             start_date = self._get_and_set_start_date_for_data_from_config()
         return start_date
 
@@ -88,6 +92,7 @@ class simData(baseData):
         return start_date
 
     def methods(self) -> list:
+        # included for user API computability with SystemStage
         return get_methods(self)
 
     def daily_prices(self, instrument_code: str) -> pd.Series:
@@ -117,7 +122,7 @@ class simData(baseData):
         instrprice = self.get_raw_price(instrument_code)
         if len(instrprice) == 0:
             raise Exception("No adjusted daily prices for %s" % instrument_code)
-        dailyprice = prices_to_daily_prices(instrprice)
+        dailyprice = resample_prices_to_business_day_index(instrprice)
 
         return dailyprice
 
@@ -132,7 +137,7 @@ class simData(baseData):
             raise Exception("No adjusted hourly prices for %s" % instrument_code)
 
         # ignore type warning - series or data frame both work
-        hourly_prices = get_intraday_df_at_frequency(instrprice)
+        hourly_prices = get_intraday_pdf_at_frequency(instrprice)
 
         return hourly_prices
 
@@ -291,29 +296,26 @@ class simData(baseData):
 
 def _resolve_start_date(sim_data: simData):
 
-    config = _resolve_config(sim_data)
-
-    if config is missing_data:
-        start_date = missing_data
-    else:
-        start_date = getattr(config, "start_date", missing_data)
-
-    if start_date is missing_data:
+    try:
+        config = _resolve_config(sim_data)
+    except missingData:
         start_date = ARBITRARY_START
     else:
-        if isinstance(start_date, datetime.date):
-            # yaml parses unquoted date like 2000-01-01 to datetime.date
-            start_date = datetime.datetime.combine(
-                start_date, datetime.datetime.min.time()
+        start_date = getattr(config, "start_date", ARBITRARY_START)
+
+    if isinstance(start_date, datetime.date):
+        # yaml parses unquoted date like 2000-01-01 to datetime.date
+        start_date = datetime.datetime.combine(
+            start_date, datetime.datetime.min.time()
+        )
+    elif not isinstance(start_date, datetime.datetime):
+        try:
+            start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+        except:
+            raise Exception(
+                "Parameter start_date %s in config file does not conform to pattern 2020-03-19"
+                % str(start_date)
             )
-        elif not isinstance(start_date, datetime.datetime):
-            try:
-                start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-            except:
-                raise Exception(
-                    "Parameter start_date %s in config file does not conform to pattern 2020-03-19"
-                    % str(start_date)
-                )
 
     return start_date
 
@@ -322,5 +324,5 @@ def _resolve_config(sim_data: simData):
     try:
         config = sim_data.parent.config
         return config
-    except:
-        return missing_data
+    except AttributeError:
+        raise missingData

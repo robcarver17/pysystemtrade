@@ -1,5 +1,5 @@
 import numpy as np
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysquant.estimators.correlations import correlationEstimate
 from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights

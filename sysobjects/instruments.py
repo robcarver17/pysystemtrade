@@ -1,6 +1,6 @@
 import numpy as np
 from copy import copy
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.genutils import flatten_list
 from dataclasses import dataclass
 import pandas as pd
@@ -48,6 +48,7 @@ META_FIELD_LIST = [
     "PerBlock",
     "Percentage",
     "PerTrade",
+    "Region",
 ]
 
 
@@ -58,15 +59,14 @@ def _zero_if_nan(x):
         return x
 
 
-class King(object):
-    def __init__(self, name="Charles"):
-        self.name = name
+NO_REGION = "NO_REGION"
 
-    def __repr__(self):
-        return self.name
 
-    def introduce(One):
-        print(str(One) + " is the king")
+def _string_if_nan(x, string=NO_REGION):
+    if np.isnan(x):
+        return string
+    else:
+        return x
 
 
 class instrumentMetaData(object):
@@ -80,6 +80,7 @@ class instrumentMetaData(object):
         PerBlock: float = 0.0,
         Percentage: float = 0.0,
         PerTrade: float = 0.0,
+        Region: str = "",
     ):
 
         self.Description = Description
@@ -90,6 +91,7 @@ class instrumentMetaData(object):
         self.PerBlock = _zero_if_nan(PerBlock)
         self.Percentage = _zero_if_nan(Percentage)
         self.PerTrade = _zero_if_nan(PerTrade)
+        self.Region = Region
 
     def as_dict(self) -> dict:
         keys = META_FIELD_LIST
@@ -99,7 +101,7 @@ class instrumentMetaData(object):
 
     @classmethod
     def from_dict(instrumentMetaData, input_dict):
-        keys = META_FIELD_LIST
+        keys = list(input_dict.keys())
         args_list = [input_dict[key] for key in keys]
 
         return instrumentMetaData(*args_list)

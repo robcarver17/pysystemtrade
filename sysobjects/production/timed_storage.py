@@ -3,7 +3,8 @@ import datetime
 
 import pandas as pd
 
-from syscore.objects import success, arg_not_supplied, missing_data
+from syscore.exceptions import missingData
+from syscore.constants import arg_not_supplied, success
 
 DATE_KEY_NAME = "date"
 
@@ -220,13 +221,13 @@ class listOfEntries(list):
 
     def final_entry(self):
         if len(self) == 0:
-            return missing_data
+            raise missingData
         self.sort()
         return self[-1]
 
     def append(self, item):
-        previous_final_entry = self.final_entry()
         if len(self) > 0:
+            previous_final_entry = self.final_entry()
             try:
                 previous_final_entry.check_args_match(item)
             except Exception as e:
@@ -265,7 +266,7 @@ class listOfEntries(list):
         :return: pd.DataFrame
         """
         if len(self) == 0:
-            return missing_data
+            raise missingData
         (
             list_of_dates,
             dict_of_lists,

@@ -3,7 +3,7 @@ import numpy as np
 from scipy.stats import skew, ttest_1samp, norm
 
 from syscore.dateutils import Frequency, from_frequency_to_times_per_year
-from syscore.pdutils import drawdown
+from syscore.pandas.strategy_functions import drawdown
 
 from systems.accounts.pandl_calculators.pandl_generic_costs import (
     GROSS_CURVE,

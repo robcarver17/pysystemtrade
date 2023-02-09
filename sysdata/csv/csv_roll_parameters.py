@@ -1,5 +1,5 @@
-from syscore.objects import arg_not_supplied
-from syscore.fileutils import get_filename_for_package
+from syscore.constants import arg_not_supplied
+from syscore.fileutils import resolve_path_and_filename_for_package
 from sysdata.futures.rolls_parameters import rollParametersData
 from sysobjects.rolls import rollParameters
 from syslogdiag.log_to_screen import logtoscreen
@@ -23,7 +23,7 @@ class csvRollParametersData(rollParametersData):
         super().__init__(log=log)
         if datapath is arg_not_supplied:
             datapath = ROLLS_DATAPATH
-        config_file = get_filename_for_package(datapath, ROLLS_CONFIG_FILE)
+        config_file = resolve_path_and_filename_for_package(datapath, ROLLS_CONFIG_FILE)
 
         self._config_file = config_file
 

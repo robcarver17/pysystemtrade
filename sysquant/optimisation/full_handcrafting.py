@@ -1292,9 +1292,6 @@ def how_many_years_of_data_in_dataframe(data):
     return result_dict
 
 
-from syscore.pdutils import pd_readcsv
-
-
 def how_many_years_of_data_in_pd_series(data_series):
     """
     How many years of actual data do we have

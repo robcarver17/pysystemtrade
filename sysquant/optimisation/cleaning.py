@@ -1,11 +1,11 @@
 import numpy as np
 import pandas as pd
 from sysquant.optimisation.weights import portfolioWeights
-from syscore.pdutils import must_have_item
+from syscore.pandas.pdutils import get_index_of_columns_in_df_with_at_least_one_value
 
 
 def get_must_have_dict_from_data(data: pd.DataFrame) -> dict:
-    must_have_list = must_have_item(data)
+    must_have_list = get_index_of_columns_in_df_with_at_least_one_value(data)
     list_of_asset_names = list(data.columns)
     must_have_dict = dict(
         [

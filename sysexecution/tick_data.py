@@ -5,7 +5,7 @@ from collections import namedtuple
 
 from syscore.genutils import quickTimer
 from syscore.exceptions import missingData
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.constants import missing_data, arg_not_supplied
 
 TICK_REQUIRED_COLUMNS = ["priceAsk", "priceBid", "sizeAsk", "sizeBid"]
 
@@ -250,7 +250,7 @@ class tickerObject(object):
         if tick is arg_not_supplied:
             tick = self.current_tick()
 
-        if tick is missing_data or qty is arg_not_supplied:
+        if qty is arg_not_supplied:
             return missing_data
 
         results = analyse_tick(tick, qty, replace_qty_nans=replace_qty_nans)
@@ -261,9 +261,13 @@ class tickerObject(object):
         self, qty: int = arg_not_supplied, wait_time_seconds: int = 10
     ) -> oneTick:
 
-        current_tick = self.wait_for_valid_bid_and_ask_and_return_current_tick(
-            wait_time_seconds=wait_time_seconds
-        )
+        try:
+            current_tick = self.wait_for_valid_bid_and_ask_and_return_current_tick(
+                wait_time_seconds=wait_time_seconds
+            )
+        except missingData:
+            return missing_data
+
         analysis = self.analyse_for_tick(current_tick, qty=qty)
 
         return analysis
@@ -275,7 +279,7 @@ class tickerObject(object):
         timer = quickTimer(wait_time_seconds)
         while waiting:
             if timer.finished:
-                return missing_data
+                raise missingData
             self.refresh()
             last_bid = self.bid()
             last_ask = self.ask()

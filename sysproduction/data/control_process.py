@@ -3,13 +3,14 @@ import socket
 
 from syscore.dateutils import SECONDS_PER_HOUR
 from syscore.genutils import str2Bool
-from syscore.objects import missing_data, named_object
+from syscore.constants import named_object, missing_data
 from syscontrol.timer_parameters import timerClassParameters
 
 from sysdata.config.control_config import get_control_config
 from sysdata.data_blob import dataBlob
 from sysdata.mongodb.mongo_process_control import mongoControlProcessData
 from sysdata.production.process_control_data import controlProcessData
+
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
@@ -18,6 +19,7 @@ DEFAULT_MAX_EXECUTIONS = 1
 DEFAULT_START_TIME_STRING = "00:01"
 DEFAULT_STOP_TIME_STRING = "23:50"
 NAME_OF_TRADING_PROCESS = "run_stack_handler"
+LABEL_FOR_ARGS_METHOD_ON_COMPLETION = "_methods_on_completion"
 
 
 class dataControlProcess(productionDataLayerGeneric):
@@ -341,7 +343,7 @@ class diagControlProcess(productionDataLayerGeneric):
     def get_process_configuration_for_item_name(self, item_name: str) -> dict:
         config = getattr(self, "_process_config_%s" % item_name, {})
         if config == {}:
-            config = get_key_value_from_control_config(
+            config = self.get_key_value_from_control_config(
                 "process_configuration_%s" % item_name
             )
             if config is missing_data:
@@ -381,12 +383,49 @@ class diagControlProcess(productionDataLayerGeneric):
         result = self.db_control_process_data.get_list_of_process_names()
         return result
 
+    def get_configured_kwargs_for_process_name_and_methods_that_run_on_completion(
+        self, process_name: str
+    ) -> dict:
+        return self.get_configured_kwargs_for_process_name_and_method(
+            process_name=process_name, method=LABEL_FOR_ARGS_METHOD_ON_COMPLETION
+        )
 
-def get_key_value_from_control_config(item_name: str):
-    config = get_control_config()
-    item = config.get_element_or_missing_data(item_name)
+    def get_configured_kwargs_for_process_name_and_method(
+        self, process_name: str, method: str
+    ) -> dict:
+        configured_kwargs_for_process_name = (
+            self.get_configured_kwargs_for_process_name(process_name)
+        )
+        configured_kwargs_for_process_name_and_method = (
+            configured_kwargs_for_process_name.get(method, {})
+        )
 
-    return item
+        return configured_kwargs_for_process_name_and_method
+
+    def get_configured_kwargs_for_process_name(self, process_name: str) -> dict:
+        configured_kwargs = self.configured_kwargs()
+        configured_kwargs_for_process_name = configured_kwargs.get(process_name, {})
+
+        return configured_kwargs_for_process_name
+
+    def configured_kwargs(self) -> dict:
+        kwargs = self.get_key_value_from_control_config("arguments")
+        if kwargs is missing_data:
+            return {}
+        return kwargs
+
+    def get_key_value_from_control_config(self, item_name: str):
+        config = self.get_control_config()
+        item = config.get_element_or_missing_data(item_name)
+
+        return item
+
+    ## Cache to avoid multiple reads of a yaml file
+    def get_control_config(self):
+        return self.cache.get(self._get_control_config)
+
+    def _get_control_config(self):
+        return get_control_config()
 
 
 def get_list_of_strategies_for_process(data: dataBlob, process_name: str) -> list:

@@ -4,8 +4,11 @@ import pandas as pd
 
 from syscore.exceptions import missingData
 from syscore.genutils import transfer_object_attributes
-from syscore.objects import missing_data
-from syscore.pdutils import make_df_from_list_of_named_tuple, sort_df_ignoring_missing
+from syscore.constants import missing_data
+from syscore.pandas.pdutils import (
+    make_df_from_list_of_named_tuple,
+    sort_df_ignoring_missing,
+)
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
 from sysproduction.data.controls import (
@@ -245,10 +248,11 @@ def get_last_position_update_for_strategy_instrument(
         instrument_code=instrument_code, strategy_name=strategy_name
     )
 
-    pos_data = op.get_optimal_position_as_df_for_instrument_strategy(
-        instrument_strategy
-    )
-    if pos_data is missing_data:
+    try:
+        pos_data = op.get_optimal_position_as_df_for_instrument_strategy(
+            instrument_strategy
+        )
+    except missingData:
         return None
     last_update = pos_data.index[-1]
     key = "%s/%s" % (strategy_name, instrument_code)

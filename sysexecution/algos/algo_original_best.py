@@ -3,7 +3,8 @@ This is the original 'best execution' algo I used in my legacy system
 """
 from typing import Union
 
-from syscore.objects import missing_order, market_closed, missing_data
+from syscore.constants import missing_data, market_closed
+from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.data_blob import dataBlob
 from sysexecution.algos.algo import Algo, limit_price_from_offside_price
@@ -242,7 +243,7 @@ def limit_trade_viable(
     if is_market_about_to_close(data, order=order, log=log):
 
         log.msg(
-            "Market about to close or stack handler nearly finished - doing market order"
+            "Market about to close or stack handler nearly close - doing market order"
         )
         return False
 

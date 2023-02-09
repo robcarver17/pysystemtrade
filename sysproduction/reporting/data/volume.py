@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from syscore.dateutils import four_weeks_ago
-from syscore.genutils import progressBar
+from syscore.dateutils import n_days_ago
+from syscore.interactive.progress_bar import progressBar
 from sysdata.data_blob import dataBlob
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices
@@ -41,16 +41,18 @@ def get_liquidity_dict_for_instrument_code(data, instrument_code: str) -> dict:
     return dict(contracts=contract_volume, risk=volume_in_risk_terms_m)
 
 
-def get_average_daily_volume_for_contract_object(data, contract_object):
+def get_average_daily_volume_for_contract_object(
+    data, contract_object, calendar_days_back: int = 30
+):
     diag_prices = diagPrices(data)
     all_price_data = diag_prices.get_merged_prices_for_contract_object(contract_object)
     if all_price_data.empty:
         return 0.0
     volume = all_price_data.daily_volumes()
-    date_four_weeks_ago = four_weeks_ago()
-    volume = volume[date_four_weeks_ago:].mean()
+    date_cutoff = n_days_ago(calendar_days_back)
+    recent_average_volume = volume[date_cutoff:].mean()
 
-    return volume
+    return recent_average_volume
 
 
 def get_best_average_daily_volume_for_instrument(data, instrument_code: str):

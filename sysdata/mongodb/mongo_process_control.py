@@ -1,6 +1,6 @@
 from sysobjects.production.process_control import controlProcess
 from sysdata.production.process_control_data import controlProcessData
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.constants import arg_not_supplied
 
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syslogdiag.log_to_screen import logtoscreen
@@ -40,8 +40,6 @@ class mongoControlProcessData(controlProcessData):
         result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(
             process_name
         )
-        if result_dict is missing_data:
-            return missing_data
 
         control_object = controlProcess.from_dict(result_dict)
 

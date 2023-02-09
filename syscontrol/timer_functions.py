@@ -110,7 +110,7 @@ class timerClassWithFunction(object):
     def log_msg(self, msg: str):
         self.log.msg(msg, type=self.process_name)
 
-    def check_and_run(self, last_run: bool = False):
+    def check_and_run(self, last_run: bool = False, **kwargs):
         """
 
         :return: None
@@ -121,7 +121,7 @@ class timerClassWithFunction(object):
             return None
 
         self.setup_about_to_run_method()
-        self.run_function()
+        self.run_function(**kwargs)
         self.finished_running_method()
 
     def check_if_okay_to_run(self, last_run=False) -> bool:
@@ -294,9 +294,9 @@ class timerClassWithFunction(object):
         data_process = dataControlProcess(self.data)
         data_process.log_start_run_for_method(self.process_name, self.method_name)
 
-    def run_function(self):
+    def run_function(self, **kwargs):
         # Functions can't take args or kwargs or return anything; pure method
-        self._function()
+        self._function(**kwargs)
 
     def finished_running_method(self):
         self.store_in_db_log_run_end_method()
@@ -323,9 +323,9 @@ class listOfTimerFunctions(list):
 
         return all_finished
 
-    def run_methods_which_run_on_exit_only(self):
+    def run_methods_which_run_on_exit_only(self, **kwargs):
         for timer_class in self:
-            timer_class.check_and_run(last_run=True)
+            timer_class.check_and_run(last_run=True, **kwargs)
 
     def seconds_until_next_method_runs(self) -> float:
         minutes_remaining = [

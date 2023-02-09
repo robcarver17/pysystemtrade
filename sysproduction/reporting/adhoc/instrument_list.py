@@ -1,7 +1,6 @@
 import pandas as pd
-from copy import copy
 
-from syscore.genutils import progressBar
+from syscore.interactive.progress_bar import progressBar
 
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.instruments import diagInstruments
@@ -9,7 +8,6 @@ from sysproduction.reporting.reporting_functions import (
     parse_report_results,
     output_file_report,
     header,
-    body_text,
     table,
     pandas_display_for_reports,
 )

@@ -6,7 +6,8 @@ Limits per contract don't make sense, but it makes sense to limit (a) the number
    within a strategy can be traded and (b) the number of times an instrument can be traded, period.
 """
 from dataclasses import dataclass
-from syscore.objects import missing_data
+
+from syscore.exceptions import missingData
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
 from sysobjects.production.trade_limits import tradeLimit, listOfTradeLimits
@@ -178,10 +179,11 @@ class tradeLimitData(baseData):
         self, instrument_strategy: instrumentStrategy, period_days: int
     ) -> tradeLimit:
 
-        trade_limit_as_dict = self._get_trade_limit_as_dict_or_missing_data(
-            instrument_strategy, period_days
-        )
-        if trade_limit_as_dict is missing_data:
+        try:
+            trade_limit_as_dict = self._get_trade_limit_as_dict_or_missing_data(
+                instrument_strategy, period_days
+            )
+        except missingData:
             return self.no_limit(instrument_strategy, period_days)
 
         trade_limit_object = tradeLimit.from_dict(trade_limit_as_dict)

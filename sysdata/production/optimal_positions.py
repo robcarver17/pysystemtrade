@@ -9,7 +9,7 @@ A mean reversion style class would include price buffers
 
 """
 
-from syscore.objects import failure
+from syscore.constants import failure
 from sysdata.production.timed_storage import (
     listOfEntriesData,
 )

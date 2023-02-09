@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from PyPDF2 import PdfMerger
 import datetime
 import pandas as pd
@@ -6,11 +8,15 @@ import shutil
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from syscore.objects import resolve_function, arg_not_supplied, missing_data
-from syscore.objects import header, table, body_text, figure
+from syscore.objects import resolve_function
+from syscore.constants import missing_data, arg_not_supplied
 from syscore.fileutils import get_resolved_pathname
 from syscore.dateutils import datetime_to_long
-from syscore.text import landing_strip_from_str, landing_strip, centralise_text
+from syscore.interactive.display import (
+    landing_strip_from_str,
+    landing_strip,
+    centralise_text,
+)
 from sysdata.data_blob import dataBlob
 
 from syslogdiag.email_via_db_interface import (
@@ -19,6 +25,9 @@ from syslogdiag.email_via_db_interface import (
 )
 
 from sysproduction.reporting.report_configs import reportConfig
+
+
+figure = namedtuple("figure", "pdf_filename")
 
 
 class ParsedReport(object):
@@ -129,6 +138,9 @@ def parse_report_results_contains_text(report_results: list) -> ParsedReport:
     return parsed_report
 
 
+table = namedtuple("table", "Heading Body")
+
+
 def parse_table(report_table: table) -> str:
     table_header = report_table.Heading
     table_body = str(report_table.Body)
@@ -145,9 +157,15 @@ def parse_table(report_table: table) -> str:
     return table_string
 
 
+body_text = namedtuple("bodytext", "Text")
+
+
 def parse_body(report_body: body_text) -> str:
     body_text = report_body.Text
     return "%s\n" % body_text
+
+
+header = namedtuple("header", "Heading")
 
 
 def parse_header(report_header: header) -> str:
@@ -295,8 +313,10 @@ class PdfOutputWithTempFileName:
 
     """
 
-    def __init__(self, data: dataBlob):
-        self._temp_file_name = _generate_temp_pdf_filename(data)
+    def __init__(self, data: dataBlob, reporting_directory=arg_not_supplied):
+        self._temp_file_name = _generate_temp_pdf_filename(
+            data, reporting_directory=reporting_directory
+        )
 
     def save_chart_close_and_return_figure(self) -> figure:
         with PdfPages(self.temp_file_name) as export_pdf:
@@ -313,8 +333,14 @@ class PdfOutputWithTempFileName:
 TEMPFILE_PATTERN = "_tempfile"
 
 
-def _generate_temp_pdf_filename(data: dataBlob) -> str:
-    use_directory = get_directory_for_reporting(data)
+def _generate_temp_pdf_filename(
+    data: dataBlob, reporting_directory=arg_not_supplied
+) -> str:
+    if reporting_directory is arg_not_supplied:
+        use_directory = get_directory_for_reporting(data)
+    else:
+        use_directory = reporting_directory
+
     use_directory_resolved = get_resolved_pathname(use_directory)
     filename = "%s_%s.pdf" % (
         TEMPFILE_PATTERN,

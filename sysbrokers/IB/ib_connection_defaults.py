@@ -1,5 +1,5 @@
 from sysdata.config.production_config import get_production_config
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 LIST_OF_IB_PARAMS = ["ib_ipaddress", "ib_port", "ib_idoffset"]
 

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from syscore.objects import missing_instrument
+from syscore.constants import missing_instrument
 from sysdata.sim.sim_data import simData
 
 from sysobjects.adjusted_prices import futuresAdjustedPrices

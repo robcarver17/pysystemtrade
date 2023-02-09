@@ -2,7 +2,7 @@ import numpy as np
 from dataclasses import dataclass
 
 from syscore.genutils import str2Bool, flatten_list
-from syscore.pdutils import how_many_times_a_year_is_pd_frequency
+from syscore.pandas.frequency import how_many_times_a_year_is_pd_frequency
 
 from sysquant.estimators.correlations import correlationEstimate
 from sysquant.estimators.mean_estimator import meanEstimates

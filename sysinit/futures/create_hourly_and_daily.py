@@ -1,5 +1,8 @@
 from syscore.dateutils import DAILY_PRICE_FREQ, HOURLY_FREQ
-from syscore.pdutils import get_intraday_df_at_frequency, closing_date_rows_in_pd_object
+from syscore.pandas.frequency import (
+    closing_date_rows_in_pd_object,
+    get_intraday_pdf_at_frequency,
+)
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
@@ -16,7 +19,7 @@ def write_split_data_for_instrument(instrument_code):
         if len(merged_data) == 0:
             continue
         daily_data = closing_date_rows_in_pd_object(merged_data)
-        hourly_data = get_intraday_df_at_frequency(merged_data, frequency="H")
+        hourly_data = get_intraday_pdf_at_frequency(merged_data, frequency="H")
         if len(daily_data) > 0:
             a.write_prices_at_frequency_for_contract_object(
                 contract,

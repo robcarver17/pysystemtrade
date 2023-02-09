@@ -1,11 +1,12 @@
 import datetime
 
+from syscore.exceptions import missingData
 from sysobjects.production.process_control import (
     dictOfControlProcesses,
     controlProcess,
     was_running_pid_notok_closed,
 )
-from syscore.objects import named_object, success, missing_data
+from syscore.constants import named_object, success
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
 
@@ -31,8 +32,9 @@ class controlProcessData(baseData):
         return list(self._control_store.keys())
 
     def get_control_for_process_name(self, process_name) -> controlProcess:
-        control = self._get_control_for_process_name_without_default(process_name)
-        if control is missing_data:
+        try:
+            control = self._get_control_for_process_name_without_default(process_name)
+        except missingData:
             return controlProcess()
         else:
             return control
@@ -40,14 +42,16 @@ class controlProcessData(baseData):
     def _get_control_for_process_name_without_default(
         self, process_name
     ) -> controlProcess:
-        control = self._control_store.get(process_name, missing_data)
+        try:
+            control = self._control_store[process_name]
+        except KeyError:
+            raise missingData("Process %s not found in control store" % process_name)
         return control
 
     def _update_control_for_process_name(self, process_name, new_control_object):
-        existing_control = self._get_control_for_process_name_without_default(
-            process_name
-        )
-        if existing_control is missing_data:
+        try:
+            self._get_control_for_process_name_without_default(process_name)
+        except missingData:
             self._add_control_for_process_name(process_name, new_control_object)
         else:
             self._modify_existing_control_for_process_name(
@@ -112,7 +116,7 @@ class controlProcessData(baseData):
 
         if result is was_running_pid_notok_closed:
             self.log.critical(
-                "Process %s with PID %d appears to have crashed, marking as finished: you may want to restart"
+                "Process %s with PID %d appears to have crashed, marking as close: you may want to restart"
                 % (process_name, PID)
             )
             self._update_control_for_process_name(process_name, original_process)

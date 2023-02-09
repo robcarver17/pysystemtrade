@@ -5,8 +5,7 @@ We can also check: when last adjusted prices were updated, when FX was last upda
    last updated
 """
 
-
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysdata.data_blob import dataBlob
 

@@ -1,11 +1,10 @@
-from syscore.interactive import true_if_answer_is_yes
+from syscore.interactive.input import true_if_answer_is_yes
 from sysdata.production.TEMP_old_capital_objects import (
     get_old_capital,
     delete_old_total_capital,
     get_dict_of_capital_by_strategy,
     delete_old_capital_for_strategy,
 )
-from sysproduction.data.strategies import get_list_of_strategies
 from sysdata.arctic.arctic_capital import arcticCapitalData
 
 

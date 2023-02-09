@@ -1,7 +1,7 @@
 from copy import copy
 import numpy as np
 
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.constants import missing_data, arg_not_supplied
 from sysquant.optimisation.weights import portfolioWeights
 from systems.provided.dynamic_small_system_optimise.set_up_constraints import (
     A_VERY_LARGE_NUMBER,

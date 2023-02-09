@@ -3,7 +3,7 @@ import datetime
 
 from dataclasses import dataclass
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from syslogdiag.logger import logger
 

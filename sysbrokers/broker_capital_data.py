@@ -1,6 +1,6 @@
 from sysobjects.spot_fx_prices import listOfCurrencyValues
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysdata.production.new_capital import capitalData
 from syslogdiag.logger import logger

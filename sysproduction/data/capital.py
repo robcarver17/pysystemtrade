@@ -1,7 +1,7 @@
 import datetime
 import pandas as pd
 
-from syscore.objects import arg_not_supplied, missing_data
+from syscore.constants import missing_data, arg_not_supplied
 
 from sysdata.production.new_capital import capitalData, totalCapitalCalculationData
 from sysdata.production.margin import marginData, seriesOfMargin
@@ -11,6 +11,8 @@ from sysdata.mongodb.mongo_margin import mongoMarginData
 from sysdata.data_blob import dataBlob
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
+
+from systems.accounts.from_returns import account_curve_from_returns
 
 
 class dataCapital(productionDataLayerGeneric):
@@ -26,7 +28,7 @@ class dataCapital(productionDataLayerGeneric):
     ## TOTAL CAPITAL...
 
     def get_percentage_returns_as_account_curve(self) -> pd.DataFrame:
-        return self.total_capital_calculator.get_percentage_returns_as_pd()
+        return account_curve_from_returns(self.get_percentage_returns_as_pd())
 
     def get_percentage_returns_as_pd(self) -> pd.DataFrame:
         return self.total_capital_calculator.get_percentage_returns_as_pd()

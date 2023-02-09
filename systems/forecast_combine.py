@@ -2,18 +2,21 @@ from copy import copy
 
 import pandas as pd
 
-from syscore.algos import map_forecast_value
+from systems.forecast_mapping import map_forecast_value
 from syscore.genutils import str2Bool
-from syscore.objects import resolve_function, missing_data
-from syscore.pdutils import (
+from syscore.objects import resolve_function
+from syscore.constants import missing_data
+from syscore.pandas.pdutils import (
     dataframe_pad,
-    fix_weights_vs_position_or_forecast,
     from_dict_of_values_to_df,
     from_scalar_values_to_ts,
-    listOfDataFrames,
-    weights_sum_to_one,
-    reindex_last_monthly_include_first_date,
 )
+from syscore.pandas.frequency import reindex_last_monthly_include_first_date
+from syscore.pandas.strategy_functions import (
+    weights_sum_to_one,
+    fix_weights_vs_position_or_forecast,
+)
+from syscore.pandas.list_of_df import listOfDataFrames
 
 from sysdata.config.configdata import Config
 
@@ -175,7 +178,7 @@ class ForecastCombine(SystemStage):
             ).mean()
         )
 
-        # change rows so weights add to one
+        # change rows so weights add to one (except for special case where all zeros)
         smoothed_normalised_daily_weights = weights_sum_to_one(
             smoothed_daily_forecast_weights
         )
@@ -256,8 +259,15 @@ class ForecastCombine(SystemStage):
         self, instrument_code, monthly_forecast_weights: pd.DataFrame
     ) -> pd.DataFrame:
 
-        original_rules = list(monthly_forecast_weights.columns)
         cheap_rules = self.cheap_trading_rules_post_processing(instrument_code)
+        if len(cheap_rules) == 0:
+            ## special case all zeros
+            monthly_forecast_weights_cheap_rules_only = copy(monthly_forecast_weights)
+            monthly_forecast_weights_cheap_rules_only[:] = 0.0
+
+            return monthly_forecast_weights_cheap_rules_only
+
+        original_rules = list(monthly_forecast_weights.columns)
 
         cheap_rules_in_weights = list(set(original_rules).intersection(cheap_rules))
 
@@ -792,8 +802,7 @@ class ForecastCombine(SystemStage):
                 "No rules are cheap enough for %s with threshold %.3f SR units! Raise threshold (system.config.forecast_weight_estimate['ceiling_cost_SR']), add rules, or drop instrument."
                 % (instrument_code, ceiling_cost_SR)
             )
-            self.log.critical(error_msg)
-            raise Exception(error_msg)
+            self.log.warn(error_msg)
 
         else:
             self.log.msg(
@@ -1116,7 +1125,9 @@ class ForecastCombine(SystemStage):
         # To deal with this we pad the weights data frame so it is exactly
         # aligned with the correlations
 
-        weight_df = dataframe_pad(weight_df, correlation_list.column_names, padwith=0.0)
+        weight_df = dataframe_pad(
+            weight_df, correlation_list.column_names, pad_with_value=0.0
+        )
 
         ts_fdm = idm_func(correlation_list, weight_df, **div_mult_params)
 

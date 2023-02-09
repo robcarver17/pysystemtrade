@@ -6,7 +6,8 @@ Depends on instrument order and type of order
 """
 from sysproduction.data.orders import dataOrders
 from sysproduction.data.broker import dataBroker
-from syscore.objects import missing_order, arg_not_supplied
+from syscore.constants import arg_not_supplied
+from sysexecution.orders.named_order_objects import missing_order
 from sysdata.data_blob import dataBlob
 from sysexecution.orders.instrument_orders import (
     instrumentOrder,

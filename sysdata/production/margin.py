@@ -1,7 +1,7 @@
 import pandas as pd
 import datetime
 
-from syscore.objects import missing_data
+from syscore.exceptions import missingData
 
 TOTAL_MARGIN = "_TOTAL_MARGIN"
 
@@ -9,7 +9,7 @@ TOTAL_MARGIN = "_TOTAL_MARGIN"
 class seriesOfMargin(pd.Series):
     def final_value(self) -> float:
         if len(self) == 0:
-            return missing_data
+            raise missingData
         return self.values[-1]
 
     def add_value(self, value: float, dateref=datetime.datetime.now()):

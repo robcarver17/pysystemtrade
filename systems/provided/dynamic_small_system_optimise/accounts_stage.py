@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from syscore.pdutils import turnover
+from syscore.pandas.strategy_functions import turnover
 from systems.accounts.accounts_stage import Account
 from systems.accounts.curves.account_curve import accountCurve
 from systems.accounts.curves.account_curve_group import accountCurveGroup

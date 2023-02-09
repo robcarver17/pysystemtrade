@@ -19,8 +19,8 @@ from typing import Any
 import yaml
 
 from syscore.exceptions import missingData
-from syscore.fileutils import get_filename_for_package
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.fileutils import resolve_path_and_filename_for_package
+from syscore.constants import missing_data, arg_not_supplied
 from sysdata.config.defaults import get_system_defaults_dict
 from sysdata.config.private_config import (
     get_private_config_as_dict,
@@ -148,7 +148,7 @@ class Config(object):
 
         elif isinstance(config_item, str) or isinstance(config_item, Path):
             # must be a file YAML'able, from which we load the
-            filename = get_filename_for_package(config_item)
+            filename = resolve_path_and_filename_for_package(config_item)
             with open(filename) as file_to_parse:
                 dict_to_parse = yaml.load(file_to_parse, Loader=yaml.FullLoader)
 
@@ -168,7 +168,7 @@ class Config(object):
         """
         Take a dictionary object and turn it into self
 
-        When we've finished self will be an object where the attributes are
+        When we've close self will be an object where the attributes are
 
         So if config_objec=dict(a=2, b=2)
         Then this object will become self.a=2, self.b=2

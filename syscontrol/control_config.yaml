@@ -3,6 +3,8 @@ process_configuration_start_time:
   run_stack_handler: '00:01'
   run_capital_update: '01:00'
   run_daily_prices_updates: '20:00'
+  run_daily_fx_and_contract_updates: '07:00'
+  run_daily_update_multiple_adjusted_prices: '23:00'
   run_systems: '20:05'
   run_strategy_order_generator: '20:10'
   run_backups: '20:15'
@@ -14,10 +16,22 @@ process_configuration_stop_time:
   run_stack_handler: '19:45'
   run_capital_update: '19:50'
   run_daily_prices_updates: '23:50'
+  run_daily_fx_and_contract_updates: '23:50'
+  run_daily_update_multiple_adjusted_prices: '23:50'
   run_systems: '23:50'
   run_backups: '23:50'
   run_cleaners: '23:50'
   run_reports: '23:50'
+## Examples of passing arguments
+#arguments:
+#  run_daily_prices_updates:
+#    update_historical_prices: # everything in this block is passed as **kwargs to this method
+#      download_by_zone:
+#        Asia: '07:00'
+#        EMEA: '18:00'
+#        US: '20:00'
+#    _methods_on_completion: # and this block is passed to all methods that run on completion only
+#        a: 'test'
 # Examples:
 #process_configuration_previous_process:
 #  run_systems: 'run_daily_prices_updates'
@@ -34,12 +48,14 @@ process_configuration_methods:
     strategy_allocation:
       max_executions: 1
   run_daily_prices_updates:
+    update_historical_prices:
+      max_executions: 1
+  run_daily_fx_and_contract_updates:
     update_fx_prices:
       max_executions: 1
     update_sampled_contracts:
       max_executions: 1
-    update_historical_prices:
-      max_executions: 1
+  run_daily_update_multiple_adjusted_prices:
     update_multiple_adjusted_prices:
       max_executions: 1
   run_stack_handler:

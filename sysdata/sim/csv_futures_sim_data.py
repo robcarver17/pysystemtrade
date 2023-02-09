@@ -3,7 +3,7 @@ Get data from .csv files used for futures trading
 
 """
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData

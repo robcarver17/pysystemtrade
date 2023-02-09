@@ -1,5 +1,5 @@
+from syscore.exceptions import missingData
 from syslogdiag.log_to_screen import logtoscreen
-from syscore.objects import missing_data
 
 lock_on = "ON"
 lock_off = "OFF"
@@ -16,9 +16,9 @@ class lockData(object):
             return False
 
     def get_lock_for_instrument(self, instrument_code: str) -> str:
-
-        lock = self._get_lock_for_instrument_no_checking(instrument_code)
-        if lock is missing_data:
+        try:
+            lock = self._get_lock_for_instrument_no_checking(instrument_code)
+        except missingData:
             return lock_off
 
         return lock

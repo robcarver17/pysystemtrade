@@ -1,5 +1,5 @@
-from syscore.fileutils import get_filename_for_package
-from syscore.objects import arg_not_supplied
+from syscore.fileutils import resolve_path_and_filename_for_package
+from syscore.constants import arg_not_supplied
 from sysdata.futures.contracts import futuresContractData, listOfFuturesContracts
 from syslogdiag.log_to_screen import logtoscreen
 import pandas as pd
@@ -32,7 +32,9 @@ class csvFuturesContractData(futuresContractData):
         return self._datapath
 
     def _filename_for_instrument_code(self, instrument_code: str):
-        return get_filename_for_package(self.datapath, "%s.csv" % instrument_code)
+        return resolve_path_and_filename_for_package(
+            self.datapath, "%s.csv" % instrument_code
+        )
 
     def write_contract_list_as_df(
         self, instrument_code: str, contract_list: listOfFuturesContracts

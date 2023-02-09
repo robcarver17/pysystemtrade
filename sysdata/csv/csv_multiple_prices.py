@@ -5,10 +5,13 @@ from sysobjects.multiple_prices import (
     list_of_contract_column_names,
 )
 
-from syscore.fileutils import get_filename_for_package, files_with_extension_in_pathname
-from syscore.pdutils import pd_readcsv
+from syscore.fileutils import (
+    resolve_path_and_filename_for_package,
+    files_with_extension_in_pathname,
+)
+from syscore.pandas.pdutils import pd_readcsv
 from syscore.genutils import str_of_int
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
 
 CSV_MULTIPLE_PRICE_DIRECTORY = "data.futures.multiple_prices_csv"
@@ -90,6 +93,8 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
         return instr_all_price_data
 
     def _filename_given_instrument_code(self, instrument_code: str):
-        filename = get_filename_for_package(self.datapath, "%s.csv" % (instrument_code))
+        filename = resolve_path_and_filename_for_package(
+            self.datapath, "%s.csv" % (instrument_code)
+        )
 
         return filename

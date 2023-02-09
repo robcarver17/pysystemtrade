@@ -1,6 +1,6 @@
 from copy import copy
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.dateutils import WEEKS_IN_YEAR
 
 

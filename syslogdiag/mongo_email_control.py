@@ -1,6 +1,5 @@
 import datetime
 from syscore.dateutils import datetime_to_long, long_to_datetime
-from syscore.objects import missing_data
 from syslogdiag.email_control import emailControlData
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
 
@@ -49,8 +48,6 @@ class mongoEmailControlData(emailControlData):
         result_dict = self.mongo_data.get_result_dict_for_dict_keys(
             {TYPE_KEY: type, SUBJECT_KEY: subject}
         )
-        if result_dict is missing_data:
-            return missing_data
 
         result = result_dict[DATE_KEY]
         result_as_datetime = long_to_datetime(result)

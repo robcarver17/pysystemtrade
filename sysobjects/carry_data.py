@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
-from syscore.pdutils import uniquets, apply_abs_min
+from syscore.pandas.pdutils import uniquets
+from syscore.pandas.strategy_functions import apply_abs_min
 
 
 class rawCarryData(pd.DataFrame):
@@ -9,6 +10,10 @@ class rawCarryData(pd.DataFrame):
         self, floor_date_diff: float = 1 / CALENDAR_DAYS_IN_YEAR
     ) -> pd.Series:
         raw_differential = self.raw_differential()
+
+        ## This prevents the roll differential from being zero in a corner
+        ##     case when the two contract months match - it has to be at least one day
+
         floored_differential = apply_abs_min(raw_differential, floor_date_diff)
         unique_differential = uniquets(floored_differential)
 

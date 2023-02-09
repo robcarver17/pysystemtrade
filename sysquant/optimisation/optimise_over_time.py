@@ -1,6 +1,6 @@
 import pandas as pd
 
-from syscore.genutils import progressBar
+from syscore.interactive.progress_bar import progressBar
 
 from syslogdiag.log_to_screen import logtoscreen, logger
 

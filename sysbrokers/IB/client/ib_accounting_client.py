@@ -5,7 +5,7 @@ from sysbrokers.IB.client.ib_client import (
     STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY,
 )
 
-from syscore.objects import arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysobjects.spot_fx_prices import currencyValue, listOfCurrencyValues
 

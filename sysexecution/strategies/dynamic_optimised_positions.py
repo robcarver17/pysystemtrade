@@ -11,7 +11,7 @@ from copy import copy
 from typing import List
 from dataclasses import dataclass
 
-from syscore.objects import missing_data, arg_not_supplied
+from syscore.constants import missing_data, arg_not_supplied
 from sysdata.data_blob import dataBlob
 
 from sysexecution.orders.instrument_orders import instrumentOrder, best_order_type
