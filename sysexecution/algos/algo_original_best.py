@@ -356,16 +356,12 @@ def adverse_size_issue(
 ) -> bool:
     try:
         if wait_for_valid_tick:
-            # FIXME: THIS CAN RETURN missing_data; REFACTOR TO DEAL WITH EXCEPTIONS INSTEAD
             current_tick_analysis = (
                 ticker_object.wait_for_valid_bid_and_ask_and_analyse_current_tick()
             )
         else:
              current_tick_analysis = ticker_object.current_tick_analysis
     except missingData:
-        current_tick_analysis = missing_data
-
-    if current_tick_analysis is missing_data:
         ## serious problem with data, return True so switch to market order
         ## most likely case is order will be cancelled which is fine
         return missing_data
