@@ -48,6 +48,10 @@ Or, configure your local git install to automatically check and fix your code
 as you commit. Configuration instructions 
 [here](https://black.readthedocs.io/en/stable/integrations/source_version_control.html)
 
+### Black version
+
+Black needs to be consistent between the version running in the CI build and your local environment. To check the currently used version, see the `[tool.black]` section of the project TOML file  (https://github.com/robcarver17/pysystemtrade/blob/master/pyproject.toml)
+
 ## General code guidelines (INCOMPLETE)
 
 These guidelines are aspirations, and do not describe the system as it stands. The project has been written over a period of several years, and it is only quite recently I've decided to set out some guidelines. 
