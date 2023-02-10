@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.pandas.pdutils import uniquets
+from syscore.pandas.find_data import get_row_of_series_before_date
 from syscore.pandas.strategy_functions import calculate_cost_deflator, years_in_data
 from syscore.dateutils import generate_equal_dates_within_year
 from syscore.genutils import flatten_list
@@ -110,11 +111,15 @@ class pandlCalculationWithCashCostsAndFills(
         average_holding_by_period = self._average_holdings_within_year(
             year, rolls_per_year
         )
-        notional_price = 0  # doesn't actually affect costs
+        price_series = self.price.ffill()
         last_date_with_positions = self.last_date_with_positions
 
         fills_this_year = [
-            Fill(date=date, qty=qty, price=notional_price)
+            Fill(
+                date=date,
+                qty=qty,
+                price=get_row_of_series_before_date(price_series, date),
+            )
             for date, qty in zip(date_list, average_holding_by_period)
             if date <= last_date_with_positions
         ]
