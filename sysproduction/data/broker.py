@@ -380,7 +380,7 @@ class dataBroker(productionDataLayerGeneric):
         try:
             tick_data = self.get_recent_bid_ask_tick_data_for_contract_object(contract)
         except missingData:
-            tick_data = missing_data
+            return missing_data
 
         analysis_of_tick_data = analyse_tick_data_frame(
             tick_data, qty, forward_fill=True, replace_qty_nans=True
