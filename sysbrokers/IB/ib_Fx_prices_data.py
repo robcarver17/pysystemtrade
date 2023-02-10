@@ -21,7 +21,7 @@ class ibFxPricesData(brokerFxPricesData):
     def __init__(self, ibconnection, data: dataBlob, log=logtoscreen("ibFxPricesData")):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
-        self._dataBlob = data_blob
+        self._dataBlob = data
 
     def __repr__(self):
         return "IB FX price data"
