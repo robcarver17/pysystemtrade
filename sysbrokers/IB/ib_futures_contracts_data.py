@@ -8,7 +8,7 @@ from sysbrokers.broker_futures_contract_data import brokerFuturesContractData
 
 from syscore.constants import missing_instrument
 from syscore.exceptions import missingContract, missingData
-
+from sysdata.data_blob import dataBlob
 from sysobjects.contract_dates_and_expiries import expiryDate, listOfContractDateStr
 from sysobjects.contracts import futuresContract
 from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
@@ -26,9 +26,12 @@ class ibFuturesContractData(brokerFuturesContractData):
     """
 
     def __init__(
-        self, ibconnection: connectionIB, log=logtoscreen("ibFuturesContractData")
+        self,
+        ibconnection: connectionIB,
+        data: dataBlob,
+        log=logtoscreen("ibFuturesContractData"),
     ):
-        super().__init__(log=log)
+        super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
 
     def __repr__(self):
@@ -50,7 +53,7 @@ class ibFuturesContractData(brokerFuturesContractData):
 
     @property
     def ib_futures_instrument_data(self) -> ibFuturesInstrumentData:
-        return ibFuturesInstrumentData(self.ibconnection, log=self.log)
+        return self.data.broker_futures_instrument
 
     def get_list_of_contract_dates_for_instrument_code(
         self, instrument_code: str

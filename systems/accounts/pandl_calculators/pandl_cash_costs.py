@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from syscore.pandas.pdutils import uniquets
+from syscore.pandas.find_data import get_row_of_series_before_date
 from syscore.pandas.strategy_functions import calculate_cost_deflator, years_in_data
 from syscore.dateutils import generate_equal_dates_within_year
 from syscore.genutils import flatten_list
@@ -27,12 +28,14 @@ class pandlCalculationWithCashCostsAndFills(
         raw_costs: instrumentCosts,
         rolls_per_year: int,
         vol_normalise_currency_costs: bool = True,
+        multiply_roll_costs_by: float = 1.0,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self._raw_costs = raw_costs
         self._vol_normalise_currency_costs = vol_normalise_currency_costs
         self._rolls_per_year = rolls_per_year
+        self._multiply_roll_costs_by = multiply_roll_costs_by
 
     def costs_pandl_in_points(self) -> pd.Series:
         ## We work backwards since the cost calculator returns a currency cost
@@ -45,20 +48,23 @@ class pandlCalculationWithCashCostsAndFills(
         return costs_pandl_in_points
 
     def costs_pandl_in_instrument_currency(self) -> pd.Series:
+        costs_as_pd_series = self.costs_from_trading_in_instrument_currency_as_series()
+        normalised_costs = self.normalise_costs_in_instrument_currency(
+            costs_as_pd_series
+        )
 
+        return normalised_costs
+
+    def costs_from_trading_in_instrument_currency_as_series(self) -> pd.Series:
         instrument_currency_costs_as_list = (
             self.costs_from_trading_in_instrument_currency_as_list()
         )
         date_index = self.date_index_for_all_fills()
         costs_as_pd_series = pd.Series(instrument_currency_costs_as_list, date_index)
         costs_as_pd_series = costs_as_pd_series.sort_index()
-        costs_as_pd_series = uniquets(costs_as_pd_series)
+        costs_as_pd_series = costs_as_pd_series.groupby(costs_as_pd_series.index).sum()
 
-        normalised_costs = self.normalise_costs_in_instrument_currency(
-            costs_as_pd_series
-        )
-
-        return normalised_costs
+        return costs_as_pd_series
 
     def costs_from_trading_in_instrument_currency_as_list(self) -> list:
         list_of_fills = self.list_of_all_fills()
@@ -110,14 +116,33 @@ class pandlCalculationWithCashCostsAndFills(
         average_holding_by_period = self._average_holdings_within_year(
             year, rolls_per_year
         )
-        notional_price = 0  # doesn't actually affect costs
+        price_series = self.price.ffill()
         last_date_with_positions = self.last_date_with_positions
+        multiply_roll_costs_by = self.multiply_roll_costs_by
 
-        fills_this_year = [
-            Fill(date=date, qty=qty, price=notional_price)
+        ## We multiply the quantity rather than the actual costs, as the later
+        ##   cost calculation doesn't distinguish between rolls and other trades
+
+        opening_fills_this_year = [
+            Fill(
+                date=date,
+                qty=qty * multiply_roll_costs_by,
+                price=get_row_of_series_before_date(price_series, date),
+            )
             for date, qty in zip(date_list, average_holding_by_period)
-            if date <= last_date_with_positions
+            if date <= last_date_with_positions and abs(qty) > 0
         ]
+
+        closing_fills_this_year = [
+            Fill(
+                date=fill.date,
+                qty=-fill.qty,
+                price=fill.price,
+            )
+            for fill in opening_fills_this_year
+        ]
+
+        fills_this_year = opening_fills_this_year + closing_fills_this_year
 
         return fills_this_year
 
@@ -202,3 +227,7 @@ class pandlCalculationWithCashCostsAndFills(
     @property
     def rolls_per_year(self) -> int:
         return self._rolls_per_year
+
+    @property
+    def multiply_roll_costs_by(self) -> float:
+        return self._multiply_roll_costs_by

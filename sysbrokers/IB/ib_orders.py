@@ -17,7 +17,7 @@ from sysbrokers.IB.ib_translate_broker_order_objects import (
 )
 from sysbrokers.IB.client.ib_orders_client import ibOrdersClient
 from sysbrokers.broker_execution_stack import brokerExecutionStackData
-
+from sysdata.data_blob import dataBlob
 from syscore.constants import arg_not_supplied, success, failure
 from syscore.exceptions import orderCannotBeModified
 from sysexecution.orders.named_order_objects import missing_order
@@ -93,9 +93,12 @@ class ibOrderWithControls(orderWithControls):
 
 class ibExecutionStackData(brokerExecutionStackData):
     def __init__(
-        self, ibconnection: connectionIB, log=logtoscreen("ibExecutionStackData")
+        self,
+        ibconnection: connectionIB,
+        data: dataBlob,
+        log=logtoscreen("ibExecutionStackData"),
     ):
-        super().__init__(log=log)
+        super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
 
     def __repr__(self):
@@ -131,11 +134,11 @@ class ibExecutionStackData(brokerExecutionStackData):
 
     @property
     def futures_contract_data(self) -> ibFuturesContractData:
-        return ibFuturesContractData(self.ibconnection)
+        return self.data.broker_futures_contract
 
     @property
     def futures_instrument_data(self) -> ibFuturesInstrumentData:
-        return ibFuturesInstrumentData(self.ibconnection)
+        return self.data.broker_futures_instrument
 
     def get_list_of_broker_orders_with_account_id(
         self, account_id: str = arg_not_supplied

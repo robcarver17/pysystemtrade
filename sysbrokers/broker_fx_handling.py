@@ -1,5 +1,6 @@
 from syscore.constants import arg_not_supplied
 from sysdata.base_data import baseData
+from sysdata.data_blob import dataBlob
 from sysbrokers.broker_trade import brokerTrade
 
 from syslogdiag.log_to_screen import logtoscreen
@@ -7,8 +8,9 @@ from syslogdiag.log_to_screen import logtoscreen
 
 ### generic base class for FX handling
 class brokerFxHandlingData(baseData):
-    def __init__(self, log=logtoscreen("brokerFXHandlingData")):
+    def __init__(self, data: dataBlob, log=logtoscreen("brokerFXHandlingData")):
         super().__init__(log=log)
+        self._data = data
 
     def broker_fx_balances(self, account_id: str = arg_not_supplied) -> dict:
         raise NotImplementedError
@@ -22,3 +24,7 @@ class brokerFxHandlingData(baseData):
     ) -> brokerTrade:
 
         raise NotImplementedError
+
+    @property
+    def data(self) -> dataBlob:
+        return self._data

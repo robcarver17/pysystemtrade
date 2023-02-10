@@ -7,7 +7,7 @@ from sysbrokers.IB.ib_instruments import (
 )
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
-
+from sysdata.data_blob import dataBlob
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.genutils import return_another_value_if_nan
 from syscore.constants import missing_instrument, missing_file
@@ -40,9 +40,12 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
     """
 
     def __init__(
-        self, ibconnection: connectionIB, log=logtoscreen("ibFuturesContractData")
+        self,
+        ibconnection: connectionIB,
+        data: dataBlob,
+        log=logtoscreen("ibFuturesContractData"),
     ):
-        super().__init__(log=log)
+        super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
 
     def __repr__(self):

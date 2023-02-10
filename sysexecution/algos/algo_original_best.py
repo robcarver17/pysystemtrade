@@ -360,7 +360,7 @@ def adverse_size_issue(
                 ticker_object.wait_for_valid_bid_and_ask_and_analyse_current_tick()
             )
         else:
-             current_tick_analysis = ticker_object.current_tick_analysis
+            current_tick_analysis = ticker_object.current_tick_analysis
     except missingData:
         ## serious problem with data, return True so switch to market order
         ## most likely case is order will be cancelled which is fine

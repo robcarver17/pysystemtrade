@@ -3,13 +3,16 @@ from syslogdiag.log_to_screen import logtoscreen
 from syscore.constants import arg_not_supplied
 
 from sysdata.production.historic_positions import contractPositionData
-
+from sysdata.data_blob import dataBlob
 from sysobjects.production.positions import listOfContractPositions
 
 
 class brokerContractPositionData(contractPositionData):
-    def __init__(self, log=logtoscreen("brokerFuturesContractPriceData")):
+    def __init__(
+        self, data: dataBlob, log=logtoscreen("brokerFuturesContractPriceData")
+    ):
         super().__init__(log=log)
+        self._data = data
 
     def get_all_current_positions_as_list_with_contract_objects(
         self, account_id=arg_not_supplied
@@ -39,3 +42,7 @@ class brokerContractPositionData(contractPositionData):
 
     def get_list_of_instruments_with_any_position(self):
         raise Exception("Not implemented for broker")
+
+    @property
+    def data(self):
+        return self._data

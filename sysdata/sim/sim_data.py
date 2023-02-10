@@ -305,9 +305,7 @@ def _resolve_start_date(sim_data: simData):
 
     if isinstance(start_date, datetime.date):
         # yaml parses unquoted date like 2000-01-01 to datetime.date
-        start_date = datetime.datetime.combine(
-            start_date, datetime.datetime.min.time()
-        )
+        start_date = datetime.datetime.combine(start_date, datetime.datetime.min.time())
     elif not isinstance(start_date, datetime.datetime):
         try:
             start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")

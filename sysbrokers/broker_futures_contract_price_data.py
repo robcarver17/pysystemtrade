@@ -3,7 +3,7 @@ from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
 )
-
+from sysdata.data_blob import dataBlob
 
 from sysexecution.tick_data import tickerObject, dataFrameOfRecentTicks
 from sysexecution.orders.contract_orders import contractOrder
@@ -24,8 +24,11 @@ class brokerFuturesContractPriceData(futuresContractPriceData):
 
     """
 
-    def __init__(self, log=logtoscreen("brokerFuturesContractPriceData")):
+    def __init__(
+        self, data: dataBlob, log=logtoscreen("brokerFuturesContractPriceData")
+    ):
         super().__init__(log=log)
+        self._data = data
 
     def get_prices_at_frequency_for_potentially_expired_contract_object(
         self, contract: futuresContract, freq: Frequency = DAILY_PRICE_FREQ
@@ -53,3 +56,7 @@ class brokerFuturesContractPriceData(futuresContractPriceData):
         self, futures_contract_object: futuresContract
     ):
         raise NotImplementedError("Broker is a read only source of prices")
+
+    @property
+    def data(self):
+        return self._data
