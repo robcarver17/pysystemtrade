@@ -1,11 +1,13 @@
+from sysdata.data_blob import dataBlob
 from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
 from syslogdiag.log_to_screen import logtoscreen
 
 
 class brokerFxPricesData(fxPricesData):
-    def __init__(self, log=logtoscreen("brokerFxPricesData")):
+    def __init__(self, data: dataBlob, log=logtoscreen("brokerFxPricesData")):
         super().__init__(log=log)
+        self._data = data
 
     def get_list_of_fxcodes(self) -> list:
         raise NotImplementedError
@@ -24,3 +26,7 @@ class brokerFxPricesData(fxPricesData):
 
     def _add_fx_prices_without_checking_for_existing_entry(self, *args, **kwargs):
         raise NotImplementedError("Broker is a read only source of prices")
+
+    @property
+    def data(self) -> dataBlob:
+        return self._data

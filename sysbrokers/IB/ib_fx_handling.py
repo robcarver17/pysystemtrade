@@ -12,12 +12,12 @@ class ibFxHandlingData(brokerFxHandlingData):
     def __init__(
         self,
         ibconnection: connectionIB,
-        data_blob: dataBlob,
+        data: dataBlob,
         log=logtoscreen("ibFXHandlingData"),
     ):
-        super().__init__(log=log)
+        super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
-        self._dataBlob = data_blob
+        self._data = data
 
     def __repr__(self):
         return "IB FX handling data %s" % str(self.ib_client)

@@ -18,10 +18,8 @@ ibFXConfig = namedtuple("ibFXConfig", ["ccy1", "ccy2", "invert"])
 
 
 class ibFxPricesData(brokerFxPricesData):
-    def __init__(
-        self, ibconnection, data_blob: dataBlob, log=logtoscreen("ibFxPricesData")
-    ):
-        super().__init__(log=log)
+    def __init__(self, ibconnection, data: dataBlob, log=logtoscreen("ibFxPricesData")):
+        super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
         self._dataBlob = data_blob
 

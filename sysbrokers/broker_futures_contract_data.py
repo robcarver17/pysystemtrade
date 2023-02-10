@@ -2,7 +2,7 @@ from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
 from syscore.exceptions import missingContract
 from syscore.constants import market_closed
 from sysdata.futures.contracts import futuresContractData
-
+from sysdata.data_blob import dataBlob
 from sysobjects.contract_dates_and_expiries import expiryDate
 from sysobjects.contracts import futuresContract
 
@@ -10,8 +10,9 @@ from syslogdiag.log_to_screen import logtoscreen
 
 
 class brokerFuturesContractData(futuresContractData):
-    def __init__(self, log=logtoscreen("brokerFuturesContractData")):
+    def __init__(self, data: dataBlob, log=logtoscreen("brokerFuturesContractData")):
         super().__init__(log=log)
+        self._data = data
 
     def get_actual_expiry_date_for_single_contract(
         self, futures_contract: futuresContract
@@ -79,3 +80,7 @@ class brokerFuturesContractData(futuresContractData):
         self, contract_object: futuresContract
     ):
         raise NotImplementedError("Broker is read only")
+
+    @property
+    def data(self):
+        return self._data

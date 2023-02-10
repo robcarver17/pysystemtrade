@@ -9,12 +9,11 @@ class ibStaticData(brokerStaticData):
     def __init__(
         self,
         ibconnection: connectionIB,
-        data_blob: dataBlob,
+        data: dataBlob,
         log=logtoscreen("ibStaticData"),
     ):
-        super().__init__(log=log)
+        super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
-        self._dataBlob = data_blob
 
     def __repr__(self):
         return "IB static data %s" % str(self.ib_client)

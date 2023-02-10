@@ -42,12 +42,11 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
     def __init__(
         self,
         ibconnection: connectionIB,
-        data_blob: dataBlob,
+        data: dataBlob,
         log=logtoscreen("ibFuturesContractData"),
     ):
-        super().__init__(log=log)
+        super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
-        self._dataBlob = data_blob
 
     def __repr__(self):
         return "IB Futures per contract data %s" % str(self.ibconnection)

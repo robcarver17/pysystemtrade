@@ -14,12 +14,11 @@ class ibCapitalData(brokerCapitalData):
     def __init__(
         self,
         ibconnection: connectionIB,
-        data_blob: dataBlob,
+        data: dataBlob,
         log: logger = logtoscreen("ibCapitalData"),
     ):
-        super().__init__(log=log)
+        super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
-        self._dataBlob = data_blob
 
     @property
     def ibconnection(self) -> connectionIB:
