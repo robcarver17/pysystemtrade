@@ -261,13 +261,10 @@ class tickerObject(object):
         self, qty: int = arg_not_supplied, wait_time_seconds: int = 10
     ) -> oneTick:
 
-        try:
-            current_tick = self.wait_for_valid_bid_and_ask_and_return_current_tick(
-                wait_time_seconds=wait_time_seconds
-            )
-            analysis = self.analyse_for_tick(current_tick, qty=qty)
-        except missingData:
-            return missing_data
+        current_tick = self.wait_for_valid_bid_and_ask_and_return_current_tick(
+            wait_time_seconds=wait_time_seconds
+        )
+        analysis = self.analyse_for_tick(current_tick, qty=qty)
 
         return analysis
 
