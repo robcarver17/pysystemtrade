@@ -114,7 +114,7 @@ class pandlCalculationWithCashCostsAndFills(
         price_series = self.price.ffill()
         last_date_with_positions = self.last_date_with_positions
 
-        fills_this_year = [
+        opening_fills_this_year = [
             Fill(
                 date=date,
                 qty=qty,
@@ -123,6 +123,17 @@ class pandlCalculationWithCashCostsAndFills(
             for date, qty in zip(date_list, average_holding_by_period)
             if date <= last_date_with_positions
         ]
+        closing_fills_this_year = [
+            Fill(
+                date=date,
+                qty=-qty,
+                price=get_row_of_series_before_date(price_series, date),
+            )
+            for date, qty in zip(date_list, average_holding_by_period)
+            if date <= last_date_with_positions
+        ]
+
+        fills_this_year = opening_fills_this_year + closing_fills_this_year
 
         return fills_this_year
 
