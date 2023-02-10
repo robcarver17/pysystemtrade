@@ -250,6 +250,7 @@ buffer_trade_to_edge: True
 # costs and accounting
 use_SR_costs: False
 vol_normalise_currency_costs: True
+multiply_roll_costs_by: 0.5
 #
 # risk overlay - make these numbers and uncomment
 #risk_overlay:

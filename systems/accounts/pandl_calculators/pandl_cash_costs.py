@@ -28,12 +28,14 @@ class pandlCalculationWithCashCostsAndFills(
         raw_costs: instrumentCosts,
         rolls_per_year: int,
         vol_normalise_currency_costs: bool = True,
+        multiply_roll_costs_by: float = 1.0,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self._raw_costs = raw_costs
         self._vol_normalise_currency_costs = vol_normalise_currency_costs
         self._rolls_per_year = rolls_per_year
+        self._multiply_roll_costs_by = multiply_roll_costs_by
 
     def costs_pandl_in_points(self) -> pd.Series:
         ## We work backwards since the cost calculator returns a currency cost
@@ -113,11 +115,15 @@ class pandlCalculationWithCashCostsAndFills(
         )
         price_series = self.price.ffill()
         last_date_with_positions = self.last_date_with_positions
+        multiply_roll_costs_by = self.multiply_roll_costs_by
+
+        ## We multiply the quantity rather than the actual costs, as the later
+        ##   cost calculation doesn't distinguish between rolls and other trades
 
         opening_fills_this_year = [
             Fill(
                 date=date,
-                qty=qty,
+                qty=qty * multiply_roll_costs_by,
                 price=get_row_of_series_before_date(price_series, date),
             )
             for date, qty in zip(date_list, average_holding_by_period)
@@ -126,7 +132,7 @@ class pandlCalculationWithCashCostsAndFills(
         closing_fills_this_year = [
             Fill(
                 date=date,
-                qty=-qty,
+                qty=-qty * multiply_roll_costs_by,
                 price=get_row_of_series_before_date(price_series, date),
             )
             for date, qty in zip(date_list, average_holding_by_period)
@@ -218,3 +224,7 @@ class pandlCalculationWithCashCostsAndFills(
     @property
     def rolls_per_year(self) -> int:
         return self._rolls_per_year
+
+    @property
+    def multiply_roll_costs_by(self) -> float:
+        return self._multiply_roll_costs_by

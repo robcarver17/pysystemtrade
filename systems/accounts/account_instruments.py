@@ -196,6 +196,7 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
 
         vol_normalise_currency_costs = self.config.vol_normalise_currency_costs
         rolls_per_year = self.get_rolls_per_year(instrument_code)
+        multiply_roll_costs_by = self.config.multiply_roll_costs_by
 
         pandl_calculator = pandlCalculationWithCashCostsAndFills(
             price,
@@ -208,6 +209,7 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
             roundpositions=roundpositions,
             vol_normalise_currency_costs=vol_normalise_currency_costs,
             rolls_per_year=rolls_per_year,
+            multiply_roll_costs_by=multiply_roll_costs_by,
         )
 
         account_curve = accountCurve(pandl_calculator, weighted=True)
