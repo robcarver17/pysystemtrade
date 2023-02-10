@@ -2,12 +2,19 @@ from syslogdiag.log_to_screen import logtoscreen
 from sysbrokers.IB.client.ib_client import ibClient
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_static_data import brokerStaticData
+from sysdata.data_blob import dataBlob
 
 
 class ibStaticData(brokerStaticData):
-    def __init__(self, ibconnection: connectionIB, log=logtoscreen("ibStaticData")):
-        self._ibconnection = ibconnection
+    def __init__(
+        self,
+        ibconnection: connectionIB,
+        data_blob: dataBlob,
+        log=logtoscreen("ibStaticData"),
+    ):
         super().__init__(log=log)
+        self._ibconnection = ibconnection
+        self._dataBlob = data_blob
 
     def __repr__(self):
         return "IB static data %s" % str(self.ib_client)

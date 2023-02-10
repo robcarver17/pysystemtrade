@@ -5,12 +5,19 @@ from sysbrokers.IB.client.ib_fx_client import ibFxClient
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract
 from sysbrokers.broker_fx_handling import brokerFxHandlingData
+from sysdata.data_blob import dataBlob
 
 
 class ibFxHandlingData(brokerFxHandlingData):
-    def __init__(self, ibconnection: connectionIB, log=logtoscreen("ibFXHandlingData")):
-        self._ibconnection = ibconnection
+    def __init__(
+        self,
+        ibconnection: connectionIB,
+        data_blob: dataBlob,
+        log=logtoscreen("ibFXHandlingData"),
+    ):
         super().__init__(log=log)
+        self._ibconnection = ibconnection
+        self._dataBlob = data_blob
 
     def __repr__(self):
         return "IB FX handling data %s" % str(self.ib_client)

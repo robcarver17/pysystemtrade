@@ -1,7 +1,7 @@
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.client.ib_accounting_client import ibAccountingClient
 from sysbrokers.broker_capital_data import brokerCapitalData
-
+from sysdata.data_blob import dataBlob
 from syscore.constants import arg_not_supplied
 
 from sysobjects.spot_fx_prices import listOfCurrencyValues
@@ -12,10 +12,14 @@ from syslogdiag.log_to_screen import logtoscreen
 
 class ibCapitalData(brokerCapitalData):
     def __init__(
-        self, ibconnection: connectionIB, log: logger = logtoscreen("ibCapitalData")
+        self,
+        ibconnection: connectionIB,
+        data_blob: dataBlob,
+        log: logger = logtoscreen("ibCapitalData"),
     ):
         super().__init__(log=log)
         self._ibconnection = ibconnection
+        self._dataBlob = data_blob
 
     @property
     def ibconnection(self) -> connectionIB:

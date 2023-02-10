@@ -1,6 +1,6 @@
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ, MIXED_FREQ
 from syscore.exceptions import missingContract, missingData
-
+from sysdata.data_blob import dataBlob
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_translate_broker_order_objects import sign_from_BS, ibBrokerOrder
@@ -74,13 +74,21 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
     """
 
     def __init__(
-        self, ibconnection: connectionIB, log=logtoscreen("ibFuturesContractPriceData")
+        self,
+        ibconnection: connectionIB,
+        data_blob: dataBlob,
+        log=logtoscreen("ibFuturesContractPriceData"),
     ):
-        self._ibconnection = ibconnection
         super().__init__(log=log)
+        self._ibconnection = ibconnection
+        self._dataBlob = data_blob
 
     def __repr__(self):
         return "IB Futures per contract price data %s" % str(self.ib_client)
+
+    @property
+    def data(self):
+        return self._dataBlob
 
     @property
     def ibconnection(self) -> connectionIB:
@@ -98,11 +106,11 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
 
     @property
     def futures_contract_data(self) -> ibFuturesContractData:
-        return ibFuturesContractData(self.ibconnection, log=self.log)
+        return self.data.broker_futures_contract
 
     @property
     def futures_instrument_data(self) -> ibFuturesInstrumentData:
-        return ibFuturesInstrumentData(self.ibconnection, log=self.log)
+        return self.data.broker_futures_instrument
 
     def has_merged_price_data_for_contract(
         self, futures_contract: futuresContract
