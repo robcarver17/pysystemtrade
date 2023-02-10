@@ -361,7 +361,7 @@ def adverse_size_issue(
                 ticker_object.wait_for_valid_bid_and_ask_and_analyse_current_tick()
             )
         else:
-             current_tick_analysis = ticker_object.current_tick_analysis
+            current_tick_analysis = ticker_object.current_tick_analysis
     except missingData:
         current_tick_analysis = missing_data
 
