@@ -48,20 +48,23 @@ class pandlCalculationWithCashCostsAndFills(
         return costs_pandl_in_points
 
     def costs_pandl_in_instrument_currency(self) -> pd.Series:
+        costs_as_pd_series = self.costs_from_trading_in_instrument_currency_as_series()
+        normalised_costs = self.normalise_costs_in_instrument_currency(
+            costs_as_pd_series
+        )
 
+        return normalised_costs
+
+    def costs_from_trading_in_instrument_currency_as_series(self) -> pd.Series:
         instrument_currency_costs_as_list = (
             self.costs_from_trading_in_instrument_currency_as_list()
         )
         date_index = self.date_index_for_all_fills()
         costs_as_pd_series = pd.Series(instrument_currency_costs_as_list, date_index)
         costs_as_pd_series = costs_as_pd_series.sort_index()
-        costs_as_pd_series = uniquets(costs_as_pd_series)
+        costs_as_pd_series = costs_as_pd_series.groupby(costs_as_pd_series.index).sum()
 
-        normalised_costs = self.normalise_costs_in_instrument_currency(
-            costs_as_pd_series
-        )
-
-        return normalised_costs
+        return costs_as_pd_series
 
     def costs_from_trading_in_instrument_currency_as_list(self) -> list:
         list_of_fills = self.list_of_all_fills()
