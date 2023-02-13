@@ -251,10 +251,11 @@ class Algo(object):
         list_of_trades = contract_order.trade
         for contract, qty in zip(list_of_individual_contracts, list_of_trades):
 
-            market_conditions_this_contract = self.data_broker.check_market_conditions_for_single_legged_contract_and_qty(
-                contract, qty
-            )
-            if market_conditions_this_contract is missing_data:
+            try:
+                market_conditions_this_contract = self.data_broker.check_market_conditions_for_single_legged_contract_and_qty(
+                    contract, qty
+                )
+            except missingData:
                 return missing_data
 
             market_conditions.append(market_conditions_this_contract)
