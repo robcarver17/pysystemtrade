@@ -86,6 +86,7 @@ def stacked_df_with_added_time_from_list(data: listOfDataFrames) -> pd.DataFrame
 
     THIS WILL ALSO DESTROY ANY AUTOCORRELATION PROPERTIES
 
+    >>> import datetime
     >>> d1 = pd.DataFrame(dict(a=[1,2]), index=pd.date_range(datetime.datetime(2000,1,1),periods=2))
     >>> d2 = pd.DataFrame(dict(a=[5,6,7]), index=pd.date_range(datetime.datetime(2000,1,1),periods=3))
     >>> list_of_df = listOfDataFrames([d1, d2])

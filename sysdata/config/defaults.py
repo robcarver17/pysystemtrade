@@ -15,7 +15,7 @@ DEFAULT_FILENAME = "sysdata.config.defaults.yaml"
 
 def get_system_defaults_dict(filename: str = arg_not_supplied) -> dict:
     """
-    >>> system_defaults['average_absolute_forecast']
+    >>> get_system_defaults_dict()['average_absolute_forecast']
     10.0
     """
     if filename is arg_not_supplied:
