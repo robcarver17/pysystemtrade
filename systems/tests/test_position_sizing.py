@@ -1,7 +1,7 @@
-import copy
+import os
 import unittest
-
-from systems.accounts.accounts_stage import Account
+from _pytest.monkeypatch import MonkeyPatch
+from sysdata.config.private_directory import PRIVATE_CONFIG_DIR_ENV_VAR
 from systems.tests.testdata import get_test_object_futures_with_comb_forecasts
 from systems.basesystem import System
 from systems.positionsizing import PositionSizing
@@ -9,7 +9,7 @@ from systems.positionsizing import PositionSizing
 
 class Test(unittest.TestCase):
     def setUp(self):
-
+        self.monkeypatch = MonkeyPatch()
         (
             comb,
             fcs,
@@ -60,6 +60,9 @@ class Test(unittest.TestCase):
         self.assertEqual(ans[1], 2500)
 
     def test_get_daily_cash_vol_target(self):
+        envs = {PRIVATE_CONFIG_DIR_ENV_VAR: "sysdata.tests.custom_private_config"}
+        self.monkeypatch.setattr(os, "environ", envs)
+
         ans_dict = self.system.positionSize.get_vol_target_dict()
         self.assertEqual(ans_dict["base_currency"], "GBP")
         self.assertEqual(ans_dict["annual_cash_vol_target"], 16000.0)
