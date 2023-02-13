@@ -348,12 +348,13 @@ class dataBroker(productionDataLayerGeneric):
         )
         for contract, qty in zip(list_of_contracts, list_of_trade_qty):
 
-            market_conditions_this_contract = (
-                self.check_market_conditions_for_single_legged_contract_and_qty(
-                    contract, qty
+            try:
+                market_conditions_this_contract = (
+                    self.check_market_conditions_for_single_legged_contract_and_qty(
+                        contract, qty
+                    )
                 )
-            )
-            if market_conditions_this_contract is missing_data:
+            except missingData:
                 return missing_data
 
             market_conditions.append(market_conditions_this_contract)
