@@ -378,10 +378,7 @@ class dataBroker(productionDataLayerGeneric):
         :return: tuple: side_price, mid_price OR missing_data
         """
 
-        try:
-            tick_data = self.get_recent_bid_ask_tick_data_for_contract_object(contract)
-        except missingData:
-            return missing_data
+        tick_data = self.get_recent_bid_ask_tick_data_for_contract_object(contract)
 
         analysis_of_tick_data = analyse_tick_data_frame(
             tick_data, qty, forward_fill=True, replace_qty_nans=True
