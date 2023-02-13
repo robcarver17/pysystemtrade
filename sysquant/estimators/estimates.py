@@ -95,7 +95,7 @@ class Estimates:
 
     def assets_with_missing_data(self) -> list:
         missing_correlations = self.correlation.assets_with_missing_data()
-        missing_means = self.correlation.assets_with_missing_data()
+        missing_means = self.mean.assets_with_missing_data()
         missing_stdev = self.stdev.assets_with_missing_data()
 
         missing_assets = list(
