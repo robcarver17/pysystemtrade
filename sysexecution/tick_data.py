@@ -40,8 +40,6 @@ def analyse_tick_data_frame(
     forward_fill: bool = False,
     replace_qty_nans=False,
 ):
-    if tick_data is missing_data:
-        return missing_data
 
     if tick_data.is_empty():
         return missing_data
