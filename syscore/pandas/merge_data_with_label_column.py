@@ -17,6 +17,7 @@ def merge_data_series_with_label_column(
     For two pd.DataFrames with 2 columns, including a label column, update the data when the labels
       start consistently matching
 
+    >>> import numpy as np
     >>> s1=pd.DataFrame(dict(PRICE=[1,2,3,np.nan], PRICE_CONTRACT = ["a", "a", "b", "b"]), index=['a1','a2','a3','a4'])
     >>> s2=pd.DataFrame(dict(PRICE=[  7,3,4], PRICE_CONTRACT = [          "b", "b", "b"]), index=['a2','a3','a4'])
     >>> merge_data_series_with_label_column(s1,s2)
@@ -138,6 +139,7 @@ def _find_dates_when_label_changes(
     For two pd.DataFrames with 2 columns, including a label column, find the date after which the labelling
      is consistent across columns
 
+    >>> import numpy as np
     >>> s1=pd.DataFrame(dict(PRICE=[1,2,3,np.nan], PRICE_CONTRACT = ["a", "a", "b", "b"]), index=['a1','a2','a3','a4'])
     >>> s2=pd.DataFrame(dict(PRICE=[  2,3,4], PRICE_CONTRACT = [          "b", "b", "b"]), index=['a2','a3','a4'])
     >>> _find_dates_when_label_changes(s1, s2)

@@ -118,6 +118,7 @@ def full_merge_of_existing_dataframe(
     keep_older: bool = True,
 ) -> pd.DataFrame:
     """
+    >>> import numpy as np, datetime
     >>> old_data = pd.DataFrame(dict(a=[1,np.nan,3,np.nan], b=[np.nan,np.nan,7,np.nan]), index=pd.date_range(datetime.datetime(2000,1,1), periods=4))
     >>> new_data = pd.DataFrame(dict(a=[2,5, np.nan,8]), index=pd.date_range(datetime.datetime(2000,1,1), periods=4))
     >>> full_merge_of_existing_dataframe(old_data, new_data)
@@ -163,6 +164,7 @@ def full_merge_of_existing_series(
     Merges old data with new data.
     Any Nan in the existing data will be replaced (be careful!)
 
+    >>> import numpy as np, datetime
     >>> old_series = pd.Series([1,np.nan,3,np.nan], pd.date_range(datetime.datetime(2000,1,1), periods=4))
     >>> new_series = pd.Series([2,5, np.nan,8], pd.date_range(datetime.datetime(2000,1,1), periods=4))
     >>> full_merge_of_existing_series(old_series, new_series)
@@ -176,6 +178,7 @@ def full_merge_of_existing_series(
     2000-01-02    5.0
     2000-01-03    3.0
     2000-01-04    8.0
+    Freq: D, dtype: float64
     """
     if len(old_series) == 0:
         return new_series

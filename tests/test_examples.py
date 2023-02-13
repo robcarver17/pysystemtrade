@@ -50,6 +50,7 @@ def my_config(ewmac_8, ewmac_32):
     my_config = Config()
     my_config.trading_rules = dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
     my_config.instruments = ["US10", "EDOLLAR", "CORN", "SP500"]
+    my_config.notional_trading_capital = 1000000
     my_config.risk_overlay = arg_not_supplied
     my_config.exclude_instrument_lists = dict(
         ignore_instruments=["MILK"],

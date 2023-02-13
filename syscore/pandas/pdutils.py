@@ -275,7 +275,7 @@ def make_df_from_list_of_named_tuple(
     >>> t3 = T('Z', 4, 3)
     >>> make_df_from_list_of_named_tuple(T, [t1, t2, t3])
           value_a  value_b
-    name
+    ...
     X           3        1
     Y           1        2
     Z           4        3

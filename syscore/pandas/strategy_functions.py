@@ -39,6 +39,7 @@ def weights_sum_to_one(weights: pd.DataFrame) -> pd.DataFrame:
 
     Preserves nans
 
+    >>> import datetime
     >>> df = pd.DataFrame(dict(a=[np.nan, np.nan, 0, 5,0, 2, 2], b=[0, np.nan, 0, np.nan,3,  3, 1]), index=pd.date_range(datetime.datetime(2000,1,1),periods=7))
     >>> weights_sum_to_one(df)
                        a         b
@@ -70,6 +71,7 @@ def drawdown(x: Union[pd.DataFrame, pd.Series]) -> Union[pd.DataFrame, pd.Series
     """
     Returns a ts of drawdowns for a time series x
 
+    >>> import datetime
     >>> df = pd.DataFrame(dict(a=[1, 2, 3, 2,1 , 4, 5], b=[2, 2, 1, 2,4 , 6, 5]), index=pd.date_range(datetime.datetime(2000,1,1),periods=7))
     >>> drawdown(df)
                   a    b
@@ -90,7 +92,6 @@ def drawdown(x: Union[pd.DataFrame, pd.Series]) -> Union[pd.DataFrame, pd.Series
     2000-01-06    0.0
     2000-01-07    0.0
     Freq: D, dtype: float64
-    w
     """
     maxx = x.expanding(min_periods=1).max()
     return x - maxx
@@ -98,6 +99,8 @@ def drawdown(x: Union[pd.DataFrame, pd.Series]) -> Union[pd.DataFrame, pd.Series
 
 def apply_abs_min(x: pd.Series, min_value: float = 0.1) -> pd.Series:
     """
+    >>> import datetime
+    >>> from syscore.pandas.pdutils import create_arbitrary_pdseries
     >>> s1=create_arbitrary_pdseries([1,2,3,-1,-2,-3], date_start = datetime.datetime(2000,1,1))
     >>> apply_abs_min(s1, 2)
     2000-01-03    2
@@ -118,6 +121,7 @@ def apply_abs_min(x: pd.Series, min_value: float = 0.1) -> pd.Series:
 
 def replace_all_zeros_with_nan(pd_series: pd.Series) -> pd.Series:
     """
+    >>> import datetime
     >>> d = datetime.datetime
     >>> date_index1 = [d(2000,1,1,23),d(2000,1,2,23),d(2000,1,3,23)]
     >>> s1 = pd.Series([0,5,6], index=date_index1)
@@ -138,6 +142,7 @@ def replace_all_zeros_with_nan(pd_series: pd.Series) -> pd.Series:
 
 def spread_out_annualised_return_over_periods(data_as_annual: pd.Series) -> pd.Series:
     """
+    >>> import datetime
     >>> d = datetime.datetime
     >>> date_index1 = [d(2000,1,1,23),d(2000,1,2,23),d(2000,1,3,23)]
     >>> s1 = pd.Series([0.365,0.730,0.365], index=date_index1)
@@ -190,6 +195,7 @@ def quantile_of_points_in_data_series(data_series: pd.Series) -> pd.Series:
 
 def years_in_data(data: pd.Series) -> List[int]:
     """
+    >>> import datetime
     >>> d = datetime.datetime
     >>> date_index1 = [d(2000,1,1),d(2002,1,2),d(2003,1,5)]
     >>> s1 = pd.Series([1,2,3], index=date_index1)

@@ -66,11 +66,11 @@ class Config(object):
         >>> Config(dict(parameters=dict(p1=3, p2=4.6), another_thing=[]))
         Config with elements: another_thing, parameters
 
-        >>> Config("sysdata.tests.exampleconfig.yaml")
-        Config with elements: parameters, trading_rules
+        >>> Config("systems.provided.example.exampleconfig.yaml")
+        Config with elements: base_currency, ... trading_rules
 
-        >>> Config(["sysdata.tests.exampleconfig.yaml", dict(parameters=dict(p1=3, p2=4.6), another_thing=[])])
-        Config with elements: another_thing, parameters, trading_rules
+        >>> Config(["systems.provided.example.exampleconfig.yaml", dict(parameters=dict(p1=3, p2=4.6), another_thing=[])])
+        Config with elements: another_thing, ... parameters, ...trading_rules
 
         """
 

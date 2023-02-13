@@ -1,6 +1,7 @@
 def fill_config_dict_with_defaults(config_dict: dict, defaults_dict: dict) -> dict:
     """
-    >>> fill_config_dict_with_defaults({a:2}, {b:3})
+    >>> fill_config_dict_with_defaults({'a':2}, {'b':3})
+    {'a': 2, 'b': 3}
     """
     ## Substitute in default values from config_dict where missing from defaults_dict
     ## Works at multiple levels

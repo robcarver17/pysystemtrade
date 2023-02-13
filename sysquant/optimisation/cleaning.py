@@ -68,17 +68,17 @@ def clean_list_of_weights(
 
     :returns: list of float
 
-    >>> clean_weights([1.0, np.nan, np.nan],   fraction=1.0)
+    >>> clean_list_of_weights([1.0, np.nan, np.nan], fraction=1.0)
     [0.33333333333333337, 0.33333333333333331, 0.33333333333333331]
-    >>> clean_weights([0.4, 0.6, np.nan],  fraction=1.0)
+    >>> clean_list_of_weights([0.4, 0.6, np.nan],  fraction=1.0)
     [0.26666666666666672, 0.40000000000000002, 0.33333333333333331]
-    >>> clean_weights([0.4, 0.6, np.nan],  fraction=0.5)
+    >>> clean_list_of_weights([0.4, 0.6, np.nan],  fraction=0.5)
     [0.33333333333333337, 0.5, 0.16666666666666666]
-    >>> clean_weights([np.nan, np.nan, 1.0],  must_haves=[False,True,True], fraction=1.0)
+    >>> clean_list_of_weights([np.nan, np.nan, 1.0],  must_haves=[False,True,True], fraction=1.0)
     [0.0, 0.5, 0.5]
-    >>> clean_weights([np.nan, np.nan, np.nan],  must_haves=[False,False,True], fraction=1.0)
+    >>> clean_list_of_weights([np.nan, np.nan, np.nan],  must_haves=[False,False,True], fraction=1.0)
     [0.0, 0.0, 1.0]
-    >>> clean_weights([np.nan, np.nan, np.nan],  must_haves=[False,False,False], fraction=1.0)
+    >>> clean_list_of_weights([np.nan, np.nan, np.nan],  must_haves=[False,False,False], fraction=1.0)
     [0.0, 0.0, 0.0]
     """
     ###
