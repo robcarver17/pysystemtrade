@@ -18,7 +18,30 @@ classifiers = [
 
 [tool.pytest.ini_options]
 norecursedirs = "examples"
-addopts = "--ignore=systems/provided/moretradingrules/temp.py"
+addopts = "--doctest-modules --ignore=systems/provided/moretradingrules/temp.py"
+doctest_optionflags = ["ELLIPSIS", "NUMBER", "NORMALIZE_WHITESPACE"]
+testpaths = [
+    # "syscore",
+    # "syscore/interactive/display",
+    "syscore/pandas",
+    "syscore/tests",
+    # "sysdata",
+    "sysdata/config",
+    # "sysdata/sim",
+    "sysdata/tests",
+    "sysinit/futures/tests",
+    # "syslogdiag",
+    "systems/tests",
+    "sysobjects/production",
+    "sysobjects/tests",
+    # "sysquant/estimators",
+    "sysquant/optimisation",
+    # "systems",
+    # "systems/accounts",
+    # "systems/provided",
+    # "systems/provided/futures_chapter15",
+    "tests",
+]
 
 [tool.black]
 line-length = 88

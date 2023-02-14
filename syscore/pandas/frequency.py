@@ -20,6 +20,7 @@ def closing_date_rows_in_pd_object(
     closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
 ) -> Union[pd.DataFrame, pd.Series]:
     """
+    >>> import datetime
     >>> d = datetime.datetime
     >>> date_index = [d(2000,1,1,15),d(2000,1,1,23), d(2000,1,2,15)]
     >>> df = pd.DataFrame(dict(a=[1, 2, 3], b=[4 , 6, 5]), index=date_index)
@@ -43,6 +44,7 @@ def intraday_date_rows_in_pd_object(
     closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
 ) -> Union[pd.DataFrame, pd.Series]:
     """
+    >>> import datetime
     >>> d = datetime.datetime
     >>> date_index = [d(2000,1,1,15),d(2000,1,1,23), d(2000,1,2,15)]
     >>> df = pd.DataFrame(dict(a=[1, 2, 3], b=[4 , 6, 5]), index=date_index)
@@ -68,13 +70,15 @@ def get_intraday_pdf_at_frequency(
     closing_time: pd.DateOffset = NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
 ) -> Union[pd.Series, pd.DataFrame]:
     """
+    >>> import datetime
     >>> d = datetime.datetime
     >>> date_index = [d(2000,1,1,15),d(2000,1,1,16),d(2000,1,1,23), d(2000,1,2,15)]
     >>> df = pd.DataFrame(dict(a=[1, 2, 3,4], b=[4,5,6,7]), index=date_index)
     >>> get_intraday_pdf_at_frequency(df,"2H")
-                         a  b
-    2000-01-01 14:00:00  1  4
-    2000-01-02 14:00:00  3  5
+                           a    b
+    2000-01-01 14:00:00  1.0  4.0
+    2000-01-01 16:00:00  2.0  5.0
+    2000-01-02 14:00:00  4.0  7.0
     """
     intraday_only_df = intraday_date_rows_in_pd_object(
         pd_object, closing_time=closing_time
@@ -89,6 +93,7 @@ def merge_data_with_different_freq(
     list_of_data: List[Union[pd.DataFrame, pd.Series]]
 ) -> Union[pd.Series, pd.DataFrame]:
     """
+    >>> import datetime
     >>> d = datetime.datetime
     >>> date_index1 = [d(2000,1,1,23),d(2000,1,2,23),d(2000,1,3,23)]
     >>> date_index2 = [d(2000,1,1,15),d(2000,1,1,16),d(2000,1,2,15)]
@@ -101,6 +106,7 @@ def merge_data_with_different_freq(
     2000-01-02 15:00:00    4
     2000-01-02 23:00:00    5
     2000-01-03 23:00:00    6
+    dtype: int64
     """
 
     list_as_concat_pd = pd.concat(list_of_data, axis=0)
@@ -119,6 +125,7 @@ def sumup_business_days_over_pd_series_without_double_counting_of_closing_data(
 
     Uses closing values when available, otherwise sums up intraday values
 
+    >>> import datetime
     >>> d = datetime.datetime
     >>> date_index1 = [d(2000,2,1,15),d(2000,2,1,16), d(2000,2,1,23), ]
     >>> s1 = pd.Series([10,5,17], index=date_index1)
