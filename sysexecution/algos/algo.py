@@ -96,10 +96,11 @@ class Algo(object):
         if ticker_object is None:
             ticker_object = self.data_broker.get_ticker_object_for_order(contract_order)
 
-        collected_prices = self.get_market_data_for_order_modifies_ticker_object(
-            ticker_object, contract_order
-        )
-        if collected_prices is missing_data:
+        try:
+            collected_prices = self.get_market_data_for_order_modifies_ticker_object(
+                ticker_object, contract_order
+            )
+        except missingData:
             # no data available, no can do
             return missing_order
 
@@ -176,7 +177,7 @@ class Algo(object):
                 "Can't get market data for %s so not trading with limit order %s"
                 % (contract_order.instrument_code, str(contract_order))
             )
-            return missing_data
+            raise
 
         tick_analysis = ticker_object.analyse_for_tick(reference_tick)
 
