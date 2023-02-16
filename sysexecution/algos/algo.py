@@ -247,7 +247,6 @@ class Algo(object):
     def get_market_conditions_for_contract_order_by_leg(
         self, contract_order: contractOrder
     ) -> list:
-        return self.data_broker.get_market_conditions_for_contract_order_by_leg(contract_order)
         market_conditions = []
         list_of_individual_contracts = (
             contract_order.futures_contract.as_list_of_individual_contracts()
