@@ -433,7 +433,7 @@ class Portfolios(SystemStage):
 
         # smooth to avoid jumps when they change
         smoothed_instrument_weights = daily_unsmoothed_instrument_weights.ewm(
-            smooth_weighting
+            span=smooth_weighting
         ).mean()
 
         normalised_smoothed_instrument_weights = weights_sum_to_one(
