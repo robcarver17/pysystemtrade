@@ -2,7 +2,7 @@ from copy import copy
 from dataclasses import dataclass
 
 from syscore.exceptions import missingContract, missingData
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.data_blob import dataBlob
@@ -242,9 +242,12 @@ class Algo(object):
 
         return rounded_limit_price
 
+    # FIXME: this is not used; it is a copy of a dataBroker function
+    # One of them should be deleted, or call the other, rather than duplicate the logic
     def get_market_conditions_for_contract_order_by_leg(
         self, contract_order: contractOrder
     ) -> list:
+        return self.data_broker.get_market_conditions_for_contract_order_by_leg(contract_order)
         market_conditions = []
         list_of_individual_contracts = (
             contract_order.futures_contract.as_list_of_individual_contracts()
@@ -252,12 +255,9 @@ class Algo(object):
         list_of_trades = contract_order.trade
         for contract, qty in zip(list_of_individual_contracts, list_of_trades):
 
-            try:
-                market_conditions_this_contract = self.data_broker.check_market_conditions_for_single_legged_contract_and_qty(
-                    contract, qty
-                )
-            except missingData:
-                return missing_data
+            market_conditions_this_contract = self.data_broker.check_market_conditions_for_single_legged_contract_and_qty(
+                contract, qty
+            )
 
             market_conditions.append(market_conditions_this_contract)
 
