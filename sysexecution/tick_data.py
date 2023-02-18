@@ -5,7 +5,7 @@ from collections import namedtuple
 
 from syscore.genutils import quickTimer
 from syscore.exceptions import missingData
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 TICK_REQUIRED_COLUMNS = ["priceAsk", "priceBid", "sizeAsk", "sizeBid"]
 
@@ -42,7 +42,7 @@ def analyse_tick_data_frame(
 ):
 
     if tick_data.is_empty():
-        return missing_data
+        raise missingData("Tick data is empty")
 
     tick = extract_final_row_of_tick_data_frame(tick_data, forward_fill=forward_fill)
     results = analyse_tick(tick, qty, replace_qty_nans=replace_qty_nans)
@@ -99,14 +99,14 @@ def average_bid_offer_spread(
     tick_data: dataFrameOfRecentTicks, remove_negative: bool = True
 ) -> float:
     if tick_data.is_empty():
-        return missing_data
+        raise missingData("Tick data is empty")
     all_spreads = tick_data.priceAsk - tick_data.priceBid
     if remove_negative:
         all_spreads[all_spreads < 0] = np.nan
     average_spread = all_spreads.mean(skipna=True)
 
     if np.isnan(average_spread):
-        return missing_data
+        raise missingData("Unable to calculate avg spread")
 
     return average_spread
 

@@ -348,12 +348,13 @@ class dataBroker(productionDataLayerGeneric):
         )
         for contract, qty in zip(list_of_contracts, list_of_trade_qty):
 
-            market_conditions_this_contract = (
-                self.check_market_conditions_for_single_legged_contract_and_qty(
-                    contract, qty
+            try:
+                market_conditions_this_contract = (
+                    self.check_market_conditions_for_single_legged_contract_and_qty(
+                        contract, qty
+                    )
                 )
-            )
-            if market_conditions_this_contract is missing_data:
+            except missingData:
                 return missing_data
 
             market_conditions.append(market_conditions_this_contract)
@@ -377,10 +378,7 @@ class dataBroker(productionDataLayerGeneric):
         :return: tuple: side_price, mid_price OR missing_data
         """
 
-        try:
-            tick_data = self.get_recent_bid_ask_tick_data_for_contract_object(contract)
-        except missingData:
-            return missing_data
+        tick_data = self.get_recent_bid_ask_tick_data_for_contract_object(contract)
 
         analysis_of_tick_data = analyse_tick_data_frame(
             tick_data, qty, forward_fill=True, replace_qty_nans=True

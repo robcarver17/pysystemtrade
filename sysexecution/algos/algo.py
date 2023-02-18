@@ -2,7 +2,7 @@ from copy import copy
 from dataclasses import dataclass
 
 from syscore.exceptions import missingContract, missingData
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.data_blob import dataBlob
@@ -96,10 +96,11 @@ class Algo(object):
         if ticker_object is None:
             ticker_object = self.data_broker.get_ticker_object_for_order(contract_order)
 
-        collected_prices = self.get_market_data_for_order_modifies_ticker_object(
-            ticker_object, contract_order
-        )
-        if collected_prices is missing_data:
+        try:
+            collected_prices = self.get_market_data_for_order_modifies_ticker_object(
+                ticker_object, contract_order
+            )
+        except missingData:
             # no data available, no can do
             return missing_order
 
@@ -176,7 +177,7 @@ class Algo(object):
                 "Can't get market data for %s so not trading with limit order %s"
                 % (contract_order.instrument_code, str(contract_order))
             )
-            return missing_data
+            raise
 
         tick_analysis = ticker_object.analyse_for_tick(reference_tick)
 
@@ -241,6 +242,8 @@ class Algo(object):
 
         return rounded_limit_price
 
+    # FIXME: this is not used; it is a copy of a dataBroker function
+    # One of them should be deleted, or call the other, rather than duplicate the logic
     def get_market_conditions_for_contract_order_by_leg(
         self, contract_order: contractOrder
     ) -> list:
@@ -254,8 +257,6 @@ class Algo(object):
             market_conditions_this_contract = self.data_broker.check_market_conditions_for_single_legged_contract_and_qty(
                 contract, qty
             )
-            if market_conditions_this_contract is missing_data:
-                return missing_data
 
             market_conditions.append(market_conditions_this_contract)
 

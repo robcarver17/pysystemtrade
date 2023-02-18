@@ -1,6 +1,6 @@
+from syscore.exceptions import missingData
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysobjects.contracts import futuresContract
-from syscore.constants import missing_data
 
 
 class stackHandlerAdditionalSampling(stackHandlerCore):
@@ -52,8 +52,11 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
         return okay_to_sample
 
     def refresh_sampling_without_checks(self, contract: futuresContract):
-        average_spread = self.get_average_spread(contract)
-        if average_spread is not missing_data:
+        try:
+            average_spread = self.get_average_spread(contract)
+        except missingData:
+            pass
+        else:
             self.add_spread_data_to_db(contract, average_spread)
 
     def get_average_spread(self, contract: futuresContract) -> float:
@@ -65,9 +68,8 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
         average_spread = tick_data.average_bid_offer_spread(remove_negative=True)
 
         ## Shouldn't happen, but just in case
-        if average_spread is not missing_data:
-            if average_spread < 0.0:
-                return missing_data
+        if average_spread < 0.0:
+            raise missingData("Average spread should not be negative")
 
         return average_spread
 
