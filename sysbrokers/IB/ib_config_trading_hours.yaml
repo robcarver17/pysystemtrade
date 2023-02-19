@@ -72,3 +72,6 @@ HongKong:
 Hongkong:
   - '01:00'
   - '06:00'
+Australia/NSW:
+  - '22:00'
+  - '03:00'
