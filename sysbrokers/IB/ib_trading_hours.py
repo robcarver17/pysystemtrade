@@ -118,20 +118,21 @@ def get_time_difference(time_zone_id: str) -> int:
     # Doesn't deal with DST. We will be conservative and only trade 1 hour
     # after and 1 hour before
     # confusingly, IB seem to have changed their time zone codes in 2020
+    # some of these are legacy codes which could be removed
     time_diff_dict = {
         "CST (Central Standard Time)": 6,
         "MET (Middle Europe Time)": -1,
         "EST (Eastern Standard Time)": 5,
-        "JST (Japan Standard Time)": -8,
+        "JST (Japan Standard Time)": -9,
         "US/Eastern": 5,
         "MET": -1,
         "EST": 5,
-        "JST": -8,
-        "Japan": -8,
+        "JST": -9,
+        "Japan": -9,
         "US/Central": 6,
         "GB-Eire": 0,
-        "Hongkong": -7,
-        "Australia/NSW": -10,
+        "Hongkong": -8,
+        "Australia/NSW": -11,
         "": 0,
     }
     GMT_offset_hours = get_GMT_offset_hours()
