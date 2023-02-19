@@ -241,23 +241,3 @@ class Algo(object):
         rounded_limit_price = min_tick * round(limit_price / min_tick)
 
         return rounded_limit_price
-
-    # FIXME: this is not used; it is a copy of a dataBroker function
-    # One of them should be deleted, or call the other, rather than duplicate the logic
-    def get_market_conditions_for_contract_order_by_leg(
-        self, contract_order: contractOrder
-    ) -> list:
-        market_conditions = []
-        list_of_individual_contracts = (
-            contract_order.futures_contract.as_list_of_individual_contracts()
-        )
-        list_of_trades = contract_order.trade
-        for contract, qty in zip(list_of_individual_contracts, list_of_trades):
-
-            market_conditions_this_contract = self.data_broker.check_market_conditions_for_single_legged_contract_and_qty(
-                contract, qty
-            )
-
-            market_conditions.append(market_conditions_this_contract)
-
-        return market_conditions
