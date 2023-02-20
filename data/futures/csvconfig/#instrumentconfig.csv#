@@ -30,10 +30,10 @@ BUTTER,CME Cash-Settled Butter Futures,200,USD,Ags,1.5,0.85,0,0,US
 BUXL,German Buxl 15 to 30 year bond,1000,EUR,Bond,0.015,2,0,0,EMEA
 CAC,French equity index CAC40,10,EUR,Equity,0.44,2,0,0,EMEA
 CAD,CADUSD currency,100000,USD,FX,3E-05,2.47,0,0,US
-CAD10,Canadian 10 year bond,1000,CAD,Bond,0.0056,2,0,0,US
-CAD2,Canadian 2 year bond,1000,CAD,Bond,0.0025,2,0,0,US
-CAD5,Canadian 10 year bond,1000,CAD,Bond,0.0054,2,0,0,US
-CADSTIR,Canadian STIR Bank acceptance,2500,CAD,STIR,0.0041,2,0,0,US
+CAD10,Canadian 10 year bond,1000,CAD,Bond,0,0,0,0,US
+CAD2,Canadian 2 year bond,1000,CAD,Bond,0,0,0,0,US
+CAD5,Canadian 10 year bond,1000,CAD,Bond,0,0,0,0,US
+CADSTIR,Canadian STIR Bank acceptance,25,CAD,STIR,0,0,0,0,US
 CAD_micro,CADUSD_micro,10000,USD,FX,5.1E-05,0.85,0,0,US
 CANNABIS_small,Small Cannabis,100,USD,Ags,0,0,0,0,US
 CANOLA,Rapeseed (Canola) in CAD,20,CAD,Ags,2,2,0,0,US
@@ -60,9 +60,7 @@ COPPER,Copper,25000,USD,Metals,0.00043,2.42,0,0,US
 COPPER-micro,Copper micro,2500,USD,Metals,0.0007,0.85,0,0,US
 COPPER-mini,COMEX MINY Copper,12500,USD,Metals,0.005,0.85,0,0,US
 COPPER_LME,Grade A Copper - LME,25,USD,Metals,0,0,0,0,EMEA
-CORRA, 3 Month CORRA,2500,CAD,STIR,0.008,2,0,0,US 
 CORN,Corn,50,USD,Ags,0.16,2.92,0,0,US
-CORN-EURO,Corn,50,EUR,Ags,0.12,2,0,0,US
 CORN_mini,Corn mini,10,USD,Ags,0.15,2.9,0,0,US
 COTTON,NYMEX Cotton index,50000,USD,Ags,0.75,0.85,0,0,US
 COTTON2,Cotton #2,50000,USD,Ags,0.01,3,0,0,US
@@ -211,7 +209,7 @@ IBXEX,Spanish equity index IBEX,10,EUR,Equity,0,0,0,0,EMEA
 IG,iBoxx iShares $ Investment Grade Corporate Bond Index TR,1000,USD,Bond,0.02,0.85,0,0,US
 IND-BANK,Nifty Bank,1,INR,Equity,0,0,0,0,ASIA
 INR,Indian Rupee,500,USD,FX,0.015,2.47,0,0,US
-INR-SGX,SGX Indian Rupee in US Dollar Futures,200,USD,FX,0.01,4.5,0,0,ASIA
+INR-SGX,SGX Indian Rupee in US Dollar Futures,2000000,USD,FX,0.01,2.85,0,0,ASIA
 INR-SGX1,SGX USD-INR (USD) Futures,1000,USD,FX,0,0,0,0,ASIA
 INR-micro,Indian Rupee,100,USD,FX,0.12,0.85,0,0,US
 IPC,Mexico Bolsa (IPC) Index,10,MXP,Equity,0,0,0,0,US
@@ -231,7 +229,7 @@ KOSPI,Korean equity index KOSPI,250000,KRW,Equity,0.026,0,0.0004,0,ASIA
 KOSPI_mini,KOSPI mini,50000,KRW,Equity,0.043,8500,0,0,ASIA
 KR10,Korean 10 year bond,1000000,KRW,Bond,0.0065,0,4E-05,0,ASIA
 KR3,Korean 3 year bond,1000000,KRW,Bond,0.005,0,4E-05,0,ASIA
-KRW,KRWUSD SGX,125000,USD,FX,0.00015,4.5,0,0,ASIA
+KRW,KRWUSD SGX,125000,USD,FX,0,0,0,0,ASIA
 KRWJPY,SGX Korean Won in Japanese Yen Futures,25000000,JPY,FX,0,285,0,0,ASIA
 KRWUSD,Korean Won,125000000,USD,FX,1E-06,0.85,0,0,US
 KRWUSD_mini,SGX Korean Won in US Dollar Futures (Mini),25000,USD,FX,0.00017,2.85,0,0,ASIA
@@ -249,7 +247,7 @@ MID-DAX,Midcap DAX,5,EUR,Equity,23,2,0,0,EMEA
 MILK,Milk class III,2000,USD,Ags,0.051,1.5,0,0,US
 MILKDRY,NON FAT DRY MILK INDEX,440,USD,Ags,1.3,0.85,0,0,US
 MILKWET,Class IV Milk - 200k lbs,2000,USD,Ags,0.19,0.85,0,0,US
-MILLWHEAT,Milling Wheat Futures,50,EUR,Ags,0.12,2,0,0,EMEA
+MILLWHEAT,Milling Wheat Futures,50,EUR,Ags,0,0,0,0,EMEA
 MSCIASIA,MSCI Emerging Markets Asia,100,USD,Equity,0.34,2.4,0,0,EMEA
 MSCICHINA,MSCI China Free Net Total Return (USD) Index,50,USD,Equity,0,0,0,0,EMEA
 MSCICHINANET,MSCI China Free Net Total Return (USD) Index (HKFE),50,USD,Equity,0,0,0,0,ASIA
@@ -301,7 +299,7 @@ PRECIOUS_small,Small precious metals,100,USD,Metals,0,0,0,0,US
 R1000,E-Mini Russell 1000 Value Index Futures,50,USD,Equity,0.4,1.5,0,0,US
 R1000GROWTH-mini,E-mini Russell 1000 Growth Index Futures,50,USD,Equity,0.4,0.85,0,0,US
 R1000_mini,E-mini Russell 1000 Index Futures,50,USD,Equity,0.45,0.85,0,0,US
-RAPESEED,European Rapeseed Future,50,EUR,Ags,0.27,2,0,0,EMEA
+RAPESEED,European Rapeseed Future,50,EUR,Ags,0,0,0,0,EMEA
 REDWHEAT,Hard Red Winter Wheat -KCBOT-,50,USD,Ags,0.3,2.9,0,0,US
 RICE,Rough Rice,2000,USD,Ags,0.022,1.5,0,0,US
 ROBUSTA,Robusta Coffee,10,USD,Ags,0.5,3,0,0,EMEA
@@ -323,7 +321,6 @@ SMI-DIV,SMI Dividend Points Index,100,CHF,Equity,0,0,0,0,EMEA
 SMI-MID,Swiss Mid-cap Index,10,CHF,Equity,3.2,1,0,0,EMEA
 SMIETF,ISHARES SMI ETF CH,100,CHF,Equity,0,0,0,0,EMEA
 SOFR,Secured Overnight Financing Rate 3-month average of rates,2500,USD,Bond,0.003,1.5,0,0,US
-SOFR1,Secured Overnight Financing Rate 1-month average of rates,4167,USD,Bond,0.0025,1.5,0,0,US
 SONIA1,One Month SONIA,2500,GBP,Bond,0,0,0,0,EMEA
 SONIA3,Three Month SONIA,2500,GBP,Bond,0,0,0,0,EMEA
 SOYBEAN,Soybean,50,USD,Ags,0.25,2.92,0,0,US
@@ -342,7 +339,6 @@ SUGAR11,Sugar #11,112000,USD,Ags,5E-05,3,0,0,US
 SUGAR16,Sugar #16,112000,USD,Ags,0,0,0,0,US
 SUGAR_WHITE,White sugar,50,USD,Ags,0,0,0,0,EMEA
 SWISSLEAD,Swiss Leader Index (PREIS_INDEX),10,CHF,Equity,3.3,4,0,0,EMEA
-THB,SGX Thai baht in US Dollar Futures,1000,USD,FX,0.08,3,0,0,ASIA
 TECH60_small,Small Technology 60,100,USD,Equity,0,0,0,0,US
 TIN_LME,Tin – LME,5,USD,Metals,0,0,0,0,EMEA
 TOPIX,Japan Mini Topix,1000,JPY,Equity,0.18,50,0,0,ASIA
@@ -406,5 +402,5 @@ WHEAT_mini,Wheat mini,10,USD,Ags,0.5,2.9,0,0,US
 WHEY,CME DRY WHEY INDEX ,440,USD,Ags,0.25,3,0,0,US
 WTI_small,Small US Crude Oil,100,USD,OilGas,0,2.85,0,0,US
 YENEUR,YENEUR currency,125000,JPY,FX,0.011,85,0,0,US
-ZAR,South African Rand,500000,USD,FX,0.00022,2.5,0,0,US
+ZAR,South African Rand,500000,USD,FX,0,0,0,0,US
 ZINC_LME,Zinc – LME,25,USD,Metals,0,0,0,0,EMEA
