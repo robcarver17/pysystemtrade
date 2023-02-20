@@ -109,15 +109,14 @@ class algoOriginalBest(Algo):
         ticker_object = self.data_broker.get_ticker_object_for_order(
             cut_down_contract_order
         )
-        okay_to_do_limit_trade = limit_trade_viable(
-            ticker_object=ticker_object,
-            data=data,
-            order=cut_down_contract_order,
-            log=log,
-        )
-
-        ## REFACTOR WITH EXCEPTIONS
-        if okay_to_do_limit_trade is missing_data:
+        try:
+            okay_to_do_limit_trade = limit_trade_viable(
+                ticker_object=ticker_object,
+                data=data,
+                order=cut_down_contract_order,
+                log=log,
+            )
+        except missingData:
             ## Safer not to trade at all
             return missing_order
 
@@ -234,7 +233,7 @@ def limit_trade_viable(
     )
     ## REFACTOR WITH EXCEPTIONS
     if raise_adverse_size_issue is missing_data:
-        return missing_data
+        raise missingData
 
     if raise_adverse_size_issue:
         log.msg("Limit trade not viable")
