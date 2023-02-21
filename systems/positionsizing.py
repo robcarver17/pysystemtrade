@@ -128,9 +128,36 @@ class PositionSizing(SystemStage):
 
         vol_scalar = vol_scalar.reindex(forecast.index, method="ffill")
 
-        subsystem_position = vol_scalar * forecast / avg_abs_forecast
+        subsystem_position_raw = vol_scalar * forecast / avg_abs_forecast
+        subsystem_position = self._apply_long_only_constraint_to_position(
+            position=subsystem_position_raw, instrument_code=instrument_code
+        )
 
         return subsystem_position
+
+    def _apply_long_only_constraint_to_position(
+        self, position: pd.Series, instrument_code: str
+    ) -> pd.Series:
+        instrument_long_only = self._is_instrument_long_only(instrument_code)
+        if instrument_long_only:
+            position[position < 0.0] = 0.0
+
+        return position
+
+    @diagnostic()
+    def _is_instrument_long_only(self, instrument_code: str) -> bool:
+        list_of_long_only_instruments = self._get_list_of_long_only_instruments()
+
+        return instrument_code in list_of_long_only_instruments
+
+    @diagnostic()
+    def _get_list_of_long_only_instruments(self) -> list:
+        config = self.config
+        long_only = config.get_element_or_missing_data("long_only_instruments")
+        if long_only is missing_data:
+            return []
+
+        return long_only
 
     def avg_abs_forecast(self) -> float:
         return self.config.average_absolute_forecast
