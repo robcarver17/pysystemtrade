@@ -3,7 +3,7 @@ This is the original 'best execution' algo I used in my legacy system
 """
 from typing import Union
 
-from syscore.constants import missing_data, market_closed
+from syscore.constants import market_closed
 from syscore.exceptions import missingData
 from sysexecution.orders.named_order_objects import missing_order
 
@@ -109,15 +109,14 @@ class algoOriginalBest(Algo):
         ticker_object = self.data_broker.get_ticker_object_for_order(
             cut_down_contract_order
         )
-        okay_to_do_limit_trade = limit_trade_viable(
-            ticker_object=ticker_object,
-            data=data,
-            order=cut_down_contract_order,
-            log=log,
-        )
-
-        ## REFACTOR WITH EXCEPTIONS
-        if okay_to_do_limit_trade is missing_data:
+        try:
+            okay_to_do_limit_trade = limit_trade_viable(
+                ticker_object=ticker_object,
+                data=data,
+                order=cut_down_contract_order,
+                log=log,
+            )
+        except missingData:
             ## Safer not to trade at all
             return missing_order
 
@@ -232,9 +231,6 @@ def limit_trade_viable(
     raise_adverse_size_issue = adverse_size_issue(
         ticker_object, wait_for_valid_tick=True, log=log
     )
-    ## REFACTOR WITH EXCEPTIONS
-    if raise_adverse_size_issue is missing_data:
-        return missing_data
 
     if raise_adverse_size_issue:
         log.msg("Limit trade not viable")
@@ -299,9 +295,11 @@ def reason_to_switch_to_aggressive(
     )
     adverse_price = ticker_object.adverse_price_movement_vs_reference()
 
-    adverse_size = adverse_size_issue(ticker_object, wait_for_valid_tick=False, log=log)
-    # REFACTOR FOR EXCEPTIONS
-    if adverse_size is missing_data:
+    try:
+        adverse_size = adverse_size_issue(
+            ticker_object, wait_for_valid_tick=False, log=log
+        )
+    except missingData:
         adverse_size = True
 
     market_about_to_close = is_market_about_to_close(
@@ -354,17 +352,12 @@ def required_to_switch_to_aggressive(reason):
 def adverse_size_issue(
     ticker_object: tickerObject, log: logger, wait_for_valid_tick=False
 ) -> bool:
-    try:
-        if wait_for_valid_tick:
-            current_tick_analysis = (
-                ticker_object.wait_for_valid_bid_and_ask_and_analyse_current_tick()
-            )
-        else:
-            current_tick_analysis = ticker_object.current_tick_analysis
-    except missingData:
-        ## serious problem with data, return True so switch to market order
-        ## most likely case is order will be cancelled which is fine
-        return missing_data
+    if wait_for_valid_tick:
+        current_tick_analysis = (
+            ticker_object.wait_for_valid_bid_and_ask_and_analyse_current_tick()
+        )
+    else:
+        current_tick_analysis = ticker_object.current_tick_analysis
 
     latest_imbalance_ratio_exceeded = _is_imbalance_ratio_exceeded(
         current_tick_analysis, log=log
