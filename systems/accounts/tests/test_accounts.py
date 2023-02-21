@@ -100,7 +100,7 @@ class TestAccounts:
 
     @staticmethod
     def assert_percentage_cost(system, instr: str, expected: float):
-        actual = system.accounts._get_SR_cost_per_trade_for_instrument_percentage(instr)
+        actual = system.accounts.get_SR_cost_per_trade_for_instrument_percentage(instr)
         assert actual == approx(expected, rel=1e-3)
 
     @staticmethod
