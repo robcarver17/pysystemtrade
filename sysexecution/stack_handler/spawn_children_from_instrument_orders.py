@@ -1,7 +1,8 @@
 from collections import namedtuple
 
+from syscore.exceptions import missingData
 from syscore.genutils import sign
-from syscore.constants import missing_data, success
+from syscore.constants import success
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.data_blob import dataBlob
@@ -492,11 +493,11 @@ def add_reference_price_to_a_direct_child_order(
         # No reference price so don't bother
         return child_order
 
-    new_reference_price = calculate_adjusted_price_for_a_direct_child_order(
-        data, child_order, contract_to_match, price_to_adjust
-    )
-
-    if new_reference_price is missing_data:
+    try:
+        new_reference_price = calculate_adjusted_price_for_a_direct_child_order(
+            data, child_order, contract_to_match, price_to_adjust
+        )
+    except missingData:
         log = instrument_order.log_with_attributes(data.log)
         log.warn(
             "Couldn't adjust reference price for order %s child %s going from %s to %s, can't do TCA"
@@ -601,10 +602,11 @@ def add_limit_price_to_a_direct_child_order(
         # No limit price so don't bother
         return child_order
 
-    new_limit_price = calculate_adjusted_price_for_a_direct_child_order(
-        data, child_order, contract_to_match, price_to_adjust
-    )
-    if new_limit_price is missing_data:
+    try:
+        new_limit_price = calculate_adjusted_price_for_a_direct_child_order(
+            data, child_order, contract_to_match, price_to_adjust
+        )
+    except missingData:
         # This is a serious problem
         # We can't possibly execute any part of the parent order
         log = instrument_order.log_with_attributes(data.log)
