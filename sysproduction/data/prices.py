@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 
 from syscore.exceptions import missingData
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.dateutils import Frequency, from_config_frequency_to_frequency, n_days_ago
 
 from sysobjects.contracts import futuresContract
@@ -480,7 +480,7 @@ def modify_price_when_contract_has_changed(
     if np.isnan(differential):
         # can't adjust
         # note need to test code there may be other ways in which this fails
-        return missing_data
+        raise missingData
 
     adjusted_price = original_price + differential
 
