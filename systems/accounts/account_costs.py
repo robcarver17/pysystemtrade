@@ -315,18 +315,18 @@ class accountCosts(accountInputs):
         0.0065584086244069775
         """
 
-        cost_in_percentage_terms = (
-            self._get_SR_cost_per_trade_for_instrument_percentage(instrument_code)
+        cost_in_percentage_terms = self.get_SR_cost_per_trade_for_instrument_percentage(
+            instrument_code
         )
         avg_annual_vol_perc = self._recent_average_annual_perc_vol(instrument_code)
 
-        # cost per round trip
+        # cost per round trip so double
         SR_cost = 2.0 * cost_in_percentage_terms / avg_annual_vol_perc
 
         return SR_cost
 
     @diagnostic()
-    def _get_SR_cost_per_trade_for_instrument_percentage(
+    def get_SR_cost_per_trade_for_instrument_percentage(
         self, instrument_code: str
     ) -> float:
         raw_costs = self.get_raw_cost_data(instrument_code)

@@ -180,6 +180,10 @@ base_currency: "USD"
 capital_multiplier:
    func: syscore.capital.fixed_capital
 #
+# add instrument codes here to make long only at position sizing
+long_only_instruments:
+  - "an_instrument"
+  - "another_instrument"
 # Portfolio creation
 #
 instrument_div_multiplier: 1.0

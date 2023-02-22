@@ -38,7 +38,7 @@ def account_t_test(
 
     standardised_df_returns = _prepare_returns_data_for_t_test(acc1=acc1, acc2=acc2)
 
-    means = standardised_df_returns.means(axis=0).values
+    means = standardised_df_returns.mean(axis=0).values
     returns = standardised_df_returns.values
 
     # Get the difference in (standardised) means
