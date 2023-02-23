@@ -1,5 +1,6 @@
 import datetime
 from syscore.constants import missing_data
+from syscore.exceptions import missingData
 from sysobjects.rolls import contractDateWithRollParameters, rollParameters
 from sysobjects.contracts import contractDate
 from sysobjects.dict_of_futures_per_contract_prices import (
@@ -141,7 +142,7 @@ class contractWithRollParametersAndPrices(object):
             try_contract = getattr(try_contract, contract_attribute_str)()
 
         # Nothing found
-        return missing_data
+        raise missingData
 
     def find_previous_priced_contract_with_price_data(self):
         """
@@ -265,7 +266,7 @@ def _find_earliest_held_contract_with_data(
         try_contract = try_contract.find_next_held_contract_with_price_data()
 
     # Nothing found
-    return missing_data
+    raise missingData
 
 
 def _initial_contract_to_try_with(
@@ -297,10 +298,10 @@ def _check_valid_contract(
 
     if try_contract.date_str in list_of_contract_dates:
         # possible candidate, let's check carry
-        try_carry_contract = try_contract.find_best_carry_contract_with_price_data()
-
-        ## No good
-        if try_carry_contract is missing_data:
+        try:
+            try_carry_contract = try_contract.find_best_carry_contract_with_price_data()
+        except missingData:
+            ## No good
             return False
 
     ## All good
