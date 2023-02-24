@@ -4,7 +4,6 @@ from copy import copy
 import numpy as np
 import pandas as pd
 
-from syscore.constants import missing_data
 from syscore.exceptions import missingData
 from sysobjects.contract_dates_and_expiries import contractDate
 from sysobjects.dict_of_futures_per_contract_prices import (
