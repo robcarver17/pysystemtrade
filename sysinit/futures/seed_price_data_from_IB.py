@@ -9,8 +9,6 @@ from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
 
-from syscore.constants import missing_data, failure
-
 from sysinit.futures.create_hourly_and_daily import write_split_data_for_instrument
 
 
