@@ -11,7 +11,6 @@ from copy import copy
 from typing import List
 from dataclasses import dataclass
 
-from syscore.constants import missing_data, arg_not_supplied
 from sysdata.data_blob import dataBlob
 
 from sysexecution.orders.instrument_orders import instrumentOrder, best_order_type
@@ -507,15 +506,12 @@ def get_correlation_matrix_with_shrinkage(
 
 def get_speed_control(data):
     system_config = get_config_parameters(data)
-    trade_shadow_cost = system_config.get("shadow_cost", missing_data)
-    tracking_error_buffer = system_config.get("tracking_error_buffer", missing_data)
-    cost_multiplier = system_config.get("cost_multiplier", missing_data)
 
-    if (
-        (tracking_error_buffer is missing_data)
-        or (trade_shadow_cost is missing_data)
-        or (cost_multiplier is missing_data)
-    ):
+    try:
+        trade_shadow_cost = system_config["shadow_cost"]
+        tracking_error_buffer = system_config["tracking_error_buffer"]
+        cost_multiplier = system_config["cost_multiplier"]
+    except KeyError:
         raise Exception(
             "config.small_system doesn't include buffer or shadow cost or cost_multiplier: you've probably messed up your private_config"
         )
@@ -536,12 +532,7 @@ def get_speed_control(data):
 
 def get_config_parameters(data: dataBlob) -> dict:
     config = data.config
-    system_config = config.get_element_or_missing_data("small_system")
-    if system_config is missing_data:
-        raise Exception(
-            "Config doesn't include 'small_system' which should be in defaults.yaml"
-        )
-
+    system_config = config.get_element("small_system")
     return system_config
 
 

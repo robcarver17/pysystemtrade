@@ -1,7 +1,8 @@
 import datetime
 import itertools
 
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
+from syscore.exceptions import missingData
 from sysdata.base_data import baseData
 from syslogdiag.logger import logger, DEFAULT_LOG_LEVEL
 from syslogdiag.log_entry import INVERSE_MAP, LEVEL_ID, logEntry
@@ -196,7 +197,7 @@ class logData(baseData):
         )
         time_stamps = [entry.timestamp for entry in results]
         if len(time_stamps) == 0:
-            return missing_data
+            raise missingData
 
         last_entry_date = max(time_stamps)
         return last_entry_date

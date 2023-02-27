@@ -4,7 +4,7 @@ from copy import copy
 import numpy as np
 import pandas as pd
 
-from syscore.constants import missing_data
+from syscore.exceptions import missingData
 from sysobjects.contract_dates_and_expiries import contractDate
 from sysobjects.dict_of_futures_per_contract_prices import (
     dictFuturesContractFinalPrices,
@@ -32,11 +32,11 @@ def generate_approximate_calendar(
 
     :return: data frame ready to be rollCalendar
     """
-    earliest_contract_with_roll_data = find_earliest_held_contract_with_price_data(
-        roll_parameters_object, dict_of_futures_contract_prices
-    )
-
-    if earliest_contract_with_roll_data is missing_data:
+    try:
+        earliest_contract_with_roll_data = find_earliest_held_contract_with_price_data(
+            roll_parameters_object, dict_of_futures_contract_prices
+        )
+    except missingData:
         raise Exception("Can't find any valid starting contract!")
 
     approx_calendar = _create_approx_calendar_from_earliest_contract(
@@ -122,8 +122,9 @@ def _get_new_row_of_roll_calendar(
     roll_parameters = current_contract.roll_parameters
     final_contract_date_str = current_contract.prices.last_contract_date_str()
 
-    next_contract = current_contract.find_next_held_contract_with_price_data()
-    if next_contract is missing_data:
+    try:
+        next_contract = current_contract.find_next_held_contract_with_price_data()
+    except missingData:
         # This is a problem UNLESS for the corner case where:
         # The current contract isn't the last contract
         # But the remaining contracts aren't held contracts
@@ -139,8 +140,9 @@ def _get_new_row_of_roll_calendar(
                 )
             )
 
-    carry_contract = current_contract.find_best_carry_contract_with_price_data()
-    if carry_contract is missing_data:
+    try:
+        carry_contract = current_contract.find_best_carry_contract_with_price_data()
+    except missingData:
         raise Exception(
             "Can't find good carry contract %s from data when building roll calendar using hold calendar %s"
             % (

@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 
 from syscore.exceptions import missingData
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.dateutils import Frequency, from_config_frequency_to_frequency, n_days_ago
 
 from sysobjects.contracts import futuresContract
@@ -237,6 +237,19 @@ class updatePrices(productionDataLayerGeneric):
         self.db_futures_contract_price_data.write_merged_prices_for_contract_object(
             contract_object, futures_price_data=new_prices, ignore_duplication=True
         )
+
+    def overwrite_prices_at_frequency_for_contract(
+        self,
+        contract_object: futuresContract,
+        new_prices: futuresContractPrices,
+            frequency: Frequency
+    ):
+
+        self.db_futures_contract_price_data.write_prices_at_frequency_for_contract_object(futures_contract_object=contract_object,
+                                                                                          futures_price_data=new_prices,
+                                                                                          frequency=frequency,
+                                                                                          ignore_duplication=True)
+
 
     def update_prices_at_frequency_for_contract(
         self,
@@ -480,7 +493,7 @@ def modify_price_when_contract_has_changed(
     if np.isnan(differential):
         # can't adjust
         # note need to test code there may be other ways in which this fails
-        return missing_data
+        raise missingData
 
     adjusted_price = original_price + differential
 
