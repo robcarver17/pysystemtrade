@@ -102,7 +102,8 @@ class futuresContractData(baseData):
         log.terse("Added contract %s %s" % (instrument_code, contract_date))
 
     def get_list_of_contract_dates_for_instrument_code(
-        self, instrument_code: str
+        self, instrument_code: str,
+            allow_expired: bool = False
     ) -> listOfContractDateStr:
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)
 
