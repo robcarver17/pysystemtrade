@@ -75,7 +75,7 @@ COAL-GEORDIE,ICE Coals to Newcastle,1000,USD,OilGas,0,0,0,0,EMEA
 COAL-RICH-BAY,ICE Richards Bay Coal,1000,USD,OilGas,0,0,0,0,EMEA
 COCOA,Cocoa NY,10,USD,Ags,0.5,3,0,0,US
 COCOA_LDN,Cocoa London,10,GBP,Ags,0,0,0,0,EMEA
-COFFEE,Coffee,375,USD,Ags,0.001,3,0,0,US
+COFFEE,Coffee,375,USD,Ags,0.1,3,0,0,US
 COPPER,Copper,25000,USD,Metals,0.00043,2.42,0,0,US
 COPPER_LME,Grade A Copper - LME,25,USD,Metals,0,0,0,0,EMEA
 COPPER-micro,Copper micro,2500,USD,Metals,0.0007,0.85,0,0,US
@@ -86,7 +86,7 @@ CORN-EURO,Corn,50,EUR,Ags,0.12,2,0,0,US
 CORN-JPN,Corn - Japan,50000,JPY,Ags,0,0,0,0,ASIA
 CORRA,3 Month CORRA,2500,CAD,STIR,0.008,2,0,0,US
 COTTON,NYMEX Cotton index,50000,USD,Ags,0.75,0.85,0,0,US
-COTTON2,Cotton #2,500,USD,Ags,0.00078,3,0,0,US
+COTTON2,Cotton #2,500,USD,Ags,0.078,3,0,0,US
 CRUDE_ICE,West Texas Intermediate Light Sweet Crude Oil ICE,1000,USD,OilGas,0,0,0,0,EMEA
 CRUDE_W,Light sweet crude Winter,1000,USD,OilGas,0.012,2.31,0,0,US
 CRUDE_W_micro,micro WTI crude oil,100,USD,OilGas,0.017,0.7,0,0,US
@@ -369,7 +369,7 @@ NZD,NZDUSD currency,100000,USD,FX,4.2E-05,2.47,0,0,US
 OAT,French 10 year bond OAT,1000,EUR,Bond,0.0072,2,0,0,EMEA
 OAT5,Mid-Term Euro-OAT,1000,EUR,Bond,0,0,0,0,EMEA
 OATIES,Oat Futures,50,USD,Ags,1.8,1.5,0,0,US
-OJ,Orange Juice (FCOJ-A),150,USD,Ags,0.01075,3,0,0,US
+OJ,Orange Juice (FCOJ-A),150,USD,Ags,1.075,3,0,0,US
 OMX,OMX Helsinki 25 Index,10,EUR,Equity,25,2,0,0,EMEA
 OMX-SWE,OMX Index [Sweden],100,SEK,Equity,0,0,0,0,EMEA
 OMXESG,OMXS30 ESG Responsible Index,100,SEK,Equity,0,0,0,0,EMEA
@@ -484,7 +484,7 @@ SS-ZUR-INSR,ZURICH INSURANCE GROUP AG,10,CHF,SingleStock,0,0,0,0,EMEA
 STEEL,Hot-Rolled Coil Steel Index,20,USD,Metals,5.4,0.85,0,0,US
 STERLING3,3 month Sterling interest rate,1250,GBP,Bond,0.0025,1.7,0,0,EMEA
 SUGAR_WHITE,White sugar,50,USD,Ags,0,0,0,0,EMEA
-SUGAR11,Sugar #11,1120,USD,Ags,5E-05,3,0,0,US
+SUGAR11,Sugar #11,1120,USD,Ags,5E-03,3,0,0,US
 SUGAR16,Sugar #16,1120,USD,Ags,0,0,0,0,US
 SWISSLEAD,Swiss Leader Index (PREIS_INDEX),10,CHF,Equity,3.3,4,0,0,EMEA
 TECDAX,TECDAX,10,EUR,Equity,0,0,0,0,EMEA
