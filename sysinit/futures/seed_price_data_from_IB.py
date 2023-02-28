@@ -24,8 +24,8 @@ def seed_price_data_from_IB(instrument_code):
 
 
 def seed_price_data_for_contract(data: dataBlob, contract_object: futuresContract):
-    list_of_frequencies= [DAILY_PRICE_FREQ, HOURLY_FREQ]
-    for frequency in [DAILY_PRICE_FREQ, HOURLY_FREQ]:
+    list_of_frequencies= [HOURLY_FREQ, DAILY_PRICE_FREQ]
+        for frequency in list_of_frequencies:
         seed_price_data_for_contract_at_frequency(data=data, contract_object=contract_object, frequency=frequency)
 
     write_merged_prices_for_contract(
