@@ -61,6 +61,10 @@ def backup_arctic_to_csv():
 
     return None
 
+def quick_backup_of_all_price_data_including_expired():
+    backup_data = get_data_and_create_csv_directories("Quick backup of all price data")
+    backup_futures_contract_prices_to_csv(backup_data, ignore_long_expired=False)
+
 
 class backupArcticToCsv:
     def __init__(self, data):
@@ -71,9 +75,9 @@ class backupArcticToCsv:
         log = self.data.log
 
         log.msg("Dumping from arctic, mongo to .csv files")
+        backup_futures_contract_prices_to_csv(backup_data)
         backup_spreads_to_csv(backup_data)
         backup_fx_to_csv(backup_data)
-        backup_futures_contract_prices_to_csv(backup_data)
         backup_multiple_to_csv(backup_data)
         backup_adj_to_csv(backup_data)
         backup_strategy_position_data(backup_data)
