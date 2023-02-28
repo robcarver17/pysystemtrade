@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 import pandas as pd
 
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.exceptions import missingData
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 
@@ -20,10 +20,11 @@ class dictFuturesContractFinalPrices(dict):
         Time sorted contract ids
         :return:
         """
-        all_contract_date_str_sorted = getattr(
-            self, "_all_contract_date_str_sorted", missing_data
-        )
-        if all_contract_date_str_sorted is missing_data:
+        try:
+            all_contract_date_str_sorted = getattr(
+                self, "_all_contract_date_str_sorted"
+            )
+        except AttributeError:
             all_contract_date_str_sorted = self._get_and_set_sorted_contract_date_str()
 
         return all_contract_date_str_sorted
