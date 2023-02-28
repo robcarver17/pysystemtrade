@@ -25,15 +25,19 @@ def seed_price_data_from_IB(instrument_code):
 
 def seed_price_data_for_contract(data: dataBlob, contract_object: futuresContract):
     list_of_frequencies= [HOURLY_FREQ, DAILY_PRICE_FREQ]
-        for frequency in list_of_frequencies:
-        seed_price_data_for_contract_at_frequency(data=data, contract_object=contract_object, frequency=frequency)
+    for frequency in list_of_frequencies:
+        seed_price_data_for_contract_at_frequency(data=data,
+                                                  contract_object=contract_object,
+                                                  frequency=frequency)
 
     write_merged_prices_for_contract(
         data, contract_object=contract_object, list_of_frequencies=list_of_frequencies
     )
 
 
-def seed_price_data_for_contract_at_frequency(data: dataBlob, contract_object: futuresContract, frequency: Frequency):
+def seed_price_data_for_contract_at_frequency(data: dataBlob,
+                                              contract_object: futuresContract,
+                                              frequency: Frequency):
 
     data_broker = dataBroker(data)
     update_prices = updatePrices(data)
