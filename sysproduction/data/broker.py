@@ -89,7 +89,9 @@ class dataBroker(productionDataLayerGeneric):
 
     ## Methods
 
-    def get_list_of_contract_dates_for_instrument_code(self, instrument_code: str, allow_expired: bool = False):
+    def get_list_of_contract_dates_for_instrument_code(
+        self, instrument_code: str, allow_expired: bool = False
+    ):
         return self.broker_futures_contract_data.get_list_of_contract_dates_for_instrument_code(
             instrument_code, allow_expired=allow_expired
         )
@@ -142,12 +144,12 @@ class dataBroker(productionDataLayerGeneric):
 
         return broker_prices
 
-    def get_prices_at_frequency_for_potentially_expired_contract_object(self, contract_object: futuresContract,
-                                                                        frequency: Frequency) -> futuresContractPrices:
+    def get_prices_at_frequency_for_potentially_expired_contract_object(
+        self, contract_object: futuresContract, frequency: Frequency
+    ) -> futuresContractPrices:
 
         return self.broker_futures_contract_price_data.get_prices_at_frequency_for_potentially_expired_contract_object(
-            contract=contract_object,
-            freq=frequency
+            contract=contract_object, freq=frequency
         )
 
     def get_prices_at_frequency_for_contract_object(
