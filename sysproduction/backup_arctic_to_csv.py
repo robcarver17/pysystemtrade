@@ -62,6 +62,13 @@ def backup_arctic_to_csv():
     return None
 
 
+# FIXME SOMEWHAT HACKY
+# SHOULD BE A 'BACKUP X' OPTION UNDER DIAGNOSTICS OR CONTROL?
+def quick_backup_of_all_price_data_including_expired():
+    backup_data = get_data_and_create_csv_directories("Quick backup of all price data")
+    backup_futures_contract_prices_to_csv(backup_data, ignore_long_expired=False)
+
+
 class backupArcticToCsv:
     def __init__(self, data):
         self.data = data
@@ -71,9 +78,9 @@ class backupArcticToCsv:
         log = self.data.log
 
         log.msg("Dumping from arctic, mongo to .csv files")
+        backup_futures_contract_prices_to_csv(backup_data)
         backup_spreads_to_csv(backup_data)
         backup_fx_to_csv(backup_data)
-        backup_futures_contract_prices_to_csv(backup_data)
         backup_multiple_to_csv(backup_data)
         backup_adj_to_csv(backup_data)
         backup_strategy_position_data(backup_data)
@@ -172,33 +179,42 @@ def get_data_and_create_csv_directories(logname):
 
 
 # Futures contract data
-def backup_futures_contract_prices_to_csv(data):
+def backup_futures_contract_prices_to_csv(data, ignore_long_expired: bool = True):
     instrument_list = (
         data.arctic_futures_contract_price.get_list_of_instrument_codes_with_merged_price_data()
     )
     for instrument_code in instrument_list:
-        backup_futures_contract_prices_for_instrument_to_csv(data, instrument_code)
+        backup_futures_contract_prices_for_instrument_to_csv(
+            data=data,
+            instrument_code=instrument_code,
+            ignore_long_expired=ignore_long_expired,
+        )
 
 
 def backup_futures_contract_prices_for_instrument_to_csv(
-    data: dataBlob, instrument_code: str
+    data: dataBlob, instrument_code: str, ignore_long_expired: bool = True
 ):
     list_of_contracts = data.arctic_futures_contract_price.contracts_with_merged_price_data_for_instrument_code(
         instrument_code
     )
 
     for futures_contract in list_of_contracts:
-        backup_futures_contract_prices_for_contract_to_csv(data, futures_contract)
+        backup_futures_contract_prices_for_contract_to_csv(
+            data=data,
+            futures_contract=futures_contract,
+            ignore_long_expired=ignore_long_expired,
+        )
 
 
 def backup_futures_contract_prices_for_contract_to_csv(
-    data: dataBlob, futures_contract: futuresContract
+    data: dataBlob, futures_contract: futuresContract, ignore_long_expired: bool = True
 ):
-    if futures_contract.days_since_expiry() > CALENDAR_DAYS_IN_YEAR:
-        ## Almost certainly expired, skip
-        data.log.msg("Skipping expired contract %s" % str(futures_contract))
+    if ignore_long_expired:
+        if futures_contract.days_since_expiry() > CALENDAR_DAYS_IN_YEAR:
+            ## Almost certainly expired, skip
+            data.log.msg("Skipping expired contract %s" % str(futures_contract))
 
-        return None
+            return None
 
     arctic_data = (
         data.arctic_futures_contract_price.get_merged_prices_for_contract_object(

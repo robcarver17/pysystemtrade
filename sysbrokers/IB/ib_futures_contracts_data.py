@@ -56,15 +56,13 @@ class ibFuturesContractData(brokerFuturesContractData):
         return self.data.broker_futures_instrument
 
     def get_list_of_contract_dates_for_instrument_code(
-        self, instrument_code: str,
-            allow_expired: bool = False
+        self, instrument_code: str, allow_expired: bool = False
     ) -> listOfContractDateStr:
         futures_instrument_with_ib_data = (
             self._get_futures_instrument_object_with_IB_data(instrument_code)
         )
         list_of_contracts = self.ib_client.broker_get_futures_contract_list(
-            futures_instrument_with_ib_data,
-            allow_expired=allow_expired
+            futures_instrument_with_ib_data, allow_expired=allow_expired
         )
 
         return listOfContractDateStr(list_of_contracts)

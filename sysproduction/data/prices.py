@@ -242,14 +242,15 @@ class updatePrices(productionDataLayerGeneric):
         self,
         contract_object: futuresContract,
         new_prices: futuresContractPrices,
-            frequency: Frequency
+        frequency: Frequency,
     ):
 
-        self.db_futures_contract_price_data.write_prices_at_frequency_for_contract_object(futures_contract_object=contract_object,
-                                                                                          futures_price_data=new_prices,
-                                                                                          frequency=frequency,
-                                                                                          ignore_duplication=True)
-
+        self.db_futures_contract_price_data.write_prices_at_frequency_for_contract_object(
+            futures_contract_object=contract_object,
+            futures_price_data=new_prices,
+            frequency=frequency,
+            ignore_duplication=True,
+        )
 
     def update_prices_at_frequency_for_contract(
         self,

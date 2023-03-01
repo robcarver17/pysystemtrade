@@ -57,7 +57,9 @@ class brokerFuturesContractData(futuresContractData):
     ) -> listOfTradingHours:
         raise NotImplementedError
 
-    def get_list_of_contract_dates_for_instrument_code(self, instrument_code: str, allow_expired: bool = False):
+    def get_list_of_contract_dates_for_instrument_code(
+        self, instrument_code: str, allow_expired: bool = False
+    ):
         raise NotImplementedError("Consider implementing for consistent interface")
 
     def get_all_contract_objects_for_instrument_code(self, *args, **kwargs):
