@@ -1,6 +1,7 @@
 import datetime
 
 from syscore.constants import missing_data
+from syscore.exceptions import missingData
 
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
@@ -135,8 +136,9 @@ class dataContracts(productionDataLayerGeneric):
     def get_labelled_list_of_contracts_from_contract_date_list(
         self, instrument_code: str, list_of_dates: listOfContractDateStr
     ) -> list:
-        current_contracts = self.get_current_contract_dict(instrument_code)
-        if current_contracts is missing_data:
+        try:
+            current_contracts = self.get_current_contract_dict(instrument_code)
+        except missingData:
             return list_of_dates
 
         labelled_list = label_up_contracts_with_date_list(
