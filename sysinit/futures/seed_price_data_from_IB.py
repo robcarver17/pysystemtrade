@@ -68,7 +68,7 @@ def seed_price_data_for_contract_at_frequency(
         log.warn("No price data for %s" % str(new_contract))
     else:
         update_prices.overwrite_prices_at_frequency_for_contract(
-            contract_object=contract_object, frequency=frequency, new_prices=prices
+            contract_object=new_contract, frequency=frequency, new_prices=prices
         )
 
 
