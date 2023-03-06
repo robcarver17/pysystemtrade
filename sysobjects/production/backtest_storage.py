@@ -2,8 +2,9 @@ import matplotlib.pyplot as pyplot
 
 import pandas as pd
 
+from syscore.exceptions import missingData
 from syscore.fileutils import full_filename_for_file_in_home_dir
-from syscore.constants import missing_data, user_exit
+from syscore.constants import user_exit
 from syscore.interactive.menus import print_menu_of_values_and_get_response
 from syscore.interactive.run_functions import (
     interactively_input_arguments_for_function,
@@ -87,7 +88,7 @@ class interactiveBacktest(object):
 
     def interactively_get_data_and_plot_for_stage_and_method(self):
         data = self.interactively_get_data_for_stage_and_method()
-        if data is user_exit or data is missing_data:
+        if data is user_exit:
             return data
         data.plot()
         pyplot.show()
@@ -96,7 +97,7 @@ class interactiveBacktest(object):
 
     def interactively_get_data_and_print_for_stage_and_method(self):
         data = self.interactively_get_data_for_stage_and_method()
-        if data is user_exit or data is missing_data:
+        if data is user_exit:
             return data
         pd.set_option("display.max_rows", 10000)
         pd.set_option("display.max_columns", 50)
@@ -107,7 +108,7 @@ class interactiveBacktest(object):
 
     def interactively_get_data_and_html_for_stage_and_method(self):
         data = self.interactively_get_data_for_stage_and_method()
-        if data is user_exit or data is missing_data:
+        if data is user_exit:
             return data
         filename = full_filename_for_file_in_home_dir("temp.html")
         try:
@@ -172,7 +173,7 @@ class interactiveBacktest(object):
             ans = func(*args, **kwargs)
         except Exception as e:
             print("Error %s" % e)
-            ans = missing_data
+            raise missingData
 
         return ans
 
