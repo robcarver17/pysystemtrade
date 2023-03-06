@@ -1,5 +1,4 @@
 import datetime
-from syscore.constants import missing_data
 from syscore.exceptions import missingData
 from sysobjects.rolls import contractDateWithRollParameters, rollParameters
 from sysobjects.contracts import contractDate
@@ -202,7 +201,7 @@ class contractWithRollParametersAndPrices(object):
             try_contract = getattr(try_contract, contract_attribute_str)()
 
         # Nothing found
-        return missing_data
+        raise missingData
 
     def find_best_carry_contract_with_price_data(self):
         """
