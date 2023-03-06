@@ -61,6 +61,9 @@ def backup_arctic_to_csv():
 
     return None
 
+
+# FIXME SOMEWHAT HACKY
+# SHOULD BE A 'BACKUP X' OPTION UNDER DIAGNOSTICS OR CONTROL?
 def quick_backup_of_all_price_data_including_expired():
     backup_data = get_data_and_create_csv_directories("Quick backup of all price data")
     backup_futures_contract_prices_to_csv(backup_data, ignore_long_expired=False)
@@ -176,30 +179,35 @@ def get_data_and_create_csv_directories(logname):
 
 
 # Futures contract data
-def backup_futures_contract_prices_to_csv(data,
-        ignore_long_expired: bool = True):
+def backup_futures_contract_prices_to_csv(data, ignore_long_expired: bool = True):
     instrument_list = (
         data.arctic_futures_contract_price.get_list_of_instrument_codes_with_merged_price_data()
     )
     for instrument_code in instrument_list:
-        backup_futures_contract_prices_for_instrument_to_csv(data=data, instrument_code=instrument_code, ignore_long_expired=ignore_long_expired)
+        backup_futures_contract_prices_for_instrument_to_csv(
+            data=data,
+            instrument_code=instrument_code,
+            ignore_long_expired=ignore_long_expired,
+        )
 
 
 def backup_futures_contract_prices_for_instrument_to_csv(
-    data: dataBlob, instrument_code: str,
-        ignore_long_expired: bool = True
+    data: dataBlob, instrument_code: str, ignore_long_expired: bool = True
 ):
     list_of_contracts = data.arctic_futures_contract_price.contracts_with_merged_price_data_for_instrument_code(
         instrument_code
     )
 
     for futures_contract in list_of_contracts:
-        backup_futures_contract_prices_for_contract_to_csv(data=data, futures_contract=futures_contract, ignore_long_expired=ignore_long_expired)
+        backup_futures_contract_prices_for_contract_to_csv(
+            data=data,
+            futures_contract=futures_contract,
+            ignore_long_expired=ignore_long_expired,
+        )
 
 
 def backup_futures_contract_prices_for_contract_to_csv(
-    data: dataBlob, futures_contract: futuresContract,
-        ignore_long_expired: bool = True
+    data: dataBlob, futures_contract: futuresContract, ignore_long_expired: bool = True
 ):
     if ignore_long_expired:
         if futures_contract.days_since_expiry() > CALENDAR_DAYS_IN_YEAR:
