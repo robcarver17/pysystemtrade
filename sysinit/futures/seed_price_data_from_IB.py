@@ -18,8 +18,16 @@ def seed_price_data_from_IB(instrument_code):
         instrument_code, allow_expired=True
     )
 
+    ## This returns yyyymmdd strings, where we have the actual expiry date
+
     for contract_date in list_of_contracts:
-        contract_object = futuresContract(instrument_code, contract_date)
+        ## We do this slightly tortorous thing because there are energy contracts
+        ## which don't expire in the month they are labelled with
+        ## So for example, CRUDE_W 202106 actually expires on 20210528
+
+        date_str = contract_date[:6]
+        contract_object = futuresContract(instrument_code, date_str)
+
         seed_price_data_for_contract(data=data, contract_object=contract_object)
 
 
@@ -45,30 +53,25 @@ def seed_price_data_for_contract_at_frequency(
 
     data_broker = dataBroker(data)
     update_prices = updatePrices(data)
+    log = contract_object.specific_log(data.log)
 
-    ## We do this slightly tortorous thing because there are energy contracts
-    ## which don't expire in the month they are labelled with
-    ## So for example, CRUDE_W 202106 actually expires on 20210528
-
-    date_str = contract_object.contract_date.date_str[:6]
-    new_contract = futuresContract(contract_object.instrument, date_str)
-
-    log = new_contract.specific_log(data.log)
     try:
         prices = (
             data_broker.get_prices_at_frequency_for_potentially_expired_contract_object(
-                new_contract, frequency=frequency
+                contract_object, frequency=frequency
             )
         )
     except missingData:
-        log.warn("Error getting data for %s" % str(new_contract))
+        log.warn("Error getting data for %s" % str(contract_object))
         return None
 
+    log.msg("Got %d lines of prices for %s" % (len(prices), str(contract_object)))
+
     if len(prices) == 0:
-        log.warn("No price data for %s" % str(new_contract))
+        log.warn("No price data for %s" % str(contract_object))
     else:
         update_prices.overwrite_prices_at_frequency_for_contract(
-            contract_object=new_contract, frequency=frequency, new_prices=prices
+            contract_object=contract_object, frequency=frequency, new_prices=prices
         )
 
 
