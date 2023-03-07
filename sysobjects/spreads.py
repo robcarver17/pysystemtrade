@@ -2,7 +2,7 @@ import pandas as pd
 import datetime
 
 from syscore.dateutils import n_days_ago
-from syscore.constants import missing_data
+from syscore.exceptions import missingData
 
 
 class spreadsForInstrument(pd.Series):
@@ -14,6 +14,6 @@ class spreadsForInstrument(pd.Series):
     def average_spread_last_n_days(self, n_days: int = 14):
         recent_data = self[n_days_ago(n_days)]
         if len(recent_data) == 0:
-            return missing_data
+            raise missingData
 
         return recent_data.mean(skipna=True)

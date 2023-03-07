@@ -57,7 +57,7 @@ class orderGeneratorForStrategy(object):
     def get_and_place_orders(self):
         # THIS IS THE MAIN FUNCTION THAT IS RUN
         order_list = self.get_required_orders()
-        order_list_with_overrides = self.apply_overrides(order_list)
+        order_list_with_overrides = self.apply_overrides_and_position_limits(order_list)
         self.submit_order_list(order_list_with_overrides)
 
     def get_required_orders(self) -> listOfOrders:
@@ -83,14 +83,27 @@ class orderGeneratorForStrategy(object):
 
         return actual_positions
 
-    def apply_overrides(self, order_list: listOfOrders) -> listOfOrders:
+    def apply_overrides_and_position_limits(
+        self, order_list: listOfOrders
+    ) -> listOfOrders:
+
         new_order_list = [
-            self.apply_overrides_for_instrument_and_strategy(proposed_order)
+            self.apply_overrides_and_position_limits_for_instrument_and_strategy(
+                proposed_order
+            )
             for proposed_order in order_list
         ]
         new_order_list = listOfOrders(new_order_list)
 
         return new_order_list
+
+    def apply_overrides_and_position_limits_for_instrument_and_strategy(
+        self, proposed_order: instrumentOrder
+    ):
+        revised_order = self.apply_overrides_for_instrument_and_strategy(proposed_order)
+        cut_down_order = self.adjust_order_for_position_limits(revised_order)
+
+        return cut_down_order
 
     def apply_overrides_for_instrument_and_strategy(
         self, proposed_order: instrumentOrder
@@ -132,40 +145,6 @@ class orderGeneratorForStrategy(object):
 
         return revised_order
 
-    def submit_order_list(self, order_list: listOfOrders):
-        data_lock = dataLocks(self.data)
-        for order in order_list:
-            # try:
-            # we allow existing orders to be modified
-            log = order.log_with_attributes(self.log)
-            log.msg("Required order %s" % str(order))
-
-            instrument_locked = data_lock.is_instrument_locked(order.instrument_code)
-            if instrument_locked:
-                log.msg("Instrument locked, not submitting")
-                continue
-            self.submit_order(order)
-
-    def submit_order(self, order: instrumentOrder):
-        log = order.log_with_attributes(self.log)
-        cut_down_order = self.adjust_order_for_position_limits(order)
-
-        try:
-            order_id = self.order_stack.put_order_on_stack(cut_down_order)
-        except zeroOrderException:
-            # we checked for zero already, which means that there is an existing order on the stack
-            # An existing order of the same size
-            log.warn(
-                "Ignoring new order as either zero size or it replicates an existing order on the stack"
-            )
-
-        else:
-            log.msg(
-                "Added order %s to instrument order stack with order id %d"
-                % (str(order), order_id),
-                instrument_order_id=order_id,
-            )
-
     def adjust_order_for_position_limits(
         self, order: instrumentOrder
     ) -> instrumentOrder:
@@ -192,3 +171,36 @@ class orderGeneratorForStrategy(object):
                 )
 
         return cut_down_order
+
+    def submit_order_list(self, order_list: listOfOrders):
+        data_lock = dataLocks(self.data)
+        for order in order_list:
+            # try:
+            # we allow existing orders to be modified
+            log = order.log_with_attributes(self.log)
+            log.msg("Required order %s" % str(order))
+
+            instrument_locked = data_lock.is_instrument_locked(order.instrument_code)
+            if instrument_locked:
+                log.msg("Instrument locked, not submitting")
+                continue
+            self.submit_order(order)
+
+    def submit_order(self, order: instrumentOrder):
+        log = order.log_with_attributes(self.log)
+
+        try:
+            order_id = self.order_stack.put_order_on_stack(order)
+        except zeroOrderException:
+            # we checked for zero already, which means that there is an existing order on the stack
+            # An existing order of the same size
+            log.warn(
+                "Ignoring new order as either zero size or it replicates an existing order on the stack"
+            )
+
+        else:
+            log.msg(
+                "Added order %s to instrument order stack with order id %d"
+                % (str(order), order_id),
+                instrument_order_id=order_id,
+            )
