@@ -59,7 +59,11 @@ class interactiveBacktest(object):
     def plot_data_loop(self):
         doing_stuff = True
         while doing_stuff:
-            result = self.interactively_get_data_and_plot_for_stage_and_method()
+            try:
+                result = self.interactively_get_data_and_plot_for_stage_and_method()
+            except missingData:
+                continue
+
             if result is user_exit:
                 doing_stuff = False
                 break
@@ -69,7 +73,11 @@ class interactiveBacktest(object):
     def html_data_loop(self):
         doing_stuff = True
         while doing_stuff:
-            result = self.interactively_get_data_and_html_for_stage_and_method()
+            try:
+                result = self.interactively_get_data_and_html_for_stage_and_method()
+            except missingData:
+                continue
+
             if result is user_exit:
                 doing_stuff = False
                 break
@@ -79,7 +87,11 @@ class interactiveBacktest(object):
     def print_data_loop(self):
         doing_stuff = True
         while doing_stuff:
-            result = self.interactively_get_data_and_print_for_stage_and_method()
+            try:
+                result = self.interactively_get_data_and_print_for_stage_and_method()
+            except missingData:
+                continue
+                
             if result is user_exit:
                 doing_stuff = False
                 break
