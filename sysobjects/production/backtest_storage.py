@@ -91,7 +91,7 @@ class interactiveBacktest(object):
                 result = self.interactively_get_data_and_print_for_stage_and_method()
             except missingData:
                 continue
-                
+
             if result is user_exit:
                 doing_stuff = False
                 break
