@@ -110,27 +110,6 @@ class tradeQuantity(list):
         # sign of trade quantity
         return sign(self[0])
 
-    def single_leg_trade_qty_with_lowest_abs_value_trade_from_list(
-        self, list_of_trade_qty: list
-    ) -> "tradeQuantity":
-        # only works with single legs
-        trade_qty_list_as_single_legs = [
-            trade_qty.as_single_trade_qty_or_error() for trade_qty in list_of_trade_qty
-        ]
-
-        abs_values_of_list_of_trade_qty = [
-            abs(trade_qty) for trade_qty in trade_qty_list_as_single_legs
-        ]
-
-        min_abs_value_from_list = min(abs_values_of_list_of_trade_qty)
-
-        buy_or_sell = self.buy_or_sell()
-        signed_abs_value = buy_or_sell * min_abs_value_from_list
-
-        signed_abs_value_as_trade_qty = tradeQuantity(signed_abs_value)
-
-        return signed_abs_value_as_trade_qty
-
 
 class listOfTradeQuantity(list):
     def total_filled_qty(self) -> tradeQuantity:
@@ -249,3 +228,21 @@ def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
         return trade_list_qty
 
     return trade_list_with_ratio_as_int
+
+
+def calculate_most_conservative_qty_from_list_of_qty_with_limits_applied(
+    position: int, list_of_trade_qty: listOfTradeQuantity
+) -> tradeQuantity:
+    # only works with single legs
+    trade_qty_list_as_single_legs = [
+        trade_qty.as_single_trade_qty_or_error() for trade_qty in list_of_trade_qty
+    ]
+
+    if position >= 0:
+        most_conservative_trade = min(trade_qty_list_as_single_legs)
+    else:
+        most_conservative_trade = max(trade_qty_list_as_single_legs)
+
+    new_trade_qty = tradeQuantity(most_conservative_trade)
+
+    return new_trade_qty
