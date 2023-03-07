@@ -3,7 +3,12 @@ import datetime
 
 import pandas as pd
 
-from sysexecution.trade_qty import listOfTradeQuantity, tradeQuantity
+from sysexecution.orders.base_orders import Order
+from sysexecution.trade_qty import (
+    listOfTradeQuantity,
+    tradeQuantity,
+    calculate_most_conservative_qty_from_list_of_qty_with_limits_applied,
+)
 
 
 class listOfFillDatetime(list):
@@ -92,6 +97,11 @@ class listOfOrders(list):
 
         return final_fill_datetime
 
+    def list_of_qty(self) -> listOfTradeQuantity:
+        list_of_trade_qty = listOfTradeQuantity([order.trade for order in self])
+
+        return list_of_trade_qty
+
     def list_of_filled_qty(self) -> listOfTradeQuantity:
         list_of_filled_qty = [order.fill for order in self]
         list_of_filled_qty = listOfTradeQuantity(list_of_filled_qty)
@@ -108,3 +118,24 @@ class listOfOrders(list):
         zero_fills = [fill.equals_zero() for fill in list_of_filled_qty]
 
         return all(zero_fills)
+
+
+def calculate_most_conservative_trade_from_list_of_orders_with_limits_applied(
+    position: int, original_order: Order, list_of_orders: listOfOrders
+) -> Order:
+
+    list_of_trade_qty = list_of_orders.list_of_qty()
+
+    new_trade_qty = (
+        calculate_most_conservative_qty_from_list_of_qty_with_limits_applied(
+            position=position, list_of_trade_qty=list_of_trade_qty
+        )
+    )
+
+    new_order = (
+        original_order.replace_required_trade_size_only_use_for_unsubmitted_trades(
+            new_trade_qty
+        )
+    )
+
+    return new_order
