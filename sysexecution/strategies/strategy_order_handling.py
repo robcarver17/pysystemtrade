@@ -99,11 +99,11 @@ class orderGeneratorForStrategy(object):
 
     def apply_overrides_and_position_limits_for_instrument_and_strategy(
         self, proposed_order: instrumentOrder
-    ):
+    ) -> instrumentOrder:
         revised_order = self.apply_overrides_for_instrument_and_strategy(proposed_order)
-        cut_down_order = self.adjust_order_for_position_limits(revised_order)
+        new_order = self.adjust_order_for_position_limits(revised_order)
 
-        return cut_down_order
+        return new_order
 
     def apply_overrides_for_instrument_and_strategy(
         self, proposed_order: instrumentOrder
@@ -152,25 +152,21 @@ class orderGeneratorForStrategy(object):
         log = order.log_with_attributes(self.log)
 
         data_position_limits = dataPositionLimits(self.data)
-        cut_down_order = (
-            data_position_limits.cut_down_proposed_instrument_trade_for_position_limits(
-                order
-            )
-        )
+        new_order = data_position_limits.apply_position_limit_to_order(order)
 
-        if cut_down_order.trade != order.trade:
-            if cut_down_order.is_zero_trade():
+        if new_order.trade != order.trade:
+            if new_order.is_zero_trade():
                 ## at position limit, can't do anything
                 log.warn(
                     "Can't trade at all because of position limits %s" % str(order)
                 )
             else:
                 log.warn(
-                    "Can't do full trade of %s because of position limits, can only do %s"
-                    % (str(order), str(cut_down_order.trade))
+                    "Can't do trade of %s because of position limits,instead will do %s"
+                    % (str(order), str(new_order.trade))
                 )
 
-        return cut_down_order
+        return new_order
 
     def submit_order_list(self, order_list: listOfOrders):
         data_lock = dataLocks(self.data)

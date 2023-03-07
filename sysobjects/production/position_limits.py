@@ -96,25 +96,29 @@ class positionLimitAndPosition(object):
     def key(self):
         return self._position_limit_object.key
 
-    def what_trade_is_possible(self, order: Order) -> Order:
+    def apply_position_limit_to_order(self, order: Order) -> Order:
         if self.position_limit == NO_LIMIT:
             return order
         position = self.position
         position_limit = self.position_limit
 
-        possible_trade = what_trade_is_possible(
+        possible_trade = apply_position_limit_to_order(
             position=position, position_limit=position_limit, order=order
         )
 
         return possible_trade
 
 
-def what_trade_is_possible(position: int, position_limit: int, order: Order) -> Order:
+def apply_position_limit_to_order(
+    position: int, position_limit: int, order: Order
+) -> Order:
 
     ## POSIITON LIMITS CAN ONLY BE APPLIED TO SINGLE LEG TRADES, EG INSTRUMENT ORDERS
     proposed_trade = order.as_single_trade_qty_or_error()
-    possible_trade = what_trade_is_possible_single_leg_trade(
-        position=position, position_limit=position_limit, proposed_trade=proposed_trade
+    possible_trade = apply_position_limit_to_single_leg_trade(
+        position=position,
+        position_limit=position_limit,
+        proposed_trade=proposed_trade,
     )
 
     possible_trade_as_trade_qty = tradeQuantity(possible_trade)
@@ -126,90 +130,109 @@ def what_trade_is_possible(position: int, position_limit: int, order: Order) -> 
     return order
 
 
-def what_trade_is_possible_single_leg_trade(
+def apply_position_limit_to_single_leg_trade(
     position: int, position_limit: int, proposed_trade: int
 ) -> int:
     """
-    >>> what_trade_is_possible_single_leg_trade(1, 1, 0)
+    >>> apply_position_limit_to_single_leg_trade(1, 1, 0)
     0
-    >>> what_trade_is_possible_single_leg_trade(5, 1, 0)
-    0
-    >>> what_trade_is_possible_single_leg_trade(0, 3, 1)
-    1
-    >>> what_trade_is_possible_single_leg_trade(0, 3, 2)
-    2
-    >>> what_trade_is_possible_single_leg_trade(0, 3, 3)
-    3
-    >>> what_trade_is_possible_single_leg_trade(0, 3, 4)
-    3
-    >>> what_trade_is_possible_single_leg_trade(0, 3, -1)
-    -1
-    >>> what_trade_is_possible_single_leg_trade(0, 3, -2)
-    -2
-    >>> what_trade_is_possible_single_leg_trade(0, 3, -3)
-    -3
-    >>> what_trade_is_possible_single_leg_trade(0, 3, -4)
-    -3
-    >>> what_trade_is_possible_single_leg_trade(2, 3, 1)
-    1
-    >>> what_trade_is_possible_single_leg_trade(2, 3, 2)
-    1
-    >>> what_trade_is_possible_single_leg_trade(2, 3, -2)
-    -2
-    >>> what_trade_is_possible_single_leg_trade(2, 3, -4)
+    >>> apply_position_limit_to_single_leg_trade(5, 1, 0)
     -4
-    >>> what_trade_is_possible_single_leg_trade(2, 3, -5)
-    -5
-    >>> what_trade_is_possible_single_leg_trade(2, 3, -6)
-    -5
-    >>> what_trade_is_possible_single_leg_trade(5, 3, 2)
-    0
-    >>> what_trade_is_possible_single_leg_trade(5, 3, -1)
+    >>> apply_position_limit_to_single_leg_trade(0, 3, 1)
+    1
+    >>> apply_position_limit_to_single_leg_trade(0, 3, 2)
+    2
+    >>> apply_position_limit_to_single_leg_trade(0, 3, 3)
+    3
+    >>> apply_position_limit_to_single_leg_trade(0, 3, 4)
+    3
+    >>> apply_position_limit_to_single_leg_trade(0, 3, -1)
     -1
-    >>> what_trade_is_possible_single_leg_trade(5, 3, -2)
+    >>> apply_position_limit_to_single_leg_trade(0, 3, -2)
     -2
-    >>> what_trade_is_possible_single_leg_trade(5, 3, -9)
+    >>> apply_position_limit_to_single_leg_trade(0, 3, -3)
+    -3
+    >>> apply_position_limit_to_single_leg_trade(0, 3, -4)
+    -3
+    >>> apply_position_limit_to_single_leg_trade(2, 3, 1)
+    1
+    >>> apply_position_limit_to_single_leg_trade(2, 3, 2)
+    1
+    >>> apply_position_limit_to_single_leg_trade(2, 3, -2)
+    -2
+    >>> apply_position_limit_to_single_leg_trade(2, 3, -4)
+    -4
+    >>> apply_position_limit_to_single_leg_trade(2, 3, -5)
+    -5
+    >>> apply_position_limit_to_single_leg_trade(2, 3, -6)
+    -5
+    >>> apply_position_limit_to_single_leg_trade(5, 3, 2)
+    -2
+    >>> apply_position_limit_to_single_leg_trade(5, 3, -1)
+    -2
+    >>> apply_position_limit_to_single_leg_trade(5, 3, -2)
+    -2
+    >>> apply_position_limit_to_single_leg_trade(5, 3, -9)
     -8
-    >>> what_trade_is_possible_single_leg_trade(2, 3, -4)
+    >>> apply_position_limit_to_single_leg_trade(2, 3, -4)
     -4
-    >>> what_trade_is_possible_single_leg_trade(2, 3, -5)
+    >>> apply_position_limit_to_single_leg_trade(2, 3, -5)
     -5
-    >>> what_trade_is_possible_single_leg_trade(2, 3, -6)
+    >>> apply_position_limit_to_single_leg_trade(2, 3, -6)
     -5
-    >>> what_trade_is_possible_single_leg_trade(0, 3, 1)
+    >>> apply_position_limit_to_single_leg_trade(0, 3, 1)
     1
-    >>> what_trade_is_possible_single_leg_trade(0, 3, -4)
+    >>> apply_position_limit_to_single_leg_trade(0, 3, -4)
     -3
-    >>> what_trade_is_possible_single_leg_trade(-2, 3, -1)
+    >>> apply_position_limit_to_single_leg_trade(-2, 3, -1)
     -1
-    >>> what_trade_is_possible_single_leg_trade(-2, 3, -2)
+    >>> apply_position_limit_to_single_leg_trade(-2, 3, -2)
     -1
-    >>> what_trade_is_possible_single_leg_trade(-5, 3, -2)
-    0
-    >>> what_trade_is_possible_single_leg_trade(-5, 3, 1)
-    1
-    >>> what_trade_is_possible_single_leg_trade(-5, 3, 2)
+    >>> apply_position_limit_to_single_leg_trade(-5, 3, -2)
     2
-    >>> what_trade_is_possible_single_leg_trade(-5, 3, 2)
+    >>> apply_position_limit_to_single_leg_trade(-5, 3, 1)
     2
-    >>> what_trade_is_possible_single_leg_trade(-5, 3, 7)
+    >>> apply_position_limit_to_single_leg_trade(-5, 3, 2)
+    2
+    >>> apply_position_limit_to_single_leg_trade(-5, 3, 7)
     7
-    >>> what_trade_is_possible_single_leg_trade(-5, 3, 9)
+    >>> apply_position_limit_to_single_leg_trade(-5, 3, 9)
     8
-    >>> what_trade_is_possible_single_leg_trade(-3, 3, 7)
+    >>> apply_position_limit_to_single_leg_trade(-3, 3, 7)
     6
-    >>> what_trade_is_possible_single_leg_trade(3, 3, -7)
+    >>> apply_position_limit_to_single_leg_trade(3, 3, -7)
     -6
+    >>> apply_position_limit_to_single_leg_trade(3, 0, -7)
+    -3
+    >>> apply_position_limit_to_single_leg_trade(3, 0, 0)
+    -3
+    >>> apply_position_limit_to_single_leg_trade(3, 0, 7)
+    -3
+    >>> apply_position_limit_to_single_leg_trade(-3, 0, 2)
+    3
+    >>> apply_position_limit_to_single_leg_trade(-3, 0, 4)
+    3
+    >>> apply_position_limit_to_single_leg_trade(-3, 0, -3)
+    3
+    >>> apply_position_limit_to_single_leg_trade(3, 1, 2)
+    -2
+    >>> apply_position_limit_to_single_leg_trade(3, 1, -2)
+    -2
+    >>> apply_position_limit_to_single_leg_trade(3, 1, -4)
+    -4
+    >>> apply_position_limit_to_single_leg_trade(3, 1, -5)
+    -4
 
     """
-    if proposed_trade == 0:
-        return proposed_trade
-
     new_position = position + proposed_trade
 
     # position limit should be abs, but just in case...
     abs_position_limit = abs(position_limit)
     signed_position_limit = int(abs_position_limit * sign(new_position))
+
+    trade_to_bring_position_in_line_with_position_limit = int(
+        sign(position) * (abs_position_limit - abs(position))
+    )
 
     if abs(new_position) <= abs_position_limit:
         ## new position is within limits
@@ -227,11 +250,12 @@ def what_trade_is_possible_single_leg_trade(
         ## Was already too big
         if proposed_trade >= 0:
             # want to buy when already too big
-            return 0
+            return trade_to_bring_position_in_line_with_position_limit
+
         if new_position > 0:
             ## selling, but sell isn't big enough to get within limits
             ## we don't increase the size of a trade
-            return proposed_trade
+            return trade_to_bring_position_in_line_with_position_limit
         else:
             ## selling and gone out the other side
             possible_new_position = signed_position_limit
@@ -251,11 +275,10 @@ def what_trade_is_possible_single_leg_trade(
         ## Was already too big
         if proposed_trade < 0:
             # want to sell when already too big
-            return 0
+            return trade_to_bring_position_in_line_with_position_limit
         if new_position < 0:
             ## buying but not big enough to get within limits
-            ## we don't increase the size of a trade
-            return proposed_trade
+            return trade_to_bring_position_in_line_with_position_limit
         else:
             # buying and gone out the other side
             possible_new_position = signed_position_limit
