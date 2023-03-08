@@ -1,5 +1,3 @@
-from syscore.constants import missing_data
-
 LIST_OF_COMPOUND_METHODS = ["full", "half", "fixed"]
 
 
@@ -51,8 +49,9 @@ class totalCapitalUpdater(object):
 
     @property
     def new_total_capital(self) -> float:
-        new_total_capital = getattr(self, "_new_total_capital", missing_data)
-        if new_total_capital is missing_data:
+        try:
+            new_total_capital = getattr(self, "_new_total_capital")
+        except AttributeError:
             raise Exception(
                 "Need to run calculate_new_total_and_max_capital_given_pandl()"
             )
@@ -61,8 +60,9 @@ class totalCapitalUpdater(object):
 
     @property
     def new_maximum_capital(self) -> float:
-        new_max_capital = getattr(self, "_new_maximum_capital", missing_data)
-        if new_max_capital is missing_data:
+        try:
+            new_max_capital = getattr(self, "_new_maximum_capital")
+        except AttributeError:
             raise Exception(
                 "Need to run calculate_new_total_and_max_capital_given_pandl()"
             )
@@ -71,8 +71,9 @@ class totalCapitalUpdater(object):
 
     @property
     def new_acc_pandl(self) -> float:
-        new_acc_pandl = getattr(self, "_new_acc_pandl", missing_data)
-        if new_acc_pandl is missing_data:
+        try:
+            new_acc_pandl = getattr(self, "_new_acc_pandl")
+        except AttributeError:
             raise Exception(
                 "Need to run calculate_new_total_and_max_capital_given_pandl()"
             )
@@ -80,11 +81,6 @@ class totalCapitalUpdater(object):
 
     @property
     def profit_and_loss(self) -> float:
-        if (
-            self.new_broker_account_value is missing_data
-            or self.prev_broker_account_value is missing_data
-        ):
-            return missing_data
         return self.new_broker_account_value - self.prev_broker_account_value
 
     def check_pandl_size(self, check_limit: float = 0.1):
