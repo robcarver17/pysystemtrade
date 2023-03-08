@@ -4,7 +4,7 @@ import datetime
 import numpy as np
 import pandas as pd
 
-from syscore.exceptions import missingContract
+from syscore.exceptions import missingContract, missingData
 from syscore.interactive.progress_bar import progressBar
 
 from sysdata.data_blob import dataBlob
@@ -146,7 +146,7 @@ def get_tick_value_for_instrument_code(instrument_code: str, data: dataBlob) -> 
     contract_data = dataContracts()
     try:
         contract_id = contract_data.get_priced_contract_id(instrument_code)
-    except AttributeError:
+    except missingData:
         return np.nan
 
     futures_contract = futuresContract(instrument_code, contract_id)
