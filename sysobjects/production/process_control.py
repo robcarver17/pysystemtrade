@@ -23,7 +23,6 @@ from syscore.dateutils import (
 
 from syscore.constants import (
     named_object,
-    missing_data,
     arg_not_supplied,
     success,
     failure,
