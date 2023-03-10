@@ -127,12 +127,9 @@ class dataBroker(productionDataLayerGeneric):
         cleaning_config=arg_not_supplied,
     ) -> futuresContractPrices:
 
-        try:
-            broker_prices_raw = self.get_prices_at_frequency_for_contract_object(
-                contract_object=contract_object, frequency=frequency
-            )
-        except missingData:
-            return missing_data
+        broker_prices_raw = self.get_prices_at_frequency_for_contract_object(
+            contract_object=contract_object, frequency=frequency
+        )
 
         daily_data = frequency is DAILY_PRICE_FREQ
         broker_prices = apply_price_cleaning(

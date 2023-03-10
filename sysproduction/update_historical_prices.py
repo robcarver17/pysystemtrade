@@ -8,7 +8,8 @@ import datetime
 from copy import copy
 from typing import List, Tuple
 
-from syscore.constants import missing_data, arg_not_supplied, success, failure
+from syscore.constants import arg_not_supplied, success, failure
+from syscore.exceptions import missingData
 from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
 from syscore.pandas.frequency import merge_data_with_different_freq
@@ -364,13 +365,13 @@ def get_and_add_prices_for_frequency(
 ):
     broker_data_source = dataBroker(data)
 
-    broker_prices = (
-        broker_data_source.get_cleaned_prices_at_frequency_for_contract_object(
-            contract_object, frequency, cleaning_config=cleaning_config
+    try:
+        broker_prices = (
+            broker_data_source.get_cleaned_prices_at_frequency_for_contract_object(
+                contract_object, frequency, cleaning_config=cleaning_config
+            )
         )
-    )
-
-    if broker_prices is missing_data:
+    except missingData:
         print(
             "Something went wrong with getting prices for %s to check"
             % str(contract_object)
