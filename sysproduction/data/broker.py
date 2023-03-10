@@ -12,7 +12,7 @@ from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
 from syscore.exceptions import missingContract, missingData
 
-from syscore.constants import missing_data, market_closed, arg_not_supplied
+from syscore.constants import market_closed, arg_not_supplied
 from syscore.exceptions import orderCannotBeModified
 from sysexecution.orders.named_order_objects import missing_order
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
@@ -332,10 +332,11 @@ class dataBroker(productionDataLayerGeneric):
     def get_current_size_for_contract_order_by_leg(
         self, contract_order: contractOrder
     ) -> (list, list):
-        market_conditions = self.get_market_conditions_for_contract_order_by_leg(
-            contract_order
-        )
-        if market_conditions is missing_data:
+        try:
+            market_conditions = self.get_market_conditions_for_contract_order_by_leg(
+                contract_order
+            )
+        except missingData:
             self.log.warn("Can't get market conditions, setting available size to zero")
             side_qty = offside_qty = len(contract_order.trade) * [0]
             return side_qty, offside_qty
@@ -355,14 +356,11 @@ class dataBroker(productionDataLayerGeneric):
         )
         for contract, qty in zip(list_of_contracts, list_of_trade_qty):
 
-            try:
-                market_conditions_this_contract = (
-                    self.check_market_conditions_for_single_legged_contract_and_qty(
-                        contract, qty
-                    )
+            market_conditions_this_contract = (
+                self.check_market_conditions_for_single_legged_contract_and_qty(
+                    contract, qty
                 )
-            except missingData:
-                return missing_data
+            )
 
             market_conditions.append(market_conditions_this_contract)
 
