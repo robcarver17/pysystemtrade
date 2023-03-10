@@ -7,7 +7,7 @@ from syscore.fileutils import files_with_extension_in_pathname, get_resolved_pat
 from syscore.objects import (
     resolve_function,
 )
-from syscore.constants import missing_data, arg_not_supplied, success, failure
+from syscore.constants import arg_not_supplied, success, failure
 from syscore.interactive.menus import print_menu_of_values_and_get_response
 
 from sysdata.config.production_config import get_production_config
@@ -268,12 +268,7 @@ def get_backtest_directory_for_strategy(strategy_name):
 def get_directory_store_backtests():
     # eg '/home/rob/data/backtests/'
     production_config = get_production_config()
-    store_directory = production_config.get_element_or_missing_data(
-        "backtest_store_directory"
-    )
-    if store_directory is missing_data:
-        raise Exception("Need to specify backtest_store_directory in config file")
-
+    store_directory = production_config.get_element("backtest_store_directory")
     return store_directory
 
 
