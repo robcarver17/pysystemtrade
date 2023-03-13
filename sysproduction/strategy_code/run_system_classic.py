@@ -10,6 +10,7 @@ this:
 """
 
 from syscore.constants import missing_data, arg_not_supplied
+from syscore.exceptions import missingData
 
 from sysdata.config.configdata import Config
 from sysdata.data_blob import dataBlob
@@ -76,10 +77,11 @@ class runSystemClassic(object):
         strategy_name = self.strategy_name
 
         capital_data = dataCapital(data)
-        notional_trading_capital = capital_data.get_current_capital_for_strategy(
-            strategy_name
-        )
-        if notional_trading_capital is missing_data:
+        try:
+            notional_trading_capital = capital_data.get_current_capital_for_strategy(
+                strategy_name
+            )
+        except missingData:
             # critical log will send email
             error_msg = (
                 "Capital data is missing for %s: can't run backtest" % strategy_name
