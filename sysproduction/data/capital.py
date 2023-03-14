@@ -2,6 +2,7 @@ import datetime
 import pandas as pd
 
 from syscore.constants import missing_data, arg_not_supplied
+from syscore.exceptions import missingData
 
 from sysdata.production.new_capital import capitalData, totalCapitalCalculationData
 from sysdata.production.margin import marginData, seriesOfMargin
@@ -150,12 +151,13 @@ class dataCapital(productionDataLayerGeneric):
         return strat_list
 
     def get_current_capital_for_strategy(self, strategy_name: str) -> float:
-        capital_value = self.db_capital_data.get_current_capital_for_strategy(
-            strategy_name
-        )
-        if capital_value is missing_data:
+        try:
+            capital_value = self.db_capital_data.get_current_capital_for_strategy(
+                strategy_name
+            )
+        except missingData:
             self.data.log.error("Capital data is missing for %s" % strategy_name)
-            return missing_data
+            raise
 
         return capital_value
 
@@ -219,8 +221,9 @@ class dataMargin(productionDataLayerGeneric):
 
 def capital_for_strategy(data, strategy_name):
     data_capital = dataCapital(data)
-    capital = data_capital.get_current_capital_for_strategy(strategy_name)
-    if capital is missing_data:
+    try:
+        capital = data_capital.get_current_capital_for_strategy(strategy_name)
+    except missingData:
         return 0.00001
 
     return capital
