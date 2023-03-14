@@ -691,6 +691,7 @@ def calculate_dict_of_beta_loadings_by_asset_class_given_weights(
 
     return beta_loadings_across_asset_classes
 
+
 def calculate_dict_of_beta_loadings_per_instrument(
     dict_of_betas: dict, weights: portfolioWeights
 ) -> dict:
@@ -728,6 +729,7 @@ def calculate_beta_loadings_across_asset_classes(
 
     return beta_loadings_across_asset_classes
 
+
 def calculate_beta_loading_for_asset_class(
     asset_class: str,
     dict_of_asset_classes: dict,
@@ -749,6 +751,7 @@ def calculate_beta_loading_for_asset_class(
     )
 
     return np.nansum(relevant_beta_loads)
+
 
 def get_beta_for_instrument_list(
     data: dataBlob, dict_of_asset_classes: dict, index_risk: float = arg_not_supplied
@@ -772,6 +775,7 @@ def get_beta_for_instrument_list(
     )
 
     return dict_of_betas
+
 
 def last_years_perc_returns_for_list_of_instruments(
     data: dataBlob, list_of_instruments: list
@@ -818,6 +822,7 @@ def get_equally_weighted_returns_across_asset_classes(
 
     return results_as_pd
 
+
 def get_historical_portfolio_returns_with_fixed_current_weights(
     perc_returns: pd.DataFrame,
     weights: portfolioWeights,
@@ -825,6 +830,7 @@ def get_historical_portfolio_returns_with_fixed_current_weights(
 ) -> pd.DataFrame:
     results = perc_returns.mul(weights).sum(axis=1)
     return results
+
 
 def get_equally_weighted_returns_for_asset_class(
     asset_class: str,
@@ -887,6 +893,7 @@ def dict_of_beta_by_instrument(
             dict_of_betas[instrument_code] = beta
     return dict_of_betas
 
+
 def beta_for_instrument(
     instrument_code: str,
     dict_of_asset_classes: dict,
@@ -912,6 +919,7 @@ def beta_for_instrument(
 
         return beta
 
+
 def dict_of_portfolio_beta_by_asset_class(
     dict_of_asset_classes: dict,
     perc_returns: pd.DataFrame,
@@ -932,6 +940,7 @@ def dict_of_portfolio_beta_by_asset_class(
             dict_of_portfolio_betas[asset_class] = beta
     return dict_of_portfolio_betas
 
+
 def portfolio_beta_for_asset_class(
     asset_class: str,
     perc_returns: pd.DataFrame,
@@ -939,7 +948,11 @@ def portfolio_beta_for_asset_class(
     equally_weighted_returns_across_asset_classes: pd.DataFrame,
 ) -> Union[None, float]:
 
-    perc_returns_for_portfolio = get_historical_portfolio_returns_with_fixed_current_weights(perc_returns=perc_returns, weights=weights)
+    perc_returns_for_portfolio = (
+        get_historical_portfolio_returns_with_fixed_current_weights(
+            perc_returns=perc_returns, weights=weights
+        )
+    )
     perc_returns_for_asset_class = equally_weighted_returns_across_asset_classes[
         asset_class
     ]
