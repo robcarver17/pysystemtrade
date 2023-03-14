@@ -677,7 +677,7 @@ class reportingApi(object):
         beta_load_by_asset_class = beta_load_by_asset_class.round(2)
         beta_load_by_asset_class = beta_load_by_asset_class.sort_values()
         beta_load_by_asset_class_table = table(
-            "Beta loadings by asset class", beta_load_by_asset_class
+            "Beta loadings of asset class positions on asset class", beta_load_by_asset_class
         )
 
         return beta_load_by_asset_class_table
@@ -690,7 +690,7 @@ class reportingApi(object):
         portfolio_beta_load_by_asset_class = portfolio_beta_load_by_asset_class.round(2)
         portfolio_beta_load_by_asset_class = portfolio_beta_load_by_asset_class.sort_values()
         portfolio_beta_load_by_asset_class_table = table(
-            "Portfolio beta loadings on each asset class", portfolio_beta_load_by_asset_class
+            "Beta loadings of full portfolio positions on asset class", portfolio_beta_load_by_asset_class
         )
 
         return portfolio_beta_load_by_asset_class_table
