@@ -1,6 +1,5 @@
 import datetime
 
-from syscore.constants import missing_data
 from syscore.exceptions import missingData
 
 from sysdata.arctic.arctic_futures_per_contract_prices import (
@@ -10,7 +9,7 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 
-from sysdata.futures.contracts import futuresContractData, ContractNotFound
+from sysdata.futures.contracts import futuresContractData
 from sysdata.futures.multiple_prices import futuresMultiplePricesData
 from sysdata.futures.rolls_parameters import rollParametersData
 
