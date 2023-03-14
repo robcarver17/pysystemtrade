@@ -10,7 +10,7 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
 
-from sysdata.futures.contracts import futuresContractData
+from sysdata.futures.contracts import futuresContractData, ContractNotFound
 from sysdata.futures.multiple_prices import futuresMultiplePricesData
 from sysdata.futures.rolls_parameters import rollParametersData
 
@@ -86,8 +86,6 @@ class dataContracts(productionDataLayerGeneric):
 
     def mark_contract_as_sampling(self, contract: futuresContract):
         contract_to_modify = self.get_contract_from_db(contract)
-        if contract_to_modify is missing_data:
-            raise Exception("Can't mark non existent contract as sampling")
         # Mark it as sampling
         contract_to_modify.sampling_on()
 
@@ -95,8 +93,6 @@ class dataContracts(productionDataLayerGeneric):
 
     def mark_contract_as_not_sampling(self, contract: futuresContract):
         contract_to_modify = self.get_contract_from_db(contract)
-        if contract_to_modify is missing_data:
-            raise Exception("Can't mark non existent contract as sampling")
 
         # Mark it as sampling
         contract_to_modify.sampling_off()
@@ -106,10 +102,7 @@ class dataContracts(productionDataLayerGeneric):
     def update_expiry_date(
         self, contract: futuresContract, new_expiry_date: expiryDate
     ):
-
         contract_to_modify = self.get_contract_from_db(contract)
-        if contract_to_modify is missing_data:
-            raise Exception("Can't update expiry date for non existent contract")
 
         contract_to_modify.update_single_expiry_date(new_expiry_date)
 
