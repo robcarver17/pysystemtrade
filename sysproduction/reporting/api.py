@@ -682,6 +682,19 @@ class reportingApi(object):
 
         return beta_load_by_asset_class_table
 
+    def table_of_portfolio_beta_loadings_by_asset_class(self):
+        portfolio_risk_object = self.portfolio_risks
+        portfolio_beta_load_by_asset_class = (
+            portfolio_risk_object.get_portfolio_beta_loadings_by_asset_class()
+        )
+        portfolio_beta_load_by_asset_class = portfolio_beta_load_by_asset_class.round(2)
+        portfolio_beta_load_by_asset_class = portfolio_beta_load_by_asset_class.sort_values()
+        portfolio_beta_load_by_asset_class_table = table(
+            "Portfolio beta loadings on each asset class", portfolio_beta_load_by_asset_class
+        )
+
+        return portfolio_beta_load_by_asset_class_table
+
     @property
     def portfolio_risks(self) -> portfolioRisks:
         return self.cache.get(self._portfolio_risks)
