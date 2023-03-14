@@ -220,6 +220,9 @@ class portfolioRisks(object):
 
         return pd.Series(loadings_as_dict)
 
+    def get_portfolio_beta_loadings_by_asset_class(self) -> pd.Series:
+        return pd.Series(self.dict_of_portfolio_betas)
+
     def get_portfolio_risk_for_all_strategies(self) -> float:
         ## TOTAL PORTFOLIO RISK
         weights = self.weights
@@ -280,6 +283,15 @@ class portfolioRisks(object):
         return dict_of_beta_by_instrument(
             perc_returns=self.recent_perc_returns,
             dict_of_asset_classes=self.dict_of_asset_classes_for_instruments,
+            equally_weighted_returns_across_asset_classes=self.equally_weighted_returns_across_asset_classes,
+        )
+
+    @property
+    def dict_of_portfolio_betas(self) -> dict:
+        return dict_of_portfolio_beta_by_asset_class(
+            perc_returns=self.recent_perc_returns,
+            dict_of_asset_classes=self.dict_of_asset_classes_for_instruments,
+            weights=self.weights,
             equally_weighted_returns_across_asset_classes=self.equally_weighted_returns_across_asset_classes,
         )
 
@@ -679,7 +691,6 @@ def calculate_dict_of_beta_loadings_by_asset_class_given_weights(
 
     return beta_loadings_across_asset_classes
 
-
 def calculate_dict_of_beta_loadings_per_instrument(
     dict_of_betas: dict, weights: portfolioWeights
 ) -> dict:
@@ -717,7 +728,6 @@ def calculate_beta_loadings_across_asset_classes(
 
     return beta_loadings_across_asset_classes
 
-
 def calculate_beta_loading_for_asset_class(
     asset_class: str,
     dict_of_asset_classes: dict,
@@ -739,7 +749,6 @@ def calculate_beta_loading_for_asset_class(
     )
 
     return np.nansum(relevant_beta_loads)
-
 
 def get_beta_for_instrument_list(
     data: dataBlob, dict_of_asset_classes: dict, index_risk: float = arg_not_supplied
@@ -763,7 +772,6 @@ def get_beta_for_instrument_list(
     )
 
     return dict_of_betas
-
 
 def last_years_perc_returns_for_list_of_instruments(
     data: dataBlob, list_of_instruments: list
@@ -810,6 +818,13 @@ def get_equally_weighted_returns_across_asset_classes(
 
     return results_as_pd
 
+def get_historical_portfolio_returns_with_fixed_current_weights(
+    perc_returns: pd.DataFrame,
+    weights: portfolioWeights,
+    index_risk: float = arg_not_supplied,
+) -> pd.DataFrame:
+    results = perc_returns.mul(weights).sum(axis=1)
+    return results
 
 def get_equally_weighted_returns_for_asset_class(
     asset_class: str,
@@ -872,7 +887,6 @@ def dict_of_beta_by_instrument(
             dict_of_betas[instrument_code] = beta
     return dict_of_betas
 
-
 def beta_for_instrument(
     instrument_code: str,
     dict_of_asset_classes: dict,
@@ -897,3 +911,47 @@ def beta_for_instrument(
         beta = reg_result.params.x
 
         return beta
+
+def dict_of_portfolio_beta_by_asset_class(
+    dict_of_asset_classes: dict,
+    perc_returns: pd.DataFrame,
+    weights: portfolioWeights,
+    equally_weighted_returns_across_asset_classes: pd.DataFrame,
+) -> dict:
+
+    list_of_asset_classes = list(set(list(dict_of_asset_classes.values())))
+    dict_of_portfolio_betas: Dict[str, float] = {}
+    for asset_class in list_of_asset_classes:
+        beta = portfolio_beta_for_asset_class(
+            asset_class=asset_class,
+            perc_returns=perc_returns,
+            weights=weights,
+            equally_weighted_returns_across_asset_classes=equally_weighted_returns_across_asset_classes,
+        )
+        if beta is not None:
+            dict_of_portfolio_betas[asset_class] = beta
+    return dict_of_portfolio_betas
+
+def portfolio_beta_for_asset_class(
+    asset_class: str,
+    perc_returns: pd.DataFrame,
+    weights: portfolioWeights,
+    equally_weighted_returns_across_asset_classes: pd.DataFrame,
+) -> Union[None, float]:
+
+    perc_returns_for_portfolio = get_historical_portfolio_returns_with_fixed_current_weights(perc_returns=perc_returns, weights=weights)
+    perc_returns_for_asset_class = equally_weighted_returns_across_asset_classes[
+        asset_class
+    ]
+
+    both_returns = pd.concat(
+        [perc_returns_for_portfolio, perc_returns_for_asset_class], axis=1
+    )
+    both_returns.columns = ["y", "x"]
+    both_returns = both_returns.dropna()
+    if not both_returns.empty:
+
+        reg_result = sm.ols(formula="y ~ x", data=both_returns).fit()
+        portfolio_beta = reg_result.params.x
+
+        return portfolio_beta
