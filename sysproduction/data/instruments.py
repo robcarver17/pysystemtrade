@@ -1,4 +1,4 @@
-from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
+from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 
 from sysdata.data_blob import dataBlob
 from sysproduction.data.currency_data import dataCurrency
@@ -10,10 +10,13 @@ from sysobjects.instruments import instrumentCosts
 
 class dataInstruments(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(mongoFuturesInstrumentData)
+        # FIXME
+        # data.add_class_object(csvFuturesInstrumentData)
         return data
 
     def update_slippage_costs(self, instrument_code: str, new_slippage: float):
+        # FIXME
+        raise Exception("Temporarily cannot update slippage costs")
         self.db_futures_instrument_data.update_slippage_costs(
             instrument_code, new_slippage
         )
@@ -25,7 +28,7 @@ class dataInstruments(productionDataLayerGeneric):
 
 class diagInstruments(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(mongoFuturesInstrumentData)
+        data.add_class_object(csvFuturesInstrumentData)
         return data
 
     @property
