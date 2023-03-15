@@ -277,11 +277,10 @@ You need to:
     - [Initialise the spot FX data in MongoDB from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
     - Update the FX price data in MongoDB using interactive brokers: command line:`. /home/your_user_name/pysystemtrade/sysproduction/linux/scripts/update_fx_prices`
 - Instrument configuration:
-    - Set up futures instrument configuration using this script [repocsv_instrument_config.py](/sysinit/futures/repocsv_instrument_config.py).
+    - Set up futures instrument spread costs using this script [repocsv_spread_costs.py](/sysinit/futures/repocsv_spread_costs.py).
 - Futures contract prices:
     - [You must have a source of individual futures prices, then backfill them into the Arctic database](/docs/data.md#get_historical_data).
 - Roll calendars:
-    - For *roll configuration* we need to initialise by running the code in this file [roll_parameters_csv_mongo.py](/sysinit/futures/roll_parameters_csv_mongo.py).
     - [Create roll calendars for each instrument you are trading](/docs/data.md#roll-calendars)
 - [Ensure you are sampling all the contracts you want to sample](#update-sampled-contracts-daily)
 - Adjusted futures prices:
@@ -622,7 +621,7 @@ mongorestore
 
 As I am super paranoid, I also like to output all my mongo_db data into .csv files, which I then regularly backup. This will allow a system recovery, should the mongo files be corrupted.
 
-This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a little work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
+This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, spread costs, optimal positions. Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a little work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
 
 
 Linux script:
@@ -1985,11 +1984,11 @@ This allows you to see the configuration for each process, either from `control_
 
 #### Update configuration
 
-These options allow you to update, or suggest how to update, the instrument configuration as discussed [here](/docs/instruments.md).
+These options allow you to update, or suggest how to update, the instrument and roll configuration.
 
 - Auto update spread cost configuration based on sampling and trades
-- Suggest 'bad' markets (illiquid or costly)
-- Suggest which duplicate market to use
+- Safely modify roll parameters
+- Check price multipliers are consistent with IB and configuration file
 
 
 ### Interactive diagnostics
@@ -2710,9 +2709,8 @@ Configuration for the system is spread across a few different places:
 - Backtest config (which overrides the system defaults and the private config)
 - Control configs: private and default
 - Broker and data source specific config
-- Initialisation config
+- Instrument and roll configuration
 
-This ignores any control config
 
 ### System defaults & Private config
 
@@ -2795,14 +2793,20 @@ The following are configurations mainly for mapping from our codes to broker cod
 - [/sysbrokers/IB/ib_config_spot_FX.csv](/sysbrokers/IB/ib_config_spot_FX.csv)
 
 
-### Only used when setting up the system
+### Instrument and roll configuration
 
-The following are configurations used when initialising the database with it's initial configuration:
+The following are .csv configurations used in both production and sim:
 
-- [/sysinit/futures/config/rollconfig.csv](/data/futures/csvconfig/rollconfig.csv)
-- [/data/futures/csvconfig/instrumentconfig.csv](/data/futures/csvconfig/instrumentconfig.csv) (though this may be used by the simulation environment)
+- [/data/futures/csvconfig/instrumentconfig.csv](/data/futures/csvconfig/instrumentconfig.csv) 
+- [/data/futures/csvconfig/rollconfig.csv](/data/futures/csvconfig/rollconfig.csv) 
 
 
+### Set up configuration
+
+
+The following are used when initialising the database with it's initial configuration, but will also be used in the simulation environment:
+
+- [/data/futures/csvconfig/spreadcosts.csv](/data/futures/csvconfig/spreadcosts.csv) 
 
 
 ## Capital

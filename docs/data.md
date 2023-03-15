@@ -99,8 +99,8 @@ In general each step relies on the previous step to work; more formally:
 
 Before we start, another note: Confusingly, data can be stored or come from various places, which include: 
 
-1. .csv files containing data that pysystemtrade is shipped with (stored in [this set of directories](/data/futures/)); it includes everything above except for roll parameters, and is periodically updated from my own live data. Any .csv data 'pipeline' object defaults to using this data set.
-2. configuration .csv files used to initialise the system, such as [this file](/data/futures/csvconfig/instrumentconfig.csv)
+1. .csv files containing data that pysystemtrade is shipped with (stored in [this set of directories](/data/futures/)). Any .csv data 'pipeline' object defaults to using this data set.
+2. configuration .csv files used to initialise the system, such as [this file](/data/futures/csvconfig/spreadcosts.csv)
 3. Temporary .csv files created in the process of initialising the databases
 4. Backup .csv files, created by the production system.
 5. External sources such as our broker, or data providers like Barchart and Quandl
@@ -122,20 +122,22 @@ Because of this it's possible at (almost) every stage to store data in either .c
 
 
 <a name="set_up_instrument_config"></a>
-## Setting up some instrument configuration
+## Instrument configuration and spread costs
 
-The first step is to store some instrument configuration information. In principle this can be done in any way, but we are going to *read* from .csv files, and *write* to a [Mongo Database](https://www.mongodb.com/). There are two kinds of configuration; instrument configuration and roll configuration. Instrument configuration consists of static information that enables us to trade an instrument like EDOLLAR: the asset class, futures contract point size, and traded currency (it also includes cost levels, that are required in the simulation environment).
+Instrument configuration consists of static information that enables us to trade an instrument like EDOLLAR: the asset class, futures contract point size, and traded currency (it also includes cost levels, that are required in the simulation environment). This is now mostly stored in [this file](/data/futures/csvconfig/instrumentconfig.csv) for both sim and production. The file includes a number of futures contracts that I don't actually trade or get prices for. Any configuration information for these may not be accurate and you use it at your own risk. The exception is spread costs, which are stored in [this file](/data/futures/csvconfig/spreadcosts.csv) for sim, but usually in a database for production, as they should be periodically updated with more accurate information.
 
-The relevant script to setup *information configuration* is in sysinit - the part of pysystemtrade used to initialise a new system. Here is the script you need to run [repocsv_instrument_config.py](/sysinit/futures/repocsv_instrument_config.py). Notice it uses two types of data objects: the object we write to [`mongoFuturesInstrumentData`](#mongoFuturesInstrumentData) and the object we read from [`csvFuturesInstrumentData`](#csvFuturesInstrumentData). These objects both inherit from the more generic futuresInstrumentData, and are specialist versions of that. You'll see this pattern again and again, and I describe it further in [part two of this document](#storing_futures_data). 
+To copy spread costs into the database we are going to *read* from .csv files, and *write* to a [Mongo Database](https://www.mongodb.com/). 
+
+The relevant script to setup *information configuration* is in sysinit - the part of pysystemtrade used to initialise a new system. Here is the script you need to run [repocsv_spread_costs.py](/sysinit/futures/repocsv_spread_costs.py). 
 
 Make sure you are running a [Mongo Database](#mongoDB) before running this.
 
-The information is sucked out of [this file](/data/futures/csvconfig/instrumentconfig.csv) and into the mongo database. The file includes a number of futures contracts that I don't actually trade or get prices for. Any configuration information for these may not be accurate and you use it at your own risk.
+The information is sucked out of [this file](/data/futures/csvconfig/spreadcosts.csv) and into the mongo database. 
 
 <a name="set_up_roll_parameter_config"></a>
 ## Roll parameter configuration
 
-For *roll configuration* we need to initialise by running the code in this file [roll_parameters_csv_mongo.py](/sysinit/futures/roll_parameters_csv_mongo.py). Again it uses two types of data objects: we read from [a csv file](/data/futures/csvconfig/rollconfig.csv) with [`initCsvFuturesRollData`](#initCsvFuturesRollData), and write to a mongo db with [`mongoRollParametersData`](#mongoRollParametersData). Again you need to make sure you are running a [Mongo Database](#mongoDB) before executing this script.
+*Roll configuration* is now stored in [a csv file](/data/futures/csvconfig/rollconfig.csv) for both sim and production.
 
 It's worth explaining the available options for roll configuration. First of all we have two *roll cycles*: 'priced' and 'hold'. Roll cycles use the usual definition for futures months (January is F, February G, March H, and the rest of the year is JKMNQUVX, with December Z). The 'priced' contracts are those that we can get prices for, whereas the 'hold' cycle contracts are those we actually hold. We may hold all the priced contracts (like for equities), or only only some because of liquidity issues (eg Gold), or to keep a consistent seasonal position (i.e. CRUDE_W is Winter Crude, so we only hold December).
 
@@ -596,7 +598,6 @@ Generic data storage objects, used in both production and backtesting:
     - `futuresInstrumentData`
         - `csvFuturesInstrumentData`
         - `ibFuturesInstrumentData`
-        - `mongoFuturesInstrumentData`
     - `futuresMultiplePricesData`
         - `csvFuturesMultiplePricesData`
         - `arcticFuturesMultiplePricesData`
@@ -604,7 +605,6 @@ Generic data storage objects, used in both production and backtesting:
         - `csvRollCalendarData`
     - `rollParametersData`
         - `csvRollParametersData`
-        - `mongoRollParametersData`
     - `fxPricesData`
         - `csvFxPricesData`
         - `arcticFxPricesData`
@@ -1028,14 +1028,14 @@ This is a simData object which gets it's data out of Mongo DB (static) and Arcti
 Because the mongoDB data isn't included in the github repo, before using this you need to write the required data into Mongo and Arctic.
 You can do this from scratch, as per the ['futures data workflow'](#a-futures-data-workflow) at the start of this document:
 
-- [Instrument configuration and cost data](#setting-up-some-instrument-configuration)
+- [Setting up spread cost data](#instrument-configuration-and-spread-costs)
 - [Adjusted prices](#creating-and-storing-back-adjusted-prices)
 - [Multiple prices](#creating-and-storing-multiple-prices)
 - [Spot FX prices](#create_fx_data)
 
 Alternatively you can run the following scripts which will copy the data from the existing github .csv files:
 
-- [Instrument configuration and cost data](/sysinit/futures/repocsv_instrument_config.py)
+- [Spread cost data](/sysinit/futures/repocsv_spread_costs.py)
 - [Adjusted prices](/sysinit/futures/repocsv_adjusted_prices.py)
 - [Multiple prices](/sysinit/futures/repocsv_multiple_prices.py)
 - [Spot FX prices](/sysinit/futures/repocsv_spotfx_prices.py)
@@ -1052,8 +1052,8 @@ print(system.data.get_instrument_list())
 
 Configuration information about futures instruments is stored in a number of different places:
 
-- Instrument configuration and cost levels in this [.csv file](/data/futures/csvconfig/instrumentconfig.csv), used by default with `csvFuturesSimData` or will be copied to the database with [this script](/sysinit/futures/repocsv_instrument_config.py)
-- Roll configuration information in [this .csv file](/data/futures/csvconfig/rollconfig.csv), which will be copied to Mongo DB with [this script](/sysinit/futures/roll_parameters_csv_mongo.py)
+- Instrument configuration and cost levels in [instrumentconfig.csv](/data/futures/csvconfig/instrumentconfig.csv) and [spreadcosts.csv](/data/futures/csvconfig/spreadcosts.csv)
+- Roll configuration information in [this .csv file](/data/futures/csvconfig/rollconfig.csv)
 - Interactive brokers configuration in [this file](/sysbrokers/IB/ib_config_spot_FX.csv) and [this file](/sysbrokers/IB/ib_config_futures.csv).
 
 The instruments in these lists won't necessarily match up, however under the principle of DRY there shouldn't be duplicated column headings across files.
