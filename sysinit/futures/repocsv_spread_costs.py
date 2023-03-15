@@ -57,7 +57,7 @@ def process_new_instruments(
         if check_on_add:
             okay_to_add = true_if_answer_is_yes(
                 "Add cost of %f for %s to database?"
-                % (instrument_code, spread_for_instrument)
+                % (spread_for_instrument, instrument_code)
             )
             if not okay_to_add:
                 continue
