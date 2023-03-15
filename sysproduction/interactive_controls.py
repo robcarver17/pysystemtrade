@@ -958,7 +958,7 @@ def backup_slippage_to_csv():
     backup_data = get_data_and_create_csv_directories("")
     print(
         "Backing up slippage costs in database to .csv %s; you will need to copy to /pysystemtrade/data/futures/csvconfig/spreadcosts.csv for it to work in sim"
-        % backup_data.csv_futures_instrument.config_file
+        % backup_data.csv_spread_cost.config_file
     )
     backup_slippage_to_csv(backup_data)
 
