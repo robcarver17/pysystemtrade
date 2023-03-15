@@ -82,7 +82,10 @@ def arbitrary_split_of_correlation_matrix(
 
 
 def arbitrary_split_for_asset_length(count_assets: int, cluster_size: int = 2) -> list:
-
+    if count_assets == 1:
+        return [1]
+    if count_assets == 2:
+        return [1, 2]
     return [(x % cluster_size) + 1 for x in range(count_assets)]
 
 
