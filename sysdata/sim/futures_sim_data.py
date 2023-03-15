@@ -153,8 +153,12 @@ class futuresSimData(simData):
             )
             return instrumentCosts()
 
+        spread_cost = self.get_spread_cost(instrument_code)
+
         instrument_meta_data = cost_data_object.meta_data
-        instrument_costs = instrumentCosts.from_meta_data(instrument_meta_data)
+        instrument_costs = instrumentCosts.from_meta_data_and_spread_cost(
+            instrument_meta_data, spread_cost=spread_cost
+        )
 
         return instrument_costs
 
@@ -198,6 +202,9 @@ class futuresSimData(simData):
         """
 
         raise NotImplementedError()
+
+    def get_spread_cost(self, instrument_code: str) -> float:
+        raise NotImplementedError
 
     def get_backadjusted_futures_price(
         self, instrument_code: str
