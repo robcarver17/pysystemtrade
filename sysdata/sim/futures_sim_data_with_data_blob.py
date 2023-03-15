@@ -5,6 +5,7 @@ from sysdata.fx.spotfx import fxPricesData
 from sysdata.futures.instruments import futuresInstrumentData
 from sysdata.futures.multiple_prices import futuresMultiplePricesData
 from sysdata.futures.rolls_parameters import rollParametersData
+from sysdata.futures.spread_costs import spreadCostData
 from sysdata.data_blob import dataBlob
 
 
@@ -26,30 +27,6 @@ class genericBlobUsingFuturesSimData(futuresSimData):
     def __init__(self, data: dataBlob):
         super().__init__(log=data.log)
         self._data = data
-
-    @property
-    def data(self):
-        return self._data
-
-    @property
-    def db_fx_prices_data(self) -> fxPricesData:
-        return self.data.db_fx_prices
-
-    @property
-    def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:
-        return self.data.db_futures_adjusted_prices
-
-    @property
-    def db_futures_instrument_data(self) -> futuresInstrumentData:
-        return self.data.db_futures_instrument
-
-    @property
-    def db_futures_multiple_prices_data(self) -> futuresMultiplePricesData:
-        return self.data.db_futures_multiple_prices
-
-    @property
-    def db_roll_parameters(self) -> rollParametersData:
-        return self.data.db_roll_parameters
 
     def get_instrument_list(self):
         return self.db_futures_adjusted_prices_data.get_list_of_instruments()
@@ -115,3 +92,34 @@ class genericBlobUsingFuturesSimData(futuresSimData):
         roll_parameters = self.db_roll_parameters.get_roll_parameters(instrument_code)
 
         return roll_parameters
+
+    def get_spread_cost(self, instrument_code: str) -> float:
+        return self.db_spread_cost_data.get_spread_cost(instrument_code)
+
+    @property
+    def data(self):
+        return self._data
+
+    @property
+    def db_fx_prices_data(self) -> fxPricesData:
+        return self.data.db_fx_prices
+
+    @property
+    def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:
+        return self.data.db_futures_adjusted_prices
+
+    @property
+    def db_futures_instrument_data(self) -> futuresInstrumentData:
+        return self.data.db_futures_instrument
+
+    @property
+    def db_futures_multiple_prices_data(self) -> futuresMultiplePricesData:
+        return self.data.db_futures_multiple_prices
+
+    @property
+    def db_roll_parameters(self) -> rollParametersData:
+        return self.data.db_roll_parameters
+
+    @property
+    def db_spread_cost_data(self) -> spreadCostData:
+        return self.data.db_spread_cost

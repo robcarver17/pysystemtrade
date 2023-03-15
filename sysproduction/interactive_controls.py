@@ -18,13 +18,7 @@ from syscore.interactive.display import (
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR, DAILY_PRICE_FREQ
 from syscore.genutils import round_significant_figures
 
-from sysinit.futures.repocsv_instrument_config import (
-    copy_instrument_config_from_csv_to_mongo,
-)
 from sysinit.futures.safely_modify_roll_parameters import safely_modify_roll_parameters
-from sysinit.futures.roll_parameters_csv_mongo import (
-    copy_roll_parameters_from_csv_to_mongo,
-)
 
 from sysdata.data_blob import dataBlob
 from sysobjects.contracts import futuresContract
@@ -32,9 +26,9 @@ from sysobjects.production.override import override_dict, Override
 from sysobjects.production.tradeable_object import instrumentStrategy
 
 from sysproduction.backup_arctic_to_csv import (
-    get_data_and_create_csv_directories,
-    backup_instrument_data,
+    backup_spread_cost_data,
     backup_roll_parameters,
+    get_data_and_create_csv_directories,
 )
 from sysproduction.data.controls import (
     diagOverrides,
@@ -54,7 +48,7 @@ from sysproduction.data.prices import (
     updatePrices,
 )
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
-from sysproduction.data.instruments import dataInstruments
+from sysproduction.data.instruments import updateSpreadCosts
 from sysproduction.reporting.data.risk import get_risk_data_for_instrument
 from sysproduction.reporting.data.volume import (
     get_best_average_daily_volume_for_instrument,
@@ -135,12 +129,8 @@ nested_menu_of_options = {
     },
     5: {
         50: "Auto update spread cost configuration based on sampling and trades",
-        51: "Copy instrument configuration from DB to .csv",
-        52: "Copy instrument configuration from .csv to DB",
-        53: "Copy roll parameters config from DB to .csv",
-        54: "Copy roll parameters config from .csv to DB",
-        55: "Safe modify of roll parameters configuration",
-        56: "Check price multipliers are consistent",
+        51: "Safe modify of roll parameters configuration",
+        52: "Check price multipliers are consistent",
     },
     6: {60: "Delete instrument from price tables"},
 }
@@ -846,7 +836,8 @@ def auto_update_spread_costs(data):
     slippage_comparison_pd = get_slippage_data(data)
     changes_to_make = get_list_of_changes_to_make_to_slippage(slippage_comparison_pd)
 
-    make_changes_to_slippage(data, changes_to_make)
+    make_changes_to_slippage_in_db(data, changes_to_make)
+    backup_slippage_to_csv()
 
 
 def get_slippage_data(data) -> pd.DataFrame:
@@ -957,35 +948,19 @@ def print_data_with_multiplier(pd_row, mult_factor: float = 1.0):
     print(multiplied_pd_row)
 
 
-def make_changes_to_slippage(data: dataBlob, changes_to_make: dict):
-    make_changes_to_slippage_in_db(data, changes_to_make)
-    backup_instrument_data_to_csv(data)
-
-
 def make_changes_to_slippage_in_db(data: dataBlob, changes_to_make: dict):
-    futures_data = dataInstruments(data)
-    for instrument_code, new_slippage in changes_to_make.items():
-        futures_data.update_slippage_costs(instrument_code, new_slippage)
+    futures_data = updateSpreadCosts(data)
+    for instrument_code, new_spread_cost in changes_to_make.items():
+        futures_data.update_spread_costs(instrument_code, new_spread_cost)
 
 
-def backup_instrument_data_to_csv(data: dataBlob):
+def backup_slippage_to_csv():
     backup_data = get_data_and_create_csv_directories("")
-
     print(
-        "Backing up instrument configuration in database to .csv %s; you will need to copy to /pysystemtrade/data/csvconfig/ for it to work in sim"
+        "Backing up slippage costs in database to .csv %s; you will need to copy to /pysystemtrade/data/futures/csvconfig/spreadcosts.csv for it to work in sim"
         % backup_data.csv_futures_instrument.config_file
     )
-    backup_instrument_data(backup_data)
-
-
-def backup_roll_parameters_data_to_csv(data: dataBlob):
-    backup_data = get_data_and_create_csv_directories("")
-
-    print(
-        "Backing up roll parameters in database to .csv %s; you will need to copy to /pysystemtrade/data/csvconfig/ for it to work in sim"
-        % backup_data.csv_roll_parameters.config_file
-    )
-    backup_roll_parameters(backup_data)
+    backup_slippage_to_csv(backup_data)
 
 
 def check_price_multipliers_consistent(data: dataBlob):
@@ -1117,12 +1092,8 @@ dict_of_functions = {
     44: finish_all_processes,
     45: view_process_config,
     50: auto_update_spread_costs,
-    51: backup_instrument_data_to_csv,
-    52: copy_instrument_config_from_csv_to_mongo,
-    53: backup_roll_parameters_data_to_csv,
-    54: copy_roll_parameters_from_csv_to_mongo,
-    55: safely_modify_roll_parameters,
-    56: check_price_multipliers_consistent,
+    51: safely_modify_roll_parameters,
+    52: check_price_multipliers_consistent,
     60: delete_instrument_from_prices,
 }
 
