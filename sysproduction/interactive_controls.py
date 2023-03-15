@@ -837,7 +837,7 @@ def auto_update_spread_costs(data):
     changes_to_make = get_list_of_changes_to_make_to_slippage(slippage_comparison_pd)
 
     make_changes_to_slippage_in_db(data, changes_to_make)
-    backup_slippage_to_csv()
+    backup_slippage_from_db_to_csv()
 
 
 def get_slippage_data(data) -> pd.DataFrame:
@@ -954,13 +954,13 @@ def make_changes_to_slippage_in_db(data: dataBlob, changes_to_make: dict):
         futures_data.update_spread_costs(instrument_code, new_spread_cost)
 
 
-def backup_slippage_to_csv():
+def backup_slippage_from_db_to_csv():
     backup_data = get_data_and_create_csv_directories("")
     print(
         "Backing up slippage costs in database to .csv %s; you will need to copy to /pysystemtrade/data/futures/csvconfig/spreadcosts.csv for it to work in sim"
         % backup_data.csv_spread_cost.config_file
     )
-    backup_slippage_to_csv(backup_data)
+    backup_spread_cost_data(backup_data)
 
 
 def check_price_multipliers_consistent(data: dataBlob):
