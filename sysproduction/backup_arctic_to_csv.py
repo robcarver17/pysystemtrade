@@ -44,7 +44,6 @@ from sysdata.mongodb.mongo_historic_orders import (
 )
 from sysdata.mongodb.mongo_spread_costs import mongoSpreadCostData
 from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
-from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 
 from sysobjects.contracts import futuresContract
@@ -91,7 +90,6 @@ class backupArcticToCsv:
         backup_spread_cost_data(backup_data)
         backup_optimal_positions(backup_data)
         backup_roll_state_data(backup_data)
-        backup_roll_parameters(backup_data)
         log.msg("Copying to backup directory")
         backup_csv_dump(self.data)
 
@@ -111,7 +109,6 @@ def get_data_and_create_csv_directories(logname):
         csvFuturesMultiplePricesData="multiple_prices",
         csvFxPricesData="fx_prices",
         csvOptimalPositionData="optimal_positions",
-        csvRollParametersData="roll_parameters",
         csvRollStateData="roll_state",
         csvSpreadCostData="spread_costs",
         csvSpreadsForInstrumentData="spreads",
@@ -141,7 +138,6 @@ def get_data_and_create_csv_directories(logname):
             csvFuturesMultiplePricesData,
             csvFxPricesData,
             csvOptimalPositionData,
-            csvRollParametersData,
             csvRollStateData,
             csvSpreadCostData,
             csvSpreadsForInstrumentData,
@@ -163,7 +159,6 @@ def get_data_and_create_csv_directories(logname):
             mongoContractPositionData,
             mongoFuturesContractData,
             mongoOptimalPositionData,
-            mongoRollParametersData,
             mongoRollStateData,
             mongoSpreadCostData,
             mongoStrategyHistoricOrdersData,
@@ -492,20 +487,6 @@ def backup_roll_state_data(data):
     roll_state_df.columns = ["state"]
     data.csv_roll_state.write_all_instrument_data(roll_state_df)
     data.log.msg("Backed up roll state")
-
-
-def backup_roll_parameters(data):
-    instrument_list = data.mongo_roll_parameters.get_list_of_instruments()
-    roll_parameters_list = []
-    for instrument_code in instrument_list:
-        roll_parameters_as_dict = data.mongo_roll_parameters.get_roll_parameters(
-            instrument_code
-        ).as_dict()
-        roll_parameters_list.append(roll_parameters_as_dict)
-
-    roll_parameters_df = pd.DataFrame(roll_parameters_list, index=instrument_list)
-    data.csv_roll_parameters.write_all_roll_parameters_data(roll_parameters_df)
-    data.log.msg("Backed up roll parameters")
 
 
 def backup_contract_data(data):

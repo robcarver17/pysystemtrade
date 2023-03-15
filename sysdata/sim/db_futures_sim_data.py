@@ -9,7 +9,7 @@ from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesDat
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
-from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
+from sysdata.csv.csv_roll_parameters import csvRollParametersData
 from sysdata.mongodb.mongo_spread_costs import mongoSpreadCostData
 from sysdata.data_blob import dataBlob
 from sysdata.sim.futures_sim_data_with_data_blob import genericBlobUsingFuturesSimData
@@ -30,7 +30,7 @@ class dbFuturesSimData(genericBlobUsingFuturesSimData):
                     arcticFuturesMultiplePricesData,
                     arcticFxPricesData,
                     csvFuturesInstrumentData,
-                    mongoRollParametersData,
+                    csvRollParametersData,
                     mongoSpreadCostData,
                 ],
             )

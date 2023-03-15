@@ -4,13 +4,11 @@ from syscore.constants import arg_not_supplied
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
-from sysdata.mongodb.mongo_roll_data import (
-    mongoRollParametersData,
-    rollParameters,
-    rollParametersData,
-)
+from sysobjects.rolls import rollParameters
 from sysobjects.roll_calendars import rollCalendar
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
+from sysdata.csv.csv_roll_parameters import csvRollParametersData
+from sysdata.futures.rolls_parameters import rollParametersData
 from sysproduction.data.prices import get_valid_instrument_code_from_user
 
 """
@@ -43,7 +41,7 @@ def build_and_write_roll_calendar(
 
     if roll_parameters is arg_not_supplied:
         if roll_parameters_data is arg_not_supplied:
-            roll_parameters_data = mongoRollParametersData()
+            roll_parameters_data = csvRollParametersData()
         roll_parameters = roll_parameters_data.get_roll_parameters(instrument_code)
 
     csv_roll_calendars = csvRollCalendarData(output_datapath)

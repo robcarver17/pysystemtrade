@@ -27,7 +27,6 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 
 from sysproduction.backup_arctic_to_csv import (
     backup_spread_cost_data,
-    backup_roll_parameters,
     get_data_and_create_csv_directories,
 )
 from sysproduction.data.controls import (

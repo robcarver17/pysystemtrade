@@ -39,7 +39,7 @@ def safely_modify_roll_parameters(data: dataBlob):
 
     output_path_for_roll_calendar = input(
         "Path for writing roll calendar; must be absolute with leading "
-        "\ or / eg /home/rob/pysystemtrade/data/futures/roll_calendars_csv/"
+        "\ or / eg /home/rob/pysystemtrade/data/futures/roll_calendars_csv/? "
     )
     build_and_write_roll_calendar(
         instrument_code,
@@ -113,12 +113,14 @@ def safely_modify_roll_parameters(data: dataBlob):
     data_contracts = dataContracts(data)
 
     data_contracts.update_roll_parameters(
-        instrument_code=instrument_code, roll_parameters=new_roll_parameters
+        instrument_code=instrument_code,
+        roll_parameters=new_roll_parameters,
+        areyoureallysure=True,
     )
     print(
-        "Updated roll parameters in database. Use interactive controls to copy to .csv"
+        "Updated roll parameters. Copy them to /data/futures/csvconfig/rollconfig.csv ***NOW*** (and perhaps reinstall pst)"
     )
-
+    input("Press return when copy and reinstall done")
     ## Overwrite multiple prices
     update_prices = updatePrices(data)
     update_prices.add_multiple_prices(
