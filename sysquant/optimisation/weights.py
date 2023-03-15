@@ -52,9 +52,12 @@ class portfolioWeights(dict):
         return portfolioWeights([(key, self[key]) for key in asset_names])
 
     def replace_weights_with_ints(self):
+        ## we do the rounding to avoid floating point errors even though
+        ## these should be integer values of float type
+
         new_weights_as_dict = dict(
             [
-                (instrument_code, _int_from_nan(value))
+                (instrument_code, _int_from_nan(np.round(value)))
                 for instrument_code, value in self.items()
             ]
         )
