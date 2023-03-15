@@ -17,6 +17,11 @@ class updateSpreadCosts(productionDataLayerGeneric):
         return data
 
     def update_spread_costs(self, instrument_code: str, spread_cost: float):
+        original_cost = self.db_spread_cost_data.get_spread_cost(instrument_code)
+        self.log.msg(
+            "Updating spread for %s from %f to %f"
+            % (instrument_code, original_cost, spread_cost)
+        )
         self.db_spread_cost_data.update_spread_cost(
             instrument_code=instrument_code, spread_cost=spread_cost
         )
