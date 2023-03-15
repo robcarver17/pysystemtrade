@@ -36,6 +36,9 @@ class diagInstruments(productionDataLayerGeneric):
         data.add_class_list([csvFuturesInstrumentData, mongoSpreadCostData])
         return data
 
+    def get_spread_costs_as_series(self):
+        return self.db_spread_cost_data.get_spread_costs_as_series()
+
     def get_cost_object(self, instrument_code: str) -> instrumentCosts:
         meta_data = self.get_meta_data(instrument_code)
         spread_cost = self.get_spread_cost(instrument_code)
