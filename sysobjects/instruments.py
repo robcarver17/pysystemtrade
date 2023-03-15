@@ -75,7 +75,6 @@ class instrumentMetaData(object):
         Pointsize: float = 0.0,
         Currency: str = "",
         AssetClass: str = "",
-        Slippage: float = 0.0,
         PerBlock: float = 0.0,
         Percentage: float = 0.0,
         PerTrade: float = 0.0,
@@ -86,7 +85,6 @@ class instrumentMetaData(object):
         self.Currency = Currency
         self.Pointsize = _zero_if_nan(Pointsize)
         self.AssetClass = AssetClass
-        self.Slippage = _zero_if_nan(Slippage)
         self.PerBlock = _zero_if_nan(PerBlock)
         self.Percentage = _zero_if_nan(Percentage)
         self.PerTrade = _zero_if_nan(PerTrade)
