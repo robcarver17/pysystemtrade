@@ -1,6 +1,6 @@
 import datetime
 
-from syscore.exceptions import missingData
+from syscore.exceptions import missingData, ContractNotFound
 
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,

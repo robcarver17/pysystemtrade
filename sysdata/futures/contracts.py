@@ -1,13 +1,9 @@
+from syscore.exceptions import ContractNotFound
 from sysdata.base_data import baseData
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresContractData"
-
-
-class ContractNotFound(Exception):
-    pass
-
 
 from syslogdiag.log_to_screen import logtoscreen
 

@@ -4,6 +4,7 @@ import pandas as pd
 import datetime
 
 from syscore.constants import arg_not_supplied, success, failure
+from syscore.exceptions import ContractNotFound
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
@@ -27,7 +28,7 @@ from sysexecution.trade_qty import tradeQuantity
 from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.orders.instrument_orders import instrumentOrder
 
-from sysobjects.production.positions import listOfContractPositions
+from sysobjects.production.positions import listOfContractPositions, contractPosition
 from sysobjects.production.tradeable_object import (
     listOfInstrumentStrategies,
     instrumentStrategy,
@@ -46,6 +47,7 @@ from sysobjects.production.roll_state import (
 from sysobjects.contracts import futuresContract
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
+from sysproduction.data.contracts import dataContracts
 
 
 class diagPositions(productionDataLayerGeneric):
@@ -239,12 +241,68 @@ class diagPositions(productionDataLayerGeneric):
             self.db_strategy_position_data.get_list_of_strategies_and_instruments_with_positions()
         )
 
+    def get_all_current_contract_positions_with_db_expiries(
+        self,
+    ) -> listOfContractPositions:
+        list_of_current_positions = (
+            self.db_contract_position_data.get_all_current_positions_as_list_with_contract_objects()
+        )
+        list_of_current_positions_with_expiries = (
+            self.update_expiries_for_position_list(list_of_current_positions)
+        )
+
+        return list_of_current_positions_with_expiries
+
     def get_all_current_contract_positions(self) -> listOfContractPositions:
         list_of_current_positions = (
             self.db_contract_position_data.get_all_current_positions_as_list_with_contract_objects()
         )
 
         return list_of_current_positions
+
+    def update_expiries_for_position_list(
+        self, original_position_list: listOfContractPositions
+    ) -> listOfContractPositions:
+
+        new_position_list = listOfContractPositions()
+        for position_entry in original_position_list:
+            new_position_entry = self.update_expiry_for_single_position(position_entry)
+            new_position_list.append(new_position_entry)
+
+        return new_position_list
+
+    def update_expiry_for_single_position(
+        self, position_entry: contractPosition
+    ) -> contractPosition:
+        original_contract = position_entry.contract
+        new_contract = self.update_expiry_for_single_contract(original_contract)
+
+        position = position_entry.position
+        new_position_entry = contractPosition(position, new_contract)
+
+        return new_position_entry
+
+    def update_expiry_for_single_contract(
+        self, original_contract: futuresContract
+    ) -> futuresContract:
+        data_contracts = dataContracts(self.data)
+        try:
+            actual_expiry = data_contracts.get_actual_expiry(
+                original_contract.instrument_code, original_contract.contract_date
+            )
+        except ContractNotFound:
+            log = original_contract.specific_log(self.data.log)
+            log.warn(
+                "Contract %s is missing from database - expiry not found and will mismatch"
+                % str(original_contract)
+            )
+            new_contract = copy(original_contract)
+        else:
+            expiry_date_as_str = actual_expiry.as_str()
+            instrument_code = original_contract.instrument_code
+            new_contract = futuresContract(instrument_code, expiry_date_as_str)
+
+        return new_contract
 
     def get_all_current_strategy_instrument_positions(
         self,
