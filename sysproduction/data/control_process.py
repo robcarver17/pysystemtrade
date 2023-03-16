@@ -2,8 +2,9 @@ import datetime
 import socket
 
 from syscore.dateutils import SECONDS_PER_HOUR
+from syscore.exceptions import missingData
 from syscore.genutils import str2Bool
-from syscore.constants import named_object, missing_data
+from syscore.constants import named_object
 from syscontrol.timer_parameters import timerClassParameters
 
 from sysdata.config.control_config import get_control_config
@@ -343,10 +344,11 @@ class diagControlProcess(productionDataLayerGeneric):
     def get_process_configuration_for_item_name(self, item_name: str) -> dict:
         config = getattr(self, "_process_config_%s" % item_name, {})
         if config == {}:
-            config = self.get_key_value_from_control_config(
-                "process_configuration_%s" % item_name
-            )
-            if config is missing_data:
+            try:
+                config = self.get_key_value_from_control_config(
+                    "process_configuration_%s" % item_name
+                )
+            except missingData:
                 return {}
             setattr(self, "_process_config_%s" % item_name, config)
 
@@ -409,14 +411,15 @@ class diagControlProcess(productionDataLayerGeneric):
         return configured_kwargs_for_process_name
 
     def configured_kwargs(self) -> dict:
-        kwargs = self.get_key_value_from_control_config("arguments")
-        if kwargs is missing_data:
+        try:
+            kwargs = self.get_key_value_from_control_config("arguments")
+        except missingData:
             return {}
         return kwargs
 
     def get_key_value_from_control_config(self, item_name: str):
         config = self.get_control_config()
-        item = config.get_element_or_missing_data(item_name)
+        item = config.get_element(item_name)
 
         return item
 
