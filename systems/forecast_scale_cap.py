@@ -306,8 +306,7 @@ class ForecastScaleCap(SystemStage):
 
         self.log.msg(
             "Getting cross sectional forecasts for scalar calculation for %s over %s"
-            % (rule_variation_name, ", ".join(instrument_list)),
-            rule_variation_name=rule_variation_name,
+            % (rule_variation_name, ", ".join(instrument_list))
         )
 
         forecast_list = [
