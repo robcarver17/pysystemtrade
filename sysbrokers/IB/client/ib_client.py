@@ -23,8 +23,33 @@ PACING_INTERVAL_SECONDS = 0.5
 
 STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY = 600
 
-IB_ERROR_TYPES = {200: "invalid_contract"}
-IB_IS_ERROR = [200]
+IB_ERROR_TYPES = {
+    200: "ambgious_contract",
+    501: "already connected",
+    502: "can't connect",
+    503: "TWS need upgrading",
+    100: "Max messages exceeded",
+    102: "Duplicate ticker",
+    103: "Duplicate orderid",
+    104: "can't modify filled order",
+    105: "trying to modify different order",
+    106: "can't transmit orderid",
+    107: "can't transmit incomplete order",
+    109: "price out of range",
+    110: "tick size wrong for price",
+    122: "No request tag has been found for order",
+    123: "invalid conid",
+    133: "submit order failed",
+    134: "modify order failed",
+    135: "cant find order",
+    136: "order cant be cancelled",
+    140: "size should be an integer",
+    141: "price should be a double",
+    201: "order rejected",
+    202: "order cancelled",
+}
+
+IB_IS_ERROR = list(IB_ERROR_TYPES.keys())
 
 
 class ibClient(object):
