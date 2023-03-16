@@ -4,6 +4,11 @@ from ib_insync import Contract
 from ib_insync import IB
 
 from sysbrokers.IB.ib_connection import connectionIB
+from sysbrokers.IB.config.ib_instrument_config import (
+    IBconfig,
+    read_ib_config_from_file,
+    get_instrument_code_from_broker_code,
+)
 
 from syslogdiag.logger import logger
 from syslogdiag.log_to_screen import logtoscreen
@@ -101,3 +106,23 @@ class ibClient(object):
 
     def refresh(self):
         self.ib.sleep(0.00001)
+
+    def get_instrument_code_from_broker_code(self, ib_code: str) -> str:
+        instrument_code = get_instrument_code_from_broker_code(
+            log=self.log, ib_code=ib_code, config=self.ib_config
+        )
+        return instrument_code
+
+    @property
+    def ib_config(self) -> IBconfig:
+        config = getattr(self, "_config", None)
+        if config is None:
+            config = self._get_and_set_ib_config_from_file()
+
+        return config
+
+    def _get_and_set_ib_config_from_file(self) -> IBconfig:
+
+        config_data = read_ib_config_from_file(log=self.log)
+
+        return config_data
