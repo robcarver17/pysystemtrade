@@ -4,6 +4,7 @@ import pandas as pd
 
 from syscore.constants import missing_file, missing_instrument
 from syscore.fileutils import resolve_path_and_filename_for_package
+from syslogdiag.logger import CURRENCY_CODE_LOG_LABEL
 
 IB_CCY_CONFIG_FILE = resolve_path_and_filename_for_package(
     "sysbrokers.IB.config.ib_config_spot_FX.csv"
@@ -24,7 +25,7 @@ def get_ib_config_from_file(log) -> pd.DataFrame:
 
 
 def config_info_for_code(config_data: pd.DataFrame, currency_code, log) -> ibFXConfig:
-    new_log = log.setup(currency_code=currency_code)
+    new_log = log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
     if config_data is missing_file:
         new_log.warn(
             "Can't get IB FX config for %s as config file missing" % currency_code,
