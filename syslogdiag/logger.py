@@ -9,6 +9,9 @@ DEFAULT_LOG_LEVEL = "off"
 
 SECONDS_BETWEEN_IDENTICAL_LOGS = 60
 
+COMPONENT_LOG = "component"
+TYPE_LOG_LABEL = "type"
+
 
 class logger(object):
     """
@@ -70,7 +73,7 @@ class logger(object):
 
     def _get_attributes_given_string(self, type: str, kwargs: dict) -> dict:
         # been passed a label, so not inheriting anything
-        log_attributes = dict(type=type)
+        log_attributes = {TYPE_LOG_LABEL: type}
         other_attributes = kwargs
 
         log_attributes = get_update_attributes_list(log_attributes, other_attributes)
@@ -116,6 +119,12 @@ class logger(object):
             self.logging_level,
             ", ".join(attribute_desc),
         )
+
+    def setup_empty_except_keep_type(self):
+        new_log = copy(self)
+        new_log._attributes = {TYPE_LOG_LABEL: self.attributes[TYPE_LOG_LABEL]}
+
+        return new_log
 
     def setup(self, **kwargs):
         # Create a copy of me with different attributes
