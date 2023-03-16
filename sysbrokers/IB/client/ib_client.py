@@ -13,6 +13,8 @@ from sysbrokers.IB.config.ib_instrument_config import (
 from syslogdiag.logger import logger
 from syslogdiag.log_to_screen import logtoscreen
 
+from sysobjects.contracts import futuresContract
+
 # IB state that pacing violations only occur for bar sizes of less than 1 minute
 # See footnote at bottom of
 # https://interactivebrokers.github.io/tws-api/historical_limitations.html#pacing_violations
@@ -79,30 +81,37 @@ class ibClient(object):
         :return: success
         """
         if contract is None:
-            contract_str = ""
+            ib_contract_str = ""
+            log_to_use = self.log.setup()
         else:
-            contract_str = " (%s/%s)" % (
-                contract.symbol,
-                contract.lastTradeDateOrContractMonth,
+            ib_instrument_code = contract.symbol
+            ib_expiry_str = (contract.lastTradeDateOrContractMonth,)
+            ib_contract_str = str("%s %s" % (ib_instrument_code, ib_expiry_str))
+
+            instrument_code = self.get_instrument_code_from_broker_code(
+                ib_instrument_code
             )
 
-        msg = "Reqid %d: %d %s %s" % (reqid, error_code, error_string, contract_str)
+            futures_contract = futuresContract(instrument_code, ib_expiry_str)
+            log_to_use = futures_contract.specific_log(self.log)
+
+        msg = "Reqid %d: %d %s %s" % (reqid, error_code, error_string, ib_contract_str)
 
         iserror = error_code in IB_IS_ERROR
         if iserror:
             # Serious requires some action
             myerror_type = IB_ERROR_TYPES.get(error_code, "generic")
-            self.broker_error(msg, myerror_type)
+            self.broker_error(msg=msg, myerror_type=myerror_type, log=log_to_use)
 
         else:
-            # just a warning / general message
-            self.broker_message(msg)
+            # just a general message
+            self.broker_message(msg=msg, log=log_to_use)
 
-    def broker_error(self, msg, myerror_type):
-        self.log.warn(msg)
+    def broker_error(self, msg, log, myerror_type):
+        log.warn(msg)
 
-    def broker_message(self, msg):
-        self.log.msg(msg)
+    def broker_message(self, log, msg):
+        log.msg(msg)
 
     def refresh(self):
         self.ib.sleep(0.00001)
