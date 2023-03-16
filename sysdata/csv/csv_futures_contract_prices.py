@@ -5,8 +5,7 @@ from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 from syslogdiag.log_to_screen import logtoscreen
 from syscore.fileutils import (
-    files_with_extension_in_pathname,
-    resolve_path_and_filename_for_package,
+    resolve_path_and_filename_for_package, files_with_extension_in_pathname,
 )
 from syscore.constants import arg_not_supplied
 from syscore.dateutils import MIXED_FREQ, Frequency

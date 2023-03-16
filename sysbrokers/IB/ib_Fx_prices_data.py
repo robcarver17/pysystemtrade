@@ -1,20 +1,18 @@
-from collections import namedtuple
 import pandas as pd
 
 from sysbrokers.IB.client.ib_fx_client import ibFxClient
+from sysbrokers.IB.config.ib_fx_config import (
+    get_ib_config_from_file,
+    config_info_for_code,
+    get_list_of_codes,
+    ibFXConfig,
+)
 from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 from syscore.exceptions import missingData
 from sysdata.data_blob import dataBlob
 from sysobjects.spot_fx_prices import fxPrices
 from syslogdiag.log_to_screen import logtoscreen
-from syscore.fileutils import resolve_path_and_filename_for_package
-from syscore.constants import missing_instrument, missing_file
-
-IB_CCY_CONFIG_FILE = resolve_path_and_filename_for_package(
-    "sysbrokers.IB.ib_config_spot_FX.csv"
-)
-
-ibFXConfig = namedtuple("ibFXConfig", ["ccy1", "ccy2", "invert"])
+from syscore.constants import missing_instrument
 
 
 class ibFxPricesData(brokerFxPricesData):
@@ -42,11 +40,7 @@ class ibFxPricesData(brokerFxPricesData):
 
     def get_list_of_fxcodes(self) -> list:
         config_data = self._get_ib_fx_config()
-        if config_data is missing_file:
-            self.log.warn("Can't get list of fxcodes for IB as config file missing")
-            return []
-
-        list_of_codes = list(config_data.CODE)
+        list_of_codes = get_list_of_codes(log=list, config_data=config_data)
 
         return list_of_codes
 
@@ -101,24 +95,11 @@ class ibFxPricesData(brokerFxPricesData):
         return raw_fx_prices_as_series
 
     def _get_config_info_for_code(self, currency_code: str) -> ibFXConfig:
-        new_log = self.log.setup(currency_code=currency_code)
 
         config_data = self._get_ib_fx_config()
-        if config_data is missing_file:
-            new_log.warn(
-                "Can't get IB FX config for %s as config file missing" % currency_code,
-                fx_code=currency_code,
-            )
-
-            return missing_instrument
-
-        ccy1 = config_data[config_data.CODE == currency_code].CCY1.values[0]
-        ccy2 = config_data[config_data.CODE == currency_code].CCY2.values[0]
-        invert = (
-            config_data[config_data.CODE == currency_code].INVERT.values[0] == "YES"
+        ib_config_for_code = config_info_for_code(
+            config_data=config_data, log=self.log, currency_code=currency_code
         )
-
-        ib_config_for_code = ibFXConfig(ccy1, ccy2, invert)
 
         return ib_config_for_code
 
@@ -132,12 +113,7 @@ class ibFxPricesData(brokerFxPricesData):
 
     def _get_and_set_ib_config_from_file(self) -> pd.DataFrame:
 
-        try:
-            config_data = pd.read_csv(IB_CCY_CONFIG_FILE)
-        except BaseException:
-            self.log.warn("Can't read file %s" % IB_CCY_CONFIG_FILE)
-            config_data = missing_file
-
+        config_data = get_ib_config_from_file(log=self.log)
         self._config = config_data
 
         return config_data

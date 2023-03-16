@@ -1054,7 +1054,7 @@ Configuration information about futures instruments is stored in a number of dif
 
 - Instrument configuration and cost levels in [instrumentconfig.csv](/data/futures/csvconfig/instrumentconfig.csv) and [spreadcosts.csv](/data/futures/csvconfig/spreadcosts.csv)
 - Roll configuration information in [this .csv file](/data/futures/csvconfig/rollconfig.csv)
-- Interactive brokers configuration in [this file](/sysbrokers/IB/ib_config_spot_FX.csv) and [this file](/sysbrokers/IB/ib_config_futures.csv).
+- Interactive brokers configuration in [this file](/sysbrokers/IB/config/ib_config_spot_FX.csv) and [this file](/sysbrokers/IB/config/ib_config_futures.csv).
 
 The instruments in these lists won't necessarily match up, however under the principle of DRY there shouldn't be duplicated column headings across files.
 

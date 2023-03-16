@@ -4,8 +4,7 @@ from sysdata.futures.spreads import spreadsForInstrumentData
 
 from sysobjects.spreads import spreadsForInstrument
 from syscore.fileutils import (
-    resolve_path_and_filename_for_package,
-    files_with_extension_in_pathname,
+    resolve_path_and_filename_for_package, files_with_extension_in_pathname,
 )
 from syscore.pandas.pdutils import pd_readcsv
 from syscore.constants import arg_not_supplied

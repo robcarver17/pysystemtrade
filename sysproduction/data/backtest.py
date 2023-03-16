@@ -3,7 +3,7 @@ import os
 from shutil import copyfile
 
 from syscore.dateutils import create_datetime_marker_string
-from syscore.fileutils import files_with_extension_in_pathname, get_resolved_pathname
+from syscore.fileutils import get_resolved_pathname, files_with_extension_in_pathname
 from syscore.objects import (
     resolve_function,
 )
