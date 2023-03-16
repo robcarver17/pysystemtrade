@@ -207,8 +207,16 @@ class diagPrices(productionDataLayerGeneric):
     def get_spreads(self, instrument_code: str) -> spreadsForInstrument:
         return self.db_spreads_for_instrument_data.get_spreads(instrument_code)
 
-    def get_list_of_instruments_with_spread_data(self) -> list:
-        return self.db_spreads_for_instrument_data.get_list_of_instruments()
+    def get_list_of_instruments_with_spread_data(
+        self, ignore_stale: bool = True
+    ) -> list:
+        list_of_instruments = (
+            self.db_spreads_for_instrument_data.get_list_of_instruments()
+        )
+        if ignore_stale:
+            list_of_instruments = self.remove_stale_instruments(list_of_instruments)
+
+        return list_of_instruments
 
     def remove_stale_instruments(self, list_of_instruments: list) -> list:
         stale_instruments = self.get_stale_instruments()
