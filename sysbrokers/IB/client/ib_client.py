@@ -110,7 +110,7 @@ class ibClient(object):
             log_to_use = self.log.setup()
         else:
             ib_instrument_code = contract.symbol
-            ib_expiry_str = (contract.lastTradeDateOrContractMonth,)
+            ib_expiry_str = contract.lastTradeDateOrContractMonth
             ib_contract_str = str("%s %s" % (ib_instrument_code, ib_expiry_str))
 
             instrument_code = self.get_instrument_code_from_broker_code(
