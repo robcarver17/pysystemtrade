@@ -12,7 +12,7 @@ from syscore.exceptions import missingData
 from syscore.constants import arg_not_supplied
 
 from syslogdiag.log_to_screen import logtoscreen
-from syslogdiag.logger import logger
+from syslogdiag.logger import logger, BROKER_LOG_LABEL, CLIENTID_LOG_LABEL
 
 from sysdata.config.production_config import get_production_config
 
@@ -61,7 +61,7 @@ class connectionIB(object):
 
     def _init_log(self, log, client_id: int):
         new_log = log.setup_empty_except_keep_type()
-        new_log.label(broker="IB", clientid=client_id)
+        new_log.label(**{BROKER_LOG_LABEL: "IB", CLIENTID_LOG_LABEL: client_id})
         self._log = new_log
 
     def _init_connection(
