@@ -1,7 +1,8 @@
 from sysdata.csv.csv_futures_contract_prices import ConfigCsvFuturesPrices
 import os
 from syscore.fileutils import (
-    get_resolved_pathname, files_with_extension_in_resolved_pathname,
+    get_resolved_pathname,
+    files_with_extension_in_resolved_pathname,
 )
 from syscore.dateutils import month_from_contract_letter
 

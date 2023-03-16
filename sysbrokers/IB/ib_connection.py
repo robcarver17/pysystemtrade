@@ -12,7 +12,7 @@ from syscore.exceptions import missingData
 from syscore.constants import arg_not_supplied
 
 from syslogdiag.log_to_screen import logtoscreen
-from syslogdiag.logger import logger, COMPONENT_LOG
+from syslogdiag.logger import logger
 
 from sysdata.config.production_config import get_production_config
 

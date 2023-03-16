@@ -3,6 +3,7 @@ from ib_insync import Future
 
 from sysobjects.instruments import futuresInstrument
 
+
 def ib_futures_instrument_just_symbol(symbol):
     ibcontract = Future(symbol=symbol)
     return ibcontract
