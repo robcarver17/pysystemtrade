@@ -19,6 +19,12 @@ from sysexecution.orders.contract_orders import (
 )
 from sysexecution.orders.instrument_orders import instrumentOrder
 
+from syslogdiag.logger import (
+    STRATEGY_NAME_LOG_LABEL,
+    CONTRACT_ORDER_ID_LOG_LABEL,
+    BROKER_ORDER_ID_LOG_LABEL,
+    INSTRUMENT_CODE_LOG_LABEL,
+)
 from sysobjects.production.tradeable_object import instrumentStrategy, futuresContract
 
 from syscore.genutils import (
@@ -328,14 +334,16 @@ class brokerOrder(Order):
         """
         broker_order = self
         new_log = log.setup(
-            strategy_name=broker_order.strategy_name,
-            instrument_code=broker_order.instrument_code,
-            contract_order_id=if_object_matches_return_empty_string(
-                broker_order.parent, no_parent
-            ),
-            broker_order_id=if_object_matches_return_empty_string(
-                broker_order.order_id, no_order_id
-            ),
+            **{
+                STRATEGY_NAME_LOG_LABEL: broker_order.strategy_name,
+                INSTRUMENT_CODE_LOG_LABEL: broker_order.instrument_code,
+                CONTRACT_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
+                    broker_order.parent, no_parent
+                ),
+                BROKER_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
+                    broker_order.order_id, no_order_id
+                ),
+            }
         )
 
         return new_log

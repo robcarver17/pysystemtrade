@@ -9,6 +9,12 @@ from sysexecution.orders.base_orders import (
 from sysexecution.orders.named_order_objects import no_order_id, no_children, no_parent
 
 from sysexecution.trade_qty import tradeQuantity
+from syslogdiag.logger import (
+    STRATEGY_NAME_LOG_LABEL,
+    INSTRUMENT_ORDER_ID_LABEL,
+    CONTRACT_ORDER_ID_LOG_LABEL,
+    INSTRUMENT_CODE_LOG_LABEL,
+)
 
 from sysobjects.production.tradeable_object import (
     futuresContractStrategy,
@@ -287,14 +293,16 @@ class contractOrder(Order):
         :return: log
         """
         new_log = log.setup(
-            strategy_name=self.strategy_name,
-            instrument_code=self.instrument_code,
-            contract_order_id=if_object_matches_return_empty_string(
-                self.order_id, no_order_id
-            ),
-            instrument_order_id=if_object_matches_return_empty_string(
-                self.parent, no_parent
-            ),
+            **{
+                STRATEGY_NAME_LOG_LABEL: self.strategy_name,
+                INSTRUMENT_CODE_LOG_LABEL: self.instrument_code,
+                CONTRACT_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
+                    self.order_id, no_order_id
+                ),
+                INSTRUMENT_ORDER_ID_LABEL: if_object_matches_return_empty_string(
+                    self.parent, no_parent
+                ),
+            }
         )
 
         return new_log

@@ -1,6 +1,7 @@
 from copy import copy
 from syscore.objects import resolve_function
 from sysdata.data_blob import dataBlob
+from syslogdiag.logger import STRATEGY_NAME_LOG_LABEL
 from sysproduction.data.control_process import get_strategy_class_object_config
 
 
@@ -60,7 +61,7 @@ def get_strategy_class_instance(data: dataBlob, strategy_name: str, process_name
     )
 
     strategy_data = dataBlob(log_name=process_name)
-    strategy_data.log.label(strategy_name=strategy_name)
+    strategy_data.log.label(**{STRATEGY_NAME_LOG_LABEL})
 
     strategy_class_instance = strategy_class_object(
         strategy_data, strategy_name, **other_args
