@@ -40,8 +40,10 @@ from sysdata.data_blob import dataBlob
 from sysobjects.multiple_prices import price_name
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 from sysproduction.data.currency_data import dataCurrency
+from sysproduction.data.instruments import get_stale_instruments
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
+
 
 ## default for spike checking
 from sysproduction.data.instruments import diagInstruments, get_block_size
@@ -88,10 +90,14 @@ class diagPrices(productionDataLayerGeneric):
 
         return adjusted_prices
 
-    def get_list_of_instruments_in_multiple_prices(self) -> list:
+    def get_list_of_instruments_in_multiple_prices(
+        self, ignore_stale: bool = True
+    ) -> list:
         list_of_instruments = (
             self.db_futures_multiple_prices_data.get_list_of_instruments()
         )
+        if ignore_stale:
+            list_of_instruments = self.remove_stale_instruments(list_of_instruments)
 
         return list_of_instruments
 
@@ -130,10 +136,17 @@ class diagPrices(productionDataLayerGeneric):
 
         return current_priced_contract_prices
 
-    def get_list_of_instruments_with_contract_prices(self) -> list:
+    def get_list_of_instruments_with_contract_prices(
+        self, ignore_stale: bool = True
+    ) -> list:
         unique_list_of_instruments = (
             self.db_futures_contract_price_data.get_list_of_instrument_codes_with_merged_price_data()
         )
+
+        if ignore_stale:
+            unique_list_of_instruments = self.remove_stale_instruments(
+                unique_list_of_instruments
+            )
 
         return unique_list_of_instruments
 
@@ -196,6 +209,16 @@ class diagPrices(productionDataLayerGeneric):
 
     def get_list_of_instruments_with_spread_data(self) -> list:
         return self.db_spreads_for_instrument_data.get_list_of_instruments()
+
+    def remove_stale_instruments(self, list_of_instruments: list) -> list:
+        stale_instruments = self.get_stale_instruments()
+        for instrument_code in stale_instruments:
+            list_of_instruments.remove(instrument_code)
+
+        return list_of_instruments
+
+    def get_stale_instruments(self) -> list:
+        return get_stale_instruments(self.data)
 
     @property
     def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:

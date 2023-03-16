@@ -1,3 +1,4 @@
+from syscore.constants import missing_data
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 
 from sysdata.data_blob import dataBlob
@@ -105,6 +106,12 @@ class diagInstruments(productionDataLayerGeneric):
 
         return instrument_codes
 
+    def get_stale_instruments(self) -> list:
+        config = self.data.config
+        stale_instruments = config.get_element_or_default("stale_instruments", [])
+
+        return stale_instruments
+
     @property
     def db_futures_instrument_data(self) -> futuresInstrumentData:
         return self.data.db_futures_instrument
@@ -117,3 +124,8 @@ class diagInstruments(productionDataLayerGeneric):
 def get_block_size(data, instrument_code):
     diag_instruments = diagInstruments(data)
     return diag_instruments.get_point_size(instrument_code)
+
+
+def get_stale_instruments(data):
+    diag_instruments = diagInstruments(data)
+    return diag_instruments.get_stale_instruments()
