@@ -18,7 +18,7 @@ class IBconfig(pd.DataFrame):
 
 
 IB_FUTURES_CONFIG_FILE = resolve_path_and_filename_for_package(
-    "sysbrokers.IB.ib_config_futures.csv"
+    "sysbrokers.IB.config.ib_config_futures.csv"
 )
 
 

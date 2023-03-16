@@ -6,7 +6,7 @@ from syscore.constants import missing_file, missing_instrument
 from syscore.fileutils import resolve_path_and_filename_for_package
 
 IB_CCY_CONFIG_FILE = resolve_path_and_filename_for_package(
-    "sysbrokers.IB.ib_config_spot_FX.csv"
+    "sysbrokers.IB.config.ib_config_spot_FX.csv"
 )
 
 
