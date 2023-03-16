@@ -171,11 +171,6 @@ class dataBroker(productionDataLayerGeneric):
             contract_object
         )
 
-    def get_brokers_instrument_code(self, instrument_code: str) -> str:
-        return self.broker_futures_instrument_data.get_brokers_instrument_code(
-            instrument_code
-        )
-
     def get_brokers_instrument_with_metadata(
         self, instrument_code: str
     ) -> futuresInstrumentWithMetaData:

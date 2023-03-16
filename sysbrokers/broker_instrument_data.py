@@ -17,9 +17,6 @@ class brokerFuturesInstrumentData(futuresInstrumentData):
         super().__init__(log=log)
         self._data = data
 
-    def get_brokers_instrument_code(self, instrument_code: str) -> str:
-        raise NotImplementedError
-
     def get_instrument_code_from_broker_code(self, broker_code: str) -> str:
         raise NotImplementedError
 
