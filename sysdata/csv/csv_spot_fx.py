@@ -10,6 +10,7 @@ from syscore.fileutils import (
 from syscore.constants import arg_not_supplied
 from syscore.pandas.pdutils import pd_readcsv, DEFAULT_DATE_FORMAT_FOR_CSV
 from syslogdiag.log_to_screen import logtoscreen
+from syslogdiag.logger import CURRENCY_CODE_LOG_LABEL
 
 FX_PRICES_DIRECTORY = "data.futures.fx_prices_csv"
 
@@ -84,7 +85,10 @@ class csvFxPricesData(fxPricesData):
                 filename, date_format=date_format, date_index_name=date_column
             )
         except OSError:
-            self.log.warn("Can't find currency price file %s" % filename, fx_code=code)
+            self.log.warn(
+                "Can't find currency price file %s" % filename,
+                **{CURRENCY_CODE_LOG_LABEL: code},
+            )
             return fxPrices.create_empty()
 
         fx_data = pd.Series(fx_data[price_column])
@@ -113,7 +117,8 @@ class csvFxPricesData(fxPricesData):
         )
 
         self.log.msg(
-            "Wrote currency prices to %s for %s" % (filename, code), fx_code=code
+            "Wrote currency prices to %s for %s" % (filename, code),
+            **{CURRENCY_CODE_LOG_LABEL: code},
         )
 
     def _filename_given_fx_code(self, code: str):

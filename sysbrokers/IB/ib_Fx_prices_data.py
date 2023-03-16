@@ -12,6 +12,7 @@ from syscore.exceptions import missingData
 from sysdata.data_blob import dataBlob
 from sysobjects.spot_fx_prices import fxPrices
 from syslogdiag.log_to_screen import logtoscreen
+from syslogdiag.logger import CURRENCY_CODE_LOG_LABEL
 from syscore.constants import missing_instrument
 
 
@@ -46,11 +47,10 @@ class ibFxPricesData(brokerFxPricesData):
 
     def _get_fx_prices_without_checking(self, currency_code: str) -> fxPrices:
         ib_config_for_code = self._get_config_info_for_code(currency_code)
+
         if ib_config_for_code is missing_instrument:
-            self.log.warn(
-                "Can't get prices as missing IB config for %s" % currency_code,
-                fx_code=currency_code,
-            )
+            log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
+            log.warn("Can't get prices as missing IB config for %s" % currency_code)
             return fxPrices.create_empty()
 
         data = self._get_fx_prices_with_ib_config(currency_code, ib_config_for_code)
@@ -62,11 +62,12 @@ class ibFxPricesData(brokerFxPricesData):
     ) -> fxPrices:
         raw_fx_prices_as_series = self._get_raw_fx_prices(ib_config_for_code)
 
+        log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
+
         if len(raw_fx_prices_as_series) == 0:
-            self.log.warn(
+            log.warn(
                 "No available IB prices for %s %s"
-                % (currency_code, str(ib_config_for_code)),
-                fx_code=currency_code,
+                % (currency_code, str(ib_config_for_code))
             )
             return fxPrices.create_empty()
 
@@ -78,7 +79,7 @@ class ibFxPricesData(brokerFxPricesData):
         # turn into a fxPrices
         fx_prices = fxPrices(raw_fx_prices)
 
-        self.log.msg("Downloaded %d prices" % len(fx_prices), fx_code=currency_code)
+        log.msg("Downloaded %d prices" % len(fx_prices))
 
         return fx_prices
 

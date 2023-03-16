@@ -8,6 +8,7 @@ from sysdata.data_blob import dataBlob
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.broker import dataBroker
 from syslogdiag.email_via_db_interface import send_production_mail_msg
+from syslogdiag.logger import CURRENCY_CODE_LOG_LABEL
 
 
 def update_fx_prices():
@@ -43,7 +44,7 @@ def update_fx_prices_with_data(data: dataBlob):
     data.log.msg("FX Codes: %s" % str(list_of_codes_all))
 
     for fx_code in list_of_codes_all:
-        data.log.label(fx_code=fx_code)
+        data.log.label(**{CURRENCY_CODE_LOG_LABEL: fx_code})
         update_fx_prices_for_code(fx_code, data)
 
 

@@ -28,8 +28,7 @@ def config_info_for_code(config_data: pd.DataFrame, currency_code, log) -> ibFXC
     new_log = log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
     if config_data is missing_file:
         new_log.warn(
-            "Can't get IB FX config for %s as config file missing" % currency_code,
-            fx_code=currency_code,
+            "Can't get IB FX config for %s as config file missing" % currency_code
         )
 
         return missing_instrument
