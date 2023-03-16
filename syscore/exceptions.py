@@ -17,3 +17,7 @@ class existingData(Exception):
 
 class orderCannotBeModified(Exception):
     pass
+
+
+class ContractNotFound(Exception):
+    pass

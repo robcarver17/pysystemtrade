@@ -44,7 +44,6 @@ META_FIELD_LIST = [
     "Pointsize",
     "Currency",
     "AssetClass",
-    "Slippage",
     "PerBlock",
     "Percentage",
     "PerTrade",
@@ -76,7 +75,6 @@ class instrumentMetaData(object):
         Pointsize: float = 0.0,
         Currency: str = "",
         AssetClass: str = "",
-        Slippage: float = 0.0,
         PerBlock: float = 0.0,
         Percentage: float = 0.0,
         PerTrade: float = 0.0,
@@ -87,7 +85,6 @@ class instrumentMetaData(object):
         self.Currency = Currency
         self.Pointsize = _zero_if_nan(Pointsize)
         self.AssetClass = AssetClass
-        self.Slippage = _zero_if_nan(Slippage)
         self.PerBlock = _zero_if_nan(PerBlock)
         self.Percentage = _zero_if_nan(Percentage)
         self.PerTrade = _zero_if_nan(PerTrade)
@@ -260,9 +257,11 @@ class instrumentCosts(object):
         self._value_of_pertrade_commission = value_of_pertrade_commission
 
     @classmethod
-    def from_meta_data(instrumentCosts, meta_data: instrumentMetaData):
+    def from_meta_data_and_spread_cost(
+        instrumentCosts, meta_data: instrumentMetaData, spread_cost: float
+    ):
         return instrumentCosts(
-            price_slippage=meta_data.Slippage,
+            price_slippage=spread_cost,
             value_of_block_commission=meta_data.PerBlock,
             percentage_cost=meta_data.Percentage,
             value_of_pertrade_commission=meta_data.PerTrade,

@@ -231,51 +231,10 @@ class dataBroker(productionDataLayerGeneric):
 
         return list_of_positions
 
-    def update_expiries_for_position_list_with_IB_expiries(
-        self, original_position_list: listOfContractPositions
-    ) -> listOfContractPositions:
-
-        new_position_list = listOfContractPositions()
-        for position_entry in original_position_list:
-            new_position_entry = self.update_expiry_for_single_position(position_entry)
-            new_position_list.append(new_position_entry)
-
-        return new_position_list
-
-    def update_expiry_for_single_position(
-        self, position_entry: contractPosition
-    ) -> contractPosition:
-        original_contract = position_entry.contract
-        new_contract = self.update_expiry_for_single_contract(original_contract)
-
-        position = position_entry.position
-        new_position_entry = contractPosition(position, new_contract)
-
-        return new_position_entry
-
-    def update_expiry_for_single_contract(
-        self, original_contract: futuresContract
-    ) -> futuresContract:
-        try:
-            actual_expiry = self.get_actual_expiry_date_for_single_contract(
-                original_contract
-            )
-        except missingContract:
-            log = original_contract.specific_log(self.data.log)
-            log.warn(
-                "Contract %s is missing from IB probably expired - need to manually close on DB"
-                % str(original_contract)
-            )
-            new_contract = copy(original_contract)
-        else:
-            expiry_date_as_str = actual_expiry.as_str()
-            instrument_code = original_contract.instrument_code
-            new_contract = futuresContract(instrument_code, expiry_date_as_str)
-
-        return new_contract
-
     def get_list_of_breaks_between_broker_and_db_contract_positions(self) -> list:
-        db_contract_positions = self.get_db_contract_positions_with_IB_expiries()
+        db_contract_positions = (
+            self.get_all_current_contract_positions_with_db_expiries()
+        )
         broker_contract_positions = self.get_all_current_contract_positions()
 
         break_list = db_contract_positions.return_list_of_breaks(
@@ -284,14 +243,11 @@ class dataBroker(productionDataLayerGeneric):
 
         return break_list
 
-    def get_db_contract_positions_with_IB_expiries(self) -> listOfContractPositions:
-        diag_positions = diagPositions(self.data)
-        db_contract_positions = diag_positions.get_all_current_contract_positions()
-        db_contract_positions = self.update_expiries_for_position_list_with_IB_expiries(
-            db_contract_positions
-        )
-
-        return db_contract_positions
+    def get_all_current_contract_positions_with_db_expiries(
+        self,
+    ) -> listOfContractPositions:
+        diag_positions = diagPositions()
+        return diag_positions.get_all_current_contract_positions_with_db_expiries()
 
     def get_ticker_object_for_order(self, order: contractOrder) -> tickerObject:
         ticker_object = (

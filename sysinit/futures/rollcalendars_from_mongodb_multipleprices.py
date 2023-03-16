@@ -1,7 +1,7 @@
 from syscore.constants import arg_not_supplied
 from sysobjects.roll_calendars import rollCalendar
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
-from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
+from sysdata.csv.csv_roll_parameters import csvRollParametersData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 
 """
@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     output_datapath = arg_not_supplied
     csv_roll_calendars = csvRollCalendarData(arg_not_supplied)
-    mongo_rollparameters = mongoRollParametersData()
+    csv_rollparameters = csvRollParametersData()
     arctic_multiple_prices = arcticFuturesMultiplePricesData()
 
     instrument_list = arctic_multiple_prices.get_list_of_instruments()
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         print(instrument_code)
         multiple_prices = arctic_multiple_prices.get_multiple_prices(instrument_code)
 
-        roll_parameters = mongo_rollparameters.get_roll_parameters(instrument_code)
+        roll_parameters = csv_rollparameters.get_roll_parameters(instrument_code)
         roll_calendar = rollCalendar.back_out_from_multiple_prices(multiple_prices)
         print("Calendar:")
         print(roll_calendar)

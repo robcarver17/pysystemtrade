@@ -20,7 +20,7 @@ from sysdata.csv.csv_historic_orders import (
 )
 from sysdata.csv.csv_capital_data import csvCapitalData
 from sysdata.csv.csv_optimal_position import csvOptimalPositionData
-from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
+from sysdata.csv.csv_spread_costs import csvSpreadCostData
 from sysdata.csv.csv_roll_state_storage import csvRollStateData
 from sysdata.csv.csv_spreads import csvSpreadsForInstrumentData
 from sysdata.csv.csv_roll_parameters import csvRollParametersData
@@ -42,9 +42,8 @@ from sysdata.mongodb.mongo_historic_orders import (
     mongoContractHistoricOrdersData,
     mongoStrategyHistoricOrdersData,
 )
-from sysdata.mongodb.mongo_futures_instruments import mongoFuturesInstrumentData
+from sysdata.mongodb.mongo_spread_costs import mongoSpreadCostData
 from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
-from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 
 from sysobjects.contracts import futuresContract
@@ -88,10 +87,9 @@ class backupArcticToCsv:
         backup_historical_orders(backup_data)
         backup_capital(backup_data)
         backup_contract_data(backup_data)
-        backup_instrument_data(backup_data)
+        backup_spread_cost_data(backup_data)
         backup_optimal_positions(backup_data)
         backup_roll_state_data(backup_data)
-        backup_roll_parameters(backup_data)
         log.msg("Copying to backup directory")
         backup_csv_dump(self.data)
 
@@ -101,22 +99,21 @@ def get_data_and_create_csv_directories(logname):
     csv_dump_dir = get_csv_dump_dir()
 
     class_paths = dict(
-        csvFuturesContractPriceData="contract_prices",
+        csvBrokerHistoricOrdersData="broker_orders",
+        csvCapitalData="capital",
+        csvContractHistoricOrdersData="contract_orders",
+        csvContractPositionData="contract_positions",
         csvFuturesAdjustedPricesData="adjusted_prices",
+        csvFuturesContractData="contracts_data",
+        csvFuturesContractPriceData="contract_prices",
         csvFuturesMultiplePricesData="multiple_prices",
         csvFxPricesData="fx_prices",
-        csvContractPositionData="contract_positions",
-        csvStrategyPositionData="strategy_positions",
-        csvBrokerHistoricOrdersData="broker_orders",
-        csvContractHistoricOrdersData="contract_orders",
-        csvStrategyHistoricOrdersData="strategy_orders",
-        csvCapitalData="capital",
-        csvFuturesContractData="contracts_data",
-        csvFuturesInstrumentData="instrument_data",
         csvOptimalPositionData="optimal_positions",
-        csvRollParametersData="roll_parameters",
         csvRollStateData="roll_state",
+        csvSpreadCostData="spread_costs",
         csvSpreadsForInstrumentData="spreads",
+        csvStrategyHistoricOrdersData="strategy_orders",
+        csvStrategyPositionData="strategy_positions",
     )
 
     for class_name, path in class_paths.items():
@@ -131,43 +128,41 @@ def get_data_and_create_csv_directories(logname):
 
     data.add_class_list(
         [
-            csvFuturesContractPriceData,
+            csvBrokerHistoricOrdersData,
+            csvCapitalData,
+            csvContractHistoricOrdersData,
+            csvContractPositionData,
             csvFuturesAdjustedPricesData,
+            csvFuturesContractData,
+            csvFuturesContractPriceData,
             csvFuturesMultiplePricesData,
             csvFxPricesData,
-            csvContractPositionData,
-            csvStrategyPositionData,
-            csvBrokerHistoricOrdersData,
-            csvContractHistoricOrdersData,
-            csvStrategyHistoricOrdersData,
-            csvCapitalData,
             csvOptimalPositionData,
-            csvFuturesInstrumentData,
             csvRollStateData,
-            csvRollParametersData,
-            csvFuturesContractData,
+            csvSpreadCostData,
             csvSpreadsForInstrumentData,
+            csvStrategyHistoricOrdersData,
+            csvStrategyPositionData,
         ]
     )
 
     data.add_class_list(
         [
+            arcticCapitalData,
+            arcticFuturesAdjustedPricesData,
             arcticFuturesContractPriceData,
             arcticFuturesMultiplePricesData,
-            arcticFuturesAdjustedPricesData,
             arcticFxPricesData,
             arcticSpreadsForInstrumentData,
-            arcticCapitalData,
-            mongoContractPositionData,
-            mongoStrategyPositionData,
             mongoBrokerHistoricOrdersData,
             mongoContractHistoricOrdersData,
-            mongoStrategyHistoricOrdersData,
+            mongoContractPositionData,
             mongoFuturesContractData,
-            mongoFuturesInstrumentData,
             mongoOptimalPositionData,
-            mongoRollParametersData,
             mongoRollStateData,
+            mongoSpreadCostData,
+            mongoStrategyHistoricOrdersData,
+            mongoStrategyPositionData,
         ]
     )
 
@@ -474,10 +469,11 @@ def backup_optimal_positions(data):
         data.log.msg("Backed up %s  optimal position data" % str(instrument_strategy))
 
 
-def backup_instrument_data(data):
-    instrument_config = data.mongo_futures_instrument.get_all_instrument_data_as_df()
-    data.csv_futures_instrument.write_all_instrument_data_from_df(instrument_config)
-    data.log.msg("Backed up instrument config data")
+def backup_spread_cost_data(data):
+    mongoSpreadCostData
+    spread_cost_as_series = data.mongo_spread_cost.get_spread_costs_as_series()
+    data.csv_spread_cost.write_all_instrument_spreads(spread_cost_as_series)
+    data.log.msg("Backed up spread cost data")
 
 
 def backup_roll_state_data(data):
@@ -491,20 +487,6 @@ def backup_roll_state_data(data):
     roll_state_df.columns = ["state"]
     data.csv_roll_state.write_all_instrument_data(roll_state_df)
     data.log.msg("Backed up roll state")
-
-
-def backup_roll_parameters(data):
-    instrument_list = data.mongo_roll_parameters.get_list_of_instruments()
-    roll_parameters_list = []
-    for instrument_code in instrument_list:
-        roll_parameters_as_dict = data.mongo_roll_parameters.get_roll_parameters(
-            instrument_code
-        ).as_dict()
-        roll_parameters_list.append(roll_parameters_as_dict)
-
-    roll_parameters_df = pd.DataFrame(roll_parameters_list, index=instrument_list)
-    data.csv_roll_parameters.write_all_roll_parameters_data(roll_parameters_df)
-    data.log.msg("Backed up roll parameters")
 
 
 def backup_contract_data(data):

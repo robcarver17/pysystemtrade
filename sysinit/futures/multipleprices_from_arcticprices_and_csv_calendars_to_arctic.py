@@ -24,13 +24,13 @@ from sysobjects.contract_dates_and_expiries import contractDate
 
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
+from sysdata.csv.csv_roll_parameters import csvRollParametersData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
 from sysinit.futures.build_roll_calendars import adjust_to_price_series
 from sysobjects.multiple_prices import futuresMultiplePrices
-from sysdata.mongodb.mongo_roll_data import mongoRollParametersData
 
 
 def _get_data_inputs(csv_roll_data_path, csv_multiple_data_path):
@@ -110,7 +110,7 @@ def process_multiple_prices_single_instrument(
 
     # Add first phantom row so that the last calendar entry won't be consumed by adjust_roll_calendar()
     if roll_parameters is arg_not_supplied:
-        m = mongoRollParametersData()
+        m = csvRollParametersData()
         roll_parameters = m.get_roll_parameters(instrument_code)
 
     roll_calendar = add_phantom_row(
