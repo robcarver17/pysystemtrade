@@ -1,7 +1,6 @@
 import os
 
 from syscore.fileutils import get_resolved_pathname
-from syscore.constants import missing_data
 from sysdata.config.production_config import get_production_config
 from sysproduction.data.backtest import get_directory_store_backtests
 
@@ -9,12 +8,7 @@ production_config = get_production_config()
 
 
 def get_main_backup_directory():
-
-    ans = production_config.get_element_or_missing_data("offsystem_backup_directory")
-    if ans is missing_data:
-        raise Exception(
-            "Can't backup without setting 'offsystem_backup_directory' in private_config.yaml"
-        )
+    ans = production_config.get_element("offsystem_backup_directory")
     return get_resolved_pathname(ans)
 
 
@@ -26,20 +20,12 @@ def get_csv_backup_directory():
 
 
 def get_csv_dump_dir():
-    ans = production_config.get_element_or_missing_data("csv_backup_directory")
-    if ans is missing_data:
-        raise Exception(
-            "Need to specify csv_backup_directory in production config file"
-        )
+    ans = production_config.get_element("csv_backup_directory")
     return get_resolved_pathname(ans)
 
 
 def get_mongo_dump_directory():
-    ans = production_config.get_element_or_missing_data("mongo_dump_directory")
-    if ans is missing_data:
-        raise Exception(
-            "Need to specify mongo_dump_directory production in config file"
-        )
+    ans = production_config.get_element("mongo_dump_directory")
     return get_resolved_pathname(ans)
 
 
@@ -63,14 +49,10 @@ def get_statefile_backup_directory():
 
 
 def get_echo_file_directory():
-    ans = production_config.get_element_or_missing_data("echo_directory")
-    if ans is missing_data:
-        raise Exception("Need to specify echo_directory in production config")
+    ans = production_config.get_element("echo_directory")
     return ans
 
 
 def get_echo_extension():
-    ans = production_config.get_element_or_missing_data("echo_extension")
-    if ans is missing_data:
-        raise Exception("Need to specify echo_extension in production config")
+    ans = production_config.get_element("echo_extension")
     return ans
