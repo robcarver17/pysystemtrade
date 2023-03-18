@@ -2,6 +2,7 @@ from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
 from sysdata.arctic.arctic_connection import arcticData
 from syslogdiag.log_to_screen import logtoscreen
+from syslogdiag.logger import CURRENCY_CODE_LOG_LABEL
 import pandas as pd
 
 SPOTFX_COLLECTION = "spotfx_prices"
@@ -36,24 +37,21 @@ class arcticFxPricesData(fxPricesData):
         return fx_prices
 
     def _delete_fx_prices_without_any_warning_be_careful(self, currency_code: str):
-        self.log.label(currency_code=currency_code)
+        log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
         self.arctic.delete(currency_code)
-        self.log.msg(
-            "Deleted fX prices for %s from %s" % (currency_code, str(self)),
-            fx_code=currency_code,
-        )
+        log.msg("Deleted fX prices for %s from %s" % (currency_code, str(self)))
 
     def _add_fx_prices_without_checking_for_existing_entry(
         self, currency_code: str, fx_price_data: fxPrices
     ):
-        self.log.label(currency_code=currency_code)
+        log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
+
         fx_price_data_aspd = pd.DataFrame(fx_price_data)
         fx_price_data_aspd.columns = ["price"]
         fx_price_data_aspd = fx_price_data_aspd.astype(float)
 
         self.arctic.write(currency_code, fx_price_data_aspd)
-        self.log.msg(
+        log.msg(
             "Wrote %s lines of prices for %s to %s"
-            % (len(fx_price_data), currency_code, str(self)),
-            fx_code=currency_code,
+            % (len(fx_price_data), currency_code, str(self))
         )
