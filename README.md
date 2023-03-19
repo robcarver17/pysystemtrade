@@ -83,6 +83,8 @@ python3 setup.py install --user # avoids use of sudo
 
 Again, you may be okay with python rather than python3.
 
+There is a more complete installation guide [here](installation.md)
+
 ### A note on support
 
 This is an open source project, designed for people who are already comfortable using and writing python code, are capable of installing the dependencies, and who want a head start on implementing a system of their own. I do not have the time to provide support. Primarily, this is my trading system which you are welcome to use or steal code from, I'm open sourcing it out of the goodness of my heart not so I can become an unpaid technical support helper to hundreds of strangers. Of course I am very happy if you get in touch with me on any of the following topics:
