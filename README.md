@@ -83,7 +83,7 @@ python3 setup.py install --user # avoids use of sudo
 
 Again, you may be okay with python rather than python3.
 
-There is a more complete installation guide [here](installation.md)
+There is a more complete installation guide [here](docs/installation.md)
 
 ### A note on support
 
