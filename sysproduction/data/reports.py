@@ -1,6 +1,7 @@
 from copy import copy
 
 from syscore.constants import missing_data
+from syscore.exceptions import missingData
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
@@ -21,8 +22,9 @@ class dataReports(productionDataLayerGeneric):
 
     def get_reporting_config_dict(self) -> dict:
         config = self.data.config
-        report_config_dict = config.get_element_or_missing_data("reports")
-        if report_config_dict is missing_data:
+        try:
+            report_config_dict = config.get_element("reports")
+        except missingData:
             return {}
         else:
             return report_config_dict

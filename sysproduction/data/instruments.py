@@ -1,4 +1,3 @@
-from syscore.constants import missing_data
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 
 from sysdata.data_blob import dataBlob
