@@ -96,6 +96,7 @@ def resolve_ib_stock_position(position):
         exchange=position.contract.exchange,
         currency=position.contract.currency,
         position=position.position,
+        ib_contract=position.contract,  ## persist to find exchanges later
     )
 
 
@@ -108,7 +109,7 @@ def resolve_ib_future_position(position):
         multiplier=float(position.contract.multiplier),
         currency=position.contract.currency,
         position=position.position,
-        exchange=position.exchange,
+        ib_contract=position.contract,  ## persist to find exchanges later
     )
 
 
@@ -121,6 +122,7 @@ def resolve_ib_cash_position(position):
         multiplier=1.0,
         currency=position.contract.currency,
         position=position.position,
+        ib_contract=position.contract,  ## persist to find exchanges later
     )
 
 

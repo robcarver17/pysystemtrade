@@ -210,23 +210,11 @@ class ibExecutionStackData(brokerExecutionStackData):
         """
         try:
             try:
-                ## FIXME THIS IS HORRIFIC
                 ib_contract = (
                     trade_with_contract_from_ib.ibcontract_with_legs.ibcontract
                 )
-                ib_instrument_code = trade_with_contract_from_ib.ib_instrument_code
-
-                contract_details = self.ib_client.ib.reqContractDetails(ib_contract)
-
-                ib_exchange = contract_details[0].validExchanges
-                ib_multiplier = contract_details[0].evMultiplier  # is this right?
-
-                instrument_code = (
-                    self.futures_instrument_data.get_instrument_code_from_broker_code(
-                        ib_instrument_code,
-                        ib_exchange=ib_exchange,
-                        ib_multiplier=ib_multiplier,
-                    )
+                instrument_code = self.futures_instrument_data.get_instrument_code_from_broker_contract_object(
+                    ib_contract
                 )
             except:
                 raise ibOrderCouldntCreateException()
