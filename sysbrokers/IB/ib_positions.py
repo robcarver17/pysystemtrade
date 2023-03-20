@@ -1,8 +1,27 @@
-import re
+from typing import NamedTuple
+from ib_insync.ib import Position, Contract
 from syscore.genutils import highest_common_factor_for_list, sign
 from syscore.constants import arg_not_supplied
 
 from sysexecution.trade_qty import tradeQuantity
+
+
+class IBPositionWithExtendedAttr(NamedTuple):
+    account: str
+    contract: Contract
+    position: float
+    avgCost: float
+    exchange: str
+
+    @classmethod
+    def from_ib_position(cls, ib_position: Position, exchange: str):
+        return cls(
+            account=ib_position.account,
+            contract=ib_position.contract,
+            avgCost=ib_position.avgCost,
+            position=ib_position.position,
+            exchange=exchange,
+        )
 
 
 def extract_fx_balances_from_account_summary(account_summary) -> dict:

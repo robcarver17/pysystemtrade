@@ -1,6 +1,11 @@
 from syscore.constants import arg_not_supplied
 from sysbrokers.IB.client.ib_client import ibClient
-from sysbrokers.IB.ib_positions import from_ib_positions_to_dict, positionsFromIB
+from sysbrokers.IB.ib_positions import (
+    from_ib_positions_to_dict,
+    positionsFromIB,
+    IBPositionWithExtendedAttr,
+)
+from ib_insync.ib import Position
 
 
 class ibPositionsClient(ibClient):
@@ -32,7 +37,9 @@ class ibPositionsClient(ibClient):
 
         return raw_positions_with_codes
 
-    def add_exchange_code_to_raw_ib_position(self, raw_ib_position):
+    def add_exchange_code_to_raw_ib_position(
+        self, raw_ib_position: Position
+    ) -> IBPositionWithExtendedAttr:
         try:
             ib_contract = raw_ib_position.contract
             list_of_contract_details = self.ib.reqContractDetails(ib_contract)
@@ -43,6 +50,8 @@ class ibPositionsClient(ibClient):
         except:
             exchange_code = ""
 
-        setattr(raw_ib_position, "exchange", exchange_code)
+        new_ib_position = IBPositionWithExtendedAttr.from_ib_position(
+            ib_position=raw_ib_position, exchange=exchange_code
+        )
 
-        return raw_ib_position
+        return new_ib_position
