@@ -91,7 +91,7 @@ class ibContractPositionData(brokerContractPositionData):
 
     def _get_instrument_code_from_ib_position_entry(self, position_entry) -> str:
 
-        ib_contract = position_entry.ib_contract
+        ib_contract = position_entry["ib_contract"]
         instrument_code = self.futures_instrument_data.get_instrument_code_from_broker_contract_object(
             ib_contract
         )
