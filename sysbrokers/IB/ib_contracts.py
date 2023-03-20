@@ -1,5 +1,5 @@
 from ib_insync import Contract as ibContract, Contract, ComboLeg
-
+from ib_insync import ContractDetails as ibContractDetails
 import re
 
 from sysbrokers.IB.ib_instruments import (
