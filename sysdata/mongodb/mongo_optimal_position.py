@@ -1,5 +1,5 @@
 from sysdata.production.optimal_positions import optimalPositionData
-from sysdata.mongodb.mongo_timed_storage import mongoListOfEntriesData
+from sysdata.mongodb.mongo_timed_storage_TO_DEPRECATE import mongoListOfEntriesData
 
 OPTIMAL_POSITION_COLLECTION = "optimal_positions"
 

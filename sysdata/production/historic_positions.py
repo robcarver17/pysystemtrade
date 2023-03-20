@@ -4,10 +4,10 @@ from syscore.exceptions import missingData
 from syscore.constants import arg_not_supplied
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
 
-from sysdata.production.timed_storage import (
+from sysdata.production.timed_storage_TO_DEPRECATE import (
     listOfEntriesData,
 )
-from sysobjects.production.timed_storage import timedEntry, listOfEntries
+from sysobjects.production.timed_storage_TO_DEPRECATE import timedEntry, listOfEntries
 from sysobjects.production.positions import (
     instrumentStrategyPosition,
     contractPosition,

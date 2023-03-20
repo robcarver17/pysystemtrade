@@ -4,7 +4,7 @@ import pandas as pd
 from syscore.constants import arg_not_supplied
 from syscore.exceptions import missingData
 
-from sysdata.production.new_capital import capitalData, totalCapitalCalculationData
+from sysdata.production.capital import capitalData, totalCapitalCalculationData
 from sysdata.production.margin import marginData, seriesOfMargin
 
 from sysdata.arctic.arctic_capital import arcticCapitalData

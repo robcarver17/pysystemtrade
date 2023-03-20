@@ -10,7 +10,7 @@ A mean reversion style class would include price buffers
 """
 
 from syscore.constants import failure
-from sysdata.production.timed_storage import (
+from sysdata.production.timed_storage_TO_DEPRECATE import (
     listOfEntriesData,
 )
 from sysobjects.production.optimal_positions import (
@@ -21,7 +21,7 @@ from sysobjects.production.optimal_positions import (
     optimalPositionWithReference,
     optimalPositionWithDynamicCalculations,
 )
-from sysobjects.production.timed_storage import listOfEntries
+from sysobjects.production.timed_storage_TO_DEPRECATE import listOfEntries
 from sysobjects.production.tradeable_object import (
     listOfInstrumentStrategies,
     instrumentStrategy,

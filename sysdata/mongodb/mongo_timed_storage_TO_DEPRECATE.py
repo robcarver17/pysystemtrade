@@ -1,4 +1,4 @@
-from sysdata.production.timed_storage import (
+from sysdata.production.timed_storage_TO_DEPRECATE import (
     listOfEntriesData,
     classStrWithListOfEntriesAsListOfDicts,
     listOfEntriesAsListOfDicts,

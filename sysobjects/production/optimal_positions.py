@@ -6,7 +6,7 @@ from sysobjects.production.positions import (
     listOfInstrumentStrategyPositions,
 )
 from sysobjects.production.tradeable_object import instrumentStrategy
-from sysobjects.production.timed_storage import timedEntry
+from sysobjects.production.timed_storage_TO_DEPRECATE import timedEntry
 
 
 class simpleOptimalPosition(timedEntry):

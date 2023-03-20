@@ -8,7 +8,7 @@ from syscore.objects import (
 from syscore.constants import arg_not_supplied, success, failure
 from sysdata.base_data import baseData
 from syslogdiag.log_to_screen import logtoscreen
-from sysobjects.production.timed_storage import (
+from sysobjects.production.timed_storage_TO_DEPRECATE import (
     listOfEntriesAsListOfDicts,
     listOfEntries,
     timedEntry,
