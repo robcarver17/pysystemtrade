@@ -5,7 +5,7 @@ from sysbrokers.IB.ib_instruments import (
     NOT_REQUIRED_FOR_IB,
     ibInstrumentConfigData,
 )
-from syscore.constants import missing_file, missing_instrument
+from syscore.constants import missing_file, missing_instrument, arg_not_supplied
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.genutils import return_another_value_if_nan
 from syslogdiag.log_to_screen import logtoscreen
@@ -99,7 +99,11 @@ def _get_instrument_object_from_valid_config(
 
 
 def get_instrument_code_from_broker_code(
-    config: IBconfig, ib_code: str, log: logger = logtoscreen("")
+    config: IBconfig,
+    ib_code: str,
+    log: logger = logtoscreen(""),
+    ib_exchange: str = arg_not_supplied,
+    ib_multiplier: float = arg_not_supplied,
 ) -> str:
 
     config_row = config[config.IBSymbol == ib_code]
@@ -110,8 +114,14 @@ def get_instrument_code_from_broker_code(
 
     if len(config_row) > 1:
         ## need to resolve with multiplier
-        instrument_code = get_instrument_code_from_broker_code_with_multiplier(
-            ib_code=ib_code, config=config, log=log
+        instrument_code = (
+            get_instrument_code_from_broker_code_with_multiple_possibilities(
+                ib_code=ib_code,
+                config=config,
+                log=log,
+                ib_exchange=ib_exchange,
+                ib_multiplier=ib_multiplier,
+            )
         )
     else:
         instrument_code = config_row.iloc[0].Instrument
@@ -119,8 +129,12 @@ def get_instrument_code_from_broker_code(
     return instrument_code
 
 
-def get_instrument_code_from_broker_code_with_multiplier(
-    config: IBconfig, ib_code: str, log: logger = logtoscreen("")
+def get_instrument_code_from_broker_code_with_multiple_possibilities(
+    config: IBconfig,
+    ib_code: str,
+    log: logger = logtoscreen(""),
+    ib_exchange: str = arg_not_supplied,
+    ib_multiplier: float = arg_not_supplied,
 ) -> str:
 
     # FIXME PATCH

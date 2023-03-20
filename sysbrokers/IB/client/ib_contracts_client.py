@@ -588,8 +588,12 @@ class ibContractsClient(ibClient):
         :param ibcontract_pattern: ibContract which may not fully specify the contract
         :return: list of ibContracts
         """
-        ibcontract_pattern.includeExpired = allow_expired
-        new_contract_details_list = self.ib.reqContractDetails(ibcontract_pattern)
+
+        new_contract_details_list = self.contract_details(
+            ibcontract_pattern,
+            allow_expired=allow_expired,
+            allow_multiple_contracts=True,
+        )
 
         ibcontract_list = [
             contract_details.contract for contract_details in new_contract_details_list

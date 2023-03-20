@@ -5,7 +5,7 @@ from collections import namedtuple
 from dateutil.tz import tz
 
 from ib_insync import Trade as ibTrade
-from sysbrokers.IB.ib_contracts import ibcontractWithLegs
+from sysbrokers.IB.ib_contracts import ibcontractWithLegs, ibContract
 from sysbrokers.broker_trade import brokerTrade
 from syscore.exceptions import missingData
 from syscore.constants import arg_not_supplied
@@ -40,6 +40,10 @@ class tradeWithContract(brokerTrade):
     @property
     def ib_instrument_code(self):
         return self.trade.contract.symbol
+
+    @property
+    def ib_contract(self) -> ibContract:
+        return self.trade.contract
 
 
 class ibBrokerOrder(brokerOrder):

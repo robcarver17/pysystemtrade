@@ -11,6 +11,9 @@ from sysbrokers.IB.ib_instruments import (
 )
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
+
+from syscore.constants import arg_not_supplied
+
 from sysdata.data_blob import dataBlob
 
 from syslogdiag.log_to_screen import logtoscreen
@@ -41,10 +44,19 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
     def ibconnection(self) -> connectionIB:
         return self._ibconnection
 
-    def get_instrument_code_from_broker_code(self, ib_code: str) -> str:
+    def get_instrument_code_from_broker_code(
+        self,
+        ib_code: str,
+        ib_multiplier: float = arg_not_supplied,
+        ib_exchange: str = arg_not_supplied,
+    ) -> str:
         config = self.ib_config
         broker_code = get_instrument_code_from_broker_code(
-            config=config, ib_code=ib_code, log=self.log
+            config=config,
+            ib_code=ib_code,
+            log=self.log,
+            ib_multiplier=ib_multiplier,
+            ib_exchange=ib_exchange,
         )
 
         return broker_code

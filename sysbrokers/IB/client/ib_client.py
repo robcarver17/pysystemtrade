@@ -4,11 +4,16 @@ from ib_insync import Contract
 from ib_insync import IB
 
 from sysbrokers.IB.ib_connection import connectionIB
+from sysbrokers.IB.ib_contracts import ibContract
 from sysbrokers.IB.config.ib_instrument_config import (
     IBconfig,
     read_ib_config_from_file,
     get_instrument_code_from_broker_code,
 )
+
+from syscore.constants import arg_not_supplied
+from syscore.cache import Cache
+from syscore.exceptions import missingContract
 
 from syslogdiag.logger import logger
 from syslogdiag.log_to_screen import logtoscreen
@@ -75,6 +80,11 @@ class ibClient(object):
 
         self._ib_connnection = ibconnection
         self._log = log
+        self._cache = Cache(self)
+
+    @property
+    def cache(self):
+        return self._cache
 
     @property
     def ib_connection(self) -> connectionIB:
@@ -105,22 +115,10 @@ class ibClient(object):
         :param contract: IB contract or None
         :return: success
         """
-        if contract is None:
-            ib_contract_str = ""
-            log_to_use = self.log.setup()
-        else:
-            ib_instrument_code = contract.symbol
-            ib_expiry_str = contract.lastTradeDateOrContractMonth
-            ib_contract_str = str("%s %s" % (ib_instrument_code, ib_expiry_str))
 
-            instrument_code = self.get_instrument_code_from_broker_code(
-                ib_instrument_code
-            )
+        msg = "Reqid %d: %d %s" % (reqid, error_code, error_string)
 
-            futures_contract = futuresContract(instrument_code, ib_expiry_str)
-            log_to_use = futures_contract.specific_log(self.log)
-
-        msg = "Reqid %d: %d %s %s" % (reqid, error_code, error_string, ib_contract_str)
+        log_to_use = self._get_log_for_contract(contract)
 
         iserror = error_code in IB_IS_ERROR
         if iserror:
@@ -132,6 +130,30 @@ class ibClient(object):
             # just a general message
             self.broker_message(msg=msg, log=log_to_use)
 
+    def _get_log_for_contract(self, contract: Contract) -> logger:
+        if contract is None:
+            log_to_use = self.log.setup()
+        else:
+            ib_instrument_code = contract.symbol
+            ib_expiry_str = contract.lastTradeDateOrContractMonth
+
+            contract_details = self.contract_details(
+                contract, allow_expired=False, allow_multiple_contracts=False
+            )
+
+            ## FIXME: REPLACE WITH GET EXTENDED CONTRACT DETAILS?
+            ib_exchange = arg_not_supplied
+            ib_multiplier = arg_not_supplied
+
+            instrument_code = self.get_instrument_code_from_broker_code(
+                ib_instrument_code
+            )
+
+            futures_contract = futuresContract(instrument_code, ib_expiry_str)
+            log_to_use = futures_contract.specific_log(self.log)
+
+        return log_to_use
+
     def broker_error(self, msg, log, myerror_type):
         log.warn(msg)
 
@@ -141,9 +163,18 @@ class ibClient(object):
     def refresh(self):
         self.ib.sleep(0.00001)
 
-    def get_instrument_code_from_broker_code(self, ib_code: str) -> str:
+    def get_instrument_code_from_broker_code(
+        self,
+        ib_code: str,
+        ib_multiplier: float = arg_not_supplied,
+        ib_exchange: str = arg_not_supplied,
+    ) -> str:
         instrument_code = get_instrument_code_from_broker_code(
-            log=self.log, ib_code=ib_code, config=self.ib_config
+            log=self.log,
+            ib_code=ib_code,
+            config=self.ib_config,
+            ib_multiplier=ib_multiplier,
+            ib_exchange=ib_exchange,
         )
         return instrument_code
 
@@ -160,3 +191,31 @@ class ibClient(object):
         config_data = read_ib_config_from_file(log=self.log)
 
         return config_data
+
+    def contract_details(
+        self,
+        ib_contract_pattern: ibContract,
+        allow_expired: bool = False,
+        allow_multiple_contracts: bool = False,
+    ):
+        contract_details = self.cache.get(
+            self._contract_details, ib_contract_pattern, allow_expired=allow_expired
+        )
+
+        if len(contract_details) == 0:
+            raise missingContract
+
+        if allow_multiple_contracts:
+            return contract_details
+
+        elif len(contract_details) > 1:
+            self.log.critical("Multiple contracts and only expected one")
+
+        return contract_details[0]
+
+    def _contract_details(
+        self, ib_contract_pattern: ibContract, allow_expired: bool = False
+    ):
+        ib_contract_pattern.includeExpired = allow_expired
+
+        return self.ib.reqContractDetails(ib_contract_pattern)

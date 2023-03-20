@@ -79,19 +79,28 @@ class ibContractPositionData(brokerContractPositionData):
         if position == 0:
             raise missingContract
 
-        ib_code = position_entry["symbol"]
-        ib_multiplier = position_entry["multiplier"]
-        instrument_code = (
-            self.futures_instrument_data.get_instrument_code_from_broker_code(ib_code)
-        )
-
         expiry = position_entry["expiry"]
-
+        instrument_code = self._get_instrument_code_from_ib_position_entry(
+            position_entry
+        )
         contract = futuresContract(instrument_code, expiry)
 
         contract_position_object = contractPosition(position, contract)
 
         return contract_position_object
+
+    def _get_instrument_code_from_ib_position_entry(self, position_entry) -> str:
+
+        ib_code = position_entry["symbol"]
+        ib_multiplier = position_entry["multiplier"]
+        ib_exchange = position_entry["exchange"]
+        instrument_code = (
+            self.futures_instrument_data.get_instrument_code_from_broker_code(
+                ib_code, ib_exchange=ib_exchange, ib_multiplier=ib_multiplier
+            )
+        )
+
+        return instrument_code
 
     def _get_all_futures_positions_as_raw_list(
         self, account_id: str = arg_not_supplied
