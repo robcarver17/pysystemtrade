@@ -113,61 +113,33 @@ def get_instrument_code_from_broker_instrument_identity(
 ) -> str:
 
     ib_code = ib_instrument_identity.ib_code
-    config_row = config[config.IBSymbol == ib_code]
-    if len(config_row) == 0:
-        msg = "Broker symbol %s not found in configuration file!" % ib_code
-        log.critical(msg)
-        raise Exception(msg)
+    ib_multiplier = ib_instrument_identity.ib_multiplier
+    ib_exchange = ib_instrument_identity.ib_exchange
 
-    if len(config_row) > 1:
-        ## need to resolve with multiplier
-        instrument_code = (
-            get_instrument_code_from_broker_code_with_multiple_possibilities(
-                ib_instrument_identity=ib_instrument_identity,
-                config=config,
-                log=log,
-            )
-        )
-    else:
-        instrument_code = config_row.iloc[0].Instrument
-
-    return instrument_code
-
-
-def get_instrument_code_from_broker_code_with_multiple_possibilities(
-    ib_instrument_identity: IBInstrumentIdentity,
-    config: IBconfig,
-    log: logger = logtoscreen(""),
-) -> str:
-    ib_code = ib_instrument_identity.ib_code
-    # FIXME PATCH
-    if ib_code == "EOE":
-        return "AEX"
-    else:
-        msg = (
-            "Broker symbol %s appears more than once in configuration file and NOT AEX!!"
-            % ib_code
+    config_rows = config[
+        (config.IBSymbol == ib_code)
+        & (config.IBMultiplier == ib_multiplier)
+        & (config.IBExchange == ib_exchange)
+    ]
+    if len(config_rows) == 0:
+        msg = "Broker symbol %s (%s, %f) not found in configuration file!" % (
+            ib_code,
+            ib_exchange,
+            ib_multiplier,
         )
         log.critical(msg)
         raise Exception(msg)
-    """
-    this code will work but need to get multiplier from somewhere
 
-    config = self._get_ib_config()
-    config_rows = config[config.IBSymbol == ib_code]
-
-    config_row = config_rows[config.IBMultiplier == multiplier]
-    if len(config_row) > 1:
+    if len(config_rows) > 1:
 
         msg = (
-            "Broker symbol %s appears more than once in configuration file!"
-            % ib_code
+            "Broker symbol %s (%s, %f) appears more than once in configuration file!"
+            % (ib_code, ib_exchange, ib_multiplier)
         )
-        self.log.critical(msg)
+        log.critical(msg)
         raise Exception(msg)
 
-    return config_row.iloc[0].Instrument
-    """
+    return config_rows.iloc[0].Instrument
 
 
 def get_instrument_list_from_ib_config(config: IBconfig, log: logger = logtoscreen("")):
