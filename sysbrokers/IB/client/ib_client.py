@@ -1,6 +1,5 @@
 import datetime
-
-from ib_insync import Contract
+from typing import Tuple
 from ib_insync import IB
 
 from sysbrokers.IB.ib_connection import connectionIB
@@ -83,7 +82,7 @@ class ibClient(object):
         self._cache = Cache(self)
 
     @property
-    def cache(self):
+    def cache(self) -> Cache:
         return self._cache
 
     @property
@@ -103,7 +102,7 @@ class ibClient(object):
         return self._log
 
     def error_handler(
-        self, reqid: int, error_code: int, error_string: str, contract: Contract
+        self, reqid: int, error_code: int, error_string: str, contract: ibContract
     ):
         """
         Error handler called from server
@@ -130,7 +129,7 @@ class ibClient(object):
             # just a general message
             self.broker_message(msg=msg, log=log_to_use)
 
-    def _get_log_for_contract(self, contract: Contract) -> logger:
+    def _get_log_for_contract(self, contract: ibContract) -> logger:
         if contract is None:
             log_to_use = self.log.setup()
         else:
@@ -197,9 +196,14 @@ class ibClient(object):
         ib_contract_pattern: ibContract,
         allow_expired: bool = False,
         allow_multiple_contracts: bool = False,
-    ):
-        contract_details = self.cache.get(
-            self._contract_details, ib_contract_pattern, allow_expired=allow_expired
+    ) -> Tuple[ibContract, list]:
+
+        # contract_details = self.cache.get(
+        #    self._contract_details, ib_contract_pattern, allow_expired=allow_expired
+        # )
+        # FIXME TRY WITHOUT CACHING FOR NOW
+        contract_details = self._contract_details(
+            ib_contract_pattern, allow_expired=allow_expired
         )
 
         if len(contract_details) == 0:
@@ -215,7 +219,7 @@ class ibClient(object):
 
     def _contract_details(
         self, ib_contract_pattern: ibContract, allow_expired: bool = False
-    ):
+    ) -> list:
         ib_contract_pattern.includeExpired = allow_expired
 
         return self.ib.reqContractDetails(ib_contract_pattern)
