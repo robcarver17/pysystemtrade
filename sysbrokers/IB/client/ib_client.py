@@ -202,9 +202,9 @@ class ibClient(object):
         )
 
         return IBInstrumentIdentity(
-            ib_code=contract_details.contract.symbol,
-            ib_multiplier=contract_details.contract.multiplier,
-            ib_exchange=contract_details.contract.exchange,
+            ib_code=str(contract_details.contract.symbol),
+            ib_multiplier=float(contract_details.contract.multiplier),
+            ib_exchange=str(contract_details.contract.exchange),
         )
 
     def get_contract_details(
