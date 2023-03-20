@@ -5,7 +5,7 @@ import pandas as pd
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR, BUSINESS_DAYS_IN_YEAR
 from syscore.objects import resolve_function
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.pandas.frequency import resample_prices_to_business_day_index
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.prices import (
@@ -177,12 +177,7 @@ def get_daily_ts_stdev_of_prices(data, instrument_code):
 
 def vol_config(data) -> dict:
     config = data.config
-    vol_config = config.get_element_or_missing_data("volatility_calculation")
-    if vol_config is missing_data:
-        raise Exception(
-            "Config doesn't include 'volatility_calculation' which should be in defaults.yaml"
-        )
-
+    vol_config = config.get_element("volatility_calculation")
     return vol_config
 
 
