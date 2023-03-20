@@ -589,7 +589,7 @@ class ibContractsClient(ibClient):
         :return: list of ibContracts
         """
 
-        new_contract_details_list = self.contract_details(
+        new_contract_details_list = self.get_contract_details(
             ibcontract_pattern,
             allow_expired=allow_expired,
             allow_multiple_contracts=True,

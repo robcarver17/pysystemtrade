@@ -188,7 +188,7 @@ ib_futures_instrument_data = ibFuturesInstrumentData(conn)
 ib_futures_instrument_data.get_list_of_instruments()
 ib_futures_instrument_data.get_futures_instrument_object_with_IB_data("EDOLLAR") # again used by other functions to get the 'metadata' to map into IB instruments
 ib_futures_instrument_data.get_brokers_instrument_code("EDOLLAR") # reverse of next function
-ib_futures_instrument_data.get_instrument_code_from_broker_code("GE") # reverse of previous function
+ib_futures_instrument_data.get_instrument_code_from_broker_contract_object("GE") # reverse of previous function
 ```
 
 

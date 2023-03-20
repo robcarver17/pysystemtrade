@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import pandas as pd
 
 from sysbrokers.IB.ib_instruments import (
@@ -98,14 +99,20 @@ def _get_instrument_object_from_valid_config(
     return futures_instrument_with_ib_data
 
 
-def get_instrument_code_from_broker_code(
+@dataclass
+class IBInstrumentIdentity:
+    ib_code: str
+    ib_multiplier: float
+    ib_exchange: str
+
+
+def get_instrument_code_from_broker_instrument_identity(
     config: IBconfig,
-    ib_code: str,
+    ib_instrument_identity: IBInstrumentIdentity,
     log: logger = logtoscreen(""),
-    ib_exchange: str = arg_not_supplied,
-    ib_multiplier: float = arg_not_supplied,
 ) -> str:
 
+    ib_code = ib_instrument_identity.ib_code
     config_row = config[config.IBSymbol == ib_code]
     if len(config_row) == 0:
         msg = "Broker symbol %s not found in configuration file!" % ib_code
@@ -116,11 +123,9 @@ def get_instrument_code_from_broker_code(
         ## need to resolve with multiplier
         instrument_code = (
             get_instrument_code_from_broker_code_with_multiple_possibilities(
-                ib_code=ib_code,
+                ib_instrument_identity=ib_instrument_identity,
                 config=config,
                 log=log,
-                ib_exchange=ib_exchange,
-                ib_multiplier=ib_multiplier,
             )
         )
     else:
@@ -130,13 +135,11 @@ def get_instrument_code_from_broker_code(
 
 
 def get_instrument_code_from_broker_code_with_multiple_possibilities(
+    ib_instrument_identity: IBInstrumentIdentity,
     config: IBconfig,
-    ib_code: str,
     log: logger = logtoscreen(""),
-    ib_exchange: str = arg_not_supplied,
-    ib_multiplier: float = arg_not_supplied,
 ) -> str:
-
+    ib_code = ib_instrument_identity.ib_code
     # FIXME PATCH
     if ib_code == "EOE":
         return "AEX"
