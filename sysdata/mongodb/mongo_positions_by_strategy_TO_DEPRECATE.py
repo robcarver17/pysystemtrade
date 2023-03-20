@@ -1,4 +1,4 @@
-from sysdata.production.historic_positions import strategyPositionData
+from sysdata.production.historic_positions_TO_DEPRECATE import strategyPositionData
 from sysdata.mongodb.mongo_timed_storage_TO_DEPRECATE import mongoListOfEntriesData
 
 POSITION_STRATEGY_COLLECTION = "futures_position_by_strategy"

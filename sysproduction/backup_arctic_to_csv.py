@@ -35,15 +35,19 @@ from sysdata.arctic.arctic_spreads import arcticSpreadsForInstrumentData
 from sysdata.arctic.arctic_capital import arcticCapitalData
 
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
-from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData
-from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionData
+from sysdata.mongodb.mongo_position_by_contract_TO_DEPRECATE import (
+    mongoContractPositionData,
+)
+from sysdata.mongodb.mongo_positions_by_strategy_TO_DEPRECATE import (
+    mongoStrategyPositionData,
+)
 from sysdata.mongodb.mongo_historic_orders import (
     mongoBrokerHistoricOrdersData,
     mongoContractHistoricOrdersData,
     mongoStrategyHistoricOrdersData,
 )
 from sysdata.mongodb.mongo_spread_costs import mongoSpreadCostData
-from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
+from sysdata.mongodb.mongo_optimal_position_TO_DEPRECATE import mongoOptimalPositionData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 
 from sysobjects.contracts import futuresContract

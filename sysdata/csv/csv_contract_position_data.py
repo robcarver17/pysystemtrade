@@ -1,5 +1,5 @@
 import pandas as pd
-from sysdata.production.historic_positions import contractPositionData
+from sysdata.production.historic_positions_TO_DEPRECATE import contractPositionData
 from sysobjects.contracts import futuresContract
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.constants import arg_not_supplied

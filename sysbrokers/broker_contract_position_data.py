@@ -2,7 +2,7 @@ from syslogdiag.log_to_screen import logtoscreen
 
 from syscore.constants import arg_not_supplied
 
-from sysdata.production.historic_positions import contractPositionData
+from sysdata.production.historic_positions_TO_DEPRECATE import contractPositionData
 from sysdata.data_blob import dataBlob
 from sysobjects.production.positions import listOfContractPositions
 

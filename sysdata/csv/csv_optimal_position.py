@@ -1,5 +1,5 @@
 import pandas as pd
-from sysdata.production.optimal_positions import optimalPositionData
+from sysdata.production.optimal_positions_TO_DEPRECATE import optimalPositionData
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.constants import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
