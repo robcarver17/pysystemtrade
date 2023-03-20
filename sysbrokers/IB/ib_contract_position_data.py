@@ -80,6 +80,7 @@ class ibContractPositionData(brokerContractPositionData):
             raise missingContract
 
         ib_code = position_entry["symbol"]
+        ib_multiplier = position_entry["multiplier"]
         instrument_code = (
             self.futures_instrument_data.get_instrument_code_from_broker_code(ib_code)
         )

@@ -89,6 +89,7 @@ def resolve_ib_future_position(position):
         multiplier=float(position.contract.multiplier),
         currency=position.contract.currency,
         position=position.position,
+        exchange=position.exchange,
     )
 
 

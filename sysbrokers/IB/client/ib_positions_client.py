@@ -12,9 +12,34 @@ class ibPositionsClient(ibClient):
         # dict entries are asset classes, columns are IB symbol, contract ID,
         # contract expiry
 
-        raw_positions = self.ib.positions()
+        list_of_raw_positions = self.ib.positions()
+        raw_positions_with_codes = self.add_exchange_codes_to_list_of_raw_ib_positions(
+            list_of_raw_positions
+        )
         dict_of_positions = from_ib_positions_to_dict(
-            raw_positions, account_id=account_id
+            raw_positions_with_codes, account_id=account_id
         )
 
         return dict_of_positions
+
+    def add_exchange_codes_to_list_of_raw_ib_positions(
+        self, list_of_raw_positions: list
+    ) -> list:
+        raw_positions_with_codes = [
+            self.add_exchange_code_to_raw_ib_position(raw_position)
+            for raw_position in list_of_raw_positions
+        ]
+
+        return raw_positions_with_codes
+
+    def add_exchange_code_to_raw_ib_position(self, raw_ib_position):
+        ib_contract = raw_ib_position.contract
+        list_of_contract_details = self.ib.reqContractDetails(ib_contract)
+        if len(list_of_contract_details) > 1:
+            self.log.critical("Position should only have one contract associated")
+        contract_details = list_of_contract_details[0]
+        exchange_code = contract_details.validExchanges
+
+        setattr(ib_contract, "exchange", exchange_code)
+
+        return ib_contract
