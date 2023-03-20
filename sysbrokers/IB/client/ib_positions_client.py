@@ -33,13 +33,16 @@ class ibPositionsClient(ibClient):
         return raw_positions_with_codes
 
     def add_exchange_code_to_raw_ib_position(self, raw_ib_position):
-        ib_contract = raw_ib_position.contract
-        list_of_contract_details = self.ib.reqContractDetails(ib_contract)
-        if len(list_of_contract_details) > 1:
-            self.log.critical("Position should only have one contract associated")
-        contract_details = list_of_contract_details[0]
-        exchange_code = contract_details.validExchanges
+        try:
+            ib_contract = raw_ib_position.contract
+            list_of_contract_details = self.ib.reqContractDetails(ib_contract)
+            if len(list_of_contract_details) > 1:
+                self.log.critical("Position should only have one contract associated")
+            contract_details = list_of_contract_details[0]
+            exchange_code = contract_details.validExchanges
+        except:
+            exchange_code = ""
 
-        setattr(ib_contract, "exchange", exchange_code)
+        setattr(raw_ib_position, "exchange", exchange_code)
 
-        return ib_contract
+        return raw_ib_position
