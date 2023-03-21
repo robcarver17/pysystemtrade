@@ -38,7 +38,8 @@ from sysproduction.data.currency_data import dataCurrency, get_valid_fx_code_fro
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.logs import diagLogs
 from sysproduction.data.orders import dataOrders
-from sysproduction.data.positions import diagPositions, dataOptimalPositions
+from sysproduction.data.positions import diagPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.contracts import dataContracts

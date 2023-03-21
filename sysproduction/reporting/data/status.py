@@ -18,7 +18,7 @@ from sysproduction.data.controls import (
     dataPositionLimits,
 )
 from sysproduction.data.currency_data import get_list_of_fxcodes, dataCurrency
-from sysproduction.data.positions import dataOptimalPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 from sysproduction.data.prices import get_list_of_instruments, diagPrices
 from sysproduction.data.strategies import get_list_of_strategies
 

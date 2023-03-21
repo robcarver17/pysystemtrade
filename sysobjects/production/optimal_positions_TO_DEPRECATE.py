@@ -8,6 +8,8 @@ from sysobjects.production.positions import (
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysobjects.production.timed_storage_TO_DEPRECATE import timedEntry
 
+### NOT DEPRECATING, BUT REMOVING ALL REFERENCES TO TIMED DENTRY
+
 
 class simpleOptimalPosition(timedEntry):
     """

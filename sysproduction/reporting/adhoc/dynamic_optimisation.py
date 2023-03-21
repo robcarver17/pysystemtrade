@@ -26,7 +26,7 @@ from sysproduction.reporting.reporting_functions import (
     PdfOutputWithTempFileName,
 )
 from sysproduction.reporting.report_configs import reportConfig
-from sysproduction.data.positions import dataOptimalPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 
 from sysquant.estimators.stdev_estimator import stdevEstimates
 from sysquant.optimisation.weights import portfolioWeights

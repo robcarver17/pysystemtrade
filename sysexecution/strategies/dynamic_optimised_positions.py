@@ -30,7 +30,7 @@ from sysobjects.production.override import (
 )
 
 from sysproduction.data.controls import dataPositionLimits
-from sysproduction.data.positions import dataOptimalPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 from sysproduction.data.controls import diagOverrides
 
 from sysproduction.data.capital import capital_for_strategy

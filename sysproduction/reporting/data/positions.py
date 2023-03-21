@@ -1,5 +1,6 @@
 from sysproduction.data.broker import dataBroker
-from sysproduction.data.positions import dataOptimalPositions, diagPositions
+from sysproduction.data.positions import diagPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 
 
 def get_optimal_positions(data):

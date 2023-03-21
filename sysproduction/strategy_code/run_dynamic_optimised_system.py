@@ -12,9 +12,7 @@ from sysproduction.strategy_code.run_system_classic import (
     runSystemClassic,
 )
 from sysproduction.data.contracts import dataContracts
-from sysproduction.data.positions import (
-    dataOptimalPositions,
-)
+from sysproduction.data.optimal_positions import dataOptimalPositions
 from sysproduction.data.backtest import store_backtest_state
 
 from syslogdiag.log_to_screen import logtoscreen

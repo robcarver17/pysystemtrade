@@ -21,7 +21,8 @@ from syscore.interactive.menus import (
 from syscore.interactive.display import set_pd_print_options
 
 from sysdata.data_blob import dataBlob
-from sysproduction.data.positions import diagPositions, dataOptimalPositions
+from sysproduction.data.positions import diagPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 from sysproduction.data.broker import dataBroker
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.strategies import get_valid_strategy_name_from_user

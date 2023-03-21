@@ -23,7 +23,7 @@ from sysobjects.production.tradeable_object import instrumentStrategy
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.contracts import dataContracts
-from sysproduction.data.positions import dataOptimalPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 from sysproduction.data.sim_data import get_sim_data_object_for_production
 
 from sysproduction.data.backtest import store_backtest_state
