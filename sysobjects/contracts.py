@@ -124,6 +124,14 @@ class futuresContract(object):
         else:
             return False
 
+    @classmethod
+    def from_key(cls, key):
+        code_and_id = get_code_and_id_from_contract_key(key)
+        instrument_code = code_and_id[0]
+        contract_id = code_and_id[1]
+
+        return cls(instrument_object=instrument_code, contract_date_object=contract_id)
+
     @property
     def key(self):
         return get_contract_key_from_code_and_id(self.instrument_code, self.date_str)

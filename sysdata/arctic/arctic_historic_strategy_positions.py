@@ -6,7 +6,7 @@ from sysobjects.production.tradeable_object import (
     instrumentStrategy,
 )
 from sysdata.arctic.arctic_connection import arcticData
-from sysdata.production.historic_positions import strategyPositionData
+from sysdata.production.historic_strategy_positions import strategyPositionData
 from syscore.exceptions import missingData
 
 from syslogdiag.log_to_screen import logtoscreen
