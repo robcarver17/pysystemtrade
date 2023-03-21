@@ -59,7 +59,9 @@ class strategyPositionData(baseData):
 
         try:
             self._update_position_for_instrument_strategy_object_with_date(
-                instrument_strategy=instrument_strategy, date=date, position=position
+                instrument_strategy=instrument_strategy,
+                position=position,
+                date_index=date,
             )
         except Exception as e:
             self.log.critical(
@@ -167,7 +169,7 @@ class strategyPositionData(baseData):
         self,
         instrument_strategy: instrumentStrategy,
         position: int,
-        date: datetime.datetime,
+        date_index: datetime.datetime,
     ):
 
         raise NotImplementedError
