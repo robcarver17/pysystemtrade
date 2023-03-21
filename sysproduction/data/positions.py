@@ -33,7 +33,7 @@ from sysobjects.production.tradeable_object import (
     listOfInstrumentStrategies,
     instrumentStrategy,
 )
-from sysobjects.production.optimal_positions import (
+from sysobjects.production.optimal_positions_TO_DEPRECATE import (
     simpleOptimalPosition,
     listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies,
     listOfOptimalPositionsAcrossInstrumentStrategies,

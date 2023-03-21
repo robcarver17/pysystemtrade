@@ -17,7 +17,7 @@ from sysexecution.orders.instrument_orders import instrumentOrder, best_order_ty
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.strategies.strategy_order_handling import orderGeneratorForStrategy
 from sysobjects.production.tradeable_object import instrumentStrategy
-from sysobjects.production.optimal_positions import (
+from sysobjects.production.optimal_positions_TO_DEPRECATE import (
     optimalPositionWithDynamicCalculations,
 )
 from sysquant.estimators.correlations import correlationEstimate

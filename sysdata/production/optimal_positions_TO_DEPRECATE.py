@@ -13,7 +13,7 @@ from syscore.constants import failure
 from sysdata.production.timed_storage_TO_DEPRECATE import (
     listOfEntriesData,
 )
-from sysobjects.production.optimal_positions import (
+from sysobjects.production.optimal_positions_TO_DEPRECATE import (
     simpleOptimalPosition,
     bufferedOptimalPositions,
     instrumentStrategyAndOptimalPosition,

@@ -2,7 +2,7 @@ from syscore.constants import arg_not_supplied
 
 from sysdata.config.configdata import Config
 from sysdata.data_blob import dataBlob
-from sysobjects.production.optimal_positions import optimalPositionWithReference
+from sysobjects.production.optimal_positions_TO_DEPRECATE import optimalPositionWithReference
 from sysobjects.production.tradeable_object import instrumentStrategy
 
 from sysproduction.data.sim_data import get_sim_data_object_for_production
