@@ -1,6 +1,11 @@
 from syscore.constants import arg_not_supplied
 from sysbrokers.IB.client.ib_client import ibClient
-from sysbrokers.IB.ib_positions import from_ib_positions_to_dict, positionsFromIB
+from sysbrokers.IB.ib_positions import (
+    from_ib_positions_to_dict,
+    positionsFromIB,
+    IBPositionWithExtendedAttr,
+)
+from ib_insync.ib import Position
 
 
 class ibPositionsClient(ibClient):
@@ -12,9 +17,9 @@ class ibPositionsClient(ibClient):
         # dict entries are asset classes, columns are IB symbol, contract ID,
         # contract expiry
 
-        raw_positions = self.ib.positions()
+        list_of_raw_positions = self.ib.positions()
         dict_of_positions = from_ib_positions_to_dict(
-            raw_positions, account_id=account_id
+            list_of_raw_positions, account_id=account_id
         )
 
         return dict_of_positions

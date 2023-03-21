@@ -2789,8 +2789,8 @@ As discussed above, these are used purely for control and monitoring purposes in
 
 The following are configurations mainly for mapping from our codes to broker codes:
 
-- [/sysbrokers/IB/ib_config_futures.csv](/sysbrokers/IB/ib_config_futures.csv)
-- [/sysbrokers/IB/ib_config_spot_FX.csv](/sysbrokers/IB/ib_config_spot_FX.csv)
+- [/sysbrokers/IB/ib_config_futures.csv](/sysbrokers/IB/config/ib_config_futures.csv)
+- [/sysbrokers/IB/ib_config_spot_FX.csv](/sysbrokers/IB/config/ib_config_spot_FX.csv)
 
 
 ### Instrument and roll configuration

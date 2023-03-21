@@ -182,7 +182,6 @@ class accountForecast(accountCosts):
             "Calculating pandl for instrument forecast for %s %s"
             % (instrument_code, rule_variation_name),
             instrument_code=instrument_code,
-            rule_variation_name=rule_variation_name,
         )
 
         forecast = self.get_capped_forecast(instrument_code, rule_variation_name)

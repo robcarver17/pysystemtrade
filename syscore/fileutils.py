@@ -9,20 +9,6 @@ from typing import List, Tuple
 from syscore.dateutils import SECONDS_PER_DAY
 
 # DO NOTE DELETE: all these are unused: but are required to get the filename padding to work
-import examples
-import private
-import data
-import sysbrokers
-import syscontrol
-import syscore
-import sysdata
-import sysexecution
-import sysinit
-import syslogdiag
-import sysobjects
-import sysproduction
-import sysquant
-import systems
 
 
 """
@@ -31,55 +17,11 @@ import systems
 
 """
 
-
-def files_with_extension_in_pathname(pathname: str, extension=".csv") -> List[str]:
-    """
-    Find all the files with a particular extension in a directory
-
-    """
-    resolved_pathname = get_resolved_pathname(pathname)
-
-    return files_with_extension_in_resolved_pathname(
-        resolved_pathname, extension=extension
-    )
-
-
-def files_with_extension_in_resolved_pathname(
-    resolved_pathname: str, extension=".csv"
-) -> List[str]:
-    """
-    Find all the files with a particular extension in a directory
-    """
-
-    file_list = os.listdir(resolved_pathname)
-    file_list = [filename for filename in file_list if filename.endswith(extension)]
-    file_list_no_extension = [filename.split(".")[0] for filename in file_list]
-
-    return file_list_no_extension
-
-
-def full_filename_for_file_in_home_dir(filename: str) -> str:
-    pathname = os.path.expanduser("~")
-
-    return os.path.join(pathname, filename)
-
-
 """
 
     FILE RENAMING AND DELETING
 
 """
-
-
-def does_filename_exist(filename: str) -> bool:
-    resolved_filename = resolve_path_and_filename_for_package(filename)
-    file_exists = does_resolved_filename_exist(resolved_filename)
-    return file_exists
-
-
-def does_resolved_filename_exist(resolved_filename: str) -> bool:
-    file_exists = os.path.isfile(resolved_filename)
-    return file_exists
 
 
 def rename_files_with_extension_in_pathname_as_archive_files(
@@ -403,3 +345,46 @@ def write_list_of_lists_as_html_table_in_file(file, list_of_lists: list):
         file.write("  </td></tr>")
 
     file.write("</table>")
+
+
+def files_with_extension_in_pathname(pathname: str, extension=".csv") -> List[str]:
+    """
+    Find all the files with a particular extension in a directory
+
+    """
+    resolved_pathname = get_resolved_pathname(pathname)
+
+    return files_with_extension_in_resolved_pathname(
+        resolved_pathname, extension=extension
+    )
+
+
+def files_with_extension_in_resolved_pathname(
+    resolved_pathname: str, extension=".csv"
+) -> List[str]:
+    """
+    Find all the files with a particular extension in a directory
+    """
+
+    file_list = os.listdir(resolved_pathname)
+    file_list = [filename for filename in file_list if filename.endswith(extension)]
+    file_list_no_extension = [filename.split(".")[0] for filename in file_list]
+
+    return file_list_no_extension
+
+
+def full_filename_for_file_in_home_dir(filename: str) -> str:
+    pathname = os.path.expanduser("~")
+
+    return os.path.join(pathname, filename)
+
+
+def does_filename_exist(filename: str) -> bool:
+    resolved_filename = resolve_path_and_filename_for_package(filename)
+    file_exists = does_resolved_filename_exist(resolved_filename)
+    return file_exists
+
+
+def does_resolved_filename_exist(resolved_filename: str) -> bool:
+    file_exists = os.path.isfile(resolved_filename)
+    return file_exists

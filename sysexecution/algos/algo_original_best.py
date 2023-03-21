@@ -194,20 +194,14 @@ class algoOriginalBest(Algo):
                 pass
 
             order_completed = broker_order_with_controls_and_order_id.completed()
+            if order_completed:
+                log.msg("Trade completed")
+                break
 
             order_timeout = (
                 broker_order_with_controls_and_order_id.seconds_since_submission()
                 > TOTAL_TIME_OUT
             )
-
-            order_cancelled = data_broker.check_order_is_cancelled_given_control_object(
-                broker_order_with_controls_and_order_id
-            )
-
-            if order_completed:
-                log.msg("Trade completed")
-                break
-
             if order_timeout:
                 log.msg("Run out of time: cancelling")
                 broker_order_with_controls_and_order_id = cancel_order(
@@ -215,6 +209,9 @@ class algoOriginalBest(Algo):
                 )
                 break
 
+            order_cancelled = data_broker.check_order_is_cancelled_given_control_object(
+                broker_order_with_controls_and_order_id
+            )
             if order_cancelled:
                 log.warn("Order has been cancelled: not by algo")
                 break
@@ -293,35 +290,37 @@ def reason_to_switch_to_aggressive(
     too_much_time = (
         broker_order_with_controls.seconds_since_submission() > PASSIVE_TIME_OUT
     )
-    adverse_price = ticker_object.adverse_price_movement_vs_reference()
-
-    try:
-        adverse_size = adverse_size_issue(
-            ticker_object, wait_for_valid_tick=False, log=log
-        )
-    except missingData:
-        adverse_size = True
-
-    market_about_to_close = is_market_about_to_close(
-        data=data, order=broker_order_with_controls, log=log
-    )
-
     if too_much_time:
         return (
             "Time out after %f seconds"
             % broker_order_with_controls.seconds_since_submission()
         )
-    elif adverse_price:
-        return "Adverse price movement"
-    elif adverse_size:
-        return (
-            "Imbalance ratio of %f exceeds threshold"
-            % ticker_object.latest_imbalance_ratio()
-        )
-    elif market_about_to_close:
+
+    market_about_to_close = is_market_about_to_close(
+        data=data, order=broker_order_with_controls, log=log
+    )
+    if market_about_to_close:
         return "Market is closing soon or stack handler will end soon"
 
-    return no_need_to_switch
+    try:
+        adverse_price = ticker_object.adverse_price_movement_vs_reference()
+        if adverse_price:
+            return "Adverse price movement"
+
+        adverse_size = adverse_size_issue(
+            ticker_object, wait_for_valid_tick=False, log=log
+        )
+        if adverse_size:
+            return (
+                "Imbalance ratio of %f exceeds threshold"
+                % ticker_object.latest_imbalance_ratio()
+            )
+
+        ## everything is fine, stay with aggressive
+        return no_need_to_switch
+
+    except:
+        return "Problem with data, switch to aggressive"
 
 
 def is_market_about_to_close(
@@ -342,7 +341,7 @@ def is_market_about_to_close(
     return short_of_time
 
 
-def required_to_switch_to_aggressive(reason):
+def required_to_switch_to_aggressive(reason: str) -> bool:
     if reason == no_need_to_switch:
         return False
     else:

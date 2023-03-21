@@ -62,6 +62,9 @@ intraday_frequency: H
 # Capital calculation
 production_capital_method: 'full'
 #
+stale_instruments: ['an_instrument_i_no_longer_trade_or_sample']
+#
+#
 #           BACKTESTING STUFF
 #
 # Raw data

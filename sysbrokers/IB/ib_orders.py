@@ -210,10 +210,11 @@ class ibExecutionStackData(brokerExecutionStackData):
         """
         try:
             try:
-                instrument_code = (
-                    self.futures_instrument_data.get_instrument_code_from_broker_code(
-                        trade_with_contract_from_ib.ib_instrument_code
-                    )
+                ib_contract = (
+                    trade_with_contract_from_ib.ibcontract_with_legs.ibcontract
+                )
+                instrument_code = self.futures_instrument_data.get_instrument_code_from_broker_contract_object(
+                    ib_contract
                 )
             except:
                 raise ibOrderCouldntCreateException()

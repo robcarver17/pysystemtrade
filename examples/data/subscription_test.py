@@ -8,8 +8,7 @@ from ib_insync import ContractDetails
 from ib_insync import Future
 from ib_insync import IB
 
-from sysbrokers.IB.ib_instruments_data import IBconfig
-from sysbrokers.IB.ib_instruments_data import read_ib_config_from_file
+from sysbrokers.IB.config.ib_instrument_config import IBconfig, read_ib_config_from_file
 
 HOSTNAME = "localhost"
 

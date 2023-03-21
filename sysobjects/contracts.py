@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from syscore.constants import arg_not_supplied
 
-from syslogdiag.logger import logger
+from syslogdiag.logger import logger, INSTRUMENT_CODE_LOG_LABEL, CONTRACT_DATE_LOG_LABEL
 
 from sysobjects.contract_dates_and_expiries import (
     contractDate,
@@ -92,7 +92,10 @@ class futuresContract(object):
 
     def specific_log(self, log):
         new_log = log.setup(
-            instrument_code=self.instrument_code, contract_date=self.date_str
+            **{
+                INSTRUMENT_CODE_LOG_LABEL: self.instrument_code,
+                CONTRACT_DATE_LOG_LABEL: self.date_str,
+            }
         )
 
         return new_log

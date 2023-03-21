@@ -61,7 +61,6 @@ class ForecastScaleCap(SystemStage):
             "Calculating capped forecast for %s %s"
             % (instrument_code, rule_variation_name),
             instrument_code=instrument_code,
-            rule_variation_name=rule_variation_name,
         )
 
         scaled_forecast = self.get_scaled_forecast(instrument_code, rule_variation_name)
@@ -307,8 +306,7 @@ class ForecastScaleCap(SystemStage):
 
         self.log.msg(
             "Getting cross sectional forecasts for scalar calculation for %s over %s"
-            % (rule_variation_name, ", ".join(instrument_list)),
-            rule_variation_name=rule_variation_name,
+            % (rule_variation_name, ", ".join(instrument_list))
         )
 
         forecast_list = [

@@ -31,6 +31,7 @@ from sysdata.config.private_directory import (
     PRIVATE_CONFIG_DIR_ENV_VAR,
 )
 from syslogdiag.log_to_screen import logtoscreen
+from syslogdiag.logger import TYPE_LOG_LABEL, STAGE_LOG_LABEL
 from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
 
 RESERVED_NAMES = [
@@ -75,7 +76,7 @@ class Config(object):
         """
 
         # this will normally be overriden by the base system
-        self.log = logtoscreen(type="config", stage="config")
+        self.log = logtoscreen(**{TYPE_LOG_LABEL: "config", STAGE_LOG_LABEL: "config"})
 
         self._default_filename = default_filename
         self._private_filename = private_filename

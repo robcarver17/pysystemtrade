@@ -220,8 +220,11 @@ class diagPrices(productionDataLayerGeneric):
 
     def remove_stale_instruments(self, list_of_instruments: list) -> list:
         stale_instruments = self.get_stale_instruments()
-        for instrument_code in stale_instruments:
-            list_of_instruments.remove(instrument_code)
+        list_of_instruments = [
+            instrument_code
+            for instrument_code in list_of_instruments
+            if not instrument_code in stale_instruments
+        ]
 
         return list_of_instruments
 
