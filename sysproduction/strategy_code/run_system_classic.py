@@ -15,7 +15,9 @@ from syscore.exceptions import missingData
 from sysdata.config.configdata import Config
 from sysdata.data_blob import dataBlob
 
-from sysobjects.production.optimal_positions_TO_DEPRECATE import bufferedOptimalPositions
+from sysobjects.production.optimal_positions_TO_DEPRECATE import (
+    bufferedOptimalPositions,
+)
 from sysobjects.production.tradeable_object import instrumentStrategy
 
 from sysproduction.data.currency_data import dataCurrency

@@ -8,8 +8,12 @@ from syscore.exceptions import ContractNotFound
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
-from sysdata.mongodb.mongo_position_by_contract_TO_DEPRECATE import mongoContractPositionData
-from sysdata.mongodb.mongo_positions_by_strategy_TO_DEPRECATE import mongoStrategyPositionData
+from sysdata.mongodb.mongo_position_by_contract_TO_DEPRECATE import (
+    mongoContractPositionData,
+)
+from sysdata.mongodb.mongo_positions_by_strategy_TO_DEPRECATE import (
+    mongoStrategyPositionData,
+)
 from sysdata.mongodb.mongo_optimal_position_TO_DEPRECATE import mongoOptimalPositionData
 
 
