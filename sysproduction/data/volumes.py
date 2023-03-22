@@ -1,6 +1,6 @@
 import datetime as datetime
 import pandas as pd
-from syscore.constants import missing_data
+from syscore.exceptions import missingData
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
@@ -64,7 +64,11 @@ class diagVolumes(productionDataLayerGeneric):
     ) -> float:
 
         contract = futuresContract(instrument_code, contract_date_str)
-        volumes = self.get_daily_volumes_for_contract(contract)
+        try:
+            volumes = self.get_daily_volumes_for_contract(contract)
+        except missingData:
+            return 0.0
+
         final_volume = get_smoothed_volume_ignoring_old_data(volumes)
 
         return final_volume
@@ -77,7 +81,7 @@ class diagVolumes(productionDataLayerGeneric):
         )
 
         if len(price_data) == 0:
-            return missing_data
+            raise missingData
 
         volumes = price_data.daily_volumes()
 
@@ -97,9 +101,6 @@ def normalise_volumes(smoothed_volumes: list) -> list:
 def get_smoothed_volume_ignoring_old_data(
     volumes: pd.Series, ignore_before_days=14, span: int = 3
 ) -> float:
-    if volumes is missing_data:
-        return 0.0
-
     # ignore anything more than say 2 weeks old (so we don't get stale data)
     two_weeks_ago = datetime.datetime.now() - datetime.timedelta(
         days=ignore_before_days
