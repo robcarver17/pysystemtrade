@@ -521,7 +521,7 @@ def actual_instrument_position(data):
     )
 
     try:
-        pos_series = diag_positions.get_position_df_for_instrument_strategy(
+        pos_series = diag_positions.get_position_series_for_instrument_strategy(
             instrument_strategy
         )
     except missingData:
@@ -551,7 +551,7 @@ def actual_contract_position(data):
     contract = futuresContract(instrument_code, contract_date_str)
 
     try:
-        pos_series = diag_positions.get_position_df_for_contract(contract)
+        pos_series = diag_positions.get_position_series_for_contract(contract)
     except missingData:
         print("missing data")
     else:

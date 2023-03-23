@@ -141,25 +141,25 @@ class diagPositions(productionDataLayerGeneric):
 
         return actual_positions
 
-    def get_position_df_for_contract(self, contract: futuresContract) -> pd.DataFrame:
+    def get_position_series_for_contract(self, contract: futuresContract) -> pd.Series:
 
         df_object = (
-            self.db_contract_position_data.get_position_as_df_for_contract_object(
+            self.db_contract_position_data.get_position_as_series_for_contract_object(
                 contract
             )
         )
 
         return df_object
 
-    def get_position_df_for_instrument_strategy(
+    def get_position_series_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
-    ) -> pd.DataFrame:
+    ) -> pd.Series:
 
-        df_object = self.db_strategy_position_data.get_position_as_df_for_instrument_strategy_object(
+        position_series = self.db_strategy_position_data.get_position_as_series_for_instrument_strategy_object(
             instrument_strategy
         )
 
-        return df_object
+        return position_series
 
     def get_positions_for_instrument_and_contract_list(
         self, instrument_code: str, list_of_contract_date_str: list

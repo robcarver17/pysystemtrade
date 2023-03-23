@@ -7,7 +7,7 @@ from sysdata.arctic.arctic_optimal_positions import arcticOptimalPositionData
 from sysdata.production.optimal_positions import optimalPositionData
 from sysobjects.production.optimal_positions import (
     listOfOptimalPositionsAcrossInstrumentStrategies,
-    simpleOptimalPosition,
+    baseOptimalPosition,
     listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies,
     instrumentStrategyAndOptimalPosition,
 )
@@ -58,7 +58,7 @@ class dataOptimalPositions(productionDataLayerGeneric):
 
     def get_current_optimal_position_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy, raw_positions=False
-    ) -> simpleOptimalPosition:
+    ) -> baseOptimalPosition:
 
         if raw_positions:
             use_instrument_strategy = instrument_strategy_with_raw_tag(
@@ -86,7 +86,7 @@ class dataOptimalPositions(productionDataLayerGeneric):
     def update_optimal_position_for_instrument_strategy(
         self,
         instrument_strategy: instrumentStrategy,
-        position_entry: simpleOptimalPosition,
+        position_entry: baseOptimalPosition,
         raw_positions=False,
     ):
         if raw_positions:

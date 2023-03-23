@@ -456,7 +456,7 @@ def get_position_for_instrument_code_at_timestamp(data_backtest, data, instrumen
     )
 
     try:
-        positions_over_time = diag_positions.get_position_df_for_instrument_strategy(
+        positions_over_time = diag_positions.get_position_series_for_instrument_strategy(
             instrument_strategy
         )
     except missingData:

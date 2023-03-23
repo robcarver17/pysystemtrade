@@ -459,7 +459,7 @@ def get_position_series_for_instrument_strategy(data, instrument_code, strategy_
     )
 
     try:
-        pos_series = diag_positions.get_position_df_for_instrument_strategy(
+        pos_series = diag_positions.get_position_series_for_instrument_strategy(
             instrument_strategy
         )
     except missingData:
@@ -494,7 +494,7 @@ def get_position_series_for_contract(data, instrument_code: str, contract_id: st
     contract = futuresContract(instrument_code, contract_id)
 
     try:
-        pos_series = diag_positions.get_position_df_for_contract(contract)
+        pos_series = diag_positions.get_position_series_for_contract(contract)
     except missingData:
         return pd.Series()
 
