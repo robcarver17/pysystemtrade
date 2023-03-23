@@ -13,7 +13,7 @@ class tradeQuantity(list):
         elif isinstance(trade_or_fill_qty, int):
             trade_or_fill_qty = [trade_or_fill_qty]
         elif isinstance(trade_or_fill_qty, np.int64):
-            trade_or_fill_qty = [trade_or_fill_qty]
+            trade_or_fill_qty = [int(trade_or_fill_qty)]
         elif isinstance(trade_or_fill_qty, float):
             trade_or_fill_qty = [int(trade_or_fill_qty)]
         else:
