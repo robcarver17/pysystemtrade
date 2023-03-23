@@ -218,8 +218,9 @@ class reportingApi(object):
 
     def get_market_moves_object(self) -> marketMovers:
         key = "_market_moves"
-        stored_market_moves = getattr(self, key, missing_data)
-        if stored_market_moves is missing_data:
+        try:
+            stored_market_moves = getattr(self, key)
+        except AttributeError:
             stored_market_moves = marketMovers(self.data)
             setattr(self, key, stored_market_moves)
 
@@ -262,10 +263,11 @@ class reportingApi(object):
         return body_text(remove_market_data.str_explain_safety)
 
     def remove_market_data(self) -> RemoveMarketData:
-        remove_market_data = getattr(self, "_remove_market_data", missing_data)
-        if remove_market_data is missing_data:
+        try:
+            remove_market_data = getattr(self, "_remove_market_data")
+        except AttributeError:
             remove_market_data = self._get_remove_market_data()
-            self._remove_market_data = remove_market_data
+            setattr(self, "_remove_market_data", remove_market_data)
 
         return remove_market_data
 
@@ -283,14 +285,17 @@ class reportingApi(object):
         return output_body_text
 
     def list_of_duplicate_market_tables(self) -> list:
-        list_of_duplicate_market_tables = getattr(
-            self, "_list_of_duplicate_market_tables", missing_data
-        )
-        if list_of_duplicate_market_tables is missing_data:
+        try:
+            list_of_duplicate_market_tables = getattr(
+                self, "_list_of_duplicate_market_tables"
+            )
+        except AttributeError:
             list_of_duplicate_market_tables = (
                 self._get_list_of_duplicate_market_tables()
             )
-            self._list_of_duplicate_market_tables = list_of_duplicate_market_tables
+        setattr(
+            self, "_list_of_duplicate_market_tables", list_of_duplicate_market_tables
+        )
 
         return list_of_duplicate_market_tables
 
@@ -340,13 +345,17 @@ class reportingApi(object):
         return total_for_futures
 
     def pandl_for_instruments_across_strategies(self) -> pd.DataFrame:
-        pandl_for_instruments_across_strategies = getattr(
-            self, "_pandl_for_instruments_across_strategies", missing_data
-        )
-        if pandl_for_instruments_across_strategies is missing_data:
-            pandl_for_instruments_across_strategies = (
-                self._pandl_for_instruments_across_strategies
-            ) = self._get_pandl_for_instruments_across_strategies()
+        try:
+            pandl_for_instruments_across_strategies = getattr(
+                self, "_pandl_for_instruments_across_strategies",
+            )
+        except AttributeError:
+            pandl_for_instruments_across_strategies = self._get_pandl_for_instruments_across_strategies()
+            setattr(
+                self,
+                "_pandl_for_instruments_across_strategies",
+                pandl_for_instruments_across_strategies,
+            )
 
         return pandl_for_instruments_across_strategies
 
@@ -359,11 +368,11 @@ class reportingApi(object):
         return pandl_for_instruments_across_strategies_df
 
     def total_capital_pandl(self) -> float:
-        total_capital_pandl = getattr(self, "_total_capital_pandl", missing_data)
-        if total_capital_pandl is missing_data:
-            total_capital_pandl = (
-                self._total_capital_pandl
-            ) = self._get_total_capital_pandl()
+        try:
+            total_capital_pandl = getattr(self, "_total_capital_pandl")
+        except AttributeError:
+            total_capital_pandl = self._get_total_capital_pandl()
+            setattr(self, "_total_capital_pandl", total_capital_pandl)
 
         return total_capital_pandl
 
@@ -394,9 +403,11 @@ class reportingApi(object):
 
     @property
     def pandl_calculator(self) -> pandlCalculateAndStore:
-        pandl_calculator = getattr(self, "_pandl_calculator", missing_data)
-        if pandl_calculator is missing_data:
-            pandl_calculator = self._pandl_calculator = self._get_pandl_calculator()
+        try:
+            pandl_calculator = getattr(self, "_pandl_calculator")
+        except AttributeError:
+            pandl_calculator = self._get_pandl_calculator()
+            setattr(self, "_pandl_calculator", pandl_calculator)
 
         return pandl_calculator
 
@@ -740,9 +751,11 @@ class reportingApi(object):
         return get_margin_usage(self.data)
 
     def instrument_risk_data(self):
-        instrument_risk = getattr(self, "_instrument_risk", missing_data)
-        if instrument_risk is missing_data:
-            instrument_risk = self._instrument_risk = self._get_instrument_risk()
+        try:
+            instrument_risk = getattr(self, "_instrument_risk")
+        except AttributeError:
+            instrument_risk = self._get_instrument_risk()
+            setattr(self, "_instrument_risk", instrument_risk)
 
         return instrument_risk
 
@@ -751,13 +764,11 @@ class reportingApi(object):
         return instrument_risk_data
 
     def instrument_risk_data_all_instruments(self) -> pd.DataFrame:
-        instrument_risk_all = getattr(
-            self, "_instrument_risk_all_instruments", missing_data
-        )
-        if instrument_risk_all is missing_data:
-            instrument_risk_all = (
-                self._instrument_risk_all_instruments
-            ) = self._get_instrument_risk_all_instruments()
+        try:
+            instrument_risk_all = getattr(self, "_instrument_risk_all_instruments")
+        except AttributeError:
+            instrument_risk_all = self._get_instrument_risk_all_instruments()
+            setattr(self, "_instrument_risk_all_instruments", instrument_risk_all)
 
         return instrument_risk_all
 
@@ -827,9 +838,11 @@ class reportingApi(object):
         return table_liquidity
 
     def liquidity_data(self) -> pd.DataFrame:
-        liquidity = getattr(self, "_liquidity_data", missing_data)
-        if liquidity is missing_data:
-            liquidity = self._liquidity_data = self._get_liquidity_data()
+        try:
+            liquidity = getattr(self, "_liquidity_data")
+        except AttributeError:
+            liquidity = self._get_liquidity_data()
+            setattr(self, "_liquidity_data", liquidity)
 
         liquidity = nice_format_liquidity_table(liquidity)
         return liquidity
@@ -1011,9 +1024,11 @@ class reportingApi(object):
 
     @property
     def cash_slippage(self) -> pd.DataFrame:
-        cash_slippage = getattr(self, "_cash_slippage", missing_data)
-        if cash_slippage is missing_data:
-            cash_slippage = self._cash_slippage = self._get_cash_slippage()
+        try:
+            cash_slippage = getattr(self, "_cash_slippage")
+        except AttributeError:
+            cash_slippage = self._get_cash_slippage()
+            setattr(self, "_cash_slippage", cash_slippage)
 
         return cash_slippage
 
@@ -1028,9 +1043,11 @@ class reportingApi(object):
 
     @property
     def raw_slippage(self) -> pd.DataFrame:
-        raw_slippage = getattr(self, "_raw_slippage", missing_data)
-        if raw_slippage is missing_data:
-            raw_slippage = self._raw_slippage = self._get_raw_slippage()
+        try:
+            raw_slippage = getattr(self, "_raw_slippage")
+        except AttributeError:
+            raw_slippage = self._get_raw_slippage()
+            setattr(self, "_raw_slippage", raw_slippage)
 
         return raw_slippage
 
