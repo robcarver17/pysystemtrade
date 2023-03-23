@@ -265,7 +265,11 @@ class contractPositionData(baseData):
         raise NotImplementedError
 
 
-def any_positions_since_start_date(position_series, start_date, end_date):
+def any_positions_since_start_date(
+    position_series: pd.Series,
+    start_date: datetime.datetime,
+    end_date: datetime.datetime,
+) -> bool:
     """
      Any positions held in a given date range
 
@@ -279,16 +283,33 @@ def any_positions_since_start_date(position_series, start_date, end_date):
      :param end_date: datetime
      :return: bool
     """
-    if len(position_series) == 0:
+    no_positions_in_series = len(position_series) == 0
+    if no_positions_in_series:
         return False
+
+    positions_during = position_series[start_date:end_date]
+    position_at_start = _infer_position_at_start(
+        position_series=position_series, start_date=start_date
+    )
+    no_initial_position = position_at_start == 0
+    no_trading_done_in_period = len(positions_during) == 0
+
+    if no_trading_done_in_period and no_initial_position:
+        return False
+
+    return True
+
+
+def _infer_position_at_start(
+    position_series: pd.Series, start_date: datetime.datetime
+) -> int:
     positions_before_start = position_series[:start_date]
-    if len(positions_before_start) == 0:
+    no_positions_before_start = len(positions_before_start) == 0
+
+    if no_positions_before_start:
         position_at_start = 0
     else:
-        position_at_start = positions_before_start.position.iloc[-1]
-    positions_during = position_series[start_date:end_date]
+        last_position_before_start = positions_before_start[-1]
+        position_at_start = last_position_before_start
 
-    if position_at_start == 0 and len(positions_during) == 0:
-        return False
-    else:
-        return True
+    return position_at_start
