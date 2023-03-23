@@ -73,6 +73,7 @@ class RemoveMarketData:
     @property
     def str_all_recommended_bad_markets_in_yaml_form(self) -> str:
         recommended_list_of_bad_markets = self.recommended_list_of_bad_markets()
+        recommended_list_of_bad_markets.sort()
         list_in_yaml_form = [
             " - %s \n" % instrument_code
             for instrument_code in recommended_list_of_bad_markets
