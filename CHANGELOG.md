@@ -1,5 +1,18 @@
 # Release notes
 
+## Version 1.60
+
+- Moved storage of contract positions, instrument strategy positions, optimal positions from mongo/timedStorage to Arctic [announcement]()
+- Multiple instances of same IB symbol in config can now be resolved
+- Instrument config and roll config now live purely in .csv
+- Seperate database table for spread costs
+- Logs have to have one of a limited number of labels
+- Positions now use database stored expiries, not live IB expiries
+- Portfolio beta in risk reports
+- Many additional instruments added to config
+- Can apply a long only constraint to instrument positions
+- Live p&l now returned as accountCurve object
+
 ## Version 1.50
 
 - Added optional code to run price collection throughout the day, see [announcement](https://github.com/robcarver17/pysystemtrade/discussions/961)

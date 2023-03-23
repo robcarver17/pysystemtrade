@@ -23,9 +23,10 @@ class baseOptimalPosition:
         return cls(**inputs_as_dict)
 
     def as_df_row(self):
-        return pd.DataFrame(
-            dict([(key, getattr(self, key)) for key in self.fields]), index=[self.date]
-        )
+        return pd.DataFrame(self.as_dict(), index=[self.date])
+
+    def as_dict(self) -> dict:
+        return dict([(key, getattr(self, key)) for key in self.fields])
 
     @property
     def fields(self) -> list:
