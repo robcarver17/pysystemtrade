@@ -1,17 +1,16 @@
 import pandas as pd
-from sysdata.mongodb.mongo_positions_by_strategy_TO_DEPRECATE import (
+from sysdata._DEPRECATED.mongo_positions_by_strategy_TO_DEPRECATE import (
     mongoStrategyPositionData,
 )
-from sysdata.mongodb.mongo_position_by_contract_TO_DEPRECATE import (
+from sysdata._DEPRECATED.mongo_position_by_contract_TO_DEPRECATE import (
     mongoContractPositionData,
 )
-from sysdata.mongodb.mongo_optimal_position_TO_DEPRECATE import mongoOptimalPositionData
+from sysdata._DEPRECATED.mongo_optimal_position_TO_DEPRECATE import mongoOptimalPositionData
 
 from sysdata.arctic.arctic_historic_strategy_positions import arcticStrategyPositionData
 from sysdata.arctic.arctic_historic_contract_positions import arcticContractPositionData
 from sysdata.arctic.arctic_optimal_positions import arcticOptimalPositionData
 
-from syslogdiag.log_to_screen import logtoscreen
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysobjects.contracts import futuresContract
 
