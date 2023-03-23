@@ -70,6 +70,33 @@ class RemoveMarketData:
             % (BAD_THRESHOLD, str(self.removed_markets_addback()))
         )
 
+    @property
+    def str_all_recommended_bad_markets_in_yaml_form(self) -> str:
+        recommended_list_of_bad_markets = self.recommended_list_of_bad_markets()
+        list_in_yaml_form = [
+            " - %s \n" for instrument_code in recommended_list_of_bad_markets
+        ]
+        yaml_string = "".join(list_in_yaml_form)
+
+        return "Put following into config.yaml\n %s" % yaml_string
+
+    def recommended_list_of_bad_markets(self):
+        existing_bad_markets = self.existing_bad_markets
+        to_be_removed = self.removed_markets_addback()
+        new_bad_markets = self.existing_markets_to_remove()
+
+        set_of_markets_without_removals = set(existing_bad_markets).difference(
+            set(to_be_removed)
+        )
+        set_of_markets_without_removals_and_with_new_baddies = set(
+            set_of_markets_without_removals
+        ).union(set(new_bad_markets))
+        recommended_list_of_bad = list(
+            set_of_markets_without_removals_and_with_new_baddies
+        )
+
+        return recommended_list_of_bad
+
     def removed_markets_addback(self) -> list:
         existing_bad_markets = self.existing_bad_markets
 
@@ -108,6 +135,7 @@ class RemoveMarketData:
                 + too_safe
             )
         )
+        bad_markets = list(set(bad_markets))
         bad_markets.sort()
 
         return bad_markets
