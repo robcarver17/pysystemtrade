@@ -75,12 +75,15 @@ class RemoveMarketData:
         recommended_list_of_bad_markets = self.recommended_list_of_bad_markets()
         recommended_list_of_bad_markets.sort()
         list_in_yaml_form = [
-            " - %s \n" % instrument_code
+            "    - %s \n" % instrument_code
             for instrument_code in recommended_list_of_bad_markets
         ]
         yaml_string = "".join(list_in_yaml_form)
 
-        return "Put following into config.yaml\n %s" % yaml_string
+        return (
+            "Put following into config.yaml\nexclude_instrument_lists:\n  bad_markets:\n%s"
+            % yaml_string
+        )
 
     def recommended_list_of_bad_markets(self):
         existing_bad_markets = self.existing_bad_markets
