@@ -1,8 +1,9 @@
+import datetime
 from syscore.constants import arg_not_supplied
 
 from sysdata.config.configdata import Config
 from sysdata.data_blob import dataBlob
-from sysobjects.production.optimal_positions_TO_DEPRECATE import (
+from sysobjects.production.optimal_positions import (
     optimalPositionWithReference,
 )
 from sysobjects.production.tradeable_object import instrumentStrategy
@@ -151,7 +152,11 @@ def construct_optimal_position_entry(
     reference_date = system.rawdata.get_daily_prices(instrument_code).index[-1]
     reference_contract = diag_contracts.get_priced_contract_id(instrument_code)
     position_entry = optimalPositionWithReference(
-        optimal_position, reference_price, reference_contract, reference_date
+        date=datetime.datetime.now(),
+        optimal_position=optimal_position,
+        reference_price=reference_price,
+        reference_contract=reference_contract,
+        reference_date=reference_date,
     )
 
     return position_entry

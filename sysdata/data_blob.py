@@ -190,9 +190,6 @@ class dataBlob(object):
         class_name = get_class_name(class_object)
         csv_data_paths = self.csv_data_paths
         if csv_data_paths is arg_not_supplied:
-            self.log.warn(
-                "No datapaths provided for .csv, will use defaults  (may break in production, should be fine in sim)"
-            )
             return arg_not_supplied
 
         datapath = csv_data_paths.get(class_name, "")

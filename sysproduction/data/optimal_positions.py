@@ -3,9 +3,9 @@ from copy import copy
 import pandas as pd
 
 from sysdata.data_blob import dataBlob
-from sysdata.mongodb.mongo_optimal_position_TO_DEPRECATE import mongoOptimalPositionData
-from sysdata.production.optimal_positions_TO_DEPRECATE import optimalPositionData
-from sysobjects.production.optimal_positions_TO_DEPRECATE import (
+from sysdata.arctic.arctic_optimal_positions import arcticOptimalPositionData
+from sysdata.production.optimal_positions import optimalPositionData
+from sysobjects.production.optimal_positions import (
     listOfOptimalPositionsAcrossInstrumentStrategies,
     simpleOptimalPosition,
     listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies,
@@ -18,7 +18,7 @@ from sysproduction.data.positions import diagPositions
 
 class dataOptimalPositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(mongoOptimalPositionData)
+        data.add_class_object(arcticOptimalPositionData)
 
         return data
 

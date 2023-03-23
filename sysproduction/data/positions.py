@@ -8,21 +8,17 @@ from syscore.exceptions import ContractNotFound
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
-from sysdata.mongodb.mongo_position_by_contract_TO_DEPRECATE import (
-    mongoContractPositionData,
-)
-from sysdata.mongodb.mongo_positions_by_strategy_TO_DEPRECATE import (
-    mongoStrategyPositionData,
-)
-from sysdata.mongodb.mongo_optimal_position_TO_DEPRECATE import mongoOptimalPositionData
+from sysdata.arctic.arctic_historic_contract_positions import arcticContractPositionData
+from sysdata.arctic.arctic_historic_strategy_positions import arcticStrategyPositionData
 
 
 from sysdata.production.roll_state import rollStateData
-from sysdata.production.historic_positions_TO_DEPRECATE import (
-    contractPositionData,
+from sysdata.production.historic_contract_positions import contractPositionData
+from sysdata.production.historic_strategy_positions import (
     strategyPositionData,
     listOfInstrumentStrategyPositions,
 )
+
 
 from sysdata.data_blob import dataBlob
 
@@ -49,7 +45,7 @@ from sysproduction.data.contracts import dataContracts
 class diagPositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
-            [mongoRollStateData, mongoContractPositionData, mongoStrategyPositionData]
+            [mongoRollStateData, arcticStrategyPositionData, arcticContractPositionData]
         )
         return data
 
@@ -364,7 +360,7 @@ class diagPositions(productionDataLayerGeneric):
 class updatePositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
-            [mongoRollStateData, mongoContractPositionData, mongoStrategyPositionData]
+            [mongoRollStateData, arcticStrategyPositionData, arcticContractPositionData]
         )
         return data
 

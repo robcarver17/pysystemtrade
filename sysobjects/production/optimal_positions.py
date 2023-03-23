@@ -1,73 +1,78 @@
+from dataclasses import dataclass
 import pandas as pd
+import datetime
 
-from syscore.genutils import flatten_list
 from sysobjects.production.positions import (
     instrumentStrategyPosition,
     listOfInstrumentStrategyPositions,
 )
 from sysobjects.production.tradeable_object import instrumentStrategy
-from sysobjects.production.timed_storage_TO_DEPRECATE import timedEntry
-
-### NOT DEPRECATING, BUT REMOVING ALL REFERENCES TO TIMED DENTRY
 
 
-class simpleOptimalPosition(timedEntry):
+## ALWAYS INHERIT FROM THIS: See important note below for why
+@dataclass
+class baseOptimalPosition:
+    ## Don't actually use
+    date: datetime.datetime
+
+    def check_position_break(self, position: float):
+        raise NotImplementedError
+
+    @classmethod
+    def from_dict(cls, inputs_as_dict: dict):
+        return cls(**inputs_as_dict)
+
+    def as_df_row(self):
+        return pd.DataFrame(
+            dict([(key, getattr(self, key)) for key in self.fields]), index=[self.date]
+        )
+
+    @property
+    def fields(self) -> list:
+        return optimal_position_fields(self)
+
+
+def optimal_position_fields(optimal_position_class) -> list:
+    fields = list(optimal_position_class.__dataclass_fields__.keys())
+    fields.remove("date")
+
+    return fields
+
+
+# DO NOT INHERIT FROM ME, ONLY FROM baseOptimalPosition
+@dataclass
+class simpleOptimalPosition(baseOptimalPosition):
     """
     This is the simplest possible optimal positions object
 
     """
 
-    @property
-    def required_argument_names(self) -> list:
-        return ["position"]  # compulsory args
-
-    @property
-    def _name_(self):
-        return "simpleOptimalPosition"
-
-    @property
-    def containing_data_class_name(self):
-        return "sysdata.production.optimal_positions.simpleOptimalPositionForInstrument"
+    date: datetime.datetime
+    position: float
 
     def check_position_break(self, position: float):
-        try:
-            found_break = self.position == position
-        except:
-            raise Exception(
-                "Can't check break for simpleOptimalPosition: most likely problem is data was stored incorrectly"
-            )
-        return found_break
+        return position == self.position
 
 
-class bufferedOptimalPositions(simpleOptimalPosition):
+# DO NOT INHERIT FROM ME, ONLY FROM baseOptimalPosition
+@dataclass
+class bufferedOptimalPositions(baseOptimalPosition):
     """
     Here is one with buffers
 
     """
 
-    @property
-    def required_argument_names(self) -> list:
-        return [
-            "lower_position",
-            "upper_position",
-            "reference_price",
-            "reference_contract",
-        ]  # compulsory args
+    date: datetime.datetime
+    lower_position: float
+    upper_position: float
+    reference_price: float
+    reference_contract: str
 
-    @property
-    def _name_(self):
-        return "bufferedOptimalPosition"
-
-    @property
-    def containing_data_class_name(self):
-        return (
-            "sysdata.production.optimal_positions.bufferedOptimalPositionForInstrument"
-        )
-
-    def _argument_checks(self, kwargs):
+    def _argument_checks(self):
         # run on __init__ by parent class
-        upper_position = kwargs["upper_position"]
-        lower_position = kwargs["lower_position"]
+        upper_position = self.upper_position
+        lower_position = self.lower_position
+
         try:
             assert upper_position >= lower_position
         except BaseException:
@@ -77,6 +82,7 @@ class bufferedOptimalPositions(simpleOptimalPosition):
             )
 
     def check_position_break(self, position: int):
+        self._argument_checks()
         # ignore warnings set dynamically
         return position < round(self.lower_position) or position > round(
             self.upper_position
@@ -86,28 +92,14 @@ class bufferedOptimalPositions(simpleOptimalPosition):
         return "%.3f/%.3f" % (self.lower_position, self.upper_position)
 
 
-class optimalPositionWithReference(simpleOptimalPosition):
-    @property
-    def required_argument_names(self) -> list:
-        return [
-            "optimal_position",
-            "reference_price",
-            "reference_contract",
-            "reference_date",
-        ]  # compulsory args
-
-    @property
-    def _name_(self):
-        return "optimalPositionWithReference"
-
-    @property
-    def containing_data_class_name(self):
-        return (
-            "sysdata.production.optimal_positions.optimalPositionWithReferenceForAsset"
-        )
-
-    def _argument_checks(self, kwargs):
-        pass
+# DO NOT INHERIT FROM ME, ONLY FROM baseOptimalPosition
+@dataclass
+class optimalPositionWithReference(baseOptimalPosition):
+    date: datetime.datetime
+    optimal_position: float
+    reference_price: float
+    reference_contract: str
+    reference_date: datetime.datetime
 
     def check_position_break(self, position: int):
         return False
@@ -116,32 +108,27 @@ class optimalPositionWithReference(simpleOptimalPosition):
         return "%.3f" % (self.optimal_position)
 
 
-class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
-    @property
-    def required_argument_names(self) -> list:
-        return [
-            "reference_price",
-            "reference_contract",
-            "reference_date",
-            "optimal_position",
-            "weight_per_contract",
-            "previous_position",
-            "previous_weight",
-            "reduce_only",
-            "dont_trade",
-            "position_limit_contracts",
-            "position_limit_weight",
-            "optimum_weight",
-            "minimum_weight",
-            "maximum_weight",
-            "start_weight",
-            "optimised_weight",
-            "optimised_position",
-        ]  # compulsory args
-
-    @property
-    def _name_(self):
-        return "optimalPositionWithDynamicCalculations"
+# DO NOT INHERIT FROM ME, ONLY FROM baseOptimalPosition
+@dataclass
+class optimalPositionWithDynamicCalculations(baseOptimalPosition):
+    date: datetime.datetime
+    reference_price: float
+    reference_contract: str
+    reference_date: datetime.datetime
+    optimal_position: float
+    weight_per_contract: float
+    previous_position: float
+    previous_weight: float
+    reduce_only: bool
+    dont_trade: bool
+    position_limit_contracts: float
+    position_limit_weight: float
+    optimum_weight: float
+    minimum_weight: float
+    maximum_weight: float
+    start_weight: float
+    optimised_weight: float
+    optimised_position: int
 
     def verbose_repr(self):
         ref_str = "Reference %s/%f@%s " % (
@@ -171,7 +158,6 @@ class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
             )
         )
 
-        logic_str = ""
         if self.dont_trade:
             logic_str = "(NoTrading) "
         elif self.reduce_only:
@@ -181,16 +167,6 @@ class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
 
         return ref_str + logic_str + pos_str + weight_str
 
-    @property
-    def containing_data_class_name(self):
-        ## FIX ME WHAT DOES THIS ACTUALLY DO??
-        return (
-            "sysdata.production.optimal_positions.dynamicOptimalPositionForInstrument"
-        )
-
-    def _argument_checks(self, kwargs):
-        assert type(kwargs["optimised_position"]) is int
-
     def check_position_break(self, position: int):
         optimised_position = self.optimised_position
         if position != optimised_position:
@@ -199,7 +175,101 @@ class optimalPositionWithDynamicCalculations(simpleOptimalPosition):
             return False
 
     def __repr__(self):
-        return "%.3f" % (self.optimised_position)
+        return "%d" % (self.optimised_position)
+
+
+def from_df_row_to_optimal_position(df_row: pd.Series) -> baseOptimalPosition:
+    df_row_as_dict = dict(df_row.to_dict())  ## avoid stupid pd warnings
+    list_of_fields = list(df_row_as_dict.keys())
+    appropriate_class = infer_class_of_optimal_position_from_field_list(list_of_fields)
+    df_row_as_dict["date"] = df_row.name
+
+    return appropriate_class.from_dict(df_row_as_dict)
+
+
+def add_optimal_position_entry_row_to_positions_as_df(
+    existing_optimal_positions_as_df: pd.DataFrame,
+    position_entry: simpleOptimalPosition,
+) -> pd.DataFrame:
+
+    _check_append_positions_okay(
+        existing_optimal_positions_as_df=existing_optimal_positions_as_df,
+        position_entry=position_entry,
+    )
+
+    position_entry_as_df_row = position_entry.as_df_row()
+    updated_optimal_df = pd.concat(
+        [existing_optimal_positions_as_df, position_entry_as_df_row]
+    )
+
+    return updated_optimal_df
+
+
+def _check_append_positions_okay(
+    existing_optimal_positions_as_df: pd.DataFrame,
+    position_entry: simpleOptimalPosition,
+):
+    list_of_fields_for_existing_position_entries = list(
+        existing_optimal_positions_as_df.columns
+    )
+    class_of_existing_position_entries = (
+        infer_class_of_optimal_position_from_field_list(
+            list_of_fields_for_existing_position_entries
+        )
+    )
+
+    try:
+        assert class_of_existing_position_entries is type(position_entry)
+    except:
+        raise Exception(
+            "Class of existing optimal positions is %s, new position entry is type %s"
+            % (str(class_of_existing_position_entries), str(type(position_entry)))
+        )
+
+    final_date_index = existing_optimal_positions_as_df.index[-1]
+
+    try:
+        assert final_date_index < position_entry.date
+    except:
+        raise Exception(
+            "Can't add a position entry which is younger than the last position entry"
+        )
+
+
+## IMPORTANT NOTE: if you create a new kind of optimal position which does not inherite from
+##    baseOptimalPosition directly, need to manually add it here
+
+MASTER_LIST_OF_OPTIMAL_POSITION_CLASSES = baseOptimalPosition.__subclasses__()
+
+
+def _class_matches_field_list(position_class, sorted_set_of_fields: set):
+    dataclass_fields = optimal_position_fields(position_class)
+    dataclass_fields.sort()
+    dataclass_fields_as_set = set(dataclass_fields)
+
+    return dataclass_fields_as_set == sorted_set_of_fields
+
+
+def infer_class_of_optimal_position_from_field_list(list_of_fields: list):
+    list_of_fields.sort()
+    sorted_set_of_fields = set(list_of_fields)
+    matching_classes = [
+        position_class
+        for position_class in MASTER_LIST_OF_OPTIMAL_POSITION_CLASSES
+        if _class_matches_field_list(position_class, sorted_set_of_fields)
+    ]
+    if len(matching_classes) == 0:
+        raise Exception(
+            "Data fields %s do not match any optimal position class"
+            % str(list_of_fields)
+        )
+    if len(matching_classes) > 1:
+        raise Exception(
+            "Data fields %s match multiple optimal position classes"
+            % str(list_of_fields)
+        )
+
+    return matching_classes[0]
 
 
 class instrumentStrategyAndOptimalPosition(object):

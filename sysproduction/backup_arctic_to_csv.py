@@ -23,7 +23,6 @@ from sysdata.csv.csv_optimal_position import csvOptimalPositionData
 from sysdata.csv.csv_spread_costs import csvSpreadCostData
 from sysdata.csv.csv_roll_state_storage import csvRollStateData
 from sysdata.csv.csv_spreads import csvSpreadsForInstrumentData
-from sysdata.csv.csv_roll_parameters import csvRollParametersData
 
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
@@ -33,21 +32,17 @@ from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesDat
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.arctic.arctic_spreads import arcticSpreadsForInstrumentData
 from sysdata.arctic.arctic_capital import arcticCapitalData
+from sysdata.arctic.arctic_historic_strategy_positions import arcticStrategyPositionData
+from sysdata.arctic.arctic_historic_contract_positions import arcticContractPositionData
+from sysdata.arctic.arctic_optimal_positions import arcticOptimalPositionData
 
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
-from sysdata.mongodb.mongo_position_by_contract_TO_DEPRECATE import (
-    mongoContractPositionData,
-)
-from sysdata.mongodb.mongo_positions_by_strategy_TO_DEPRECATE import (
-    mongoStrategyPositionData,
-)
 from sysdata.mongodb.mongo_historic_orders import (
     mongoBrokerHistoricOrdersData,
     mongoContractHistoricOrdersData,
     mongoStrategyHistoricOrdersData,
 )
 from sysdata.mongodb.mongo_spread_costs import mongoSpreadCostData
-from sysdata.mongodb.mongo_optimal_position_TO_DEPRECATE import mongoOptimalPositionData
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 
 from sysobjects.contracts import futuresContract
@@ -160,13 +155,13 @@ def get_data_and_create_csv_directories(logname):
             arcticSpreadsForInstrumentData,
             mongoBrokerHistoricOrdersData,
             mongoContractHistoricOrdersData,
-            mongoContractPositionData,
+            arcticContractPositionData,
             mongoFuturesContractData,
-            mongoOptimalPositionData,
+            arcticOptimalPositionData,
             mongoRollStateData,
             mongoSpreadCostData,
             mongoStrategyHistoricOrdersData,
-            mongoStrategyPositionData,
+            arcticStrategyPositionData,
         ]
     )
 
@@ -343,26 +338,24 @@ def backup_spreads_to_csv_for_instrument(data: dataBlob, instrument_code: str):
 
 def backup_contract_position_data(data):
     instrument_list = (
-        data.mongo_contract_position.get_list_of_instruments_with_any_position()
+        data.artic_contract_position.get_list_of_instruments_with_any_position()
     )
     for instrument_code in instrument_list:
         contract_list = (
-            data.mongo_contract_position.get_list_of_contracts_for_instrument_code(
+            data.artic_contract_position.get_list_of_contracts_for_instrument_code(
                 instrument_code
             )
         )
         for contract in contract_list:
             try:
-                mongo_data = (
-                    data.mongo_contract_position.get_position_as_df_for_contract_object(
-                        contract
-                    )
+                arctic_data = data.artic_contract_position.get_position_as_series_for_contract_object(
+                    contract
                 )
             except missingData:
                 print("No data to write to .csv")
             else:
-                data.csv_contract_position.write_position_df_for_contract(
-                    contract, mongo_data
+                data.csv_contract_position.overwrite_position_series_for_contract_object_without_checking(
+                    contract, arctic_data
                 )
             data.log.msg(
                 "Backed up %s %s contract position data" % (instrument_code, contract)
@@ -372,7 +365,7 @@ def backup_contract_position_data(data):
 def backup_strategy_position_data(data):
     strategy_list = get_list_of_strategies(data)
     instrument_list = (
-        data.mongo_contract_position.get_list_of_instruments_with_any_position()
+        data.arctic_contract_position.get_list_of_instruments_with_any_position()
     )
     for strategy_name in strategy_list:
         for instrument_code in instrument_list:
@@ -380,13 +373,13 @@ def backup_strategy_position_data(data):
                 strategy_name=strategy_name, instrument_code=instrument_code
             )
             try:
-                mongo_data = data.mongo_strategy_position.get_position_as_df_for_instrument_strategy_object(
+                arctic_data = data.arctic_strategy_position.get_position_as_series_for_instrument_strategy_object(
                     instrument_strategy
                 )
             except missingData:
                 continue
-            data.csv_strategy_position.write_position_df_for_instrument_strategy(
-                instrument_strategy, mongo_data
+            data.csv_strategy_position.overwrite_position_series_for_instrument_strategy_without_checking(
+                instrument_strategy, arctic_data
             )
             data.log.msg(
                 "Backed up %s %s strategy position data"
@@ -457,24 +450,23 @@ def add_total_capital_to_strategy_capital_dict_return_df(
 def backup_optimal_positions(data):
 
     strategy_instrument_list = (
-        data.mongo_optimal_position.get_list_of_instrument_strategies_with_optimal_position()
+        data.arctic_optimal_position.get_list_of_instrument_strategies_with_optimal_position()
     )
 
     for instrument_strategy in strategy_instrument_list:
         try:
-            mongo_data = data.mongo_optimal_position.get_optimal_position_as_df_for_instrument_strategy(
+            arctic_data = data.arctic_optimal_position.get_optimal_position_as_df_for_instrument_strategy(
                 instrument_strategy
             )
         except missingData:
             continue
-        data.csv_optimal_position.write_position_df_for_instrument_strategy(
-            instrument_strategy, mongo_data
+        data.csv_optimal_position.write_optimal_position_as_df_for_instrument_strategy_without_checking(
+            instrument_strategy, arctic_data
         )
         data.log.msg("Backed up %s  optimal position data" % str(instrument_strategy))
 
 
 def backup_spread_cost_data(data):
-    mongoSpreadCostData
     spread_cost_as_series = data.mongo_spread_cost.get_spread_costs_as_series()
     data.csv_spread_cost.write_all_instrument_spreads(spread_cost_as_series)
     data.log.msg("Backed up spread cost data")
@@ -494,7 +486,9 @@ def backup_roll_state_data(data):
 
 
 def backup_contract_data(data):
-    instrument_list = data.mongo_futures_instrument.get_list_of_instruments()
+    instrument_list = (
+        data.mongo_futures_contract.get_list_of_all_instruments_with_contracts()
+    )
     for instrument_code in instrument_list:
         contract_list = (
             data.mongo_futures_contract.get_all_contract_objects_for_instrument_code(

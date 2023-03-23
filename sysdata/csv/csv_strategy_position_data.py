@@ -1,5 +1,5 @@
 import pandas as pd
-from sysdata.production.historic_positions_TO_DEPRECATE import strategyPositionData
+from sysdata.production.historic_strategy_positions import strategyPositionData
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.constants import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
@@ -28,9 +28,10 @@ class csvStrategyPositionData(strategyPositionData):
     def __repr__(self):
         return "csvStrategyPositionData accessing %s" % self._datapath
 
-    def write_position_df_for_instrument_strategy(
-        self, instrument_strategy: instrumentStrategy, position_df: pd.DataFrame
+    def _write_updated_position_series_for_instrument_strategy_object(
+        self, instrument_strategy: instrumentStrategy, updated_series: pd.Series
     ):
+        position_df = pd.DataFrame(updated_series)
         filename = self._filename_given_instrument_strategy(instrument_strategy)
         position_df.to_csv(filename, index_label=DATE_INDEX_NAME)
 

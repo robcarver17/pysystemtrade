@@ -1,5 +1,5 @@
 import pandas as pd
-from sysdata.production.optimal_positions_TO_DEPRECATE import optimalPositionData
+from sysdata.production.optimal_positions import optimalPositionData
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.constants import arg_not_supplied
 from syslogdiag.log_to_screen import logtoscreen
@@ -28,11 +28,13 @@ class csvOptimalPositionData(optimalPositionData):
     def __repr__(self):
         return "csvOptimalPositionData accessing %s" % self._datapath
 
-    def write_position_df_for_instrument_strategy(
-        self, instrument_strategy: instrumentStrategy, position_df: pd.DataFrame
+    def write_optimal_position_as_df_for_instrument_strategy_without_checking(
+        self,
+        instrument_strategy: instrumentStrategy,
+        optimal_positions_as_df: pd.DataFrame,
     ):
         filename = self._filename_given_instrument_strategy(instrument_strategy)
-        position_df.to_csv(filename, index_label=DATE_INDEX_NAME)
+        optimal_positions_as_df.to_csv(filename, index_label=DATE_INDEX_NAME)
 
     def _filename_given_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
