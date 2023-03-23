@@ -465,7 +465,7 @@ def get_position_series_for_instrument_strategy(data, instrument_code, strategy_
     except missingData:
         return pd.Series()
 
-    return pd.Series(pos_series.position)
+    return pos_series
 
 
 def get_fills_for_contract(data, instrument_code, contract_id):
@@ -498,7 +498,7 @@ def get_position_series_for_contract(data, instrument_code: str, contract_id: st
     except missingData:
         return pd.Series()
 
-    return pd.Series(pos_series.position)
+    return pos_series
 
 
 def get_list_of_strategies(data):
