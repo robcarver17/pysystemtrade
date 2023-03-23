@@ -226,6 +226,13 @@ class reportingApi(object):
         return stored_market_moves
 
     ## MARKETS TO REMOVE
+    def body_text_all_recommended_bad_markets_clean_slate(self) -> body_text:
+        remove_market_data = self.remove_market_data()
+
+        return body_text(
+            remove_market_data.str_all_recommended_bad_markets_clean_slate_in_yaml_form
+        )
+
     def body_text_all_recommended_bad_markets(self) -> body_text:
         remove_market_data = self.remove_market_data()
 
