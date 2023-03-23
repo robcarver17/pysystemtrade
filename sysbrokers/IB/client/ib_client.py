@@ -1,5 +1,5 @@
 import datetime
-from typing import Tuple, List
+from typing import Union, List
 from ib_insync import IB
 
 from sysbrokers.IB.ib_connection import connectionIB
@@ -212,10 +212,11 @@ class ibClient(object):
         ib_contract_pattern: ibContract,
         allow_expired: bool = False,
         allow_multiple_contracts: bool = False,
-    ) -> Tuple[ibContractDetails, List[ibContractDetails]]:
+    ) -> Union[ibContractDetails, List[ibContractDetails]]:
 
-        contract_details = self.cache.get(
-            self._get_contract_details, ib_contract_pattern, allow_expired=allow_expired
+        """CACHING HERE CAUSES TOO MANY ERRORS SO DON'T USE IT"""
+        contract_details = self._get_contract_details(
+            ib_contract_pattern, allow_expired=allow_expired
         )
 
         if len(contract_details) == 0:
@@ -232,6 +233,7 @@ class ibClient(object):
     def _get_contract_details(
         self, ib_contract_pattern: ibContract, allow_expired: bool = False
     ) -> List[ibContractDetails]:
+        ## in case of caching
         ib_contract_pattern.includeExpired = allow_expired
 
         return self.ib.reqContractDetails(ib_contract_pattern)
