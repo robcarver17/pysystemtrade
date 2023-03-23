@@ -97,3 +97,9 @@ def transfer_optimal_positions():
         new_data.write_optimal_position_as_df_for_instrument_strategy_without_checking(
             instrument_strategy=instrument_strategy, optimal_positions_as_df=as_df
         )
+
+
+if __name__ == "__main__":
+    transfer_contract_positions()
+    transfer_strategy_positions()
+    transfer_optimal_positions()
