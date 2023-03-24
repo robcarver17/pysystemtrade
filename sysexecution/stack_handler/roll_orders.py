@@ -41,7 +41,7 @@ class stackHandlerForRolls(stackHandlerCore):
             self.generate_force_roll_orders_for_instrument(instrument_code)
 
     def generate_force_roll_orders_for_instrument(self, instrument_code: str):
-        no_roll_required = not self.check_roll_required(instrument_code)
+        no_roll_required = not self.check_roll_required_and_safe(instrument_code)
         if no_roll_required:
             return None
 
@@ -64,25 +64,57 @@ class stackHandlerForRolls(stackHandlerCore):
             list_of_contract_orders,
         )
 
-    def check_roll_required(self, instrument_code: str) -> bool:
-
-        order_already_on_stack = self.check_if_roll_order_already_on_stack(
-            instrument_code
-        )
+    def check_roll_required_and_safe(self, instrument_code: str) -> bool:
+        safe_to_roll = self.check_if_safe_to_add_roll_order(instrument_code)
         forced_roll_required = self.check_if_forced_roll_required(instrument_code)
 
-        if order_already_on_stack:
+        return safe_to_roll and forced_roll_required
+
+    def check_if_safe_to_add_roll_order(self, instrument_code: str) -> bool:
+        roll_order_already_on_stack = self.check_if_roll_order_already_on_stack(
+            instrument_code
+        )
+        if roll_order_already_on_stack:
+            ## already put roll order on stack
             return False
 
-        if forced_roll_required:
-            return True
-        else:
+        ## Check other strategies for orders
+        ##  (note this will return True if it's a roll order so we'd get an email if we hadn't already exited)
+        any_order_for_instrument_already_on_stack = (
+            self.check_and_warn_if_order_for_instrument_already_on_stack(
+                instrument_code
+            )
+        )
+
+        if any_order_for_instrument_already_on_stack:
             return False
+
+        return True
 
     def check_if_roll_order_already_on_stack(self, instrument_code: str) -> bool:
         order_already_on_stack = self.instrument_stack.does_strategy_and_instrument_already_have_order_on_stack(
             ROLL_PSEUDO_STRATEGY, instrument_code
         )
+
+        return order_already_on_stack
+
+    def check_and_warn_if_order_for_instrument_already_on_stack(
+        self, instrument_code: str
+    ) -> bool:
+        strategies_with_orders_already_on_stack = self.instrument_stack.list_of_strategies_with_orders_on_stack_for_instrument(
+            instrument_code
+        )
+
+        order_already_on_stack = len(strategies_with_orders_already_on_stack) > 0
+
+        if order_already_on_stack:
+            ## Need to warn user so they can take action if required
+
+            self.log.critical(
+                "Cannot force roll %s as already other orders for %s on stack"
+                % (instrument_code, str(strategies_with_orders_already_on_stack)),
+                instrument_code=instrument_code,
+            )
 
         return order_already_on_stack
 
