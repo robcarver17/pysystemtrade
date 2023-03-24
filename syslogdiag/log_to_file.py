@@ -43,6 +43,7 @@ class logToFile(pst_logger):
         log_entry = logEntry(
             text, msglevel=msglevel, attributes=attributes, log_id=log_id
         )
+        print(log_entry)
         self.log_to_file(log_entry)
 
         if msglevel in EMAIL_ON_LOG_LEVEL:
