@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 from syscore.objects import resolve_function
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.fileutils import get_resolved_pathname
 from syscore.dateutils import datetime_to_long
 from syscore.interactive.display import (
@@ -291,12 +291,7 @@ def resolve_report_filename(report_config, data: dataBlob):
 def get_directory_for_reporting(data):
     # eg '/home/rob/reports/'
     production_config = data.config
-    store_directory = production_config.get_element_or_missing_data(
-        "reporting_directory"
-    )
-    if store_directory is missing_data:
-        raise Exception("Need to specify reporting_directory in config file")
-
+    store_directory = production_config.get_element("reporting_directory")
     return store_directory
 
 
