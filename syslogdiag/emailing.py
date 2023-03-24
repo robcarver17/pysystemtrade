@@ -2,7 +2,7 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from enum import Enum
-import smtplib
+import smtplib, ssl
 from typing import List
 
 import pandas as pd
@@ -87,9 +87,10 @@ def _send_msg(msg: MIMEMultipart):
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
     s = smtplib.SMTP(email_server, email_port)
+    context=ssl.create_default_context()
     # add tls for those using yahoo or gmail.
     try:
-        s.starttls()
+        s.starttls(context=context)
     except:
         pass
     s.login(email_address, email_pwd)
