@@ -115,6 +115,7 @@ class logToFile(pst_logger):
     @property
     def log_filename_with_path(self) -> str:
         log_directory = self.log_directory
+
         log_type = self.type
         log_filename = "log_%s.txt" % log_type
         log_filename_and_path = join_file_and_path(log_directory, log_filename)
@@ -138,7 +139,7 @@ def get_logging_directory(data: "dataBlob"):
         print(
             "*** log_directory undefined in private_config.yaml, will log to arbitrary directory"
         )
-        return missing_data
+        return ""
 
     log_dir = get_resolved_pathname(log_dir)
     try:
