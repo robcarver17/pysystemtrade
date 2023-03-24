@@ -29,19 +29,32 @@ def clone_data_for_instrument(
     write_to_csv: bool = False,
     inverse: bool = False,
     offset: float = 0.0,
+    ignore_duplication: bool = False,
 ):
 
     clone_prices_per_contract(
-        instrument_from, instrument_to, offset=offset, inverse=inverse
+        instrument_from,
+        instrument_to,
+        offset=offset,
+        inverse=inverse,
+        ignore_duplication=ignore_duplication,
     )
     if write_to_csv:
         clone_roll_calendar(instrument_from, instrument_to)
 
     clone_multiple_prices(
-        instrument_from, instrument_to, write_to_csv=write_to_csv, inverse=inverse
+        instrument_from,
+        instrument_to,
+        write_to_csv=write_to_csv,
+        inverse=inverse,
+        ignore_duplication=ignore_duplication,
     )
     clone_adjusted_prices(
-        instrument_from, instrument_to, write_to_csv=write_to_csv, inverse=inverse
+        instrument_from,
+        instrument_to,
+        write_to_csv=write_to_csv,
+        inverse=inverse,
+        ignore_duplication=ignore_duplication,
     )
 
 
@@ -123,6 +136,7 @@ def clone_single_contract(
             futures_contract_to,
             futures_price_data=hourly_data_in,
             frequency=HOURLY_FREQ,
+            ignore_duplication=ignore_duplication,
         )
 
     daily_data_in = (
@@ -143,6 +157,7 @@ def clone_single_contract(
             futures_contract_to,
             futures_price_data=daily_data_in,
             frequency=DAILY_PRICE_FREQ,
+            ignore_duplication=ignore_duplication,
         )
 
 
