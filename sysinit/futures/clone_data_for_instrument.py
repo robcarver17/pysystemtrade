@@ -28,9 +28,12 @@ def clone_data_for_instrument(
     instrument_to: str,
     write_to_csv: bool = False,
     inverse: bool = False,
+    offset: float = 0.0,
 ):
 
-    clone_prices_per_contract(instrument_from, instrument_to, inverse=inverse)
+    clone_prices_per_contract(
+        instrument_from, instrument_to, offset=offset, inverse=inverse
+    )
     if write_to_csv:
         clone_roll_calendar(instrument_from, instrument_to)
 
@@ -49,6 +52,7 @@ def clone_prices_per_contract(
     ignore_duplication=False,
     inverse: bool = False,
     multiplier: float = 1.0,
+    offset: float = 0.0,
 ):
 
     if list_of_contract_dates is None:
@@ -64,6 +68,7 @@ def clone_prices_per_contract(
             ignore_duplication=ignore_duplication,
             inverse=inverse,
             multiplier=multiplier,
+            offset=offset,
         )
         for contract_date in list_of_contract_dates
     ]
@@ -76,6 +81,7 @@ def clone_single_contract(
     ignore_duplication=False,
     inverse: bool = False,
     multiplier: float = 1.0,
+    offset: float = 0.0,
 ):
 
     futures_contract_from = futuresContract(instrument_from, contract_date)
@@ -89,6 +95,9 @@ def clone_single_contract(
         data_in = data_in.inverse()
 
     data_in = data_in.multiply_prices(multiplier)
+
+    if offset != 0:
+        data_in = data_in.add_offset_to_prices(offset)
 
     db_data_individual_prices.write_merged_prices_for_contract_object(
         futures_contract_to,
@@ -107,6 +116,9 @@ def clone_single_contract(
 
         hourly_data_in = hourly_data_in.multiply_prices(multiplier)
 
+        if offset != 0:
+            hourly_data_in = hourly_data_in.add_offset_to_prices(offset)
+
         db_data_individual_prices.write_prices_at_frequency_for_contract_object(
             futures_contract_to,
             futures_price_data=hourly_data_in,
@@ -123,6 +135,9 @@ def clone_single_contract(
             daily_data_in = daily_data_in.inverse()
 
         daily_data_in = daily_data_in.multiply_prices(multiplier)
+
+        if offset != 0:
+            daily_data_in = daily_data_in.add_offset_to_prices(offset)
 
         db_data_individual_prices.write_prices_at_frequency_for_contract_object(
             futures_contract_to,
@@ -143,11 +158,15 @@ def clone_multiple_prices(
     write_to_csv: bool = True,
     ignore_duplication=False,
     inverse: bool = False,
+    offset: float = 0.0,
 ):
 
     prices = db_data_multiple_prices.get_multiple_prices(instrument_from)
     if inverse:
         prices = prices.inverse()
+
+    if offset != 0:
+        prices = prices.add_offset_to_prices(offset)
 
     db_data_multiple_prices.add_multiple_prices(
         instrument_to, multiple_price_data=prices, ignore_duplication=ignore_duplication
@@ -163,11 +182,15 @@ def clone_adjusted_prices(
     write_to_csv: bool = True,
     ignore_duplication=False,
     inverse: bool = False,
+    offset: float = 0.0,
 ):
 
     prices = db_data_adjusted_prices.get_adjusted_prices(instrument_from)
     if inverse:
         prices = futuresAdjustedPrices(1 / prices)
+
+    if offset != 0:
+        prices = futuresAdjustedPrices(prices + offset)
 
     db_data_adjusted_prices.add_adjusted_prices(
         instrument_to, adjusted_price_data=prices, ignore_duplication=ignore_duplication

@@ -17,18 +17,11 @@ class mongoSpreadCostData(spreadCostData):
 
     """
 
-    def __init__(
-        self,
-        mongo_db=None,
-        log=logtoscreen("mongoSpreadCostData"),
-        check_for_empty_db: bool = True,
-    ):
+    def __init__(self, mongo_db=None, log=logtoscreen("mongoSpreadCostData")):
         super().__init__(log=log)
         self._mongo_data = mongoDataWithSingleKey(
             SPREAD_COST_COLLECTION, mongo_db=mongo_db, key_name=INSTRUMENT_KEY
         )
-        if check_for_empty_db:
-            self._check_for_empty_database()
 
     @property
     def mongo_data(self):
@@ -76,12 +69,6 @@ class mongoSpreadCostData(spreadCostData):
             allow_overwrite=True,
             clean_ints=False,
         )
-
-    def _check_for_empty_database(self):
-        list_of_keys = self.mongo_data.get_list_of_keys()
-        if len(list_of_keys) == 0:
-            error_msg = "Need to copy .csv spread data into database use sysinit/futures/repocsv_spread_costs.py - all slippage will be zero!"
-            self.log.critical(error_msg)
 
 
 SPREAD_COST_KEY = "cost_price_units"

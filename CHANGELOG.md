@@ -1,5 +1,10 @@
 # Release notes
 
+## Version 1.61
+
+- Won't generate roll order if order for instrument already on stack
+- Removed warning code for empty spread data
+
 ## Version 1.60
 
 - Moved storage of contract positions, instrument strategy positions, optimal positions from mongo/timedStorage to Arctic [announcement]()

@@ -86,6 +86,13 @@ class futuresContractPrices(pd.DataFrame):
 
         return futuresContractPrices(new_version)
 
+    def add_offset_to_prices(self, offset: float):
+        new_version = copy(self)
+        for colname in NOT_VOLUME_COLUMNS:
+            new_version[colname] = offset + self[colname]
+
+        return futuresContractPrices(new_version)
+
     def daily_volumes(self) -> pd.Series:
         volumes = self._raw_volumes()
 
