@@ -160,7 +160,7 @@ class orderStackData(object):
         )
         list_of_orders = self.get_list_of_orders_from_order_id_list(list_of_order_ids)
 
-        return list_of_order_ids
+        return list_of_orders
 
     def get_list_of_orders_from_order_id_list(self, list_of_order_ids) -> listOfOrders:
         order_list = []
