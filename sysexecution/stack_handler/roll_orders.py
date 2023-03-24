@@ -65,10 +65,14 @@ class stackHandlerForRolls(stackHandlerCore):
         )
 
     def check_roll_required_and_safe(self, instrument_code: str) -> bool:
-        safe_to_roll = self.check_if_safe_to_add_roll_order(instrument_code)
         forced_roll_required = self.check_if_forced_roll_required(instrument_code)
+        if not forced_roll_required:
+            ## if we don't exit here will get errors even it we're not rolling
+            return False
 
-        return safe_to_roll and forced_roll_required
+        safe_to_roll = self.check_if_safe_to_add_roll_order(instrument_code)
+
+        return safe_to_roll
 
     def check_if_safe_to_add_roll_order(self, instrument_code: str) -> bool:
         roll_order_already_on_stack = self.check_if_roll_order_already_on_stack(
