@@ -12,7 +12,7 @@ from syscore.exceptions import missingData
 from sysdata.data_blob import dataBlob
 from sysobjects.spot_fx_prices import fxPrices
 from syslogdiag.log_to_screen import logtoscreen
-from syslogdiag.logger import CURRENCY_CODE_LOG_LABEL
+from syslogdiag.pst_logger import CURRENCY_CODE_LOG_LABEL
 from syscore.constants import missing_instrument
 
 

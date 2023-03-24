@@ -15,7 +15,7 @@ from syscore.constants import arg_not_supplied
 from syscore.cache import Cache
 from syscore.exceptions import missingContract
 
-from syslogdiag.logger import logger
+from syslogdiag.pst_logger import pst_logger
 from syslogdiag.log_to_screen import logtoscreen
 
 from sysobjects.contracts import futuresContract
@@ -66,7 +66,7 @@ class ibClient(object):
     """
 
     def __init__(
-        self, ibconnection: connectionIB, log: logger = logtoscreen("ibClient")
+        self, ibconnection: connectionIB, log: pst_logger = logtoscreen("ibClient")
     ):
 
         # means our first call won't be throttled for pacing
@@ -130,7 +130,7 @@ class ibClient(object):
             # just a general message
             self.broker_message(msg=msg, log=log_to_use)
 
-    def _get_log_for_contract(self, contract: ibContract) -> logger:
+    def _get_log_for_contract(self, contract: ibContract) -> pst_logger:
         if contract is None:
             log_to_use = self.log.setup()
         else:

@@ -6,9 +6,8 @@ from syscore.constants import arg_not_supplied
 from syscore.text import camel_case_split
 from sysdata.config.production_config import get_production_config, Config
 from sysdata.mongodb.mongo_connection import mongoDb
-from sysdata.mongodb.mongo_log import logToMongod
-from syslogdiag.logger import logger, COMPONENT_LOG_LABEL
-
+from syslogdiag.pst_logger import pst_logger, COMPONENT_LOG_LABEL
+from syslogdiag.log_to_file import logToFile
 from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 
 
@@ -20,7 +19,7 @@ class dataBlob(object):
         csv_data_paths: dict = arg_not_supplied,
         ib_conn: connectionIB = arg_not_supplied,
         mongo_db: mongoDb = arg_not_supplied,
-        log: logger = arg_not_supplied,
+        log: pst_logger = arg_not_supplied,
         keep_original_prefix: bool = False,
     ):
         """
@@ -42,7 +41,7 @@ class dataBlob(object):
         This abstracts the precise data source
 
         :param arg_string: str like a named tuple in the form 'classNameOfData1 classNameOfData2' and so on
-        :param log_name: logger type to set
+        :param log_name: pst_logger type to set
         :param keep_original_prefix: bool. If True then:
 
             data = dataBlob([arcticFuturesContractPriceData, arcticFuturesContractPriceData, mongoFuturesContractData])
@@ -245,7 +244,7 @@ class dataBlob(object):
     def _add_attr_to_list(self, new_attr: str):
         self._attr_list.append(new_attr)
 
-    def update_log(self, new_log: logger):
+    def update_log(self, new_log: pst_logger):
         self._log = new_log
 
     """
@@ -331,7 +330,7 @@ class dataBlob(object):
     def log(self):
         log = getattr(self, "_log", arg_not_supplied)
         if log is arg_not_supplied:
-            log = logToMongod(self.log_name, mongo_db=self.mongo_db, data=self)
+            log = logToFile(self.log_name, data=self)
             log.set_logging_level("on")
             self._log = log
 

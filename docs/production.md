@@ -670,14 +670,14 @@ self.log.error("this error message means something bad but recoverable has happe
 self.log.critical("this critical message will always be printed, and an email will be sent to the user if emails are set up. Use this if user action is required, or if a process cannot continue")
 ```
 
-The default logger in production code is to the mongo database. This method will also try and email the user if a critical message is logged.
+The default pst_logger in production code is to the mongo database. This method will also try and email the user if a critical message is logged.
 
 #### Adding logging to your code
 
 The default for logging is to do this via mongodb. Here is an example of logging code:
 
 ```python
-from syslogdiag.logger import logToMongod as logger
+from syslogdiag.pst_logger import logToMongod as pst_logger
 
 
 def top_level_function():
@@ -686,7 +686,7 @@ def top_level_function():
     """
 
     # can optionally pass mongodb connection attributes here
-    log = logger("top-level-function")
+    log = pst_logger("top-level-function")
 
     # note use of log.setup when passing log to other components, this creates a copy of the existing log with an additional attribute set
     conn = connectionIB(client=100, log=log.setup(component="IB-connection"))
@@ -713,7 +713,7 @@ def top_level_function():
 
 The following should be used as logging attributes (failure to do so will break reporting code):
 
-- type: the argument passed when the logger is setup. Should be the name of the top level calling function. Production types include price collection, execution and so on.
+- type: the argument passed when the pst_logger is setup. Should be the name of the top level calling function. Production types include price collection, execution and so on.
 - stage: Used by stages in System objects, such as 'rawdata'
 - component: other parts of the top level function that have their own loggers
 - currency_code: Currency code (used for fx), format 'GBPUSD'
@@ -728,7 +728,7 @@ The following should be used as logging attributes (failure to do so will break 
 Python:
 
 ```python
-from syslogdiag.logger import accessLogFromMongodb
+from syslogdiag.pst_logger import accessLogFromMongodb
 
 # can optionally pass mongodb connection attributes here
 mlog = accessLogFromMongodb()
@@ -2062,12 +2062,15 @@ You can view logs filtered by any group of attributes, over a given period. Log 
 Alternatively you can do this in python directly:
 
 ```python
-from sysproduction.data.logs import diagLogs
+from sysproduction._DEPRECATED.logs import diagLogs
+
 d = diagLogs()
 lookback_days = 1
-d.get_list_of_unique_log_attribute_keys(lookback_days = lookback_days) # what attributes do we have eg type, instrument_code...
-d.get_list_of_values_for_log_attribute("type", lookback_days=lookback_days ) # what value can an attribute take
-d.get_log_items(dict(instrument_code = "EDOLLAR", type = "process_fills_stack"), lookback_days=lookback_days) # get the log items with some attribute dict
+d.get_list_of_unique_log_attribute_keys(
+    lookback_days=lookback_days)  # what attributes do we have eg type, instrument_code...
+d.get_list_of_values_for_log_attribute("type", lookback_days=lookback_days)  # what value can an attribute take
+d.get_log_items(dict(instrument_code="EDOLLAR", type="process_fills_stack"),
+                lookback_days=lookback_days)  # get the log items with some attribute dict
 ```
 
 
