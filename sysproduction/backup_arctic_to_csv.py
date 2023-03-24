@@ -338,17 +338,17 @@ def backup_spreads_to_csv_for_instrument(data: dataBlob, instrument_code: str):
 
 def backup_contract_position_data(data):
     instrument_list = (
-        data.artic_contract_position.get_list_of_instruments_with_any_position()
+        data.arctic_contract_position.get_list_of_instruments_with_any_position()
     )
     for instrument_code in instrument_list:
         contract_list = (
-            data.artic_contract_position.get_list_of_contracts_for_instrument_code(
+            data.arctic_contract_position.get_list_of_contracts_for_instrument_code(
                 instrument_code
             )
         )
         for contract in contract_list:
             try:
-                arctic_data = data.artic_contract_position.get_position_as_series_for_contract_object(
+                arctic_data = data.arctic_contract_position.get_position_as_series_for_contract_object(
                     contract
                 )
             except missingData:

@@ -75,12 +75,24 @@ class RemoveMarketData:
         clean_slate_list_of_bad_markets = self.bad_markets(
             apply_higher_threshold=False, apply_lower_threshold=False
         )
-        return _yaml_bad_market_list(clean_slate_list_of_bad_markets)
+        market_config_as_yaml_str = _yaml_bad_market_list(
+            clean_slate_list_of_bad_markets
+        )
+        return (
+            "Use the following if you want to minimise turnover of markets\n%s "
+            % market_config_as_yaml_str
+        )
 
     @property
     def str_all_recommended_bad_markets_in_yaml_form(self) -> str:
         recommended_list_of_bad_markets = self.recommended_list_of_bad_markets()
-        return _yaml_bad_market_list(recommended_list_of_bad_markets)
+        market_config_as_yaml_str = _yaml_bad_market_list(
+            recommended_list_of_bad_markets
+        )
+        return (
+            "Use the following if you want a clean slate without considering existing markets \n%s "
+            % market_config_as_yaml_str
+        )
 
     def recommended_list_of_bad_markets(self):
         existing_bad_markets = self.existing_bad_markets
