@@ -470,7 +470,7 @@ def get_position_for_instrument_code_at_timestamp(data_backtest, data, instrumen
 
     if len(positions_before_cutoff) == 0:
         return np.nan
-    final_position = positions_before_cutoff.iloc[-1].position
+    final_position = positions_before_cutoff.iloc[-1]
 
     return final_position
 
