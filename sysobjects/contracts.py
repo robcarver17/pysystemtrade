@@ -5,7 +5,11 @@ from dataclasses import dataclass
 
 from syscore.constants import arg_not_supplied
 
-from syslogdiag.pst_logger import pst_logger, INSTRUMENT_CODE_LOG_LABEL, CONTRACT_DATE_LOG_LABEL
+from syslogdiag.pst_logger import (
+    pst_logger,
+    INSTRUMENT_CODE_LOG_LABEL,
+    CONTRACT_DATE_LOG_LABEL,
+)
 
 from sysobjects.contract_dates_and_expiries import (
     contractDate,

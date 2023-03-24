@@ -2,6 +2,7 @@
 
 ## Version 1.61
 
+- Replaced log to database with log to file
 - Won't generate roll order if order for instrument already on stack
 - Removed warning code for empty spread data
 

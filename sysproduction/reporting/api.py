@@ -361,10 +361,13 @@ class reportingApi(object):
     def pandl_for_instruments_across_strategies(self) -> pd.DataFrame:
         try:
             pandl_for_instruments_across_strategies = getattr(
-                self, "_pandl_for_instruments_across_strategies",
+                self,
+                "_pandl_for_instruments_across_strategies",
             )
         except AttributeError:
-            pandl_for_instruments_across_strategies = self._get_pandl_for_instruments_across_strategies()
+            pandl_for_instruments_across_strategies = (
+                self._get_pandl_for_instruments_across_strategies()
+            )
             setattr(
                 self,
                 "_pandl_for_instruments_across_strategies",

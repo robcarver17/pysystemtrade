@@ -142,7 +142,9 @@ def get_instrument_code_from_broker_instrument_identity(
     return config_rows.iloc[0].Instrument
 
 
-def get_instrument_list_from_ib_config(config: IBconfig, log: pst_logger = logtoscreen("")):
+def get_instrument_list_from_ib_config(
+    config: IBconfig, log: pst_logger = logtoscreen("")
+):
     if config is missing_file:
         log.warn("Can't get list of instruments because IB config file missing")
         return []
