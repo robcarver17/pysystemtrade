@@ -10,7 +10,7 @@ from syscore.constants import missing_file, missing_instrument, arg_not_supplied
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.genutils import return_another_value_if_nan
 from syslogdiag.log_to_screen import logtoscreen
-from syslogdiag.logger import logger
+from syslogdiag.pst_logger import pst_logger
 from sysobjects.instruments import futuresInstrument
 
 
@@ -23,7 +23,7 @@ IB_FUTURES_CONFIG_FILE = resolve_path_and_filename_for_package(
 )
 
 
-def read_ib_config_from_file(log: logger = logtoscreen("")) -> IBconfig:
+def read_ib_config_from_file(log: pst_logger = logtoscreen("")) -> IBconfig:
     try:
         df = pd.read_csv(IB_FUTURES_CONFIG_FILE)
     except BaseException:
@@ -34,7 +34,7 @@ def read_ib_config_from_file(log: logger = logtoscreen("")) -> IBconfig:
 
 
 def get_instrument_object_from_config(
-    instrument_code: str, config: IBconfig = None, log: logger = logtoscreen("")
+    instrument_code: str, config: IBconfig = None, log: pst_logger = logtoscreen("")
 ) -> futuresInstrumentWithIBConfigData:
 
     new_log = log.setup(instrument_code=instrument_code)
@@ -109,7 +109,7 @@ class IBInstrumentIdentity:
 def get_instrument_code_from_broker_instrument_identity(
     config: IBconfig,
     ib_instrument_identity: IBInstrumentIdentity,
-    log: logger = logtoscreen(""),
+    log: pst_logger = logtoscreen(""),
 ) -> str:
 
     ib_code = ib_instrument_identity.ib_code
@@ -142,7 +142,7 @@ def get_instrument_code_from_broker_instrument_identity(
     return config_rows.iloc[0].Instrument
 
 
-def get_instrument_list_from_ib_config(config: IBconfig, log: logger = logtoscreen("")):
+def get_instrument_list_from_ib_config(config: IBconfig, log: pst_logger = logtoscreen("")):
     if config is missing_file:
         log.warn("Can't get list of instruments because IB config file missing")
         return []

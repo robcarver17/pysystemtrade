@@ -2,7 +2,7 @@
 import pandas as pd
 
 from sysdata.config.configdata import Config
-from syslogdiag.logger import logger
+from syslogdiag.pst_logger import pst_logger
 from syslogdiag.log_to_screen import logtoscreen
 from syscore.constants import arg_not_supplied
 
@@ -40,7 +40,7 @@ def calculate_buffers(
     vol_scalar: pd.Series,
     instr_weights: pd.DataFrame = arg_not_supplied,
     idm: pd.Series = arg_not_supplied,
-    log: logger = logtoscreen(""),
+    log: pst_logger = logtoscreen(""),
 ) -> pd.Series:
 
     log.msg(

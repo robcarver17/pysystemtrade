@@ -1,5 +1,5 @@
 import pandas as pd
-from syslogdiag.log_to_screen import logtoscreen, logger
+from syslogdiag.log_to_screen import logtoscreen, pst_logger
 from sysquant.optimisation.pre_processing import returnsPreProcessor
 from sysquant.optimisation.optimise_over_time import optimiseWeightsOverTime
 from sysquant.optimisation.SR_adjustment import adjust_dataframe_of_weights_for_SR_costs
@@ -11,7 +11,7 @@ class genericOptimiser(object):
         self,
         returns_pre_processor: returnsPreProcessor,
         asset_name: str = SINGLE_NAME,
-        log: logger = logtoscreen("optimiser"),
+        log: pst_logger = logtoscreen("optimiser"),
         **weighting_params,
     ):
 
@@ -28,7 +28,7 @@ class genericOptimiser(object):
         return self._net_returns
 
     @property
-    def log(self) -> logger:
+    def log(self) -> pst_logger:
         return self._log
 
     @property

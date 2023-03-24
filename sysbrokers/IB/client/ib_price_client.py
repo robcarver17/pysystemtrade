@@ -18,7 +18,7 @@ from syscore.dateutils import (
     DAILY_PRICE_FREQ,
 )
 
-from syslogdiag.logger import logger
+from syslogdiag.pst_logger import pst_logger
 from syslogdiag.log_to_screen import logtoscreen
 
 from sysobjects.contracts import futuresContract
@@ -159,7 +159,7 @@ class ibPriceClient(ibContractsClient):
     def _get_generic_data_for_contract(
         self,
         ibcontract: ibContract,
-        log: logger = None,
+        log: pst_logger = None,
         bar_freq: Frequency = DAILY_PRICE_FREQ,
         whatToShow: str = "TRADES",
     ) -> pd.DataFrame:
@@ -196,7 +196,7 @@ class ibPriceClient(ibContractsClient):
         return price_data_as_df
 
     def _raw_ib_data_to_df(
-        self, price_data_raw: pd.DataFrame, log: logger
+        self, price_data_raw: pd.DataFrame, log: pst_logger
     ) -> pd.DataFrame:
 
         if price_data_raw is None:
@@ -252,7 +252,7 @@ class ibPriceClient(ibContractsClient):
         durationStr: str = "1 Y",
         barSizeSetting: str = "1 day",
         whatToShow="TRADES",
-        log: logger = None,
+        log: pst_logger = None,
     ) -> pd.DataFrame:
         """
         Returns historical prices for a contract, up to today
@@ -324,7 +324,7 @@ def _get_barsize_and_duration_from_frequency(bar_freq: Frequency) -> (str, str):
 
 
 def _avoid_pacing_violation(
-    last_call_datetime: datetime.datetime, log: logger = logtoscreen("")
+    last_call_datetime: datetime.datetime, log: pst_logger = logtoscreen("")
 ):
     printed_warning_already = False
     while _pause_for_pacing(last_call_datetime):

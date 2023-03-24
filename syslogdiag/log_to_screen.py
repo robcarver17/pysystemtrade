@@ -1,8 +1,8 @@
-from syslogdiag.logger import logger
+from syslogdiag.pst_logger import pst_logger
 from syslogdiag.log_entry import logEntry
 
 
-class logtoscreen(logger):
+class logtoscreen(pst_logger):
     def log_handle_caller(
         self, msglevel: int, text: str, attributes: dict, log_id: int
     ):

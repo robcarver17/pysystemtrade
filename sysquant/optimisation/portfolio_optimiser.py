@@ -3,7 +3,7 @@ from copy import copy
 from syscore.objects import resolve_function
 from syscore.genutils import str2Bool
 
-from syslogdiag.log_to_screen import logtoscreen, logger
+from syslogdiag.log_to_screen import logtoscreen, pst_logger
 
 from sysquant.fitting_dates import fitDates
 from sysquant.estimators.correlations import correlationEstimate
@@ -27,7 +27,7 @@ class portfolioOptimiser:
     def __init__(
         self,
         net_returns: returnsForOptimisation,
-        log: logger = logtoscreen("optimiser"),
+        log: pst_logger = logtoscreen("optimiser"),
         method="handcraft",
         **weighting_args,
     ):

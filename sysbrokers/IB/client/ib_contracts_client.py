@@ -20,7 +20,7 @@ from sysbrokers.IB.ib_contracts import (
     _add_legs_to_ib_contract,
 )
 
-from syslogdiag.logger import logger
+from syslogdiag.pst_logger import pst_logger
 
 from sysobjects.contracts import futuresContract, contractDate
 from sysobjects.production.trading_hours.intersection_of_weekly_and_specific_trading_hours import (
@@ -531,7 +531,7 @@ class ibContractsClient(ibClient):
 
         return resolved_contract
 
-    def ib_resolve_unique_contract(self, ibcontract_pattern, log: logger = None):
+    def ib_resolve_unique_contract(self, ibcontract_pattern, log: pst_logger = None):
         """
         Returns the 'resolved' IB contract based on a pattern. We expect a unique contract.
 

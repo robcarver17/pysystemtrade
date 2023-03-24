@@ -27,7 +27,7 @@ from sysexecution.orders.broker_orders import (
 )
 from sysexecution.orders.contract_orders import best_order_type, contractOrder
 
-from syslogdiag.logger import logger
+from syslogdiag.pst_logger import pst_logger
 
 from sysproduction.data.broker import dataBroker
 
@@ -220,7 +220,7 @@ class algoOriginalBest(Algo):
 
 
 def limit_trade_viable(
-    data: dataBlob, order: contractOrder, ticker_object: tickerObject, log: logger
+    data: dataBlob, order: contractOrder, ticker_object: tickerObject, log: pst_logger
 ) -> bool:
 
     # no point doing limit order if we've got imbalanced size issues, as we'd
@@ -283,7 +283,7 @@ def file_log_report_limit_order(
 
 
 def reason_to_switch_to_aggressive(
-    data: dataBlob, broker_order_with_controls: orderWithControls, log: logger
+    data: dataBlob, broker_order_with_controls: orderWithControls, log: pst_logger
 ) -> str:
     ticker_object = broker_order_with_controls.ticker
 
@@ -326,7 +326,7 @@ def reason_to_switch_to_aggressive(
 def is_market_about_to_close(
     data: dataBlob,
     order: Union[brokerOrder, contractOrder, orderWithControls],
-    log: logger,
+    log: pst_logger,
 ) -> bool:
     data_broker = dataBroker(data)
     short_of_time = data_broker.less_than_N_hours_of_trading_left_for_contract(
@@ -349,7 +349,7 @@ def required_to_switch_to_aggressive(reason: str) -> bool:
 
 
 def adverse_size_issue(
-    ticker_object: tickerObject, log: logger, wait_for_valid_tick=False
+    ticker_object: tickerObject, log: pst_logger, wait_for_valid_tick=False
 ) -> bool:
     if wait_for_valid_tick:
         current_tick_analysis = (
@@ -374,7 +374,7 @@ def adverse_size_issue(
 
 
 def _is_imbalance_ratio_exceeded(
-    current_tick_analysis: analysisTick, log: logger
+    current_tick_analysis: analysisTick, log: pst_logger
 ) -> bool:
     latest_imbalance_ratio = current_tick_analysis.imbalance_ratio
     latest_imbalance_ratio_exceeded = latest_imbalance_ratio > IMBALANCE_THRESHOLD
@@ -389,7 +389,7 @@ def _is_imbalance_ratio_exceeded(
 
 
 def _is_insufficient_size_on_our_preferred_side(
-    ticker_object: tickerObject, current_tick_analysis: analysisTick, log: logger
+    ticker_object: tickerObject, current_tick_analysis: analysisTick, log: pst_logger
 ) -> bool:
     abs_size_we_wish_to_trade = abs(ticker_object.qty)
     size_we_require_to_trade_limit = IMBALANCE_ADJ_FACTOR * abs_size_we_wish_to_trade
