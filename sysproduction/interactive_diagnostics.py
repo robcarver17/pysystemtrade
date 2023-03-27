@@ -12,7 +12,6 @@ from syscore.interactive.date_input import get_report_dates
 from syscore.interactive.menus import (
     interactiveMenu,
     print_menu_of_values_and_get_response,
-    print_menu_and_get_desired_option_index,
 )
 from syscore.interactive.display import set_pd_print_options
 from syscore.constants import arg_not_supplied, user_exit
@@ -36,9 +35,9 @@ from sysproduction.data.contracts import (
 )
 from sysproduction.data.currency_data import dataCurrency, get_valid_fx_code_from_user
 from sysproduction.data.instruments import diagInstruments
-from sysproduction.data.logs import diagLogs
 from sysproduction.data.orders import dataOrders
-from sysproduction.data.positions import diagPositions, dataOptimalPositions
+from sysproduction.data.positions import diagPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.strategies import get_valid_strategy_name_from_user
 from sysproduction.data.contracts import dataContracts
@@ -96,7 +95,7 @@ nested_menu_of_options = {
         11: "View contract configuration data",
         12: "View trading hours for all instruments",
     },
-    2: {20: "View stored emails", 21: "View errors", 22: "View logs"},
+    2: {20: "View stored emails"},
     3: {
         30: "Individual futures contract prices",
         31: "Multiple prices",
@@ -317,69 +316,6 @@ def retrieve_emails(data):
         print(msg)
 
 
-def view_errors(data):
-    diag_logs = diagLogs(data)
-    msg_levels = diag_logs.get_possible_log_level_mapping()
-    print("This will get all log messages with a given level of criticality")
-    print("Use view logs to filter by log attributes")
-    lookback_days = get_input_from_user_and_convert_to_type(
-        "How many days?", type_expected=int, default_value=7
-    )
-    print("Which level of error/message?")
-    log_level = print_menu_and_get_desired_option_index(msg_levels)
-    log_item_list = diag_logs.get_log_items_with_level(
-        log_level, attribute_dict=dict(), lookback_days=lookback_days
-    )
-    print_log_items(log_item_list)
-
-
-def view_logs(data):
-    diag_logs = diagLogs(data)
-    lookback_days = get_input_from_user_and_convert_to_type(
-        "How many days?", type_expected=int, default_value=7
-    )
-    attribute_dict = build_attribute_dict(diag_logs, lookback_days)
-    log_item_list = diag_logs.get_log_items(
-        attribute_dict=attribute_dict, lookback_days=lookback_days
-    )
-    print_log_items(log_item_list)
-
-
-def print_log_items(log_item_list):
-    for log_item in log_item_list:
-        print(str(log_item) + "\n")
-
-
-def build_attribute_dict(diag_logs, lookback_days):
-    attribute_dict = {}
-    not_finished = True
-    while not_finished:
-        print("Attributes selected so far %s" % str(attribute_dict))
-        list_of_attributes = diag_logs.get_list_of_unique_log_attribute_keys(
-            attribute_dict=attribute_dict, lookback_days=lookback_days
-        )
-        print("Which attribute to filter by?")
-        attribute_name = print_menu_of_values_and_get_response(list_of_attributes)
-        list_of_attribute_values = (
-            diag_logs.get_unique_list_of_values_for_log_attribute(
-                attribute_name,
-                attribute_dict=attribute_dict,
-                lookback_days=lookback_days,
-            )
-        )
-        print("Which value for %s ?" % attribute_name)
-        attribute_value = print_menu_of_values_and_get_response(
-            list_of_attribute_values
-        )
-        attribute_dict[attribute_name] = attribute_value
-        ans = input("Have you close? (RETURN: No, anything else YES)")
-        if not ans == "":
-            not_finished = False
-            break
-
-    return attribute_dict
-
-
 # prices
 def individual_prices(data):
     contract = get_valid_contract_object_from_user(
@@ -520,7 +456,7 @@ def actual_instrument_position(data):
     )
 
     try:
-        pos_series = diag_positions.get_position_df_for_instrument_strategy(
+        pos_series = diag_positions.get_position_series_for_instrument_strategy(
             instrument_strategy
         )
     except missingData:
@@ -550,7 +486,7 @@ def actual_contract_position(data):
     contract = futuresContract(instrument_code, contract_date_str)
 
     try:
-        pos_series = diag_positions.get_position_df_for_contract(contract)
+        pos_series = diag_positions.get_position_series_for_contract(contract)
     except missingData:
         print("missing data")
     else:
@@ -784,8 +720,6 @@ dict_of_functions = {
     11: view_contract_config,
     12: print_trading_hours_for_all_instruments,
     20: retrieve_emails,
-    21: view_errors,
-    22: view_logs,
     30: individual_prices,
     31: multiple_prices,
     32: adjusted_prices,

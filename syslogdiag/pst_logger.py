@@ -41,7 +41,7 @@ ALLOWED_LOG_ATTRIBUTES = [
 ]
 
 
-class logger(object):
+class pst_logger(object):
     """
     log: used for writing messages
 
@@ -58,15 +58,15 @@ class logger(object):
         """
         Base class for logging.
 
-        >>> log=logger("base_system") ## set up a logger with type "base_system"
+        >>> log=pst_logger("base_system") ## set up a logger with type "base_system"
         >>> log
         Logger (off) attributes- type: base_system
         >>>
-        >>> log=logger("another_system", stage="test") ## optionally add other attributes
+        >>> log=pst_logger("another_system", stage="test") ## optionally add other attributes
         >>> log
         Logger (off) attributes- stage: test, type: another_system
         >>>
-        >>> log2=logger(log, log_level="on", stage="combForecast") ## creates a copy of log
+        >>> log2=pst_logger(log, log_level="on", stage="combForecast") ## creates a copy of log
         >>> log
         Logger (off) attributes- stage: test, type: another_system
         >>> log2
@@ -94,7 +94,7 @@ class logger(object):
             log_attributes = self._get_attributes_given_log(type, kwargs)
         else:
             raise Exception(
-                "Can only create a logger from another logger, or a str identifier"
+                "Can only create a pst_logger from another pst_logger, or a str identifier"
             )
 
         self._attributes = log_attributes
@@ -291,7 +291,7 @@ class logger(object):
         self, msglevel: int, text: str, attributes: dict, log_id: int
     ):
         raise Exception(
-            "You're using a base class for logger - you need to use an inherited class like logtoscreen()"
+            "You're using a base class for pst_logger - you need to use an inherited class like logtoscreen()"
         )
 
     """
@@ -322,7 +322,7 @@ def get_list_of_disallowed_attributes(attributes: dict) -> list:
     return not_okay
 
 
-class nullLog(logger):
+class nullLog(pst_logger):
     ## When a log goes to null, does anyone in the forest hear the tree falling?
 
     ## Overriding these makes the logging faster

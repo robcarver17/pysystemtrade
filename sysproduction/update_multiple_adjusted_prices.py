@@ -106,7 +106,7 @@ def update_multiple_adjusted_prices_for_instrument(
 
     :param instrument_code:
     :param data: dataBlob
-    :param log: logger
+    :param log: pst_logger
     :return: None
     """
 

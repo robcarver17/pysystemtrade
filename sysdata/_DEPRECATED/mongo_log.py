@@ -1,7 +1,6 @@
 from syscore.constants import arg_not_supplied
-from syscore.exceptions import existingData
 from sysdata.mongodb.mongo_connection import mongoDb
-from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey, MONGO_ID_KEY
+from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 from syscore.dateutils import long_to_datetime, datetime_to_long
 
 from syslogdiag.log_to_screen import logtoscreen
@@ -12,78 +11,12 @@ from syslogdiag.log_entry import (
     LOG_RECORD_ID,
     logEntry,
 )
-from syslogdiag.database_log import logToDb, logData
+from syslogdiag._DEPRECATED.database_log import logData
 
 from copy import copy
 import datetime
 
 LOG_COLLECTION_NAME = "Logs"
-
-
-class logToMongod(logToDb):
-    """
-    Logs to a mongodb
-
-    """
-
-    def __init__(
-        self,
-        type: str,
-        data=None,
-        log_level: str = "Off",
-        mongo_db: mongoDb = arg_not_supplied,
-        **kwargs,
-    ):
-        super().__init__(type=type, data=data, log_level=log_level, **kwargs)
-        self._mongo_data = mongoDataWithSingleKey(
-            LOG_COLLECTION_NAME, LOG_RECORD_ID, mongo_db=mongo_db
-        )
-
-    @property
-    def mongo_data(self):
-        return self._mongo_data
-
-    def get_next_log_id(self) -> int:
-        # slightly complicated to deal with race conditions
-        invalid_id = True
-        counter = 0
-        while invalid_id:
-            last_id = self._get_last_used_log_id()
-            next_id = last_id + 1
-            reserved_okay = self._reserve_log_id(next_id)
-            if reserved_okay:
-                break
-            counter = counter + 1
-            if counter > 100:
-                raise Exception("Couldn't reserve log ID")
-
-        return next_id
-
-    def _get_last_used_log_id(self) -> int:
-        """
-        Get last used log id. Returns None if not present
-
-        :return: int or None
-        """
-        current_max = self.mongo_data.get_max_of_keys()
-        if current_max == None:
-            return 0
-
-        return current_max
-
-    def _reserve_log_id(self, next_id: int) -> bool:
-        try:
-            self.mongo_data.add_data(next_id, {})
-        except existingData:
-            return False
-        else:
-            return True
-
-    def add_log_record(self, log_entry: logEntry):
-        record_as_dict = log_entry.log_as_dict()
-        key = record_as_dict[LOG_RECORD_ID]
-
-        self.mongo_data.add_data(key, record_as_dict, allow_overwrite=True)
 
 
 class mongoLogData(logData):

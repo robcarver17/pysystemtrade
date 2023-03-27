@@ -1,5 +1,5 @@
 from syscore.exceptions import missingData
-from sysdata.production.new_capital import capitalData
+from sysdata.production.capital import capitalData
 
 CAPITAL_COLLECTION = "arctic_capital"
 

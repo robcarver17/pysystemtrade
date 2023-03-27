@@ -118,7 +118,7 @@ We treat IB as another data source, which means it has to conform to the data ob
 
 The data source objects all inherit from the classes in the `sysbrokers/` directory, eg `broker*data.py`. This serves a few purposes: it means we can add additional non specific IB methods that only make sense when talking to a broker rather than to a database, and it illustrates the interface you'd need to implement to connect to a different broker.
 
-Data source objects are instanced with and contain a *connection object* (and optionally a logger). They contain, and make calls to, *client objects*. They are in this [module](/sysbrokers/IB/)
+Data source objects are instanced with and contain a *connection object* (and optionally a pst_logger). They contain, and make calls to, *client objects*. They are in this [module](/sysbrokers/IB/)
 
 You can access the client object and connection used by a particular data source, for example:
 

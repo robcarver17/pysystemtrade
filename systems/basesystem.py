@@ -7,7 +7,7 @@ from sysdata.config.instruments import (
     get_list_of_untradeable_instruments_in_config,
 )
 from sysdata.sim.sim_data import simData
-from syslogdiag.log_to_screen import logtoscreen, logger
+from syslogdiag.log_to_screen import logtoscreen, pst_logger
 from systems.system_cache import systemCache, base_system_cache
 
 """
@@ -38,7 +38,7 @@ class System(object):
         stage_list: list,
         data: simData,
         config: Config = arg_not_supplied,
-        log: logger = logtoscreen("base_system"),
+        log: pst_logger = logtoscreen("base_system"),
     ):
         """
         Create a system object for doing simulations or live trading

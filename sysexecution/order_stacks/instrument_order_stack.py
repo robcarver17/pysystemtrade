@@ -26,6 +26,18 @@ class instrumentOrderStackData(orderStackData):
 
         return True
 
+    def list_of_strategies_with_orders_on_stack_for_instrument(
+        self, instrument_code: str
+    ) -> bool:
+        list_of_orders = self.get_list_of_orders()
+        list_of_strategies = [
+            order.tradeable_object.strategy_name
+            for order in list_of_orders
+            if order.tradeable_object.instrument_code == instrument_code
+        ]
+
+        return list_of_strategies
+
     def put_manual_order_on_stack_and_return_order_id(
         self, new_order: instrumentOrder
     ) -> int:

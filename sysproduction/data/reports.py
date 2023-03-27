@@ -1,6 +1,5 @@
 from copy import copy
 
-from syscore.constants import missing_data
 from syscore.exceptions import missingData
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric

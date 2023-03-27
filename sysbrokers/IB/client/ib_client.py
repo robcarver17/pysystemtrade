@@ -1,5 +1,5 @@
 import datetime
-from typing import Tuple, List
+from typing import Union, List
 from ib_insync import IB
 
 from sysbrokers.IB.ib_connection import connectionIB
@@ -15,7 +15,7 @@ from syscore.constants import arg_not_supplied
 from syscore.cache import Cache
 from syscore.exceptions import missingContract
 
-from syslogdiag.logger import logger
+from syslogdiag.pst_logger import pst_logger
 from syslogdiag.log_to_screen import logtoscreen
 
 from sysobjects.contracts import futuresContract
@@ -66,7 +66,7 @@ class ibClient(object):
     """
 
     def __init__(
-        self, ibconnection: connectionIB, log: logger = logtoscreen("ibClient")
+        self, ibconnection: connectionIB, log: pst_logger = logtoscreen("ibClient")
     ):
 
         # means our first call won't be throttled for pacing
@@ -130,7 +130,7 @@ class ibClient(object):
             # just a general message
             self.broker_message(msg=msg, log=log_to_use)
 
-    def _get_log_for_contract(self, contract: ibContract) -> logger:
+    def _get_log_for_contract(self, contract: ibContract) -> pst_logger:
         if contract is None:
             log_to_use = self.log.setup()
         else:
@@ -202,9 +202,9 @@ class ibClient(object):
         )
 
         return IBInstrumentIdentity(
-            ib_code=contract_details.contract.symbol,
-            ib_multiplier=contract_details.contract.multiplier,
-            ib_exchange=contract_details.contract.exchange,
+            ib_code=str(contract_details.contract.symbol),
+            ib_multiplier=float(contract_details.contract.multiplier),
+            ib_exchange=str(contract_details.contract.exchange),
         )
 
     def get_contract_details(
@@ -212,10 +212,11 @@ class ibClient(object):
         ib_contract_pattern: ibContract,
         allow_expired: bool = False,
         allow_multiple_contracts: bool = False,
-    ) -> Tuple[ibContractDetails, List[ibContractDetails]]:
+    ) -> Union[ibContractDetails, List[ibContractDetails]]:
 
-        contract_details = self.cache.get(
-            self._get_contract_details, ib_contract_pattern, allow_expired=allow_expired
+        """CACHING HERE CAUSES TOO MANY ERRORS SO DON'T USE IT"""
+        contract_details = self._get_contract_details(
+            ib_contract_pattern, allow_expired=allow_expired
         )
 
         if len(contract_details) == 0:
@@ -232,6 +233,7 @@ class ibClient(object):
     def _get_contract_details(
         self, ib_contract_pattern: ibContract, allow_expired: bool = False
     ) -> List[ibContractDetails]:
+        ## in case of caching
         ib_contract_pattern.includeExpired = allow_expired
 
         return self.ib.reqContractDetails(ib_contract_pattern)

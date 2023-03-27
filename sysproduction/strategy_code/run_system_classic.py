@@ -8,20 +8,22 @@ this:
 
 
 """
-
+import datetime
 from syscore.constants import missing_data, arg_not_supplied
 from syscore.exceptions import missingData
 
 from sysdata.config.configdata import Config
 from sysdata.data_blob import dataBlob
 
-from sysobjects.production.optimal_positions import bufferedOptimalPositions
+from sysobjects.production.optimal_positions import (
+    bufferedOptimalPositions,
+)
 from sysobjects.production.tradeable_object import instrumentStrategy
 
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.capital import dataCapital
 from sysproduction.data.contracts import dataContracts
-from sysproduction.data.positions import dataOptimalPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 from sysproduction.data.sim_data import get_sim_data_object_for_production
 
 from sysproduction.data.backtest import store_backtest_state
@@ -161,8 +163,8 @@ def updated_buffered_positions(data: dataBlob, strategy_name: str, system: Syste
             data=data,
             system=system,
             instrument_code=instrument_code,
-            lower_buffer=lower_buffer,
-            upper_buffer=upper_buffer,
+            lower_position=lower_buffer,
+            upper_position=upper_buffer,
         )
         instrument_strategy = instrumentStrategy(
             instrument_code=instrument_code, strategy_name=strategy_name
@@ -191,15 +193,19 @@ def construct_position_entry(
     data: dataBlob,
     system: System,
     instrument_code: str,
-    lower_buffer: float,
-    upper_buffer: float,
+    lower_position: float,
+    upper_position: float,
 ) -> bufferedOptimalPositions:
 
     diag_contracts = dataContracts(data)
     reference_price = system.rawdata.get_daily_prices(instrument_code).iloc[-1]
     reference_contract = diag_contracts.get_priced_contract_id(instrument_code)
     position_entry = bufferedOptimalPositions(
-        lower_buffer, upper_buffer, reference_price, reference_contract
+        date=datetime.datetime.now(),
+        lower_position=lower_position,
+        upper_position=upper_position,
+        reference_price=reference_price,
+        reference_contract=reference_contract,
     )
 
     return position_entry
