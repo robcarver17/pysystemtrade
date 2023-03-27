@@ -48,7 +48,7 @@ class allRollParameters(pd.DataFrame):
         self, instrument_code: str, roll_parameters: rollParameters
     ):
         self.at[instrument_code, "HoldRollCycle"] = roll_parameters.hold_rollcycle
-        self.at[instrument_code, "RollOffsetDays"] = rollParameters.roll_offset_day
+        self.at[instrument_code, "RollOffsetDays"] = roll_parameters.roll_offset_day
         self.at[instrument_code, "CarryOffset"] = roll_parameters.carry_offset
         self.at[instrument_code, "PricedRollCycle"] = roll_parameters.priced_rollcycle
         self.at[instrument_code, "ExpiryOffset"] = roll_parameters.approx_expiry_offset
