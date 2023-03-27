@@ -78,7 +78,7 @@ print(package_data)
 
 setup(
     name="pysystemtrade",
-    version="1.12.0",
+    version="1.61.0",
     author="Robert Carver",
     description=(
         "Python framework for running systems as in Robert Carver's book Systematic Trading"
