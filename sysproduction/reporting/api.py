@@ -227,6 +227,20 @@ class reportingApi(object):
         return stored_market_moves
 
     ## MARKETS TO REMOVE
+    def body_text_all_recommended_bad_markets_clean_slate(self) -> body_text:
+        remove_market_data = self.remove_market_data()
+
+        return body_text(
+            remove_market_data.str_all_recommended_bad_markets_clean_slate_in_yaml_form
+        )
+
+    def body_text_all_recommended_bad_markets(self) -> body_text:
+        remove_market_data = self.remove_market_data()
+
+        return body_text(
+            remove_market_data.str_all_recommended_bad_markets_in_yaml_form
+        )
+
     def body_text_existing_markets_remove(self) -> body_text:
         remove_market_data = self.remove_market_data()
 
@@ -347,10 +361,13 @@ class reportingApi(object):
     def pandl_for_instruments_across_strategies(self) -> pd.DataFrame:
         try:
             pandl_for_instruments_across_strategies = getattr(
-                self, "_pandl_for_instruments_across_strategies",
+                self,
+                "_pandl_for_instruments_across_strategies",
             )
         except AttributeError:
-            pandl_for_instruments_across_strategies = self._get_pandl_for_instruments_across_strategies()
+            pandl_for_instruments_across_strategies = (
+                self._get_pandl_for_instruments_across_strategies()
+            )
             setattr(
                 self,
                 "_pandl_for_instruments_across_strategies",

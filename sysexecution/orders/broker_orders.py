@@ -19,7 +19,7 @@ from sysexecution.orders.contract_orders import (
 )
 from sysexecution.orders.instrument_orders import instrumentOrder
 
-from syslogdiag.logger import (
+from syslogdiag.pst_logger import (
     STRATEGY_NAME_LOG_LABEL,
     CONTRACT_ORDER_ID_LOG_LABEL,
     BROKER_ORDER_ID_LOG_LABEL,
@@ -329,7 +329,7 @@ class brokerOrder(Order):
         """
         Returns a new log object with broker_order attributes added
 
-        :param log: logger
+        :param log: pst_logger
         :return: log
         """
         broker_order = self

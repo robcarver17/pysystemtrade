@@ -1,5 +1,5 @@
 import pandas as pd
-from sysdata.production.historic_positions import contractPositionData
+from sysdata.production.historic_contract_positions import contractPositionData
 from sysobjects.contracts import futuresContract
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.constants import arg_not_supplied
@@ -28,9 +28,10 @@ class csvContractPositionData(contractPositionData):
     def __repr__(self):
         return "csvContractPositionData accessing %s" % self._datapath
 
-    def write_position_df_for_contract(
-        self, contract: futuresContract, position_df: pd.DataFrame
+    def _write_updated_position_series_for_contract_object(
+        self, contract: futuresContract, update_series: pd.Series
     ):
+        position_df = pd.DataFrame(update_series)
         filename = self._filename_given_contract(contract)
         position_df.to_csv(filename, index_label=DATE_INDEX_NAME)
 

@@ -70,6 +70,47 @@ class RemoveMarketData:
             % (BAD_THRESHOLD, str(self.removed_markets_addback()))
         )
 
+    @property
+    def str_all_recommended_bad_markets_clean_slate_in_yaml_form(self) -> str:
+        clean_slate_list_of_bad_markets = self.bad_markets(
+            apply_higher_threshold=False, apply_lower_threshold=False
+        )
+        market_config_as_yaml_str = _yaml_bad_market_list(
+            clean_slate_list_of_bad_markets
+        )
+        return (
+            "Use the following if you want to minimise turnover of markets\n%s "
+            % market_config_as_yaml_str
+        )
+
+    @property
+    def str_all_recommended_bad_markets_in_yaml_form(self) -> str:
+        recommended_list_of_bad_markets = self.recommended_list_of_bad_markets()
+        market_config_as_yaml_str = _yaml_bad_market_list(
+            recommended_list_of_bad_markets
+        )
+        return (
+            "Use the following if you want a clean slate without considering existing markets \n%s "
+            % market_config_as_yaml_str
+        )
+
+    def recommended_list_of_bad_markets(self):
+        existing_bad_markets = self.existing_bad_markets
+        to_be_removed = self.removed_markets_addback()
+        new_bad_markets = self.existing_markets_to_remove()
+
+        set_of_markets_without_removals = set(existing_bad_markets).difference(
+            set(to_be_removed)
+        )
+        set_of_markets_without_removals_and_with_new_baddies = set(
+            set_of_markets_without_removals
+        ).union(set(new_bad_markets))
+        recommended_list_of_bad = list(
+            set_of_markets_without_removals_and_with_new_baddies
+        )
+
+        return recommended_list_of_bad
+
     def removed_markets_addback(self) -> list:
         existing_bad_markets = self.existing_bad_markets
 
@@ -108,6 +149,7 @@ class RemoveMarketData:
                 + too_safe
             )
         )
+        bad_markets = list(set(bad_markets))
         bad_markets.sort()
 
         return bad_markets
@@ -239,6 +281,19 @@ class RemoveMarketData:
             self.auto_parameters
         )
         return min_ann_perc_std
+
+
+def _yaml_bad_market_list(list_of_bad_markets: list) -> str:
+    list_of_bad_markets.sort()
+    list_in_yaml_form = [
+        "    - %s \n" % instrument_code for instrument_code in list_of_bad_markets
+    ]
+    yaml_string = "".join(list_in_yaml_form)
+
+    return (
+        "Put following into config.yaml\nexclude_instrument_lists:\n  bad_markets:\n%s"
+        % yaml_string
+    )
 
 
 def get_remove_market_data(data) -> RemoveMarketData:

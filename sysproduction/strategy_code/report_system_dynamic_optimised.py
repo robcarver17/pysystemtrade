@@ -7,7 +7,7 @@ from sysobjects.production.backtest_storage import interactiveBacktest
 from sysproduction.strategy_code.report_system_classic import (
     report_system_classic_no_header_or_footer,
 )
-from sysproduction.data.positions import dataOptimalPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 
 
 def report_system_dynamic(data: dataBlob, backtest: interactiveBacktest):

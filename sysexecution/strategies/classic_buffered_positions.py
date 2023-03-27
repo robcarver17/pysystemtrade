@@ -18,7 +18,7 @@ from sysexecution.strategies.strategy_order_handling import orderGeneratorForStr
 
 from sysobjects.production.tradeable_object import instrumentStrategy
 
-from sysproduction.data.positions import dataOptimalPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 
 optimalPositions = namedtuple(
     "optimalPositions",

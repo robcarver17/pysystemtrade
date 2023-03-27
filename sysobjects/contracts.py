@@ -5,7 +5,11 @@ from dataclasses import dataclass
 
 from syscore.constants import arg_not_supplied
 
-from syslogdiag.logger import logger, INSTRUMENT_CODE_LOG_LABEL, CONTRACT_DATE_LOG_LABEL
+from syslogdiag.pst_logger import (
+    pst_logger,
+    INSTRUMENT_CODE_LOG_LABEL,
+    CONTRACT_DATE_LOG_LABEL,
+)
 
 from sysobjects.contract_dates_and_expiries import (
     contractDate,
@@ -124,6 +128,14 @@ class futuresContract(object):
         else:
             return False
 
+    @classmethod
+    def from_key(cls, key):
+        code_and_id = get_code_and_id_from_contract_key(key)
+        instrument_code = code_and_id[0]
+        contract_id = code_and_id[1]
+
+        return cls(instrument_object=instrument_code, contract_date_object=contract_id)
+
     @property
     def key(self):
         return get_contract_key_from_code_and_id(self.instrument_code, self.date_str)
@@ -138,7 +150,7 @@ class futuresContract(object):
     def sampling_off(self):
         self.params.sampling = False
 
-    def log(self, log: logger):
+    def log(self, log: pst_logger):
         return log.setup(
             instrument_code=self.instrument_code, contract_date=self.date_str
         )

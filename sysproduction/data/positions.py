@@ -8,18 +8,16 @@ from syscore.exceptions import ContractNotFound
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
-from sysdata.mongodb.mongo_position_by_contract import mongoContractPositionData
-from sysdata.mongodb.mongo_positions_by_strategy import mongoStrategyPositionData
-from sysdata.mongodb.mongo_optimal_position import mongoOptimalPositionData
+from sysdata.arctic.arctic_historic_contract_positions import arcticContractPositionData
+from sysdata.arctic.arctic_historic_strategy_positions import arcticStrategyPositionData
 
 
 from sysdata.production.roll_state import rollStateData
-from sysdata.production.historic_positions import (
-    contractPositionData,
+from sysdata.production.historic_contract_positions import contractPositionData
+from sysdata.production.historic_strategy_positions import (
     strategyPositionData,
     listOfInstrumentStrategyPositions,
 )
-from sysdata.production.optimal_positions import optimalPositionData
 
 
 from sysdata.data_blob import dataBlob
@@ -32,12 +30,6 @@ from sysobjects.production.positions import listOfContractPositions, contractPos
 from sysobjects.production.tradeable_object import (
     listOfInstrumentStrategies,
     instrumentStrategy,
-)
-from sysobjects.production.optimal_positions import (
-    simpleOptimalPosition,
-    listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies,
-    listOfOptimalPositionsAcrossInstrumentStrategies,
-    instrumentStrategyAndOptimalPosition,
 )
 from sysobjects.production.roll_state import (
     RollState,
@@ -53,7 +45,7 @@ from sysproduction.data.contracts import dataContracts
 class diagPositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
-            [mongoRollStateData, mongoContractPositionData, mongoStrategyPositionData]
+            [mongoRollStateData, arcticStrategyPositionData, arcticContractPositionData]
         )
         return data
 
@@ -149,25 +141,25 @@ class diagPositions(productionDataLayerGeneric):
 
         return actual_positions
 
-    def get_position_df_for_contract(self, contract: futuresContract) -> pd.DataFrame:
+    def get_position_series_for_contract(self, contract: futuresContract) -> pd.Series:
 
         df_object = (
-            self.db_contract_position_data.get_position_as_df_for_contract_object(
+            self.db_contract_position_data.get_position_as_series_for_contract_object(
                 contract
             )
         )
 
         return df_object
 
-    def get_position_df_for_instrument_strategy(
+    def get_position_series_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
-    ) -> pd.DataFrame:
+    ) -> pd.Series:
 
-        df_object = self.db_strategy_position_data.get_position_as_df_for_instrument_strategy_object(
+        position_series = self.db_strategy_position_data.get_position_as_series_for_instrument_strategy_object(
             instrument_strategy
         )
 
-        return df_object
+        return position_series
 
     def get_positions_for_instrument_and_contract_list(
         self, instrument_code: str, list_of_contract_date_str: list
@@ -365,146 +357,10 @@ class diagPositions(productionDataLayerGeneric):
         return list_of_date_str_with_position
 
 
-class dataOptimalPositions(productionDataLayerGeneric):
-    def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(mongoOptimalPositionData)
-
-        return data
-
-    @property
-    def db_optimal_position_data(self) -> optimalPositionData:
-        return self.data.db_optimal_position
-
-    def get_list_of_current_optimal_positions_for_strategy_name(
-        self, strategy_name: str
-    ) -> listOfOptimalPositionsAcrossInstrumentStrategies:
-
-        all_optimal_positions = self.get_list_of_optimal_positions()
-        optimal_positions_for_strategy = all_optimal_positions.filter_by_strategy(
-            strategy_name
-        )
-
-        return optimal_positions_for_strategy
-
-    def get_list_of_instruments_for_strategy_with_optimal_position(
-        self, strategy_name: str, raw_positions=False
-    ) -> list:
-        if raw_positions:
-            use_strategy_name = strategy_name_with_raw_tag(strategy_name)
-        else:
-            use_strategy_name = strategy_name
-
-        list_of_instruments = self.db_optimal_position_data.get_list_of_instruments_for_strategy_with_optimal_position(
-            use_strategy_name
-        )
-
-        return list_of_instruments
-
-    def get_list_of_strategies_with_optimal_position(self) -> list:
-
-        list_of_strategies = (
-            self.db_optimal_position_data.list_of_strategies_with_optimal_position()
-        )
-        list_of_strategies = remove_raw_strategies(list_of_strategies)
-
-        return list_of_strategies
-
-    def get_current_optimal_position_for_instrument_strategy(
-        self, instrument_strategy: instrumentStrategy, raw_positions=False
-    ) -> simpleOptimalPosition:
-
-        if raw_positions:
-            use_instrument_strategy = instrument_strategy_with_raw_tag(
-                instrument_strategy
-            )
-        else:
-            use_instrument_strategy = instrument_strategy
-
-        current_optimal_position_entry = self.db_optimal_position_data.get_current_optimal_position_for_instrument_strategy(
-            use_instrument_strategy
-        )
-
-        return current_optimal_position_entry
-
-    def get_optimal_position_as_df_for_instrument_strategy(
-        self, instrument_strategy: instrumentStrategy
-    ) -> pd.DataFrame:
-
-        df_object = self.db_optimal_position_data.get_optimal_position_as_df_for_instrument_strategy(
-            instrument_strategy
-        )
-
-        return df_object
-
-    def update_optimal_position_for_instrument_strategy(
-        self,
-        instrument_strategy: instrumentStrategy,
-        position_entry: simpleOptimalPosition,
-        raw_positions=False,
-    ):
-        if raw_positions:
-            use_instrument_strategy = instrument_strategy_with_raw_tag(
-                instrument_strategy
-            )
-        else:
-            use_instrument_strategy = instrument_strategy
-
-        self.db_optimal_position_data.update_optimal_position_for_instrument_strategy(
-            use_instrument_strategy, position_entry
-        )
-
-    def get_list_of_optimal_positions(
-        self,
-    ) -> listOfOptimalPositionsAcrossInstrumentStrategies:
-
-        list_of_optimal_positions_and_instrument_strategies = (
-            self.db_optimal_position_data.get_list_of_optimal_positions()
-        )
-
-        list_of_optimal_positions_and_instrument_strategies = (
-            remove_raw_from_list_of_optimal_positions_and_instrument_strategies(
-                list_of_optimal_positions_and_instrument_strategies
-            )
-        )
-
-        return list_of_optimal_positions_and_instrument_strategies
-
-    def get_pd_of_position_breaks(self) -> pd.DataFrame:
-        optimal_and_current = self.get_list_of_optimal_and_current_positions()
-        optimal_and_current_as_pd = optimal_and_current.as_pd_with_breaks()
-
-        return optimal_and_current_as_pd
-
-    def get_list_of_optimal_position_breaks(self) -> list:
-        opt_positions = self.get_pd_of_position_breaks()
-        with_breaks = opt_positions[opt_positions.breaks]
-        items_with_breaks = list(with_breaks.index)
-
-        return items_with_breaks
-
-    def get_list_of_optimal_and_current_positions(
-        self,
-    ) -> listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies:
-
-        optimal_positions = self.get_list_of_optimal_positions()
-        position_data = diagPositions(self.data)
-        current_positions = (
-            position_data.get_all_current_strategy_instrument_positions()
-        )
-        optimal_and_current = optimal_positions.add_positions(current_positions)
-
-        return optimal_and_current
-
-
 class updatePositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
-            [
-                mongoRollStateData,
-                mongoContractPositionData,
-                mongoStrategyPositionData,
-                mongoOptimalPositionData,
-            ]
+            [mongoRollStateData, arcticStrategyPositionData, arcticContractPositionData]
         )
         return data
 
@@ -654,71 +510,3 @@ def get_list_of_instruments_with_current_positions(data: dataBlob) -> List[str]:
     all_contract_positions = diag_positions.get_all_current_contract_positions()
 
     return all_contract_positions.unique_list_of_instruments()
-
-
-POST_TAG_FOR_RAW_OPTIMAL_POSITION = "_raw"
-
-
-def remove_raw_strategies(list_of_strategies: list) -> list:
-    list_of_strategies = [
-        strategy_name
-        for strategy_name in list_of_strategies
-        if is_not_raw_strategy(strategy_name)
-    ]
-
-    return list_of_strategies
-
-
-def is_not_raw_strategy(strategy_name: str) -> bool:
-    return not is_raw_strategy(strategy_name)
-
-
-def is_raw_strategy(strategy_name: str) -> bool:
-    return strategy_name.endswith(POST_TAG_FOR_RAW_OPTIMAL_POSITION)
-
-
-def remove_raw_from_list_of_optimal_positions_and_instrument_strategies(
-    list_of_optimal_positions_and_instrument_strategies: listOfOptimalPositionsAcrossInstrumentStrategies,
-) -> listOfOptimalPositionsAcrossInstrumentStrategies:
-
-    list_of_optimal_positions_and_instrument_strategies = [
-        optimal_position_and_instrument_strategy
-        for optimal_position_and_instrument_strategy in list_of_optimal_positions_and_instrument_strategies
-        if is_not_raw_optimal_position_and_instrument_strategy(
-            optimal_position_and_instrument_strategy
-        )
-    ]
-
-    return listOfOptimalPositionsAcrossInstrumentStrategies(
-        list_of_optimal_positions_and_instrument_strategies
-    )
-
-
-def is_not_raw_optimal_position_and_instrument_strategy(
-    optimal_position_and_instrument_strategy: instrumentStrategyAndOptimalPosition,
-) -> bool:
-
-    return is_not_raw_instrument_strategy(
-        optimal_position_and_instrument_strategy.instrument_strategy
-    )
-
-
-def is_not_raw_instrument_strategy(instrument_strategy: instrumentStrategy) -> bool:
-    return is_not_raw_strategy(instrument_strategy.strategy_name)
-
-
-def instrument_strategy_with_raw_tag(
-    instrument_strategy: instrumentStrategy,
-) -> instrumentStrategy:
-    original_strategy_name = copy(instrument_strategy.strategy_name)
-    strategy_name = strategy_name_with_raw_tag(original_strategy_name)
-
-    new_instrument_strategy = instrumentStrategy(
-        strategy_name=strategy_name, instrument_code=instrument_strategy.instrument_code
-    )
-
-    return new_instrument_strategy
-
-
-def strategy_name_with_raw_tag(strategy_name: str) -> str:
-    return strategy_name + POST_TAG_FOR_RAW_OPTIMAL_POSITION

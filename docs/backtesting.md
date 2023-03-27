@@ -3902,7 +3902,7 @@ to monitor system behaviour than to try and create quantitative diagnostics.
 For this reason I'm a big fan of logging with *attributes*. Every time a log
 method is called, it will typically know one or more of the following:
 
-- type: the argument passed when the logger is setup. Should be the name of the top level calling function. Production types include price collection, execution and so on.
+- type: the argument passed when the pst_logger is setup. Should be the name of the top level calling function. Production types include price collection, execution and so on.
 - stage: Used by stages in System objects, such as 'rawdata'
 - component: other parts of the top level function that have their own loggers
 - currency_code: Currency code (used for fx), format 'GBPUSD'
@@ -3916,7 +3916,7 @@ Then we'll be able to save the log message with its attributes in a database
 activity relating to a particular instrument code or trade, for particular
 dates.
 
-You do need to keep track of what attributes your logger has. Generally
+You do need to keep track of what attributes your pst_logger has. Generally
 speaking you should use this kind of pattern to write a log item
 
 ```python
@@ -3927,7 +3927,7 @@ speaking you should use this kind of pattern to write a log item
 self.log.msg("Calculating scaled forecast for %s %s" % (instrument_code, rule_variation_name),
                                instrument_code=instrument_code, rule_variation_name=rule_variation_name)
 ```
-This has the advantage of keeping the original log attributes intact. If you want to do something more complex it's worth looking at the doc string for the logger class [here](/syslogdiag/logger.py) which shows how attributes are inherited and added to log instances.
+This has the advantage of keeping the original log attributes intact. If you want to do something more complex it's worth looking at the doc string for the pst_logger class [here](/syslogdiag/pst_logger.py) which shows how attributes are inherited and added to log instances.
 
 
 <a name="optimisation"> </a>

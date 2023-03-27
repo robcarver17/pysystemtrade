@@ -1,7 +1,7 @@
 import datetime
 
 from syscore.constants import arg_not_supplied
-from syslogdiag.logger import logger
+from syslogdiag.pst_logger import pst_logger
 from syslogdiag.log_to_screen import logtoscreen
 
 LOG_CLEARED = object()
@@ -11,7 +11,7 @@ FREQUENCY_TO_CHECK_LOG_MINUTES = 10
 
 class reportStatus(object):
     ## Report on status when waiting and paused, ensures we don't spam the log
-    def __init__(self, log: logger = arg_not_supplied):
+    def __init__(self, log: pst_logger = arg_not_supplied):
         if log is arg_not_supplied:
             log = logtoscreen("")
         self._log = log

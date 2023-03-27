@@ -12,7 +12,7 @@ from syscore.exceptions import missingData
 from syscore.constants import arg_not_supplied
 
 from syslogdiag.log_to_screen import logtoscreen
-from syslogdiag.logger import logger, BROKER_LOG_LABEL, CLIENTID_LOG_LABEL
+from syslogdiag.pst_logger import pst_logger, BROKER_LOG_LABEL, CLIENTID_LOG_LABEL
 
 from sysdata.config.production_config import get_production_config
 
@@ -29,7 +29,7 @@ class connectionIB(object):
         ib_ipaddress: str = arg_not_supplied,
         ib_port: int = arg_not_supplied,
         account: str = arg_not_supplied,
-        log: logger = logtoscreen("connectionIB"),
+        log: pst_logger = logtoscreen("connectionIB"),
     ):
         """
         :param client_id: client id

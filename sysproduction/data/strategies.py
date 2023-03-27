@@ -1,7 +1,8 @@
 from sysdata.data_blob import dataBlob
 from syscore.constants import arg_not_supplied
 from syscore.interactive.menus import print_menu_of_values_and_get_response
-from sysproduction.data.positions import diagPositions, dataOptimalPositions
+from sysproduction.data.positions import diagPositions
+from sysproduction.data.optimal_positions import dataOptimalPositions
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 

@@ -31,7 +31,7 @@ from sysdata.config.private_directory import (
     PRIVATE_CONFIG_DIR_ENV_VAR,
 )
 from syslogdiag.log_to_screen import logtoscreen
-from syslogdiag.logger import TYPE_LOG_LABEL, STAGE_LOG_LABEL
+from syslogdiag.pst_logger import TYPE_LOG_LABEL, STAGE_LOG_LABEL
 from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
 
 RESERVED_NAMES = [

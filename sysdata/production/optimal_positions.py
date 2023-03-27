@@ -8,75 +8,32 @@ A basic class is an optimal position with buffers around it.
 A mean reversion style class would include price buffers
 
 """
-
-from syscore.constants import failure
-from sysdata.production.timed_storage import (
-    listOfEntriesData,
-)
+import pandas as pd
+from syscore.exceptions import missingData
+from sysdata.base_data import baseData
 from sysobjects.production.optimal_positions import (
-    simpleOptimalPosition,
-    bufferedOptimalPositions,
+    baseOptimalPosition,
+    from_df_row_to_optimal_position,
+    add_optimal_position_entry_row_to_positions_as_df,
     instrumentStrategyAndOptimalPosition,
     listOfOptimalPositionsAcrossInstrumentStrategies,
-    optimalPositionWithReference,
-    optimalPositionWithDynamicCalculations,
 )
-from sysobjects.production.timed_storage import listOfEntries
+
 from sysobjects.production.tradeable_object import (
     listOfInstrumentStrategies,
     instrumentStrategy,
 )
 
 
-## THIS HAS TO STAY HERE OR OLD DATA WILL BREAK - DO NOT MOVE
-class simpleOptimalPositionForInstrument(listOfEntries):
-    """
-    A list of positions
-    """
-
-    def _entry_class(self):
-        return simpleOptimalPosition
-
-
-## THIS HAS TO STAY HERE OR OLD DATA WILL BREAK - DO NOT MOVE
-class bufferedOptimalPositionForInstrument(listOfEntries):
-    """
-    A list of positions over time
-    """
-
-    def _entry_class(self):
-        return bufferedOptimalPositions
-
-
-class dynamicOptimalPositionForInstrument(listOfEntries):
-    """
-    A list of positions over time
-    """
-
-    def _entry_class(self):
-        return optimalPositionWithDynamicCalculations
-
-
-## THIS HAS TO STAY HERE OR OLD DATA WILL BREAK - DO NOT MOVE
-class optimalPositionWithReferenceForAsset(listOfEntries):
-    """
-    A list of positions over time
-    """
-
-    def _entry_class(self):
-        return optimalPositionWithReference
-
-
-class optimalPositionData(listOfEntriesData):
+class optimalPositionData(baseData):
     """
     Store and retrieve the optimal positions assigned to a particular strategy
 
     We store the type of list in the data
     """
 
-    def _data_class_name(self):
-        # This is the default, may be overriden
-        return "sysdata.production.optimal_positions.simpleOptimalPositionForInstrument"
+    def __repr__(self):
+        return "optimalPositionData object"
 
     def get_list_of_optimal_positions_for_strategy(
         self, strategy_name: str
@@ -140,39 +97,6 @@ class optimalPositionData(listOfEntriesData):
 
         return instrument_strategy_and_optimal_position
 
-    def get_optimal_position_as_df_for_instrument_strategy(
-        self, instrument_strategy: instrumentStrategy
-    ):
-        position_series = self._get_series_for_args_dict(instrument_strategy.as_dict())
-        df_object = position_series.as_pd_df()
-        return df_object
-
-    def get_current_optimal_position_for_instrument_strategy(
-        self, instrument_strategy: instrumentStrategy
-    ):
-        current_optimal_position_entry = self._get_current_entry_for_args_dict(
-            instrument_strategy.as_dict()
-        )
-
-        return current_optimal_position_entry
-
-    def update_optimal_position_for_instrument_strategy(
-        self,
-        instrument_strategy: instrumentStrategy,
-        position_entry: simpleOptimalPosition,
-    ):
-        try:
-            self._update_entry_for_args_dict(
-                position_entry,
-                instrument_strategy.as_dict(),
-            )
-        except Exception as e:
-            self.log.warn(
-                "Error %s when updating position for %s with %s"
-                % (str(e), str(instrument_strategy), str(position_entry))
-            )
-            return failure
-
     def get_list_of_instruments_for_strategy_with_optimal_position(
         self, strategy_name: str
     ) -> list:
@@ -211,18 +135,61 @@ class optimalPositionData(listOfEntriesData):
 
         return list_of_instrument_strategies_for_strategy
 
+    def get_current_optimal_position_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy
+    ) -> baseOptimalPosition:
+
+        existing_optimal_positions_as_df = (
+            self.get_optimal_position_as_df_for_instrument_strategy(instrument_strategy)
+        )
+
+        final_position_row = existing_optimal_positions_as_df.iloc[-1, :]
+        optimal_position = from_df_row_to_optimal_position(final_position_row)
+
+        return optimal_position
+
+    def update_optimal_position_for_instrument_strategy(
+        self,
+        instrument_strategy: instrumentStrategy,
+        position_entry: baseOptimalPosition,
+    ):
+        try:
+            existing_optimal_positions_as_df = (
+                self.get_optimal_position_as_df_for_instrument_strategy(
+                    instrument_strategy
+                )
+            )
+            updated_optimal_positions_as_df = (
+                add_optimal_position_entry_row_to_positions_as_df(
+                    existing_optimal_positions_as_df, position_entry
+                )
+            )
+
+        except missingData:
+            #### Starting from scracth
+            updated_optimal_positions_as_df = position_entry.as_df_row()
+
+        self.write_optimal_position_as_df_for_instrument_strategy_without_checking(
+            instrument_strategy=instrument_strategy,
+            optimal_positions_as_df=updated_optimal_positions_as_df,
+        )
+
     def get_list_of_instrument_strategies_with_optimal_position(
         self,
     ) -> listOfInstrumentStrategies:
 
-        list_of_args_dict = self._get_list_of_args_dict()
-        list_of_instrument_strategies = []
-        for arg_entry in list_of_args_dict:
-            list_of_instrument_strategies.append(
-                instrumentStrategy.from_dict(arg_entry)
-            )
-        list_of_instrument_strategies = listOfInstrumentStrategies(
-            list_of_instrument_strategies
-        )
+        raise NotImplementedError
 
-        return list_of_instrument_strategies
+    def get_optimal_position_as_df_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy
+    ) -> pd.DataFrame:
+
+        raise NotImplementedError
+
+    def write_optimal_position_as_df_for_instrument_strategy_without_checking(
+        self,
+        instrument_strategy: instrumentStrategy,
+        optimal_positions_as_df: pd.DataFrame,
+    ) -> pd.DataFrame:
+
+        raise NotImplementedError

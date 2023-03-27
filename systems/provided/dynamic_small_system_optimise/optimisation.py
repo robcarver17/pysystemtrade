@@ -4,7 +4,7 @@ import numpy as np
 
 from syscore.constants import arg_not_supplied
 
-from syslogdiag.logger import logger, nullLog
+from syslogdiag.pst_logger import pst_logger, nullLog
 
 from sysquant.estimators.covariance import covarianceEstimate
 from sysquant.estimators.mean_estimator import meanEstimates
@@ -39,7 +39,7 @@ class objectiveFunctionForGreedy:
         previous_positions: portfolioWeights = arg_not_supplied,
         constraints: constraintsForDynamicOpt = arg_not_supplied,
         maximum_positions: portfolioWeights = arg_not_supplied,
-        log: logger = nullLog(""),
+        log: pst_logger = nullLog(""),
     ):
 
         self.covariance_matrix = covariance_matrix
