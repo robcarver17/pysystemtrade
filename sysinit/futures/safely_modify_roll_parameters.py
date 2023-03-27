@@ -37,14 +37,14 @@ def safely_modify_roll_parameters(data: dataBlob):
         data, instrument_code=instrument_code
     )
 
-    output_path_for_roll_calendar = input(
-        "Path for writing roll calendar; must be absolute with leading "
+    output_path_for_temp_csv_files = input(
+        "Path for writing roll calendar and roll parameters; must be absolute with leading "
         "\ or / eg /home/rob/pysystemtrade/data/futures/roll_calendars_csv/? "
     )
     build_and_write_roll_calendar(
         instrument_code,
         roll_parameters=new_roll_parameters,
-        output_datapath=output_path_for_roll_calendar,
+        output_datapath=output_path_for_temp_csv_files,
     )
 
     ans = true_if_answer_is_yes(
@@ -57,7 +57,7 @@ def safely_modify_roll_parameters(data: dataBlob):
 
     new_multiple_prices = process_multiple_prices_single_instrument(
         instrument_code=instrument_code,
-        csv_roll_data_path=output_path_for_roll_calendar,
+        csv_roll_data_path=output_path_for_temp_csv_files,
         ADD_TO_CSV=False,
         ADD_TO_ARCTIC=False,
     )
@@ -110,7 +110,10 @@ def safely_modify_roll_parameters(data: dataBlob):
         # return None
 
     ## Overwrite roll parameters
-    data_contracts = dataContracts(data)
+    data_csv = dataBlob(
+        csv_data_paths=dict(csvFuturesContractData=output_path_for_temp_csv_files)
+    )
+    data_contracts = dataContracts(data_csv)
 
     data_contracts.update_roll_parameters(
         instrument_code=instrument_code,
