@@ -1,6 +1,7 @@
 from copy import copy
 from ib_insync import Contract
 
+from syscore.constants import missing_contract
 from syscore.cache import Cache
 from syscore.exceptions import missingData, missingContract
 from sysbrokers.IB.client.ib_client import ibClient
@@ -594,6 +595,9 @@ class ibContractsClient(ibClient):
             allow_expired=allow_expired,
             allow_multiple_contracts=True,
         )
+
+        if new_contract_details_list is missing_contract:
+            raise missingContract
 
         ibcontract_list = [
             contract_details.contract for contract_details in new_contract_details_list

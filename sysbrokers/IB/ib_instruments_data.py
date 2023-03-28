@@ -13,6 +13,8 @@ from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.client.ib_client import ibClient
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
 
+from syscore.constants import missing_contract
+from syscore.exceptions import missingContract
 from sysdata.data_blob import dataBlob
 
 from syslogdiag.log_to_screen import logtoscreen
@@ -34,10 +36,14 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
     def get_instrument_code_from_broker_contract_object(
         self, broker_contract_object: ibContract
     ) -> str:
-
-        return self.ib_client.get_instrument_code_from_broker_contract_object(
+        instrument_code = self.ib_client.get_instrument_code_from_broker_contract_object(
             broker_contract_object
         )
+
+        if instrument_code is missing_contract:
+            raise missingContract
+
+        return instrument_code
 
     def _get_instrument_data_without_checking(self, instrument_code: str):
         return self.get_futures_instrument_object_with_IB_data(instrument_code)
