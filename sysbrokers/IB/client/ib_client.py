@@ -214,7 +214,7 @@ class ibClient(object):
             ib_code=str(contract_details.contract.symbol),
             ib_multiplier=float(contract_details.contract.multiplier),
             ib_exchange=str(contract_details.contract.exchange),
-            ib_valid_exchange = str(contract_details.validExchanges)
+            ib_valid_exchange=str(contract_details.validExchanges),
         )
 
     def get_contract_details(
@@ -236,7 +236,9 @@ class ibClient(object):
             return contract_details
 
         elif len(contract_details) > 1:
-            self.log.critical("Multiple contracts and only expected one - returning the first")
+            self.log.critical(
+                "Multiple contracts and only expected one - returning the first"
+            )
 
         return contract_details[0]
 

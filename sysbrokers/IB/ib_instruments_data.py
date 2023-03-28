@@ -36,8 +36,10 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
     def get_instrument_code_from_broker_contract_object(
         self, broker_contract_object: ibContract
     ) -> str:
-        instrument_code = self.ib_client.get_instrument_code_from_broker_contract_object(
-            broker_contract_object
+        instrument_code = (
+            self.ib_client.get_instrument_code_from_broker_contract_object(
+                broker_contract_object
+            )
         )
 
         if instrument_code is missing_contract:
