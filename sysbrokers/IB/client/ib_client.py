@@ -103,7 +103,7 @@ class ibClient(object):
         return self._log
 
     def error_handler(
-        self, reqid: int, error_code: int, error_string: str, contract: ibContract
+        self, reqid: int, error_code: int, error_string: str, ib_contract: ibContract
     ):
         """
         Error handler called from server
@@ -116,34 +116,22 @@ class ibClient(object):
         :return: success
         """
 
-        msg = "Reqid %d: %d %s" % (reqid, error_code, error_string)
-
-        log_to_use = self._get_log_for_contract(contract)
+        msg = "Reqid %d: %d %s for %s" % (
+            reqid,
+            error_code,
+            error_string,
+            str(ib_contract),
+        )
 
         iserror = error_code in IB_IS_ERROR
         if iserror:
             # Serious requires some action
             myerror_type = IB_ERROR_TYPES.get(error_code, "generic")
-            self.broker_error(msg=msg, myerror_type=myerror_type, log=log_to_use)
+            self.broker_error(msg=msg, myerror_type=myerror_type, log=self.log)
 
         else:
             # just a general message
-            self.broker_message(msg=msg, log=log_to_use)
-
-    def _get_log_for_contract(self, contract: ibContract) -> pst_logger:
-        if contract is None:
-            log_to_use = self.log.setup()
-        else:
-            ib_expiry_str = contract.lastTradeDateOrContractMonth
-            instrument_code = self.get_instrument_code_from_broker_contract_object(
-                contract
-            )
-            if instrument_code is missing_contract:
-                instrument_code = "UNKNOWN (%s)" % contract.symbol
-            futures_contract = futuresContract(instrument_code, ib_expiry_str)
-            log_to_use = futures_contract.specific_log(self.log)
-
-        return log_to_use
+            self.broker_message(msg=msg, log=self.log)
 
     def broker_error(self, msg, log, myerror_type):
         log.warn(msg)
