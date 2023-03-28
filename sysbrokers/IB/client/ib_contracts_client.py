@@ -596,9 +596,6 @@ class ibContractsClient(ibClient):
             allow_multiple_contracts=True,
         )
 
-        if new_contract_details_list is missing_contract:
-            raise missingContract
-
         ibcontract_list = [
             contract_details.contract for contract_details in new_contract_details_list
         ]

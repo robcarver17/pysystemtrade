@@ -150,10 +150,6 @@ class ibClient(object):
         instrument_code = self.get_instrument_code_from_broker_identity_for_contract(
             broker_identity
         )
-        if instrument_code is missing_contract:
-            ## WE DON'T RAISE AN ERROR HERE AS IT CAUSES ERROR RECURSION SEE #1085
-
-            return missing_contract
 
         return instrument_code
 
@@ -194,9 +190,6 @@ class ibClient(object):
             allow_expired=False,
             allow_multiple_contracts=False,
         )
-        if contract_details is missing_contract:
-            ## ## WE DON'T RAISE AN ERROR HERE AS IT CAUSES ERROR RECURSION SEE #1085
-            return missing_contract
 
         return IBInstrumentIdentity(
             ib_code=str(contract_details.contract.symbol),
@@ -217,8 +210,7 @@ class ibClient(object):
         )
 
         if len(contract_details) == 0:
-            ## WE DON'T RAISE AN ERROR HERE AS IT CAUSES ERROR RECURSION SEE #1085
-            return missing_contract
+            raise missingContract
 
         if allow_multiple_contracts:
             return contract_details
