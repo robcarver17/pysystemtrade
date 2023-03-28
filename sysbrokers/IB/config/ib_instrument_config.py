@@ -7,6 +7,7 @@ from sysbrokers.IB.ib_instruments import (
     ibInstrumentConfigData,
 )
 from syscore.constants import missing_file, missing_instrument, arg_not_supplied
+from syscore.exceptions import missingData
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.genutils import return_another_value_if_nan
 from syslogdiag.log_to_screen import logtoscreen
@@ -104,6 +105,7 @@ class IBInstrumentIdentity:
     ib_code: str
     ib_multiplier: float
     ib_exchange: str
+    ib_valid_exchange: str
 
 
 def get_instrument_code_from_broker_instrument_identity(
@@ -115,20 +117,35 @@ def get_instrument_code_from_broker_instrument_identity(
     ib_code = ib_instrument_identity.ib_code
     ib_multiplier = ib_instrument_identity.ib_multiplier
     ib_exchange = ib_instrument_identity.ib_exchange
+    ib_valid_exchange = ib_instrument_identity.ib_valid_exchange
 
-    config_rows = config[
-        (config.IBSymbol == ib_code)
-        & (config.IBMultiplier == ib_multiplier)
-        & (config.IBExchange == ib_exchange)
-    ]
+    config_rows = _get_relevant_config_rows_from_broker_instrument_identity_fields(
+        config=config,
+        ib_code=ib_code,
+        ib_multiplier=ib_multiplier,
+        ib_exchange=ib_exchange,
+    )
+
     if len(config_rows) == 0:
-        msg = "Broker symbol %s (%s, %f) not found in configuration file!" % (
-            ib_code,
-            ib_exchange,
-            ib_multiplier,
-        )
-        log.critical(msg)
-        raise Exception(msg)
+        ## try something else
+        ## might have a weird exchange, but the exchange we want is in validExchanges
+        try:
+            config_rows = _get_relevant_config_rows_from_broker_instrument_identity_using_multiple_valid_exchanges(
+                config=config, ib_instrument_identity=ib_instrument_identity
+            )
+
+        except:
+            msg = (
+                "Broker symbol %s (exchange:%s, valid_exchange:%s multiplier:%f) not found in configuration file!"
+                % (
+                    ib_code,
+                    ib_exchange,
+                    ib_valid_exchange,
+                    ib_multiplier,
+                )
+            )
+            log.critical(msg)
+            raise Exception(msg)
 
     if len(config_rows) > 1:
 
@@ -140,6 +157,44 @@ def get_instrument_code_from_broker_instrument_identity(
         raise Exception(msg)
 
     return config_rows.iloc[0].Instrument
+
+
+def _get_relevant_config_rows_from_broker_instrument_identity_using_multiple_valid_exchanges(
+    config: IBconfig, ib_instrument_identity: IBInstrumentIdentity
+) -> pd.Series:
+
+    ib_code = ib_instrument_identity.ib_code
+    ib_multiplier = ib_instrument_identity.ib_multiplier
+    ib_valid_exchange = ib_instrument_identity.ib_valid_exchange
+
+    valid_exchanges = ib_valid_exchange.split(",")
+
+    for ib_exchange in valid_exchanges:
+        config_rows = _get_relevant_config_rows_from_broker_instrument_identity_fields(
+            config=config,
+            ib_code=ib_code,
+            ib_multiplier=ib_multiplier,
+            ib_exchange=ib_exchange,
+        )
+
+        if len(config_rows) == 1:
+            ## we have a match!
+            return config_rows
+
+    raise missingData
+
+
+def _get_relevant_config_rows_from_broker_instrument_identity_fields(
+    config: IBconfig, ib_code: str, ib_multiplier: float, ib_exchange: str
+) -> pd.Series:
+
+    config_rows = config[
+        (config.IBSymbol == ib_code)
+        & (config.IBMultiplier == ib_multiplier)
+        & (config.IBExchange == ib_exchange)
+    ]
+
+    return config_rows
 
 
 def get_instrument_list_from_ib_config(

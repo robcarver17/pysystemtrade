@@ -12,6 +12,7 @@ class named_object:
 missing_instrument = named_object("missing instrument")
 missing_file = named_object("missing file")
 missing_data = named_object("missing data")
+missing_contract = named_object("missing contract")
 market_closed = named_object("market closed")
 fill_exceeds_trade = named_object("fill too big for trade")
 arg_not_supplied = named_object("arg not supplied")
