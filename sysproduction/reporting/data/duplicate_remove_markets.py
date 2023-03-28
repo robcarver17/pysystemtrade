@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 from dataclasses import dataclass
 
-from syscore.constants import named_object, missing_data
+from syscore.constants import named_object
+from syscore.exceptions import missingData
 from sysdata.config.instruments import generate_matching_duplicate_dict
 from sysdata.config.production_config import get_production_config
 from sysproduction.reporting.data.constants import (
@@ -401,10 +402,11 @@ def get_data_for_markets(data):
 def get_existing_bad_markets(data):
     production_config = data.config
 
-    excluded_markets_config_element = production_config.get_element_or_missing_data(
-        "exclude_instrument_lists"
-    )
-    if excluded_markets_config_element is missing_data:
+    try:
+        excluded_markets_config_element = production_config.get_element(
+            "exclude_instrument_lists"
+        )
+    except missingData:
         print("NO BAD MARKETS IN CONFIG!")
         existing_bad_markets = []
     else:
