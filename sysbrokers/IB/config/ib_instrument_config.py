@@ -130,10 +130,9 @@ def get_instrument_code_from_broker_instrument_identity(
         ## try something else
         ## might have a weird exchange, but the exchange we want is in validExchanges
         try:
-            config_rows = (
-                _get_relevant_config_rows_from_broker_instrument_identity_using_multiple_valid_exchanges(
-                    config=config,
-                    ib_instrument_identity=ib_instrument_identity)
+            config_rows = _get_relevant_config_rows_from_broker_instrument_identity_using_multiple_valid_exchanges(
+                config=config, ib_instrument_identity=ib_instrument_identity
+            )
 
         except:
             msg = (
