@@ -122,7 +122,7 @@ def get_instrument_code_from_broker_instrument_identity(
         & (config.IBExchange == ib_exchange)
     ]
     if len(config_rows) == 0:
-        msg = "Broker symbol %s (%s, %f) not found in configuration file!" % (
+        msg = "Broker symbol %s (exchange:%s, multiplier:%f) not found in configuration file!" % (
             ib_code,
             ib_exchange,
             ib_multiplier,
