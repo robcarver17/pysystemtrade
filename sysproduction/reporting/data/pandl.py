@@ -193,8 +193,9 @@ class pandlCalculateAndStore(object):
     ) -> pd.DataFrame:
         ## can return missing contract
         pandl_store = self.instrument_pandl_store
-        pandl_for_instrument = pandl_store.get(instrument_code, missing_data)
-        if pandl_for_instrument is missing_data:
+        try:
+            pandl_for_instrument = pandl_store[instrument_code]
+        except KeyError:
             pandl_for_instrument = self._get_pandl_for_instrument_across_contracts(
                 instrument_code
             )
@@ -204,9 +205,11 @@ class pandlCalculateAndStore(object):
 
     @property
     def instrument_pandl_store(self):
-        store = getattr(self, "_instrument_pandl_store", missing_data)
-        if store is missing_data:
-            store = self._instrument_pandl_store = {}
+        try:
+            store = getattr(self, "_instrument_pandl_store")
+        except AttributeError:
+            store = {}
+            setattr(self, "_instrument_pandl_store", store)
         return store
 
     def _get_pandl_for_instrument_across_contracts(
@@ -274,8 +277,9 @@ class pandlCalculateAndStore(object):
         strategy_pandl_store = self.strategy_pandl_store
         store_key = instrument_strategy.key
 
-        pandl_series = strategy_pandl_store.get(store_key, missing_data)
-        if pandl_series is missing_data:
+        try:
+            pandl_series = strategy_pandl_store[store_key]
+        except KeyError:
             pandl_series = (
                 self._get_perc_pandl_series_for_strategy_instrument_vs_total_capital(
                     instrument_strategy
@@ -297,9 +301,11 @@ class pandlCalculateAndStore(object):
 
     @property
     def strategy_pandl_store(self):
-        store = getattr(self, "_strategy_pandl_store", missing_data)
-        if store is missing_data:
-            store = self._strategy_pandl_store = {}
+        try:
+            store = getattr(self, "_strategy_pandl_store")
+        except AttributeError:
+            store = {}
+            setattr(self, "_strategy_pandl_store", store)
         return store
 
 
