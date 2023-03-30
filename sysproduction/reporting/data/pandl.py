@@ -222,11 +222,11 @@ class pandlCalculateAndStore(object):
 
     def get_period_perc_pandl_for_strategy_in_date_range(self, strategy_name: str):
         print("Getting p&l for %s" % strategy_name)
-        pandl_df = self.get_df_of_perc_pandl_series_for_strategy_all_instruments(
-            strategy_name
-        )
-
-        if pandl_df is missing_data:
+        try:
+            pandl_df = self.get_df_of_perc_pandl_series_for_strategy_all_instruments(
+                strategy_name
+            )
+        except missingData:
             return 0.0
 
         pandl_df = pandl_df[self.start_date : self.end_date]
@@ -245,9 +245,6 @@ class pandlCalculateAndStore(object):
             strategy_name
         )
 
-        if instrument_list is missing_data:
-            return missing_data
-
         pandl_df = pd.concat(pandl_list, axis=1)
         pandl_df.columns = instrument_list
 
@@ -260,7 +257,7 @@ class pandlCalculateAndStore(object):
             self.data, strategy_name
         )
         if len(instrument_list) == 0:
-            return missing_data, missing_data
+            raise missingData
 
         pandl_list = [
             self.perc_pandl_series_for_strategy_instrument_vs_total_capital(
