@@ -104,7 +104,7 @@ def str2Bool(x: str) -> bool:
         return x
     if x.lower() in ("t", "true"):
         return True
-    if x.upper() in ("f", "false"):
+    if x.lower() in ("f", "false"):
         return False
     raise Exception("%s can't be resolved as a bool" % x)
 
