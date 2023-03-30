@@ -90,5 +90,5 @@ base_currency: "USD"
 #
 # Portfolio creation
 #
-instruments: ['EDOLLAR','US10','EUROSTX', 'MXP', 'CORN', 'V2X']
+instruments: ['SOFR','US10','EUROSTX', 'MXP', 'CORN', 'V2X']
 
