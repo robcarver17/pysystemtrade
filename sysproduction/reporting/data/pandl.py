@@ -4,7 +4,7 @@ from collections import namedtuple
 import pandas as pd
 
 from syscore.exceptions import missingContract, missingData
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysobjects.contracts import futuresContract
 from sysobjects.production.tradeable_object import instrumentStrategy
 
@@ -319,9 +319,6 @@ def get_df_of_perc_pandl_series_for_instrument_all_strategies_across_contracts_i
         data, instrument_code, start_date, end_date
     )
 
-    if contract_list is missing_data:
-        raise missingContract
-
     pandl_df = pd.concat(pandl_list, axis=1)
     pandl_df.columns = contract_list
 
@@ -335,7 +332,7 @@ def get_list_of_perc_pandl_series_for_instrument_all_strategies_across_contracts
         data, instrument_code, start_date, end_date
     )
     if len(contract_list) == 0:
-        return missing_data, missing_data
+        raise missingContract
 
     pandl_list = [
         get_perc_pandl_series_for_contract(data, instrument_code, contract_id)
