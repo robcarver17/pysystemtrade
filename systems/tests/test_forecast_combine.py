@@ -32,7 +32,7 @@ class Test(unittest.TestCase):
     def test_get_combined_forecast(self):
         # this is default, but be explicit
         self.config.instruments_with_threshold = []
-        fdf = self.system.combForecast.get_combined_forecast("EDOLLAR")
+        fdf = self.system.combForecast.get_combined_forecast("SOFR")
         assert fdf.max() < 30
         assert fdf.min() > -30
         # fdf.describe()
@@ -47,8 +47,8 @@ class Test(unittest.TestCase):
 
     def test_get_combined_threshold_forecsat(self):
         # modify config in place
-        self.config.instruments_with_threshold = ["EDOLLAR", "BUND"]
-        fdf = self.system.combForecast.get_combined_forecast("EDOLLAR")
+        self.config.instruments_with_threshold = ["SOFR", "BUND"]
+        fdf = self.system.combForecast.get_combined_forecast("SOFR")
         assert fdf.max() == 30
         assert fdf.min() == -30
         self.config.instruments_with_threshold = []
@@ -65,7 +65,7 @@ class Test(unittest.TestCase):
     def test_get_capped_forecast(self):
 
         self.assertAlmostEqual(
-            self.system.combForecast.get_capped_forecast("EDOLLAR", "ewmac8")
+            self.system.combForecast.get_capped_forecast("SOFR", "ewmac8")
             .tail(1)
             .values[0],
             0.8712306,
@@ -77,7 +77,7 @@ class Test(unittest.TestCase):
     def test_get_trading_rule_list(self):
 
         # fixed weights
-        ans = self.system.combForecast.get_trading_rule_list("EDOLLAR")
+        ans = self.system.combForecast.get_trading_rule_list("SOFR")
         self.assertEqual(ans, ["ewmac16", "ewmac8"])
 
         ans2 = self.system.combForecast.get_trading_rule_list("BUND")
@@ -91,7 +91,7 @@ class Test(unittest.TestCase):
             self.data,
             config,
         )
-        ans3 = system2.combForecast.get_trading_rule_list("EDOLLAR")
+        ans3 = system2.combForecast.get_trading_rule_list("SOFR")
         self.assertEqual(ans3, ["ewmac16", "ewmac8"])
         ans4 = system2.combForecast.get_trading_rule_list("BUND")
         self.assertEqual(ans4, ans3)
@@ -103,7 +103,7 @@ class Test(unittest.TestCase):
             self.data,
             config,
         )
-        ans5 = system3.combForecast.get_trading_rule_list("EDOLLAR")
+        ans5 = system3.combForecast.get_trading_rule_list("SOFR")
         self.assertEqual(ans5, ["ewmac16", "ewmac8"])
 
         # estimated weights - missing
@@ -113,7 +113,7 @@ class Test(unittest.TestCase):
             self.data,
             config,
         )
-        ans6 = system4.combForecast.get_trading_rule_list("EDOLLAR")
+        ans6 = system4.combForecast.get_trading_rule_list("SOFR")
         self.assertEqual(ans6, ["ewmac16", "ewmac8"])
 
         # estimated weights - non nested
@@ -123,21 +123,21 @@ class Test(unittest.TestCase):
             self.data,
             config,
         )
-        ans6 = system5.combForecast.get_trading_rule_list("EDOLLAR")
+        ans6 = system5.combForecast.get_trading_rule_list("SOFR")
         self.assertEqual(ans6, ["ewmac8"])
 
         # estimated weights - nested dict
         setattr(
             config,
             "rule_variations",
-            dict(EDOLLAR=["ewmac8"], BUND=["ewmac16"], US10=["ewmac8", "ewmac16"]),
+            dict(SOFR=["ewmac8"], BUND=["ewmac16"], US10=["ewmac8", "ewmac16"]),
         )
         system6 = System(
             [self.rawdata, self.rules, self.fcs, self.forecast_combine()],
             self.data,
             config,
         )
-        ans7 = system6.combForecast.get_trading_rule_list("EDOLLAR")
+        ans7 = system6.combForecast.get_trading_rule_list("SOFR")
         self.assertEqual(ans7, ["ewmac8"])
         ans8 = system6.combForecast.get_trading_rule_list("BUND")
         self.assertEqual(ans8, ["ewmac16"])
@@ -146,15 +146,15 @@ class Test(unittest.TestCase):
 
     def test_has_same_rules_as_code(self):
 
-        ans = self.system.combForecast.has_same_rules_as_code("EDOLLAR")
-        self.assertEqual(ans, ["EDOLLAR", "US10"])
+        ans = self.system.combForecast.has_same_rules_as_code("SOFR")
+        self.assertEqual(ans, ["SOFR", "US10"])
 
         ans2 = self.system.combForecast.has_same_rules_as_code("BUND")
         self.assertEqual(ans2, ["BUND"])
 
     def test_get_all_forecasts(self):
 
-        ans = self.system.combForecast.get_all_forecasts("EDOLLAR")
+        ans = self.system.combForecast.get_all_forecasts("SOFR")
         self.assertAlmostEqual(ans.ewmac16.values[-1], 3.6062425)
 
         ans2 = self.system.combForecast.get_all_forecasts("BUND")
@@ -164,7 +164,7 @@ class Test(unittest.TestCase):
 
         # fixed weights:
         #    nested dict (in config)
-        ans1a = self.system.combForecast.get_forecast_weights("EDOLLAR")
+        ans1a = self.system.combForecast.get_forecast_weights("SOFR")
         self.assertAlmostEqual(ans1a.ewmac16.values[-1], 0.5)
 
         ans1b = self.system.combForecast.get_raw_monthly_forecast_weights("BUND")
@@ -211,21 +211,19 @@ class Test(unittest.TestCase):
 
         system = self.setUpWithEstimatedReturns()
 
-        print(
-            system.combForecast.get_SR_cost_for_instrument_forecast("EDOLLAR", "ewmac8")
-        )
+        print(system.combForecast.get_SR_cost_for_instrument_forecast("SOFR", "ewmac8"))
         print(system.combForecast.get_SR_cost_for_instrument_forecast("BUND", "ewmac8"))
         print(system.combForecast.get_SR_cost_for_instrument_forecast("US10", "ewmac8"))
 
-        print(system.combForecast.has_same_cheap_rules_as_code("EDOLLAR"))
+        print(system.combForecast.has_same_cheap_rules_as_code("SOFR"))
         print(system.combForecast.has_same_cheap_rules_as_code("BUND"))
         print(system.combForecast.has_same_cheap_rules_as_code("US10"))
 
-        print(system.combForecast.get_returns_for_optimisation("EDOLLAR").to_frame())
+        print(system.combForecast.get_returns_for_optimisation("SOFR").to_frame())
         print(system.combForecast.get_returns_for_optimisation("BUND").to_frame())
         print(system.combForecast.get_returns_for_optimisation("US10").to_frame())
 
-        print(system.combForecast.has_same_cheap_rules_as_code("EDOLLAR"))
+        print(system.combForecast.has_same_cheap_rules_as_code("SOFR"))
         print(system.combForecast.has_same_cheap_rules_as_code("BUND"))
         print(system.combForecast.has_same_cheap_rules_as_code("US10"))
 
