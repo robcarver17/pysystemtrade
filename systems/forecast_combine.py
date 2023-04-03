@@ -832,8 +832,9 @@ class ForecastCombine(SystemStage):
 
         KEY INPUT
         """
-        accounts = self.accounts_stage
-        if accounts is missing_data:
+        try:
+            accounts = self.accounts_stage
+        except missingData:
             warn_msg = (
                 "You need an accounts stage in the system to estimate forecast costs for %s %s. Using costs of zero"
                 % (instrument_code, rule_variation_name)
@@ -849,7 +850,7 @@ class ForecastCombine(SystemStage):
     def accounts_stage(self):
 
         if not hasattr(self.parent, "accounts"):
-            return missing_data
+            raise missingData
 
         # no -> to avoid circular imports
         return self.parent.accounts
@@ -870,9 +871,9 @@ class ForecastCombine(SystemStage):
         :returns: accountCurveGroup object
 
         """
-        accounts = self.accounts_stage
-
-        if accounts is missing_data:
+        try:
+            accounts = self.accounts_stage
+        except missingData:
             error_msg = (
                 "You need an accounts stage in the system to estimate forecast weights"
             )
