@@ -11,7 +11,7 @@ from sysbrokers.IB.config.ib_instrument_config import (
     IBInstrumentIdentity,
 )
 
-from syscore.constants import arg_not_supplied
+from syscore.constants import arg_not_supplied, missing_contract
 from syscore.cache import Cache
 from syscore.exceptions import missingContract
 
@@ -103,7 +103,7 @@ class ibClient(object):
         return self._log
 
     def error_handler(
-        self, reqid: int, error_code: int, error_string: str, contract: ibContract
+        self, reqid: int, error_code: int, error_string: str, ib_contract: ibContract
     ):
         """
         Error handler called from server
@@ -116,32 +116,22 @@ class ibClient(object):
         :return: success
         """
 
-        msg = "Reqid %d: %d %s" % (reqid, error_code, error_string)
-
-        log_to_use = self._get_log_for_contract(contract)
+        msg = "Reqid %d: %d %s for %s" % (
+            reqid,
+            error_code,
+            error_string,
+            str(ib_contract),
+        )
 
         iserror = error_code in IB_IS_ERROR
         if iserror:
             # Serious requires some action
             myerror_type = IB_ERROR_TYPES.get(error_code, "generic")
-            self.broker_error(msg=msg, myerror_type=myerror_type, log=log_to_use)
+            self.broker_error(msg=msg, myerror_type=myerror_type, log=self.log)
 
         else:
             # just a general message
-            self.broker_message(msg=msg, log=log_to_use)
-
-    def _get_log_for_contract(self, contract: ibContract) -> pst_logger:
-        if contract is None:
-            log_to_use = self.log.setup()
-        else:
-            ib_expiry_str = contract.lastTradeDateOrContractMonth
-            instrument_code = self.get_instrument_code_from_broker_contract_object(
-                contract
-            )
-            futures_contract = futuresContract(instrument_code, ib_expiry_str)
-            log_to_use = futures_contract.specific_log(self.log)
-
-        return log_to_use
+            self.broker_message(msg=msg, log=self.log)
 
     def broker_error(self, msg, log, myerror_type):
         log.warn(msg)
@@ -205,6 +195,7 @@ class ibClient(object):
             ib_code=str(contract_details.contract.symbol),
             ib_multiplier=float(contract_details.contract.multiplier),
             ib_exchange=str(contract_details.contract.exchange),
+            ib_valid_exchange=str(contract_details.validExchanges),
         )
 
     def get_contract_details(
@@ -214,7 +205,6 @@ class ibClient(object):
         allow_multiple_contracts: bool = False,
     ) -> Union[ibContractDetails, List[ibContractDetails]]:
 
-        """CACHING HERE CAUSES TOO MANY ERRORS SO DON'T USE IT"""
         contract_details = self._get_contract_details(
             ib_contract_pattern, allow_expired=allow_expired
         )
@@ -226,7 +216,9 @@ class ibClient(object):
             return contract_details
 
         elif len(contract_details) > 1:
-            self.log.critical("Multiple contracts and only expected one")
+            self.log.critical(
+                "Multiple contracts and only expected one - returning the first"
+            )
 
         return contract_details[0]
 

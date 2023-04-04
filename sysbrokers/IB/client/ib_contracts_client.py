@@ -1,6 +1,7 @@
 from copy import copy
 from ib_insync import Contract
 
+from syscore.constants import missing_contract
 from syscore.cache import Cache
 from syscore.exceptions import missingData, missingContract
 from sysbrokers.IB.client.ib_client import ibClient

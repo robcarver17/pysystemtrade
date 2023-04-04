@@ -105,7 +105,7 @@ class RawData(SystemStage):
         >>>
         >>> (rawdata, data, config)=get_test_object()
         >>> system=System([rawdata], data)
-        >>> system.rawdata.daily_returns("EDOLLAR").tail(2)
+        >>> system.rawdata.daily_returns("SOFR").tail(2)
                      price
         2015-12-10 -0.0650
         2015-12-11  0.1075
@@ -145,7 +145,7 @@ class RawData(SystemStage):
         >>> (rawdata, data, config)=get_test_object()
         >>> system=System([rawdata], data)
         >>> ## uses defaults
-        >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
+        >>> system.rawdata.daily_returns_volatility("SOFR").tail(2)
                          vol
         2015-12-10  0.054145
         2015-12-11  0.058522
@@ -153,14 +153,14 @@ class RawData(SystemStage):
         >>> from sysdata.config.configdata import Config
         >>> config=Config("systems.provided.example.exampleconfig.yaml")
         >>> system=System([rawdata], data, config)
-        >>> system.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
+        >>> system.rawdata.daily_returns_volatility("SOFR").tail(2)
                          vol
         2015-12-10  0.054145
         2015-12-11  0.058522
         >>>
         >>> config=Config(dict(volatility_calculation=dict(func="sysquant.estimators.vol.robust_vol_calc", days=200)))
         >>> system2=System([rawdata], data, config)
-        >>> system2.rawdata.daily_returns_volatility("EDOLLAR").tail(2)
+        >>> system2.rawdata.daily_returns_volatility("SOFR").tail(2)
                          vol
         2015-12-10  0.057946
         2015-12-11  0.058626
@@ -222,7 +222,7 @@ class RawData(SystemStage):
         >>>
         >>> (rawdata, data, config)=get_test_object()
         >>> system=System([rawdata], data)
-        >>> system.rawdata.get_daily_percentage_volatility("EDOLLAR").tail(2)
+        >>> system.rawdata.get_daily_percentage_volatility("SOFR").tail(2)
                          vol
         2015-12-10  0.055281
         2015-12-11  0.059789
@@ -252,7 +252,7 @@ class RawData(SystemStage):
         >>>
         >>> (rawdata, data, config)=get_test_object()
         >>> system=System([rawdata], data)
-        >>> system.rawdata.get_daily_vol_normalised_returns("EDOLLAR").tail(2)
+        >>> system.rawdata.get_daily_vol_normalised_returns("SOFR").tail(2)
                     norm_return
         2015-12-10    -1.219510
         2015-12-11     1.985413
@@ -408,7 +408,7 @@ class RawData(SystemStage):
         >>> from systems.basesystem import System
         >>> (data, config)=get_test_object_futures()
         >>> system=System([RawData()], data)
-        >>> system.rawdata.get_instrument_raw_carry_data("EDOLLAR").tail(2)
+        >>> system.rawdata.get_instrument_raw_carry_data("SOFR").tail(2)
                                PRICE  CARRY CARRY_CONTRACT PRICE_CONTRACT
         2015-12-11 17:08:14  97.9675    NaN         201812         201903
         2015-12-11 19:33:39  97.9875    NaN         201812         201903
@@ -439,7 +439,7 @@ class RawData(SystemStage):
         >>> from systems.basesystem import System
         >>> (data, config)=get_test_object_futures()
         >>> system=System([RawData()], data)
-        >>> system.rawdata.raw_futures_roll("EDOLLAR").ffill().tail(2)
+        >>> system.rawdata.raw_futures_roll("SOFR").ffill().tail(2)
         2015-12-11 17:08:14   -0.07
         2015-12-11 19:33:39   -0.07
         dtype: float64
@@ -464,7 +464,7 @@ class RawData(SystemStage):
         >>> from systems.basesystem import System
         >>> (data, config)=get_test_object_futures()
         >>> system=System([RawData()], data)
-        >>> system.rawdata.roll_differentials("EDOLLAR").ffill().tail(2)
+        >>> system.rawdata.roll_differentials("SOFR").ffill().tail(2)
         2015-12-11 17:08:14   -0.246407
         2015-12-11 19:33:39   -0.246407
         dtype: float64
@@ -488,7 +488,7 @@ class RawData(SystemStage):
         >>> from systems.basesystem import System
         >>> (data, config)=get_test_object_futures()
         >>> system=System([RawData()], data)
-        >>> system.rawdata.annualised_roll("EDOLLAR").ffill().tail(2)
+        >>> system.rawdata.annualised_roll("SOFR").ffill().tail(2)
         2015-12-11 17:08:14    0.284083
         2015-12-11 19:33:39    0.284083
         dtype: float64
@@ -524,7 +524,7 @@ class RawData(SystemStage):
         >>> from systems.basesystem import System
         >>> (data, config)=get_test_object_futures()
         >>> system=System([RawData()], data)
-        >>> system.rawdata.daily_annualised_roll("EDOLLAR").ffill().tail(2)
+        >>> system.rawdata.daily_annualised_roll("SOFR").ffill().tail(2)
         2015-12-10    0.284083
         2015-12-11    0.284083
         Freq: B, dtype: float64
@@ -645,7 +645,7 @@ class RawData(SystemStage):
         >>> (data, config)=get_test_object_futures()
         >>> system=System([RawData()], data)
         >>>
-        >>> system.rawdata.daily_denominator_price("EDOLLAR").ffill().tail(2)
+        >>> system.rawdata.daily_denominator_price("SOFR").ffill().tail(2)
         2015-12-10    97.8800
         2015-12-11    97.9875
         Freq: B, Name: PRICE, dtype: float64
