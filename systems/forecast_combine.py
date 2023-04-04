@@ -2,6 +2,7 @@ from copy import copy
 
 import pandas as pd
 
+from syscore.exceptions import missingData
 from systems.forecast_mapping import map_forecast_value
 from syscore.genutils import str2Bool
 from syscore.objects import resolve_function
@@ -955,9 +956,9 @@ class ForecastCombine(SystemStage):
     def _get_fixed_forecast_weights_as_dict(self, instrument_code: str) -> dict:
         config = self.parent.config
         # Let's try the config
-        forecast_weights_config = config.get_element_or_missing_data("forecast_weights")
-
-        if forecast_weights_config is missing_data:
+        try:
+            forecast_weights_config = config.get_element("forecast_weights")
+        except missingData:
             fixed_weights = self._get_one_over_n_weights(instrument_code)
         else:
             fixed_weights = _get_fixed_weights_from_config(
