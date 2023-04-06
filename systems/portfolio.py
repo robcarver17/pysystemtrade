@@ -853,7 +853,13 @@ class Portfolios(SystemStage):
         :returns: accountCurveGroup object
         """
 
-        accounts = self.accounts_stage
+        try:
+            accounts = self.accounts_stage
+        except missingData as e:
+            error_msg = "You need an accounts stage in the system to estimate instrument weights or IDM"
+            self.log.critical(error_msg)
+            raise missingData(error_msg) from e
+
 
         if instrument_list is arg_not_supplied:
             instrument_list = self.get_instrument_list()
@@ -913,8 +919,14 @@ class Portfolios(SystemStage):
 
     @input
     def capital_multiplier(self):
-        accounts_stage = self.accounts_stage
-        return accounts_stage.capital_multiplier()
+        try:
+            accounts_stage = self.accounts_stage
+        except missingData as e:
+            msg = "If using capital_multiplier to work out actual positions, need an accounts module"
+            self.log.critical(msg)
+            raise missingData(msg) from e
+        else:
+            return accounts_stage.capital_multiplier()
 
     ## RISK
     @diagnostic()
@@ -1300,9 +1312,7 @@ class Portfolios(SystemStage):
         try:
             accounts_stage = getattr(self.parent, "accounts")
         except AttributeError as e:
-            msg = "An accounts module is needed for this operation"
-            self.log.critical(msg)
-            raise missingData(msg) from e
+            raise missingData from e
 
         return accounts_stage
 
