@@ -6,7 +6,6 @@ from syscore.exceptions import missingData
 from systems.forecast_mapping import map_forecast_value
 from syscore.genutils import str2Bool
 from syscore.objects import resolve_function
-from syscore.constants import missing_data
 from syscore.pandas.pdutils import (
     dataframe_pad,
     from_dict_of_values_to_df,
@@ -832,8 +831,9 @@ class ForecastCombine(SystemStage):
 
         KEY INPUT
         """
-        accounts = self.accounts_stage
-        if accounts is missing_data:
+        try:
+            accounts = self.accounts_stage
+        except missingData:
             warn_msg = (
                 "You need an accounts stage in the system to estimate forecast costs for %s %s. Using costs of zero"
                 % (instrument_code, rule_variation_name)
@@ -849,7 +849,7 @@ class ForecastCombine(SystemStage):
     def accounts_stage(self):
 
         if not hasattr(self.parent, "accounts"):
-            return missing_data
+            raise missingData
 
         # no -> to avoid circular imports
         return self.parent.accounts
@@ -870,9 +870,9 @@ class ForecastCombine(SystemStage):
         :returns: accountCurveGroup object
 
         """
-        accounts = self.accounts_stage
-
-        if accounts is missing_data:
+        try:
+            accounts = self.accounts_stage
+        except missingData:
             error_msg = (
                 "You need an accounts stage in the system to estimate forecast weights"
             )
@@ -1047,9 +1047,16 @@ class ForecastCombine(SystemStage):
 
         # Let's try the config
         system = self.parent
-        forecast_div_multiplier_config = system.config.get_element_or_missing_data(
-            "forecast_div_multiplier"
-        )
+        try:
+            forecast_div_multiplier_config = system.config.get_element(
+                "forecast_div_multiplier"
+            )
+        except missingData as e:
+            error_msg = (
+                "Need to specify 'forecast_div_multiplier' in config or system_defaults"
+            )
+            self.log.critical(error_msg, instrument_code=instrument_code)
+            raise missingData(error_msg) from e
 
         fixed_div_mult = _get_fixed_fdm_scalar_value_from_config(
             forecast_div_multiplier_config=forecast_div_multiplier_config,
@@ -1385,11 +1392,6 @@ def _get_fixed_fdm_scalar_value_from_config(
 
     error_msg = ""
     fixed_div_mult = None
-
-    if forecast_div_multiplier_config is missing_data:
-        error_msg = (
-            "Need to specify 'forecast_div_multiplier' in config or system_defaults"
-        )
 
     if isinstance(forecast_div_multiplier_config, float) or isinstance(
         forecast_div_multiplier_config, int
