@@ -860,7 +860,6 @@ class Portfolios(SystemStage):
             self.log.critical(error_msg)
             raise missingData(error_msg) from e
 
-
         if instrument_list is arg_not_supplied:
             instrument_list = self.get_instrument_list()
 
