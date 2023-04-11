@@ -1,7 +1,7 @@
 import pandas as pd
 
+from syscore.exceptions import missingData
 from systems.accounts.account_buffering_subsystem import apply_buffer
-from syscore.constants import missing_data
 from syscore.pandas.strategy_functions import turnover
 from systems.system_cache import diagnostic
 
@@ -79,8 +79,9 @@ class accountBufferingSystemLevel(accountInputs):
 
         optimal_position = self.get_notional_position(instrument_code)
 
-        buffer_method = self.config.get_element_or_missing_data("buffer_method")
-        if buffer_method is missing_data:
+        try:
+            self.config.get_element("buffer_method")
+        except missingData:
             if roundpositions:
                 return optimal_position.round()
             else:
