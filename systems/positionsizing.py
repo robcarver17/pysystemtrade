@@ -369,9 +369,7 @@ class PositionSizing(SystemStage):
         except missingData:
             underlying_price = self.data.daily_prices(instrument_code)
         else:
-            underlying_price = rawdata.daily_denominator_price(
-                instrument_code
-            )
+            underlying_price = rawdata.daily_denominator_price(instrument_code)
 
         return underlying_price
 
