@@ -2,7 +2,7 @@ import pandas as pd
 
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
-from syscore.constants import missing_data
+from syscore.exceptions import missingData
 
 from sysdata.config.configdata import Config
 from sysdata.sim.sim_data import simData
@@ -153,10 +153,7 @@ class PositionSizing(SystemStage):
     @diagnostic()
     def _get_list_of_long_only_instruments(self) -> list:
         config = self.config
-        long_only = config.get_element_or_missing_data("long_only_instruments")
-        if long_only is missing_data:
-            return []
-
+        long_only = config.get_element_or_default("long_only_instruments", [])
         return long_only
 
     def avg_abs_forecast(self) -> float:
@@ -367,19 +364,21 @@ class PositionSizing(SystemStage):
 
 
         """
-        rawdata = self.rawdata_stage
-        if rawdata is missing_data:
+        try:
+            rawdata = self.rawdata_stage
+        except missingData:
             underlying_price = self.data.daily_prices(instrument_code)
         else:
-            underlying_price = self.rawdata_stage.daily_denominator_price(
-                instrument_code
-            )
+            underlying_price = rawdata.daily_denominator_price(instrument_code)
 
         return underlying_price
 
     @property
     def rawdata_stage(self) -> RawData:
-        rawdata_stage = getattr(self.parent, "rawdata", missing_data)
+        try:
+            rawdata_stage = getattr(self.parent, "rawdata")
+        except AttributeError as e:
+            raise missingData from e
 
         return rawdata_stage
 
