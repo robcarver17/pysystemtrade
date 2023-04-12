@@ -201,14 +201,14 @@ function update_processes() {
         {
           $("#processes_prices tbody").append(`
           <tr>
-            <td>${update['name']}</td>
+            <td>${update['index']}</td>
             <td>${short_date}</td>
           </tr>
           `);
         } else {
           $("#processes_prices tbody").append(`
           <tr>
-            <td>${update['name']}</td>
+            <td>${update['index']}</td>
             <td class="red">${short_date}</td>
           </tr>
           `);
@@ -354,7 +354,7 @@ function update_rolls() {
           <td>${details['price_expiry']}</td>
           <td>${details['contract_priced']}</td>
           <td>${details['contract_fwd']}</td>
-          <td>${parseFloat(details['volume_fwd']).toFixed(3)}</td>
+          <td>${parseFloat(details['relative_volume_fwd']).toFixed(3)}</td>
           <td>${details['position_priced']}</td>
           <td>${buttons}</td>
           </tr>`);
