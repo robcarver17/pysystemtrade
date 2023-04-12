@@ -3,6 +3,7 @@ import datetime
 from copy import copy
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR
+from syscore.exceptions import missingData
 from syscore.genutils import str2Bool, list_union
 from syscore.pandas.pdutils import (
     from_dict_of_values_to_df,
@@ -14,7 +15,7 @@ from syscore.pandas.strategy_functions import (
     fix_weights_vs_position_or_forecast,
 )
 from syscore.objects import resolve_function
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 from sysdata.config.configdata import Config
 
@@ -852,12 +853,12 @@ class Portfolios(SystemStage):
         :returns: accountCurveGroup object
         """
 
-        accounts = self.accounts_stage
-
-        if accounts is missing_data:
+        try:
+            accounts = self.accounts_stage
+        except missingData as e:
             error_msg = "You need an accounts stage in the system to estimate instrument weights or IDM"
             self.log.critical(error_msg)
-            raise Exception(error_msg)
+            raise missingData(error_msg) from e
 
         if instrument_list is arg_not_supplied:
             instrument_list = self.get_instrument_list()
@@ -917,11 +918,12 @@ class Portfolios(SystemStage):
 
     @input
     def capital_multiplier(self):
-        accounts_stage = self.accounts_stage
-        if accounts_stage is missing_data:
+        try:
+            accounts_stage = self.accounts_stage
+        except missingData as e:
             msg = "If using capital_multiplier to work out actual positions, need an accounts module"
             self.log.critical(msg)
-            raise Exception(msg)
+            raise missingData(msg) from e
         else:
             return accounts_stage.capital_multiplier()
 
@@ -1306,7 +1308,10 @@ class Portfolios(SystemStage):
 
     @property
     def accounts_stage(self):
-        accounts_stage = getattr(self.parent, "accounts", missing_data)
+        try:
+            accounts_stage = getattr(self.parent, "accounts")
+        except AttributeError as e:
+            raise missingData from e
 
         return accounts_stage
 
