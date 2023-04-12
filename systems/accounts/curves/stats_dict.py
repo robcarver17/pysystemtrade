@@ -2,7 +2,7 @@ from scipy.stats import ttest_1samp
 
 import numpy as np
 from syscore.dateutils import Frequency
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from systems.accounts.curves.account_curve import accountCurve
 from systems.accounts.pandl_calculators.pandl_generic_costs import (
     GROSS_CURVE,
@@ -160,7 +160,8 @@ class statsDict(dict):
             is_percentage=is_percentage,
         )
 
-        method_to_call = getattr(account_curve, item, missing_data)
+        method_to_call = getattr(account_curve, item)
+
         return method_to_call()
 
     def account_curve_for_asset(
