@@ -19,6 +19,10 @@ classifiers = [
 [tool.pytest.ini_options]
 norecursedirs = "examples"
 addopts = "--doctest-modules --ignore=systems/provided/moretradingrules/temp.py"
+log_cli = "true"
+log_cli_level = 10
+log_format = '%(asctime)s %(name)s %(levelname)s %(message)s'
+log_date_format = '%Y-%m-%d %H:%M:%S'
 doctest_optionflags = ["ELLIPSIS", "NUMBER", "NORMALIZE_WHITESPACE"]
 testpaths = [
     # "syscore",
