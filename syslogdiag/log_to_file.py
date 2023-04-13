@@ -1,7 +1,7 @@
 import os
 from os.path import join as join_file_and_path
 
-from syscore.constants import missing_data, missing_file
+from syscore.constants import missing_file
 from syscore.fileutils import get_resolved_pathname, does_resolved_filename_exist
 
 from sysdata.config.production_config import get_production_config
