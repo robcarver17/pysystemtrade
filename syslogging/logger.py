@@ -12,12 +12,38 @@ CONFIG_ENV_VAR = "PYSYS_LOGGING_CONFIG"
 def get_logger(name, attributes=None):
     if not syslogging.logging_configured:
         _configure_logging()
+    if name is None or name == "":
+        if attributes is not None and "type" in attributes:
+            name = attributes["type"]
     return DynamicAttributeLogger(logging.getLogger(name), attributes)
 
 
-def logtoscreen(name):
+def logtoscreen(name="", **kwargs):
     warnings.warn(
         "The 'logtoscreen' class is deprecated, "
+        "use get_logger() from syslogging.logger instead",
+        DeprecationWarning,
+        2,
+    )
+    if name is None or name == "":
+        if "type" in kwargs:
+            name = kwargs["type"]
+    return DynamicAttributeLogger(logging.getLogger(name), kwargs)
+
+
+def nullLog(name):
+    warnings.warn(
+        "The 'nullLog' class is deprecated, "
+        "use get_logger() from syslogging.logger instead",
+        DeprecationWarning,
+        2,
+    )
+    return get_logger(name)
+
+
+def logToFile(name, data):
+    warnings.warn(
+        "The 'logToFile' class is deprecated, "
         "use get_logger() from syslogging.logger instead",
         DeprecationWarning,
         2,
@@ -39,10 +65,12 @@ def _configure_sim():
     handler.setLevel(logging.DEBUG)
     logging.basicConfig(
         handlers=[handler],
-        format="%(asctime)s %(name)s %(levelname)s %(message)s",
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         level=logging.DEBUG,
     )
+    logging.getLogger("ib_insync").setLevel(logging.WARNING)
+    logging.getLogger("arctic").setLevel(logging.WARNING)
     syslogging.logging_configured = True
 
 

@@ -2,7 +2,7 @@ version: 1
 disable_existing_loggers: true
 formatters:
   simple:
-    format: '%(asctime)s %(name)s %(levelname)s %(message)s'
+    format: '%(asctime)s %(levelname)s %(name)s %(message)s'
     dateformat: '%Y-%m-%d %H:%M:%S'
 handlers:
   console:
@@ -10,6 +10,11 @@ handlers:
     level: DEBUG
     formatter: simple
     stream: ext://sys.stdout
+loggers:
+  ib_insync:
+    level: WARNING
+  arctic:
+    level: WARNING
 root:
   level: DEBUG
   handlers: [console]

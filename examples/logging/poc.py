@@ -98,8 +98,11 @@ keep_type = keep_type.setup_empty_except_keep_type()
 keep_type.info("type first, no stage")
 
 # alias logtoscreen
-logtoscreen = logtoscreen("logtoscreen")
-logtoscreen.info("logtoscreen() is a temporary alias for get_logger()")
+screen_name = logtoscreen("logtoscreen")
+screen_name.info("logtoscreen() is a temporary alias for get_logger()")
+
+screen_attrs = logtoscreen(**{TYPE_LOG_LABEL: "config", STAGE_LOG_LABEL: "config"})
+screen_attrs.info("logtoscreen() with attributes is a temporary alias for get_logger()")
 
 # critical mail
 level.critical("sends mail")

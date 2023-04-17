@@ -13,9 +13,9 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
     # TODO data.update_log(contract_object.specific_log(data.log))
     # TODO data_blob._get_specific_logger
     # TODO self.log.close_log_file()
-    # TODO log = logToFile
-    # TODO log: pst_logger = nullLog("")
     # TODO log_with_attributes
+    # TODO log_level = "on"
+    # TODO system.set_logging_level(log_level)
 
     """
 
@@ -106,7 +106,10 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
             DeprecationWarning,
             2,
         )
-        attributes = {**self.extra, **kwargs}
+        if self.extra is None or len(self.extra) == 0:
+            attributes = {**kwargs}
+        else:
+            attributes = {**self.extra, **kwargs}
         self._check_attributes(attributes)
         self.extra = attributes
 
@@ -117,7 +120,10 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
             DeprecationWarning,
             2,
         )
-        attributes = {TYPE_LOG_LABEL: self.extra[TYPE_LOG_LABEL]}
+        if self.extra is not None and TYPE_LOG_LABEL in self.extra:
+            attributes = {TYPE_LOG_LABEL: self.extra[TYPE_LOG_LABEL]}
+        else:
+            attributes = {}
         return DynamicAttributeLogger(logging.getLogger(self.name), attributes)
 
     def set_logging_level(self, new_log_level):
@@ -133,6 +139,13 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
             self.logger.setLevel(logging.NOTSET)
         else:
             self.logger.setLevel(new_log_level)
+
+    def close_log_file(self):
+        warnings.warn(
+            "The 'close_log_file' function is deprecated, and does nothing anyway",
+            DeprecationWarning,
+            2,
+        )
 
     def _check_attributes(self, attributes: dict):
         if attributes is not None:

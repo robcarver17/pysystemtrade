@@ -6,7 +6,7 @@ objects:
     maxsize: 1000
 formatters:
   simple:
-    format: '%(asctime)s %(name)s %(levelname)s %(message)s'
+    format: '%(asctime)s %(levelname)s %(name)s %(message)s'
     datefmt: '%Y-%m-%d %H:%M:%S'
 handlers:
   console:
@@ -31,6 +31,11 @@ handlers:
       - cfg://handlers.console
       - cfg://handlers.file_rotating
       - cfg://handlers.email
+loggers:
+  ib_insync:
+    level: WARNING
+  arctic:
+    level: WARNING
 root:
   level: DEBUG
   handlers:
