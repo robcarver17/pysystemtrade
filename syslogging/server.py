@@ -25,9 +25,9 @@ class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):
 
     def __init__(
         self,
-        host='localhost',
+        host="localhost",
         port=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
-        handler=LogRecordStreamHandler
+        handler=LogRecordStreamHandler,
     ):
         socketserver.ThreadingTCPServer.__init__(self, (host, port), handler)
         self.abort = 0
@@ -38,44 +38,35 @@ class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):
         return f"{self.server_address[0]}:{self.server_address[1]}"
 
     def server_activate(self) -> None:
-        print(
-            f"{datetime.datetime.now()} Server starting with PID {os.getpid()}"
-        )
+        print(f"{datetime.datetime.now()} Server starting with PID {os.getpid()}")
         super().server_activate()
 
     def serve_until_stopped(self):
         import select
+
         abort = 0
         while not abort:
-            rd, wr, ex = select.select(
-                [self.socket.fileno()], [], [], self.timeout
-            )
+            rd, wr, ex = select.select([self.socket.fileno()], [], [], self.timeout)
             if rd:
                 self.handle_request()
             abort = self.abort
 
     def shutdown(self) -> None:
-        print(
-            f"\n{datetime.datetime.now()} Server shutting down. Bye"
-        )
+        print(f"\n{datetime.datetime.now()} Server shutting down. Bye")
         super().shutdown()
 
 
 def logging_server():
 
-    parser = argparse.ArgumentParser(description='Start the socket logging server')
+    parser = argparse.ArgumentParser(description="Start the socket logging server")
     parser.add_argument(
-        '-p',
-        '--port',
+        "-p",
+        "--port",
         type=int,
         default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
-        help='listening port'
+        help="listening port",
     )
-    parser.add_argument(
-        '-f',
-        '--file',
-        help='full path to log file'
-    )
+    parser.add_argument("-f", "--file", help="full path to log file")
 
     args = parser.parse_args()
 
@@ -84,13 +75,14 @@ def logging_server():
     else:
         log_file = f"{get_logging_directory(None)}/pysystemtrade.log"
 
-
-
     recent = MostRecentHandler()
     recent.setLevel(logging.DEBUG)
 
     rotating_files = logging.handlers.TimedRotatingFileHandler(
-        filename=log_file, when="midnight", backupCount=5, encoding="utf8",
+        filename=log_file,
+        when="midnight",
+        backupCount=5,
+        encoding="utf8",
     )
     logging.basicConfig(
         handlers=[recent, rotating_files],
@@ -99,13 +91,13 @@ def logging_server():
         level=logging.DEBUG,
     )
 
-    socket_receiver = LogRecordSocketReceiver(
-        port=args.port
-    )
+    socket_receiver = LogRecordSocketReceiver(port=args.port)
     receiver_thread = threading.Thread(target=socket_receiver.serve_forever)
     receiver_thread.daemon = True
-    print(f"LogRecordSocketReceiver accepting connections at {socket_receiver}, "
-          f"writing to '{log_file}', Ctrl-C to shut down")
+    print(
+        f"LogRecordSocketReceiver accepting connections at {socket_receiver}, "
+        f"writing to '{log_file}', Ctrl-C to shut down"
+    )
     receiver_thread.start()
 
     while True:
@@ -118,5 +110,5 @@ def logging_server():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(logging_server())
