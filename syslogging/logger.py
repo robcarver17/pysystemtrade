@@ -7,6 +7,7 @@ from syslogging.pyyaml_env import parse_config
 from syscore.fileutils import resolve_path_and_filename_for_package
 
 CONFIG_ENV_VAR = "PYSYS_LOGGING_CONFIG"
+LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s %(message)s"
 
 
 def get_logger(name, attributes=None):
@@ -65,7 +66,7 @@ def _configure_sim():
     handler.setLevel(logging.DEBUG)
     logging.basicConfig(
         handlers=[handler],
-        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+        format=LOG_FORMAT,
         datefmt="%Y-%m-%d %H:%M:%S",
         level=logging.DEBUG,
     )
