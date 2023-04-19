@@ -45,7 +45,7 @@ CAD,CADUSD currency,100000,USD,FX,2.47,0,0,US
 CAD_micro,CADUSD_micro,10000,USD,FX,0.85,0,0,US
 CAD10,Canadian 10 year bond,1000,CAD,Bond,2,0,0,US
 CAD2,Canadian 2 year bond,1000,CAD,Bond,2,0,0,US
-CAD5,Canadian 10 year bond,1000,CAD,Bond,2,0,0,US
+CAD5,Canadian 5 year bond,1000,CAD,Bond,2,0,0,US
 CADJPY,CAD.JPY,200000,JPY,FX,0,0,0,US
 CADJPY2,CAD.JPY,200000,JPY,FX,0,0,0,US
 CADSTIR,Canadian STIR Bank acceptance,2500,CAD,STIR,2,0,0,US
