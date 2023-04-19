@@ -5,8 +5,6 @@ import logging.handlers
 import os
 import socketserver
 import sys
-import threading
-import time
 
 from syslogging.logger import LOG_FORMAT
 from syslogging.handlers import LogRecordStreamHandler, MostRecentHandler
@@ -17,7 +15,7 @@ class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):
     """
     Simple TCP socket-based logging receiver
 
-    https://code.activestate.com/recipes/577025-loggingwebmonitor-a-central-logging-server-and-mon/
+    https://docs.python.org/3.8/howto/logging-cookbook.html#sending-and-receiving-logging-events-across-a-network
     """
 
     allow_reuse_address = True
@@ -58,6 +56,11 @@ class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):
 
 def logging_server():
 
+    """
+    Adapted from:
+    https://code.activestate.com/recipes/577025-loggingwebmonitor-a-central-logging-server-and-mon/
+    """
+
     parser = argparse.ArgumentParser(description="Start the socket logging server")
     parser.add_argument(
         "-p",
@@ -91,21 +94,12 @@ def logging_server():
         level=logging.DEBUG,
     )
 
-    socket_receiver = LogRecordSocketReceiver(port=args.port)
-    receiver_thread = threading.Thread(target=socket_receiver.serve_forever)
-    receiver_thread.daemon = True
-    print(
-        f"LogRecordSocketReceiver accepting connections at {socket_receiver}, "
-        f"writing to '{log_file}', Ctrl-C to shut down"
-    )
-    receiver_thread.start()
-
-    while True:
-        try:
-            time.sleep(3600)
-        except (KeyboardInterrupt, SystemExit):
-            socket_receiver.shutdown()
-            break
+    with LogRecordSocketReceiver(port=args.port) as server:
+        print(
+            f"{datetime.datetime.now()} LogRecordSocketReceiver accepting "
+            f"connections at {server}, writing to '{log_file}', Ctrl-C to shut down"
+        )
+        server.serve_forever()
 
     return 0
 
