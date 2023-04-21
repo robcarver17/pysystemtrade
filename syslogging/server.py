@@ -103,11 +103,16 @@ def logging_server():
             server.serve_forever()
 
     except KeyboardInterrupt:
-        print(f"{datetime.datetime.now()} logging_server aborted manually", file=sys.stderr)
+        print(
+            f"{datetime.datetime.now()} logging_server aborted manually",
+            file=sys.stderr,
+        )
         return 1
 
     except Exception as err:
-        print(f"{datetime.datetime.now()} logging_server problem: {err}", file=sys.stderr)
+        print(
+            f"{datetime.datetime.now()} logging_server problem: {err}", file=sys.stderr
+        )
         return 1
 
     return 0
