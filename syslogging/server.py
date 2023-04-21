@@ -61,45 +61,54 @@ def logging_server():
     https://code.activestate.com/recipes/577025-loggingwebmonitor-a-central-logging-server-and-mon/
     """
 
-    parser = argparse.ArgumentParser(description="Start the socket logging server")
-    parser.add_argument(
-        "-p",
-        "--port",
-        type=int,
-        default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
-        help="listening port",
-    )
-    parser.add_argument("-f", "--file", help="full path to log file")
-
-    args = parser.parse_args()
-
-    if args.file:
-        log_file = args.file
-    else:
-        log_file = f"{get_logging_directory(None)}/pysystemtrade.log"
-
-    recent = MostRecentHandler()
-    recent.setLevel(logging.DEBUG)
-
-    rotating_files = logging.handlers.TimedRotatingFileHandler(
-        filename=log_file,
-        when="midnight",
-        backupCount=5,
-        encoding="utf8",
-    )
-    logging.basicConfig(
-        handlers=[recent, rotating_files],
-        format=LOG_FORMAT,
-        datefmt="%Y-%m-%d %H:%M:%S",
-        level=logging.DEBUG,
-    )
-
-    with LogRecordSocketReceiver(port=args.port) as server:
-        print(
-            f"{datetime.datetime.now()} LogRecordSocketReceiver accepting "
-            f"connections at {server}, writing to '{log_file}', Ctrl-C to shut down"
+    try:
+        parser = argparse.ArgumentParser(description="Start the socket logging server")
+        parser.add_argument(
+            "-p",
+            "--port",
+            type=int,
+            default=logging.handlers.DEFAULT_TCP_LOGGING_PORT,
+            help="listening port",
         )
-        server.serve_forever()
+        parser.add_argument("-f", "--file", help="full path to log file")
+
+        args = parser.parse_args()
+
+        if args.file:
+            log_file = args.file
+        else:
+            log_file = f"{get_logging_directory(None)}/pysystemtrade.log"
+
+        recent = MostRecentHandler()
+        recent.setLevel(logging.DEBUG)
+
+        rotating_files = logging.handlers.TimedRotatingFileHandler(
+            filename=log_file,
+            when="midnight",
+            backupCount=5,
+            encoding="utf8",
+        )
+        logging.basicConfig(
+            handlers=[recent, rotating_files],
+            format=LOG_FORMAT,
+            datefmt="%Y-%m-%d %H:%M:%S",
+            level=logging.DEBUG,
+        )
+
+        with LogRecordSocketReceiver(port=args.port) as server:
+            print(
+                f"{datetime.datetime.now()} LogRecordSocketReceiver accepting "
+                f"connections at {server}, writing to '{log_file}', Ctrl-C to shut down"
+            )
+            server.serve_forever()
+
+    except KeyboardInterrupt:
+        print(f"{datetime.datetime.now()} logging_server aborted manually", file=sys.stderr)
+        return 1
+
+    except Exception as err:
+        print(f"{datetime.datetime.now()} logging_server problem: {err}", file=sys.stderr)
+        return 1
 
     return 0
 
