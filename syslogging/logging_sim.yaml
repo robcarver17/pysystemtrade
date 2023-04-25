@@ -15,6 +15,8 @@ loggers:
     level: WARNING
   arctic:
     level: WARNING
+  matplotlib:
+    level: INFO
 root:
   level: DEBUG
   handlers: [console]
