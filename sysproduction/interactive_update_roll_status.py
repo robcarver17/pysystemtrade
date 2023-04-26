@@ -53,8 +53,9 @@ EXIT_CODE = "EXIT"
 def interactive_update_roll_status():
 
     with dataBlob(log_name="Interactive_Update-Roll-Status") as data:
+        api = reportingApi(data)
         function_to_call = get_rolling_master_function()
-        function_to_call(data)
+        function_to_call(api)
 
 
 def get_rolling_master_function():
