@@ -114,10 +114,18 @@ def adjust_df_costs_show_ticks(
     return tick_adjusted_df_costs
 
 
-def get_series_of_tick_values(data: dataBlob, list_of_instrument_codes: list) -> dict:
+def get_series_of_tick_values(
+    data: dataBlob, list_of_instrument_codes: list
+) -> pd.Series:
+    broker_data = dataBroker(data)
+    contract_data = dataContracts()
 
     list_of_tick_values = [
-        get_tick_value_for_instrument_code(instrument_code=instrument_code, data=data)
+        get_tick_value_for_instrument_code(
+            instrument_code=instrument_code,
+            broker_data=broker_data,
+            contract_data=contract_data,
+        )
         for instrument_code in list_of_instrument_codes
     ]
 
@@ -126,9 +134,10 @@ def get_series_of_tick_values(data: dataBlob, list_of_instrument_codes: list) ->
     return series_of_ticks
 
 
-def get_tick_value_for_instrument_code(instrument_code: str, data: dataBlob) -> float:
-    broker_data = dataBroker(data)
-    contract_data = dataContracts()
+def get_tick_value_for_instrument_code(
+    instrument_code: str, broker_data: dataBroker, contract_data: dataContracts
+) -> float:
+
     try:
         contract_id = contract_data.get_priced_contract_id(instrument_code)
     except missingData:
