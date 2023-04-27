@@ -134,7 +134,9 @@ def update_roll_status_manual_cycle(api: reportingApi):
 
 def update_roll_status_auto_cycle_manual_decide(api: reportingApi):
     days_ahead = get_days_ahead_to_consider_when_auto_cycling()
-    instrument_list = get_list_of_instruments_to_auto_cycle(api.data, days_ahead=days_ahead)
+    instrument_list = get_list_of_instruments_to_auto_cycle(
+        api.data, days_ahead=days_ahead
+    )
     for instrument_code in instrument_list:
         manually_report_and_update_roll_state_for_code(
             api=api, instrument_code=instrument_code
@@ -146,7 +148,9 @@ def update_roll_status_auto_cycle_manual_decide(api: reportingApi):
 def update_roll_status_auto_cycle_manual_confirm(api: reportingApi):
     days_ahead = get_days_ahead_to_consider_when_auto_cycling()
     auto_parameters = get_auto_roll_parameters()
-    instrument_list = get_list_of_instruments_to_auto_cycle(api.data, days_ahead=days_ahead)
+    instrument_list = get_list_of_instruments_to_auto_cycle(
+        api.data, days_ahead=days_ahead
+    )
 
     for instrument_code in instrument_list:
         roll_data = setup_roll_data_with_state_reporting(api.data, instrument_code)
@@ -168,7 +172,9 @@ def update_roll_status_auto_cycle_manual_confirm(api: reportingApi):
 
 def update_roll_status_full_auto(api: reportingApi):
     days_ahead = get_days_ahead_to_consider_when_auto_cycling()
-    instrument_list = get_list_of_instruments_to_auto_cycle(api.data, days_ahead=days_ahead)
+    instrument_list = get_list_of_instruments_to_auto_cycle(
+        api.data, days_ahead=days_ahead
+    )
     auto_parameters = get_auto_roll_parameters()
 
     for instrument_code in instrument_list:
