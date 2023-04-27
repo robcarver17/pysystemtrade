@@ -65,8 +65,8 @@ def _configure_sim():
     print(f"Configuring sim logging")
     handler = logging.StreamHandler(stream=sys.stdout)
     handler.setLevel(logging.DEBUG)
-    logging.getLogger("ib_insync").setLevel(logging.WARNING)
-    logging.getLogger("arctic").setLevel(logging.WARNING)
+    logging.getLogger("ib_insync").setLevel(logging.INFO)
+    logging.getLogger("arctic").setLevel(logging.INFO)
     logging.getLogger("matplotlib").setLevel(logging.INFO)
     logging.basicConfig(
         handlers=[handler],
