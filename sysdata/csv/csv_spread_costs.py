@@ -68,7 +68,7 @@ class csvSpreadCostData(spreadCostData):
     def write_all_instrument_spreads(self, spread_cost_as_series: pd.Series):
         spread_cost_as_df = pd.DataFrame(spread_cost_as_series)
         spread_cost_as_df.columns = [SPREAD_COST_COLUMN_NAME]
-        spread_cost_as_series.to_csv(self._config_file, index_label="Instrument")
+        spread_cost_as_df.to_csv(self._config_file, index_label="Instrument")
 
     def get_list_of_instruments(self) -> list:
         all_data_as_series = self.get_spread_costs_as_series()
