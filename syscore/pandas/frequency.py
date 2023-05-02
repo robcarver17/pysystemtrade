@@ -3,7 +3,6 @@ from typing import Union, List
 import numpy as np
 import pandas as pd
 
-from syscore.constants import missing_data
 from syscore.dateutils import (
     NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
     check_time_matches_closing_time_to_second,
@@ -171,13 +170,13 @@ def how_many_times_a_year_is_pd_frequency(frequency: str) -> float:
         "D": CALENDAR_DAYS_IN_YEAR,
     }
 
-    times_a_year = DICT_OF_FREQ.get(frequency, missing_data)
-
-    if times_a_year is missing_data:
+    try:
+        times_a_year = DICT_OF_FREQ[frequency]
+    except KeyError as e:
         raise Exception(
             "Frequency %s is no good I only know about %s"
             % (frequency, str(list(DICT_OF_FREQ.keys())))
-        )
+        ) from e
 
     return float(times_a_year)
 

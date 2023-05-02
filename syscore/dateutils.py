@@ -13,7 +13,7 @@ import pandas as pd
 import numpy as np
 
 from syscore.exceptions import missingData
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 
 """
 
@@ -362,10 +362,11 @@ def from_config_frequency_pandas_resample(freq: Frequency) -> str:
         Frequency.Seconds_10: "10S",
         Frequency.Second: "S",
     }
-    resample_string = LOOKUP_TABLE.get(freq, missing_data)
 
-    if resample_string is missing_data:
-        raise missingData("Resample frequency %s is not supported" % freq)
+    try:
+        resample_string = LOOKUP_TABLE[freq]
+    except KeyError as e:
+        raise missingData("Resample frequency %s is not supported" % freq) from e
 
     return resample_string
 
@@ -390,10 +391,11 @@ def from_frequency_to_times_per_year(freq: Frequency) -> float:
         Frequency.Seconds_10: SECONDS_IN_YEAR / 10,
         Frequency.Second: SECONDS_IN_YEAR,
     }
-    times_per_year = LOOKUP_TABLE.get(freq, missing_data)
 
-    if times_per_year is missing_data:
-        raise missingData("Frequency %s is not supported" % freq)
+    try:
+        times_per_year = LOOKUP_TABLE[freq]
+    except KeyError as e:
+        raise missingData("Frequency %s is not supported" % freq) from e
 
     return float(times_per_year)
 
@@ -419,10 +421,10 @@ def from_config_frequency_to_frequency(freq_as_str: str) -> Frequency:
         "S": Frequency.Second,
     }
 
-    frequency = LOOKUP_TABLE.get(freq_as_str, missing_data)
-
-    if frequency is missing_data:
-        raise missingData("Frequency %s is not supported" % freq_as_str)
+    try:
+        frequency = LOOKUP_TABLE[freq_as_str]
+    except KeyError as e:
+        raise missingData("Frequency %s is not supported" % freq_as_str) from e
 
     return frequency
 

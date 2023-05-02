@@ -1,7 +1,7 @@
 from copy import copy
 import numpy as np
 
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysquant.optimisation.weights import portfolioWeights
 from systems.provided.dynamic_small_system_optimise.set_up_constraints import (
     A_VERY_LARGE_NUMBER,
@@ -31,8 +31,9 @@ class dataForOptimisation(object):
 
     def get_key(self, keyname):
         reference = "_stored_" + keyname
-        stored_value = getattr(self, reference, missing_data)
-        if stored_value is missing_data:
+        try:
+            stored_value = getattr(self, reference)
+        except AttributeError:
             calculated_value = getattr(self, "_" + keyname)
             setattr(self, reference, calculated_value)
             return calculated_value

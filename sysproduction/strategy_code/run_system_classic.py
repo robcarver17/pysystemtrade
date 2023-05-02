@@ -9,7 +9,7 @@ this:
 
 """
 import datetime
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.exceptions import missingData
 
 from sysdata.config.configdata import Config
