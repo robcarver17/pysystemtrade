@@ -14,8 +14,8 @@ LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s %(message)s"
 def get_logger(name, attributes=None):
     if not syslogging.logging_configured:
         _configure_logging()
-    if name is None or name == "":
-        if attributes is not None and "type" in attributes:
+    if not name:
+        if attributes and "type" in attributes:
             name = attributes["type"]
     return DynamicAttributeLogger(logging.getLogger(name), attributes)
 
@@ -27,7 +27,7 @@ def logtoscreen(name="", **kwargs):
         DeprecationWarning,
         2,
     )
-    if name is None or name == "":
+    if not name:
         if "type" in kwargs:
             name = kwargs["type"]
     return get_logger(name, kwargs)
@@ -65,7 +65,7 @@ def _configure_sim():
     print(f"Configuring sim logging")
     handler = logging.StreamHandler(stream=sys.stdout)
     handler.setLevel(logging.DEBUG)
-    logging.getLogger("ib_insync").setLevel(logging.INFO)
+    logging.getLogger("ib_insync").setLevel(logging.WARNING)
     logging.getLogger("arctic").setLevel(logging.INFO)
     logging.getLogger("matplotlib").setLevel(logging.INFO)
     logging.basicConfig(

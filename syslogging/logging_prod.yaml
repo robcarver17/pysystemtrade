@@ -22,7 +22,7 @@ handlers:
     formatter: simple
 loggers:
   ib_insync:
-    level: INFO
+    level: WARNING
   arctic:
     level: INFO
   matplotlib:

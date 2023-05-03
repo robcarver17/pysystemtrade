@@ -53,7 +53,7 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
         2. preserve: merge with existing values preserved
         3. overwrite: merge with existing values overwritten
         """
-        if self.extra is None or len(self.extra) == 0 or method == "clear":
+        if not self.extra or method == "clear":
             merged = attributes
         elif method == "preserve":
             merged = {**attributes, **self.extra}
@@ -106,7 +106,7 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
             DeprecationWarning,
             2,
         )
-        if self.extra is None or len(self.extra) == 0:
+        if not self.extra:
             attributes = {**kwargs}
         else:
             attributes = {**self.extra, **kwargs}
@@ -120,7 +120,7 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
             DeprecationWarning,
             2,
         )
-        if self.extra is not None and TYPE_LOG_LABEL in self.extra:
+        if self.extra and TYPE_LOG_LABEL in self.extra:
             attributes = {TYPE_LOG_LABEL: self.extra[TYPE_LOG_LABEL]}
         else:
             attributes = {}
@@ -148,7 +148,7 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
         )
 
     def _check_attributes(self, attributes: dict):
-        if attributes is not None:
+        if attributes:
             bad_attributes = get_list_of_disallowed_attributes(attributes)
             if len(bad_attributes) > 0:
                 raise Exception(

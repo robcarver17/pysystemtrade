@@ -77,7 +77,7 @@ class LogRecordStreamHandler(socketserver.StreamRequestHandler):
     def _handle_log_record(self, record):
         # if a name is specified, we use the named logger rather than the one
         # implied by the record.
-        if self.server.logname is not None:
+        if self.server.logname:
             name = self.server.logname
         else:
             name = record.name
