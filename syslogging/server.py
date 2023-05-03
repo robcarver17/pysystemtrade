@@ -77,7 +77,9 @@ def logging_server():
         if args.file:
             log_file = args.file
         else:
-            log_file = f"{get_logging_directory(None)}/pysystemtrade.log"
+            print("WARNING: logs will be writen to current working directory - "
+                  "are you sure?")
+            log_file = f"{os.getcwd()}/pysystemtrade.log"
 
         recent = MostRecentHandler()
         recent.setLevel(logging.DEBUG)
