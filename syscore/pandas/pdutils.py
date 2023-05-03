@@ -8,7 +8,7 @@ from collections import namedtuple
 from typing import Union, List
 import numpy as np
 
-from syscore.constants import named_object, missing_data, arg_not_supplied
+from syscore.constants import named_object, arg_not_supplied
 
 DEFAULT_DATE_FORMAT_FOR_CSV = "%Y-%m-%d %H:%M:%S"
 
