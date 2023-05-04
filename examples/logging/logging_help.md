@@ -82,6 +82,17 @@ By default, the server accepts connections on port 6020. But if you want to use 
 python -u $PYSYS_CODE/syslogging/server.py --port 6021 --file /home/path/to/your/pysystemtrade.log
 ```
 
+The socket server also handles rotating the log files daily; the default setup rotates creates a new log at midnight each day, keeping the last 5 days' files. So after a week, the log directory file listing would look something like 
+
+```
+-rw-r--r--  1 user group 19944754 May  4 15:42 pysystemtrade.log
+-rw-r--r--  1 user group 19030250 Apr 24 22:16 pysystemtrade.log.2023-04-24
+-rw-r--r--  1 user group  6178163 Apr 25 22:16 pysystemtrade.log.2023-04-25
+-rw-r--r--  1 user group  9465225 Apr 26 22:16 pysystemtrade.log.2023-04-26
+-rw-r--r--  1 user group  4593885 Apr 27 16:53 pysystemtrade.log.2023-04-27
+-rw-r--r--  1 user group  4414970 May  3 22:16 pysystemtrade.log.2023-05-03
+```
+
 The server needs to be running all the time. It needs to run in the background, start up on reboot, restart automatically in case of failure, etc. So a better way to do it would be to make it a service
 
 #### socket server as a service
