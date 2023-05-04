@@ -8,7 +8,6 @@ import sys
 
 from syslogging.logger import LOG_FORMAT
 from syslogging.handlers import LogRecordStreamHandler, MostRecentHandler
-from syslogdiag.log_to_file import get_logging_directory
 
 
 class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):
