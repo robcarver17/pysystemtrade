@@ -53,6 +53,7 @@ class ibPriceClient(ibContractsClient):
         specific_log = contract_object_with_ib_broker_config.specific_log(self.log)
 
         try:
+            self.ib.reqMarketDataType(3)
             ibcontract = self.ib_futures_contract(
                 contract_object_with_ib_broker_config, allow_expired=allow_expired
             )
