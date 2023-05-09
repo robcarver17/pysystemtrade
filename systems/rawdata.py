@@ -132,8 +132,6 @@ class RawData(SystemStage):
 
         return hourly_returns
 
-
-
     @output()
     def annualised_returns_volatility(self, instrument_code: str) -> pd.Series:
         daily_returns_volatility = self.daily_returns_volatility(instrument_code)
@@ -192,7 +190,7 @@ class RawData(SystemStage):
 
         volconfig = copy(self.config.volatility_calculation)
 
-        which_returns = volconfig.pop('name_returns_attr_in_rawdata')
+        which_returns = volconfig.pop("name_returns_attr_in_rawdata")
         returns_func = getattr(self, which_returns)
         price_returns = returns_func(instrument_code)
 

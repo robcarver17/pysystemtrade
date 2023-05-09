@@ -6,6 +6,7 @@ Ad-hoc reports do not fit into the normal report framework and may include much 
 
 # include these lines if running line by line in IDE console mode, but don't work in a headless server
 import matplotlib
+
 matplotlib.use("TkAgg")
 
 import datetime
@@ -27,7 +28,7 @@ from systems.provided.rob_system.run_system import futures_system, System
 def trading_rule_pandl_adhoc_report(
     dict_of_rule_groups: dict,
     system_function,
-    end_date: datetime.datetime = arg_not_supplied
+    end_date: datetime.datetime = arg_not_supplied,
 ):
 
     data = dataBlob()
@@ -80,7 +81,7 @@ def get_figure_for_rule_group(
     dict_of_rule_groups: dict,
     start_date: datetime.datetime,
     period_label: str,
-        end_date: datetime.datetime
+    end_date: datetime.datetime,
 ):
 
     rules = dict_of_rule_groups[rule_group]
