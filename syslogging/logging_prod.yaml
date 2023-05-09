@@ -1,37 +1,35 @@
 version: 1
 disable_existing_loggers: true
-objects:
-  queue:
-    class: queue.Queue
-    maxsize: 1000
 formatters:
   simple:
-    format: '%(asctime)s %(name)s %(levelname)s %(message)s'
+    format: '%(asctime)s %(levelname)s %(name)s %(message)s'
     datefmt: '%Y-%m-%d %H:%M:%S'
 handlers:
   console:
     class: logging.StreamHandler
     level: DEBUG
     stream: ext://sys.stdout
-  file_rotating:
-    class: logging.handlers.TimedRotatingFileHandler
-    filename: !ENV '${ECHO_PATH}/pysystemtrade.log'
-    encoding: utf8
-    when: midnight
-    backupCount: 5
+    formatter: simple
   email:
     class: syslogging.handlers.PstSMTPHandler
     level: CRITICAL
-  queue_listener:
-    class: syslogging.handlers.QueueListenerHandler
-    queue: cfg://objects.queue
-    respect_handler_level: True
     formatter: simple
-    handlers:
-      - cfg://handlers.console
-      - cfg://handlers.file_rotating
-      - cfg://handlers.email
+  socket:
+    class: logging.handlers.SocketHandler
+    host: localhost
+    port: 9020
+    level: DEBUG
+    formatter: simple
+loggers:
+  ib_insync:
+    level: WARNING
+  arctic:
+    level: INFO
+  matplotlib:
+    level: INFO
 root:
   level: DEBUG
   handlers:
-    - queue_listener
+    - console
+    - email
+    - socket

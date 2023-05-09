@@ -1,0 +1,16 @@
+[Unit]
+Description=Python logging socket server
+After=multi-user.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/home/path/to/your/python -u /home/projects/pysystemtrade/syslogging/server.py --file /home/path/to/your/pysystemtrade.log
+RestartSec=3
+Environment="PYSYS_PRIVATE_CONFIG_DIR=/home/path/to/your/private/config"
+User=username
+Group=groupname
+
+[Install]
+WantedBy=multi-user.target
