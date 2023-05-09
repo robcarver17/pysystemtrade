@@ -8,7 +8,7 @@ from collections import namedtuple
 from typing import Union, List
 import numpy as np
 
-from syscore.constants import named_object, missing_data, arg_not_supplied
+from syscore.constants import named_object, arg_not_supplied
 
 DEFAULT_DATE_FORMAT_FOR_CSV = "%Y-%m-%d %H:%M:%S"
 
@@ -300,11 +300,9 @@ def make_df_from_list_of_named_tuple(
 
 
 def sort_df_ignoring_missing(df: pd.DataFrame, column: List[str]) -> pd.DataFrame:
-    # sorts df by column, with rows containing missing_data coming at the end
-    missing = df[df[column] == missing_data]
-    valid = df[df[column] != missing_data]
-    valid_sorted = valid.sort_values(column)
-    return pd.concat([valid_sorted, missing])
+    # sorts df by column, with rows with missing data coming at the end
+    # Pandas treats NaN, NaT, and None as missing
+    return df.sort_values(column, na_position="last")
 
 
 def apply_with_min_periods(
