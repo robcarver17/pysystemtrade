@@ -5,13 +5,13 @@ Ad-hoc reports do not fit into the normal report framework and may include much 
 """
 
 # include these lines if running line by line in IDE console mode, but don't work in a headless server
-# import matplotlib
-# matplotlib.use("TkAgg")
+import matplotlib
+matplotlib.use("TkAgg")
 
 import datetime
 import pandas as pd
-from sysproduction.data.backtest import dataBacktest
 from syscore.dateutils import get_date_from_period_and_end_date
+from syscore.constants import arg_not_supplied
 from sysdata.data_blob import dataBlob
 from sysproduction.reporting.formatting import make_account_curve_plot_from_df
 from sysproduction.reporting.reporting_functions import (
@@ -27,6 +27,7 @@ from systems.provided.rob_system.run_system import futures_system, System
 def trading_rule_pandl_adhoc_report(
     dict_of_rule_groups: dict,
     system_function,
+    end_date: datetime.datetime = arg_not_supplied
 ):
 
     data = dataBlob()
@@ -51,7 +52,7 @@ def trading_rule_pandl_adhoc_report(
         )
 
         for period in list_of_periods:
-            start_date = get_date_from_period_and_end_date(period)
+            start_date = get_date_from_period_and_end_date(period, end_date=end_date)
 
             figure_object = get_figure_for_rule_group(
                 rule_group=rule_group,
@@ -59,6 +60,7 @@ def trading_rule_pandl_adhoc_report(
                 data=data,
                 system=system,
                 start_date=start_date,
+                end_date=end_date,
                 period_label=period,
             )
 
@@ -78,6 +80,7 @@ def get_figure_for_rule_group(
     dict_of_rule_groups: dict,
     start_date: datetime.datetime,
     period_label: str,
+        end_date: datetime.datetime
 ):
 
     rules = dict_of_rule_groups[rule_group]
@@ -95,9 +98,9 @@ def get_figure_for_rule_group(
         concat_pd_by_rule,
         start_of_title=f"Total Trading Rule P&L for period '{period_label}'",
         start_date=start_date,
-        title_style={"size": 6},
+        end_date=end_date,
+        title_style={"size": 15},
     )
-
     figure_object = pdf_output.save_chart_close_and_return_figure()
 
     return figure_object
