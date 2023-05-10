@@ -111,11 +111,11 @@ def get_config_for_price_filtering(
 
     try:
         ignore_future_prices = production_config.get_element("ignore_future_prices")
-        ignore_prices_with_zero_volumes_daily = (
-            production_config.get_element("ignore_prices_with_zero_volumes_daily")
+        ignore_prices_with_zero_volumes_daily = production_config.get_element(
+            "ignore_prices_with_zero_volumes_daily"
         )
-        ignore_prices_with_zero_volumes_intraday = (
-            production_config.get_element("ignore_prices_with_zero_volumes_intraday")
+        ignore_prices_with_zero_volumes_intraday = production_config.get_element(
+            "ignore_prices_with_zero_volumes_intraday"
         )
         ignore_zero_prices = production_config.get_element("ignore_zero_prices")
         ignore_negative_prices = production_config.get_element("ignore_negative_prices")
