@@ -116,6 +116,23 @@ class RawData(SystemStage):
         return dailyreturns
 
     @output()
+    def hourly_returns(self, instrument_code: str) -> pd.Series:
+        """
+        Gets hourly returns (not % returns)
+
+        :param instrument_code: Instrument to get prices for
+        :type trading_rules: str
+
+        :returns: Tx1 pd.DataFrame
+
+
+        """
+        hourly_prices = self.get_hourly_prices(instrument_code)
+        hourly_returns = hourly_prices.diff()
+
+        return hourly_returns
+
+    @output()
     def annualised_returns_volatility(self, instrument_code: str) -> pd.Series:
         daily_returns_volatility = self.daily_returns_volatility(instrument_code)
 
@@ -171,15 +188,21 @@ class RawData(SystemStage):
             instrument_code=instrument_code,
         )
 
-        dailyreturns = self.daily_returns(instrument_code)
         volconfig = copy(self.config.volatility_calculation)
+
+        which_returns = volconfig.pop("name_returns_attr_in_rawdata")
+        returns_func = getattr(self, which_returns)
+        price_returns = returns_func(instrument_code)
 
         # volconfig contains 'func' and some other arguments
         # we turn func which could be a string into a function, and then
         # call it with the other ags
+        vol_multiplier = volconfig.pop("multiplier_to_get_daily_vol")
 
         volfunction = resolve_function(volconfig.pop("func"))
-        vol = volfunction(dailyreturns, **volconfig)
+        raw_vol = volfunction(price_returns, **volconfig)
+
+        vol = vol_multiplier * raw_vol
 
         return vol
 
