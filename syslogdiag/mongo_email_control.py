@@ -1,4 +1,5 @@
 import datetime
+import pymongo
 from syscore.dateutils import datetime_to_long, long_to_datetime
 from syslogdiag.email_control import emailControlData
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
@@ -13,6 +14,14 @@ SUBJECT_KEY = "subject"
 BODY_KEY = "body"
 TYPE_KEY = "type"
 DATE_KEY = "datetime"
+INDEX_CONFIG = {
+    "keys": {
+        TYPE_KEY: pymongo.ASCENDING,
+        SUBJECT_KEY: pymongo.ASCENDING,
+        DATE_KEY: pymongo.DESCENDING,
+    },
+    "unique": True,
+}
 
 
 class mongoEmailControlData(emailControlData):
@@ -20,7 +29,9 @@ class mongoEmailControlData(emailControlData):
 
         super().__init__(log=log)
         self._mongo_data = mongoDataWithMultipleKeys(
-            EMAIL_CONTROL_COLLECTION, mongo_db=mongo_db
+            EMAIL_CONTROL_COLLECTION,
+            mongo_db=mongo_db,
+            index_config=INDEX_CONFIG,
         )
 
     def __repr__(self):
