@@ -5,6 +5,7 @@ import pandas as pd
 from systems.stage import SystemStage
 from syscore.objects import resolve_function
 from syscore.dateutils import ROOT_BDAYS_INYEAR
+from syscore.genutils import list_intersection
 from syscore.exceptions import missingData
 from systems.system_cache import input, diagnostic, output
 
@@ -365,9 +366,7 @@ class RawData(SystemStage):
         :return: pd.Series
         """
 
-        instruments_in_asset_class = self.data_stage.all_instruments_in_asset_class(
-            asset_class
-        )
+        instruments_in_asset_class = self.all_instruments_in_asset_class(asset_class)
 
         norm_price = self._daily_vol_normalised_price_for_list_of_instruments(
             instruments_in_asset_class
@@ -405,7 +404,7 @@ class RawData(SystemStage):
     def rolls_per_year(self, instrument_code: str) -> int:
         ## an input but we cache to avoid spamming with errors
         try:
-            rolls_per_year = self.parent.data.get_rolls_per_year(instrument_code)
+            rolls_per_year = self.data_stage.get_rolls_per_year(instrument_code)
         except:
             self.log.warn(
                 "No roll data for %s, this is fine for spot instruments but not for futures"
@@ -437,7 +436,7 @@ class RawData(SystemStage):
         2015-12-11 19:33:39  97.9875    NaN         201812         201903
         """
 
-        instrcarrydata = self.parent.data.get_instrument_raw_carry_data(instrument_code)
+        instrcarrydata = self.data_stage.get_instrument_raw_carry_data(instrument_code)
         if len(instrcarrydata) == 0:
             raise missingData(
                 "Data for %s not found! Remove from instrument list, or add to config.ignore_instruments"
@@ -605,9 +604,7 @@ class RawData(SystemStage):
         :return:
         """
 
-        instruments_in_asset_class = self.parent.data.all_instruments_in_asset_class(
-            asset_class
-        )
+        instruments_in_asset_class = self.all_instruments_in_asset_class(asset_class)
 
         raw_carry_across_asset_class = [
             self.raw_carry(instrument_code)
@@ -638,7 +635,7 @@ class RawData(SystemStage):
         :return: pd.Series
         """
 
-        asset_class = self.parent.data.asset_class_for_instrument(instrument_code)
+        asset_class = self.data_stage.asset_class_for_instrument(instrument_code)
         median_carry = self._by_asset_class_median_carry_for_asset_class(asset_class)
         instrument_carry = self.raw_carry(instrument_code)
 
@@ -685,6 +682,21 @@ class RawData(SystemStage):
         daily_prices = prices.resample("1B").last()
 
         return daily_prices
+
+    def all_instruments_in_asset_class(self, asset_class: str) -> list:
+        instruments_in_asset_class = self.data_stage.all_instruments_in_asset_class(
+            asset_class
+        )
+        instrument_list = self.instrument_list()
+        instruments_in_asset_class_and_master_list = list_intersection(
+            instruments_in_asset_class, instrument_list
+        )
+
+        return instruments_in_asset_class_and_master_list
+
+    def instrument_list(self) -> list:
+        instrument_list = self.parent.get_instrument_list()
+        return instrument_list
 
 
 if __name__ == "__main__":
