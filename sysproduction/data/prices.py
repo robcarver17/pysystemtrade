@@ -71,13 +71,13 @@ class diagPrices(productionDataLayerGeneric):
             intraday_frequency = from_config_frequency_to_frequency(
                 intraday_frequency_as_str
             )
-        except missingData as e:
+        except missingData:
             error_msg = (
                 "Intraday frequency of %s is not recognised as a valid frequency"
                 % str(intraday_frequency_as_str)
             )
             self.log.critical(error_msg)
-            raise Exception(error_msg) from e
+            raise
 
         return intraday_frequency
 
