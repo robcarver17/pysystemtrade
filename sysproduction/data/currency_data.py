@@ -71,7 +71,7 @@ class dataCurrency(productionDataLayerGeneric):
         :return: eg USD
         """
         config = self.data.config
-        return config.get_element_or_missing_data("base_currency")
+        return config.get_element("base_currency")
 
     def get_last_fx_rate_for_pair(self, currency_pair: str) -> float:
         """
