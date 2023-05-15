@@ -129,6 +129,7 @@ class accountWithMultiplier(accountPortfolio, accountBufferingSystemLevel):
             notional_ts = notional.reindex(capmult.index).ffill()
 
         capital = capmult * notional_ts
+        capital = capital.shift(1)
 
         return capital
 
