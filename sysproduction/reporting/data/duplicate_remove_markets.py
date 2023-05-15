@@ -4,8 +4,11 @@ from dataclasses import dataclass
 
 from syscore.constants import named_object
 from syscore.exceptions import missingData
-from sysdata.config.instruments import generate_matching_duplicate_dict
-from sysdata.config.production_config import get_production_config
+from sysdata.config.instruments import (
+    generate_matching_duplicate_dict,
+    get_list_of_ignored_instruments_in_config,
+    get_list_of_bad_instruments_in_config,
+)
 from sysproduction.reporting.data.constants import (
     MAX_SR_COST,
     MIN_VOLUME_CONTRACTS_DAILY,
@@ -46,6 +49,7 @@ class RemoveMarketData:
     auto_parameters: parametersForAutoPopulation
 
     existing_bad_markets: list
+    ignored_instruments: list
 
     @property
     def str_existing_markets_to_remove(self) -> str:
@@ -142,12 +146,15 @@ class RemoveMarketData:
         )
         too_safe = self.too_safe_markets(threshold_factor=threshold_factor)
 
+        ignored = self.ignored_instruments
+
         bad_markets = list(
             set(
                 expensive
                 + not_enough_trading_risk
                 + not_enough_trading_contracts
                 + too_safe
+                + ignored
             )
         )
         bad_markets = list(set(bad_markets))
@@ -298,7 +305,8 @@ def _yaml_bad_market_list(list_of_bad_markets: list) -> str:
 
 
 def get_remove_market_data(data) -> RemoveMarketData:
-    existing_bad_markets = get_existing_bad_markets(data)
+    existing_bad_markets = get_list_of_bad_markets(data)
+    ignored_instruments = get_ignored_instruments(data)
 
     (
         max_cost,
@@ -318,6 +326,7 @@ def get_remove_market_data(data) -> RemoveMarketData:
         min_volume_contracts=min_volume_contracts,
         existing_bad_markets=existing_bad_markets,
         auto_parameters=auto_parameters,
+        ignored_instruments=ignored_instruments,
     )
 
 
@@ -399,20 +408,18 @@ def get_data_for_markets(data):
     return SR_costs, liquidity_data, risk_data
 
 
-def get_existing_bad_markets(data):
+def get_ignored_instruments(data) -> list:
     production_config = data.config
+    ignored_instruments = get_list_of_ignored_instruments_in_config(production_config)
 
-    try:
-        excluded_markets_config_element = production_config.get_element(
-            "exclude_instrument_lists"
-        )
-    except missingData:
-        print("NO BAD MARKETS IN CONFIG!")
-        existing_bad_markets = []
-    else:
-        existing_bad_markets = excluded_markets_config_element.get("bad_markets", [])
+    return ignored_instruments
 
-    return existing_bad_markets
+
+def get_list_of_bad_markets(data):
+    production_config = data.config
+    bad_markets = get_list_of_bad_instruments_in_config(production_config)
+
+    return bad_markets
 
 
 def table_of_duplicate_markets_for_dict_entry(
