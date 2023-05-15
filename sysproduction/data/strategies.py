@@ -32,9 +32,7 @@ class diagStrategiesConfig(productionDataLayerGeneric):
 
     def get_strategy_allocation_config_dict(self) -> dict:
         config = self.data.config
-        strategy_allocation_dict = config.get_element_or_missing_data(
-            "strategy_capital_allocation"
-        )
+        strategy_allocation_dict = config.get_element("strategy_capital_allocation")
 
         return strategy_allocation_dict
 
