@@ -408,6 +408,7 @@ class RawData(SystemStage):
         except:
             self.log.warn(
                 "No roll data for %s, this is fine for spot instruments but not for futures"
+                % instrument_code
             )
             rolls_per_year = 0
 
