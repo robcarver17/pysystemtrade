@@ -33,7 +33,7 @@ class mongoFuturesContractData(futuresContractData):
         self._mongo_data = mongo_data
 
     def __repr__(self):
-        return "mongoFuturesInstrumentData %s" % str(self.mongo_data)
+        return "mongoFuturesContractData %s" % str(self.mongo_data)
 
     @property
     def mongo_data(self):
