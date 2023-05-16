@@ -171,7 +171,7 @@ class Config(object):
 
         When we've close self will be an object where the attributes are
 
-        So if config_objec=dict(a=2, b=2)
+        So if config_object=dict(a=2, b=2)
         Then this object will become self.a=2, self.b=2
         """
         base_config = config_object.get("base_config")
