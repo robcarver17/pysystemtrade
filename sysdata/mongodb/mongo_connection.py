@@ -161,40 +161,49 @@ class mongoConnection(object):
         # '__id__' is always in index if there is data
         raw_index_information.pop(MONGO_INDEX_ID)
 
-        # mongo have buried this deep...
-        index_keys = [
-            index_entry["key"][0][0] for index_entry in raw_index_information.values()
-        ]
+        index_count = len(raw_index_information)
+        index_names = []
+        index_keys = []
 
-        return index_keys
+        for k, v in raw_index_information.items():
+            index_names.append(k)
+            for key in v["key"]:
+                index_keys.append(key[0])
 
-    def check_for_index(self, indexname):
-        if indexname in self.get_indexes():
-            return True
-        else:
-            return False
+        return index_count, index_names, index_keys
 
     def create_index(self, indexname, order=ASCENDING):
-        if self.check_for_index(indexname):
+        index_count, index_names, index_keys = self.get_indexes()
+        if indexname in index_keys:
+            # we don't try to create a single key index if the key field is already used
+            # in another index
             pass
         else:
             self.collection.create_index([(indexname, order)], unique=True)
 
-    ## FIXME ISSUE https://github.com/robcarver17/pysystemtrade/discussions/948
-    ## NOT CLEAR WHAT A LOT OF THIS CODE DOES
+    def create_compound_index(self, index_config: dict):
+        name_parts = []
+        key_tuples = []
+        keys = index_config.pop("keys")
+        for key, value in keys.items():
+            name_parts.append(str(key))
+            name_parts.append(str(value))
+            key_tuples.append((key, value))
+        new_index_name = "_".join(name_parts)
 
-    def create_multikey_index(
-        self, indexname1, indexname2, order1=ASCENDING, order2=ASCENDING
-    ):
-
-        joint_indexname = indexname1 + "_" + indexname2
-        if self.check_for_index(joint_indexname):
+        index_count, index_names, index_keys = self.get_indexes()
+        if index_count > 1 or len(index_keys) > 1 or new_index_name in index_names:
+            # We don't try to create a compound index if:
+            # - EITHER there is more than one index defined (likely created outside
+            #     of PST)
+            # - OR there is already some other compound index (likely created outside
+            #     of PST)
+            # - OR the name of an existing index matches what we would be about to
+            #     create (we probably already made it)
             pass
         else:
             self.collection.create_index(
-                [(indexname1, order1), (indexname2, order2)],
-                unique=True,
-                name=joint_indexname,
+                key_tuples, name=new_index_name, **index_config
             )
 
 

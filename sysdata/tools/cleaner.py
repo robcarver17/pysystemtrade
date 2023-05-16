@@ -1,6 +1,7 @@
 from collections import namedtuple
 from copy import copy
 
+from syscore.exceptions import missingData
 from syscore.interactive.input import (
     true_if_answer_is_yes,
     input_field_names_for_named_tuple,
@@ -108,45 +109,21 @@ def get_config_for_price_filtering(
 
     production_config = data.config
 
-    ignore_future_prices = production_config.get_element_or_missing_data(
-        "ignore_future_prices"
-    )
-    ignore_prices_with_zero_volumes_daily = (
-        production_config.get_element_or_missing_data(
+    try:
+        ignore_future_prices = production_config.get_element("ignore_future_prices")
+        ignore_prices_with_zero_volumes_daily = production_config.get_element(
             "ignore_prices_with_zero_volumes_daily"
         )
-    )
-    ignore_prices_with_zero_volumes_intraday = (
-        production_config.get_element_or_missing_data(
+        ignore_prices_with_zero_volumes_intraday = production_config.get_element(
             "ignore_prices_with_zero_volumes_intraday"
         )
-    )
-    ignore_zero_prices = production_config.get_element_or_missing_data(
-        "ignore_zero_prices"
-    )
-    ignore_negative_prices = production_config.get_element_or_missing_data(
-        "ignore_negative_prices"
-    )
-    max_price_spike = production_config.get_element_or_missing_data("max_price_spike")
-
-    any_missing = any(
-        [
-            x is arg_not_supplied
-            for x in [
-                ignore_future_prices,
-                ignore_prices_with_zero_volumes_daily,
-                ignore_prices_with_zero_volumes_intraday,
-                ignore_zero_prices,
-                ignore_negative_prices,
-                max_price_spike,
-            ]
-        ]
-    )
-
-    if any_missing:
+        ignore_zero_prices = production_config.get_element("ignore_zero_prices")
+        ignore_negative_prices = production_config.get_element("ignore_negative_prices")
+        max_price_spike = production_config.get_element("max_price_spike")
+    except missingData as e:
         error = "Missing config items for price filtering - have you deleted from defaults.yaml?"
         data.log.critical(error)
-        raise Exception(error)
+        raise missingData(error) from e
 
     cleaning_config = priceFilterConfig(
         ignore_zero_prices=ignore_zero_prices,
