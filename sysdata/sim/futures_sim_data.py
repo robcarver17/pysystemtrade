@@ -129,7 +129,7 @@ class futuresSimData(simData):
 
     def get_raw_cost_data(self, instrument_code: str) -> instrumentCosts:
         """
-        Get's cost data for an instrument
+        Gets cost data for an instrument
 
         Get cost data
 
