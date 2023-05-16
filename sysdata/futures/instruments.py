@@ -34,11 +34,11 @@ class futuresInstrumentData(baseData):
         return self.get_instrument_data(instrument_code)
 
     def update_slippage_costs(self, instrument_code: str, new_slippage: float):
-        self.upate_meta_data(
+        self.update_meta_data(
             instrument_code, meta_name="Slippage", new_value=new_slippage
         )
 
-    def upate_meta_data(self, instrument_code: str, meta_name: str, new_value):
+    def update_meta_data(self, instrument_code: str, meta_name: str, new_value):
         instrument_object = self.get_instrument_data(instrument_code)
         existing_meta_data = instrument_object.meta_data
         try:
