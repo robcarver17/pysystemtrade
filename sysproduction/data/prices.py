@@ -66,9 +66,7 @@ class diagPrices(productionDataLayerGeneric):
 
     def get_intraday_frequency_for_historical_download(self) -> Frequency:
         config = self.data.config
-        intraday_frequency_as_str = config.get_element_or_missing_data(
-            "intraday_frequency"
-        )
+        intraday_frequency_as_str = config.get_element("intraday_frequency")
         try:
             intraday_frequency = from_config_frequency_to_frequency(
                 intraday_frequency_as_str
@@ -76,10 +74,10 @@ class diagPrices(productionDataLayerGeneric):
         except missingData:
             error_msg = (
                 "Intraday frequency of %s is not recognised as a valid frequency"
-                % str(intraday_frequency)
+                % str(intraday_frequency_as_str)
             )
             self.log.critical(error_msg)
-            raise Exception(error_msg)
+            raise
 
         return intraday_frequency
 
