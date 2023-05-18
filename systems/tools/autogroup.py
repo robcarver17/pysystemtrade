@@ -9,7 +9,7 @@ APPROX_IDM_PARAMETER = "use_approx_DM"
 
 def calculate_autogroup_weights_given_parameters(
     auto_group_weights: dict,
-    auto_group_parameters: dict,
+    auto_group_parameters: dict = arg_not_supplied,
     keys_to_exclude: list = arg_not_supplied,
 ) -> dict:
     ## Example:
@@ -19,29 +19,37 @@ def calculate_autogroup_weights_given_parameters(
                                mom=dict(weight=.7, mom1=1.0)),
     carry = dict(weight=.3, carry1=1.0))
     """
+    if keys_to_exclude is arg_not_supplied:
+        keys_to_exclude = []
+
     tree_of_weights = autoGroupPortfolioWeight(
         auto_group_weights=auto_group_weights,
         auto_group_parameters=auto_group_parameters,
     )
-
     tree_of_weights.remove_excluded_keys_and_reweight(keys_to_exclude)
 
     tree_of_weights.resolve_weights()
 
-    weights_as_dict = _collapse_tree_of_weights(tree_of_weights)
+    collapsed_weights = _collapse_tree_of_weights(tree_of_weights)
+    weights_as_dict = dict(collapsed_weights)
 
     return weights_as_dict
 
 
 class autoGroupPortfolioWeight(dict):
-    def __init__(self, auto_group_weights: dict, auto_group_parameters: dict):
+    def __init__(
+        self, auto_group_weights: dict, auto_group_parameters: dict = arg_not_supplied
+    ):
 
         copy_auto_group_weights = copy(auto_group_weights)
         group_weight = copy_auto_group_weights.pop(WEIGHT_FLAG, 1.0)
         auto_group_weights_without_weight_entry = copy_auto_group_weights
 
         super().__init__(auto_group_weights_without_weight_entry)
+
         self.group_weight = group_weight
+        if auto_group_parameters is arg_not_supplied:
+            auto_group_parameters = {}
         self._parameters = auto_group_parameters
 
         ## Must call on __init__ or does_not_contain_portfolio will fail
@@ -93,7 +101,7 @@ class autoGroupPortfolioWeight(dict):
         for key in keys_to_remove:
             self.pop(key)
 
-        self._reweight_atomic_portfolio()
+        self.reweight_atomic_portfolio()
 
     def _resolve_weights_with_subportfolios(
         self, level: int, cumulative_multiplier: float
@@ -118,7 +126,7 @@ class autoGroupPortfolioWeight(dict):
 
         return approx_dm
 
-    def _reweight_atomic_portfolio(self):
+    def reweight_atomic_portfolio(self):
         if self.is_empty:
             pass
         else:
@@ -180,7 +188,7 @@ class autoGroupPortfolioWeight(dict):
 
     @property
     def use_approx_dm(self) -> bool:
-        return self.parameters[APPROX_IDM_PARAMETER]
+        return self.parameters.get(APPROX_IDM_PARAMETER, False)
 
     @property
     def parameters(self) -> dict:
@@ -210,7 +218,9 @@ class autoGroupPortfolioWeight(dict):
         return "Group weight %f: %s " % (self.group_weight, str(dict(self)))
 
 
-def _collapse_tree_of_weights(tree_of_weights: autoGroupPortfolioWeight) -> dict:
+def _collapse_tree_of_weights(
+    tree_of_weights: autoGroupPortfolioWeight,
+) -> autoGroupPortfolioWeight:
     weights_as_dict = {}
     for key, sub_portfolio in tree_of_weights.items():
         if sub_portfolio.contains_portfolios:
@@ -220,4 +230,36 @@ def _collapse_tree_of_weights(tree_of_weights: autoGroupPortfolioWeight) -> dict
 
         weights_as_dict.update(weights_this_sub_portfolio)
 
-    return weights_as_dict
+    collapsed_weights = autoGroupPortfolioWeight(weights_as_dict)
+    collapsed_weights.reweight_atomic_portfolio()
+
+    return collapsed_weights
+
+
+AUTO_WEIGHTING_FLAG = "auto_weight_from_grouping"
+AUTO_WEIGHTING_PARAMETERS = "parameters"
+AUTO_WEIGHTING_GROUP_LABEL = "groups"
+
+
+def config_is_auto_group(forecast_weights_config: dict) -> bool:
+    flag = forecast_weights_config.get(AUTO_WEIGHTING_FLAG, None)
+    auto_weighting_flag_in_config_dict = flag is not None
+
+    return auto_weighting_flag_in_config_dict
+
+
+def resolve_config_into_parameters_and_weights_for_autogrouping(
+    forecast_weights_config: dict,
+) -> tuple:
+    try:
+        auto_group_config = copy(forecast_weights_config[AUTO_WEIGHTING_FLAG])
+        auto_group_parameters = auto_group_config.pop(AUTO_WEIGHTING_PARAMETERS)
+        auto_group_weights = auto_group_config.pop(AUTO_WEIGHTING_GROUP_LABEL)
+    except:
+        error_msg = "Auto weighting should contain two elements: %s and %s" % (
+            AUTO_WEIGHTING_PARAMETERS,
+            AUTO_WEIGHTING_GROUP_LABEL,
+        )
+        raise Exception(error_msg)
+
+    return auto_group_parameters, auto_group_weights

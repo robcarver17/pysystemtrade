@@ -3,7 +3,6 @@ from copy import copy
 import pandas as pd
 
 from syscore.exceptions import missingData
-from syscore.constants import arg_not_supplied
 from systems.forecast_mapping import map_forecast_value
 from syscore.genutils import str2Bool, list_difference
 from syscore.objects import resolve_function
@@ -36,7 +35,11 @@ from systems.stage import SystemStage
 from systems.system_cache import diagnostic, dont_cache, input, output
 from systems.forecasting import Rules
 from systems.forecast_scale_cap import ForecastScaleCap
-from systems.tools.autogroup import calculate_autogroup_weights_given_parameters
+from systems.tools.autogroup import (
+    calculate_autogroup_weights_given_parameters,
+    config_is_auto_group,
+    resolve_config_into_parameters_and_weights_for_autogrouping,
+)
 
 
 class ForecastCombine(SystemStage):
@@ -1393,7 +1396,7 @@ def _get_fixed_weights_from_config(
             "Nested dict of forecast weights for %s %s: weights different by instrument"
             % (instrument_code, str(fixed_weights))
         )
-    elif _config_is_auto_group(forecast_weights_config):
+    elif config_is_auto_group(forecast_weights_config):
         ## autogrouping
         log.msg("Auto grouping of weights for %s" % instrument_code)
         fixed_weights = _get_forecast_weights_for_instrument_with_autogrouping(
@@ -1425,19 +1428,9 @@ def _get_fixed_weights_from_config(
 ##
 
 
-AUTO_WEIGHTING_FLAG = "auto_weight_from_grouping"
-AUTO_WEIGHTING_PARAMETERS = "parameters"
-AUTO_WEIGHTING_GROUP_LABEL = "groups"
 AUTO_WEIGHTING_APPLY_POSTCOST_SR = (
     "apply_forecast_post_ceiling_cost_SR_before_weighting"
 )
-
-
-def _config_is_auto_group(forecast_weights_config: dict) -> bool:
-    flag = forecast_weights_config.get(AUTO_WEIGHTING_FLAG, None)
-    auto_weighting_flag_in_config_dict = flag is not None
-
-    return auto_weighting_flag_in_config_dict
 
 
 def _get_forecast_weights_for_instrument_with_autogrouping(
@@ -1446,7 +1439,7 @@ def _get_forecast_weights_for_instrument_with_autogrouping(
     (
         auto_group_parameters,
         auto_group_weights,
-    ) = _resolve_config_into_parameters_and_weights_for_autogrouping(
+    ) = resolve_config_into_parameters_and_weights_for_autogrouping(
         forecast_weights_config
     )
     auto_group_parameters_copy = copy(auto_group_parameters)
@@ -1467,23 +1460,6 @@ def _get_forecast_weights_for_instrument_with_autogrouping(
     )
 
     return group_weights
-
-
-def _resolve_config_into_parameters_and_weights_for_autogrouping(
-    forecast_weights_config: dict,
-) -> tuple:
-    try:
-        auto_group_config = copy(forecast_weights_config[AUTO_WEIGHTING_FLAG])
-        auto_group_parameters = auto_group_config.pop(AUTO_WEIGHTING_PARAMETERS)
-        auto_group_weights = auto_group_config.pop(AUTO_WEIGHTING_GROUP_LABEL)
-    except:
-        error_msg = "Auto weighting should contain two elements: %s and %s" % (
-            AUTO_WEIGHTING_PARAMETERS,
-            AUTO_WEIGHTING_GROUP_LABEL,
-        )
-        raise Exception(error_msg)
-
-    return auto_group_parameters, auto_group_weights
 
 
 ### FDM
@@ -1536,7 +1512,7 @@ def _get_list_of_rules_from_config_for_instrument(
         if instrument_code in forecast_weights_config:
             # nested dict
             rules = forecast_weights_config[instrument_code].keys()
-        elif _config_is_auto_group(forecast_weights_config):
+        elif config_is_auto_group(forecast_weights_config):
             ## Will still include expensive rules but they get weeded out on second pass
             forecast_weights = _get_forecast_weights_for_instrument_with_autogrouping(
                 forecast_weights_config, expensive_trading_rules_post_processing=[]
