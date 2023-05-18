@@ -288,17 +288,26 @@ class Config(object):
         with open(filename, "w") as file:
             yaml.dump(config_to_save, file)
 
+    @classmethod
+    def default_config(cls):
+        if hasattr(cls, "evaluated"):
+            return cls.evaluated
 
-def default_config():
-    if os.getenv(PRIVATE_CONFIG_DIR_ENV_VAR):
-        config = Config(
-            private_filename=get_full_path_for_private_config(PRIVATE_CONFIG_FILE)
-        )
-    else:
-        config = Config()
-    config.fill_with_defaults()
+        if os.getenv(PRIVATE_CONFIG_DIR_ENV_VAR):
+            config = Config(
+                private_filename=get_full_path_for_private_config(PRIVATE_CONFIG_FILE)
+            )
+        else:
+            config = Config()
+        config.fill_with_defaults()
 
-    return config
+        cls.evaluated = config
+        return cls.evaluated
+
+    @classmethod
+    def reset(cls):
+        if hasattr(cls, "evaluated"):
+            delattr(cls, "evaluated")
 
 
 if __name__ == "__main__":
