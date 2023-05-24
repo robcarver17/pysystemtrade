@@ -1521,7 +1521,7 @@ def _get_list_of_rules_from_config_for_instrument(
         else:
             # seems it's a non nested dict (weights same across instruments), but let's check
             # that just in case it IS nested dict but instrument weight is missing
-            for val in forecast_weights_config():
+            for val in forecast_weights_config:
                 if isinstance(val, dict):
                     # so it is a nested dict..
                     raise Exception(
