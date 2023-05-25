@@ -15,6 +15,8 @@ class pandlCalculationWithFills(pandlCalculation):
         # if fills aren't supplied, can be inferred from positions
         super().__init__(*args, **kwargs)
         self._fills = fills
+        # This attribute is not used
+        self._calculated_price = None
 
     def weight(self, weight: pd.Series):
         ## we don't weight fills, instead will be inferred from positions
