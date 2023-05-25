@@ -1,7 +1,7 @@
 from sysdata.data_blob import dataBlob
 from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class brokerFxPricesData(fxPricesData):

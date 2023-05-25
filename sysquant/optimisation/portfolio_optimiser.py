@@ -3,7 +3,7 @@ from copy import copy
 from syscore.objects import resolve_function
 from syscore.genutils import str2Bool
 
-from syslogdiag.log_to_screen import logtoscreen, pst_logger
+from syslogging.logger import *
 
 from sysquant.fitting_dates import fitDates
 from sysquant.estimators.correlations import correlationEstimate

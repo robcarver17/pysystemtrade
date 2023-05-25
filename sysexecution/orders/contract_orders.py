@@ -9,12 +9,7 @@ from sysexecution.orders.base_orders import (
 from sysexecution.orders.named_order_objects import no_order_id, no_children, no_parent
 
 from sysexecution.trade_qty import tradeQuantity
-from syslogdiag.pst_logger import (
-    STRATEGY_NAME_LOG_LABEL,
-    INSTRUMENT_ORDER_ID_LABEL,
-    CONTRACT_ORDER_ID_LOG_LABEL,
-    INSTRUMENT_CODE_LOG_LABEL,
-)
+from syslogging.logger import *
 
 from sysobjects.production.tradeable_object import (
     futuresContractStrategy,

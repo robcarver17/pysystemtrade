@@ -1,5 +1,5 @@
 from syscore.exceptions import missingData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 lock_on = "ON"
 lock_off = "OFF"

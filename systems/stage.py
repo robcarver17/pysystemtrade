@@ -1,6 +1,5 @@
 from syscore.objects import get_methods
-from syslogdiag.pst_logger import pst_logger
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from systems.basesystem import System
 
 

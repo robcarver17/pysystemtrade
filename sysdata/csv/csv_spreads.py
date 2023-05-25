@@ -9,7 +9,7 @@ from syscore.fileutils import (
 )
 from syscore.pandas.pdutils import pd_readcsv
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 DATE_INDEX_NAME = "DATETIME"
 SPREAD_COLUMN_NAME = "spread"

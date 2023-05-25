@@ -1,5 +1,5 @@
 from syscore.exceptions import missingContract
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 from sysdata.data_blob import dataBlob
 from sysbrokers.IB.client.ib_positions_client import ibPositionsClient

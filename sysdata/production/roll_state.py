@@ -1,6 +1,6 @@
 from syscore.exceptions import missingData
 from sysdata.base_data import baseData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysobjects.production.roll_state import (
     RollState,
     default_state,

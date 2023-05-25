@@ -17,7 +17,7 @@ from syscore.constants import missing_contract
 from syscore.exceptions import missingContract
 from sysdata.data_blob import dataBlob
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class ibFuturesInstrumentData(brokerFuturesInstrumentData):

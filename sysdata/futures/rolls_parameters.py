@@ -1,5 +1,5 @@
 from sysdata.base_data import baseData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysobjects.rolls import rollParameters
 
 USE_CHILD_CLASS_ROLL_PARAMS_ERROR = (

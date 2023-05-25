@@ -8,7 +8,7 @@ from sysobjects.instruments import (
     futuresInstrumentWithMetaData,
     listOfFuturesInstrumentWithMetaData,
 )
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresInstrumentData"
 

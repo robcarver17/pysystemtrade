@@ -7,7 +7,7 @@ from sysexecution.orders.named_order_objects import (
     no_children,
 )
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.base_orders import Order, overFilledOrder
 from sysexecution.trade_qty import tradeQuantity

@@ -1,4 +1,4 @@
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 from syscore.constants import arg_not_supplied
 

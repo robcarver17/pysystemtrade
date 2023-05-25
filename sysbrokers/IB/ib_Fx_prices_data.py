@@ -11,8 +11,7 @@ from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 from syscore.exceptions import missingData
 from sysdata.data_blob import dataBlob
 from sysobjects.spot_fx_prices import fxPrices
-from syslogdiag.log_to_screen import logtoscreen
-from syslogdiag.pst_logger import CURRENCY_CODE_LOG_LABEL
+from syslogging.logger import *
 from syscore.constants import missing_instrument
 
 

@@ -9,7 +9,7 @@ from sysobjects.instruments import (
     instrumentMetaData,
     META_FIELD_LIST,
 )
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 import pandas as pd
 
 INSTRUMENT_CONFIG_PATH = "data.futures.csvconfig"
