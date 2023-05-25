@@ -137,9 +137,7 @@ def get_corr_params_and_func(
 ) -> tuple:
     if passed_correlation_estimation_parameters is arg_not_supplied:
         config = data.config
-        corr_params = config.get_element_or_missing_data(
-            "instrument_returns_correlation"
-        )
+        corr_params = config.get_element("instrument_returns_correlation")
     else:
         corr_params = passed_correlation_estimation_parameters
 

@@ -10,6 +10,12 @@ from sysdata.sim.sim_data import simData
 from syslogdiag.log_to_screen import logtoscreen, pst_logger
 from systems.system_cache import systemCache, base_system_cache
 
+from systems.tools.autogroup import (
+    calculate_autogroup_weights_given_parameters,
+    config_is_auto_group,
+    resolve_config_into_parameters_and_weights_for_autogrouping,
+)
+
 """
 This is used for items which affect an entire system, not just one instrument
 """
@@ -219,7 +225,8 @@ class System(object):
         config = self.config
         try:
             # if instrument weights specified in config ...
-            instrument_list = list(config.instrument_weights.keys())
+            instrument_weights = get_instrument_weights_from_config(config)
+            instrument_list = list(instrument_weights.keys())
         except:
             try:
                 # alternative place if no instrument weights
@@ -403,6 +410,38 @@ class System(object):
             )
 
         return too_short
+
+
+def get_instrument_weights_from_config(config: Config) -> dict:
+
+    instrument_weights_config = getattr(config, "instrument_weights", None)
+    if instrument_weights_config is None:
+        raise Exception("Instrument config not available")
+
+    if config_is_auto_group(instrument_weights_config):
+        instrument_weights_dict = _get_instrument_weights_with_autogrouping(
+            instrument_weights_config
+        )
+    else:
+        instrument_weights_dict = instrument_weights_config
+
+    return instrument_weights_dict
+
+
+def _get_instrument_weights_with_autogrouping(instrument_weights_config: dict) -> dict:
+    (
+        auto_group_parameters,
+        auto_group_weights,
+    ) = resolve_config_into_parameters_and_weights_for_autogrouping(
+        instrument_weights_config
+    )
+
+    group_weights = calculate_autogroup_weights_given_parameters(
+        auto_group_weights=auto_group_weights,
+        auto_group_parameters=auto_group_parameters,
+    )
+
+    return group_weights
 
 
 if __name__ == "__main__":

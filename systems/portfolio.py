@@ -52,6 +52,7 @@ from systems.system_cache import input, dont_cache, diagnostic, output
 from systems.positionsizing import PositionSizing
 from systems.accounts.curves.account_curve_group import accountCurveGroup
 from systems.risk_overlay import get_risk_multiplier
+from systems.basesystem import get_instrument_weights_from_config
 
 """
 Stage for portfolios
@@ -535,15 +536,7 @@ class Portfolios(SystemStage):
         """
 
         self.log.msg("Calculating raw instrument weights")
-
-        try:
-            instrument_weights_dict = self.config.instrument_weights
-        except:
-            instrument_weights_dict = self.get_equal_instrument_weights_dict()
-
-        instrument_weights_dict = self._add_zero_instrument_weights(
-            instrument_weights_dict
-        )
+        instrument_weights_dict = self.get_fixed_instrument_weights_from_config()
 
         # Now we have a dict, fixed_weights.
         # Need to turn into a timeseries covering the range of subsystem positions
@@ -558,6 +551,20 @@ class Portfolios(SystemStage):
         )
 
         return instrument_weights
+
+    @diagnostic()
+    def get_fixed_instrument_weights_from_config(self) -> dict:
+
+        try:
+            instrument_weights_dict = get_instrument_weights_from_config(self.config)
+        except:
+            instrument_weights_dict = self.get_equal_instrument_weights_dict()
+
+        instrument_weights_dict = self._add_zero_instrument_weights(
+            instrument_weights_dict
+        )
+
+        return instrument_weights_dict
 
     @dont_cache
     def get_equal_instrument_weights_dict(self) -> dict:
