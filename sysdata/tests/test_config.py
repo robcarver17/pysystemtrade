@@ -8,7 +8,7 @@ class TestConfig:
     def test_default(self):
         Config.reset()
         config = Config.default_config()
-        assert config.get_element_or_missing_data("ib_idoffset") == 100
+        assert config.get_element("ib_idoffset") == 100
 
     def test_custom_dir(self, monkeypatch):
         envs = {PRIVATE_CONFIG_DIR_ENV_VAR: "sysdata.tests.custom_private_config"}
@@ -16,7 +16,7 @@ class TestConfig:
 
         Config.reset()
         config = Config.default_config()
-        assert config.get_element_or_missing_data("ib_idoffset") == 1000
+        assert config.get_element("ib_idoffset") == 1000
 
     def test_bad_custom_dir(self, monkeypatch):
         envs = {PRIVATE_CONFIG_DIR_ENV_VAR: "sysdata.tests"}
@@ -24,7 +24,7 @@ class TestConfig:
 
         Config.reset()
         config = Config.default_config()
-        assert config.get_element_or_missing_data("ib_idoffset") == 100
+        assert config.get_element("ib_idoffset") == 100
 
     def test_default_control(self):
         config = get_control_config()

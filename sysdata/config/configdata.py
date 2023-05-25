@@ -20,7 +20,7 @@ import yaml
 
 from syscore.exceptions import missingData
 from syscore.fileutils import resolve_path_and_filename_for_package
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.config.defaults import get_system_defaults_dict
 from sysdata.config.private_config import (
     get_private_config_as_dict,
@@ -117,9 +117,6 @@ class Config(object):
     def get_element_or_default(self, element_name, default):
         result = getattr(self, element_name, default)
         return result
-
-    def get_element_or_missing_data(self, element_name):
-        return self.get_element_or_default(element_name, missing_data)
 
     def get_element_or_arg_not_supplied(self, element_name):
         return self.get_element_or_default(element_name, arg_not_supplied)
