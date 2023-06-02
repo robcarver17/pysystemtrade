@@ -144,7 +144,7 @@ Using the interactive_controls script, you may want to create strategy specific 
 
 # Manually generate instrument orders
 
-I'd recommend running the `update_strategy_orders` script. You can run these for both the new and existing strategies. If you're replacing an existing strategy, all the optimal positions should be zero, and if you've transferred all the positions it shouldn't generate any traders.
+I'd recommend running the `update_strategy_orders` script. You can run these for both the new and existing strategies. If you're replacing an existing strategy, all the optimal positions should be zero, and if you've transferred all the positions it shouldn't generate any trades.
 
 It may be worth running `interactive_order_stack` and looking at both positions and the instrument order stack to check all is as expected.
 
