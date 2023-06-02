@@ -37,7 +37,7 @@ use_attenuation:
    - 'relmomentum20'
    - 'relmomentum40'
    - 'relmomentum80'
-   - 'mrinasset160'
+   - 'mrinasset1000'
    - 'assettrend2'
    - 'assettrend4'
    - 'assettrend8'
