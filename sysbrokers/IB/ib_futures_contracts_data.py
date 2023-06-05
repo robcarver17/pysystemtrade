@@ -223,7 +223,7 @@ class ibFuturesContractData(brokerFuturesContractData):
                 contract_object_with_ib_data
             )
         except missingData:
-            new_log.msg("No IB expiry date found")
+            new_log.msg("No trading hours found")
             trading_hours = listOfTradingHours([])
 
         return trading_hours

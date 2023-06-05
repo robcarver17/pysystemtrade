@@ -666,7 +666,7 @@ def get_trading_hours_for_all_instruments(data=arg_not_supplied):
         try:
             trading_hours = get_trading_hours_for_instrument(data, instrument_code)
         except missingContract:
-            print("*** NO EXPIRY FOR %s ***" % instrument_code)
+            print("*** NO TRADING HOURS FOR %s ***" % instrument_code)
             continue
 
         ## will have several days use first one
