@@ -8,7 +8,7 @@ from syscore.fileutils import (
 )
 from syscore.pandas.pdutils import pd_readcsv
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 ADJUSTED_PRICES_DIRECTORY = "data.futures.adjusted_prices_csv"
 DATE_INDEX_NAME = "DATETIME"

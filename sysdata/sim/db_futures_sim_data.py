@@ -14,7 +14,7 @@ from sysdata.mongodb.mongo_spread_costs import mongoSpreadCostData
 from sysdata.data_blob import dataBlob
 from sysdata.sim.futures_sim_data_with_data_blob import genericBlobUsingFuturesSimData
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class dbFuturesSimData(genericBlobUsingFuturesSimData):

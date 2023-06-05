@@ -6,8 +6,7 @@ from syscore.constants import arg_not_supplied
 from syscore.text import camel_case_split
 from sysdata.config.production_config import get_production_config, Config
 from sysdata.mongodb.mongo_connection import mongoDb
-from syslogdiag.pst_logger import pst_logger, COMPONENT_LOG_LABEL
-from syslogdiag.log_to_file import logToFile
+from syslogging.logger import *
 from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 
 

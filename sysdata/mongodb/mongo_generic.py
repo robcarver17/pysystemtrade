@@ -9,7 +9,7 @@ from sysdata.mongodb.mongo_connection import (
     mongo_clean_ints,
     clean_mongo_host,
 )
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class mongoDataWithSingleKey(object):

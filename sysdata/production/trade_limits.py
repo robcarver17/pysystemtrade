@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from syscore.exceptions import missingData
 from sysdata.base_data import baseData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysobjects.production.trade_limits import tradeLimit, listOfTradeLimits
 
 from sysobjects.production.tradeable_object import instrumentStrategy

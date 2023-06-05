@@ -5,7 +5,7 @@ from syscontrol.report_process_status import reportStatus
 from syscontrol.timer_parameters import timerClassParameters
 from sysdata.data_blob import dataBlob
 from sysproduction.data.control_process import diagControlProcess, dataControlProcess
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 ## Don't change this without also changing the config
 INFINITE_EXECUTIONS = -1

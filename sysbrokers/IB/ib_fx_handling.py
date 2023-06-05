@@ -1,5 +1,5 @@
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 from sysbrokers.IB.client.ib_fx_client import ibFxClient
 from sysbrokers.IB.ib_connection import connectionIB

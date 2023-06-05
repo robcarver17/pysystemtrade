@@ -8,7 +8,7 @@ from sysobjects.production.process_control import (
 )
 from syscore.constants import named_object, success
 from sysdata.base_data import baseData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class controlProcessData(baseData):

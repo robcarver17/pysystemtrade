@@ -2,7 +2,7 @@ import pandas as pd
 from sysdata.production.capital import capitalData
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 DATE_INDEX_NAME = "DATETIME"
 
