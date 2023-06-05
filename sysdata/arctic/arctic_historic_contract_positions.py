@@ -7,7 +7,7 @@ from sysdata.production.historic_contract_positions import contractPositionData
 
 from syscore.exceptions import missingData
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 CONTRACT_POSITION_COLLECTION = "contract_positions"
 

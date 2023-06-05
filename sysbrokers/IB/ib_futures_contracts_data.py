@@ -13,7 +13,7 @@ from sysobjects.contract_dates_and_expiries import expiryDate, listOfContractDat
 from sysobjects.contracts import futuresContract
 from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class ibFuturesContractData(brokerFuturesContractData):
@@ -223,7 +223,7 @@ class ibFuturesContractData(brokerFuturesContractData):
                 contract_object_with_ib_data
             )
         except missingData:
-            new_log.msg("No IB expiry date found")
+            new_log.msg("No trading hours found")
             trading_hours = listOfTradingHours([])
 
         return trading_hours

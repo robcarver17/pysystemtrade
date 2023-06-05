@@ -2,7 +2,7 @@ import pandas as pd
 from sysdata.production.historic_strategy_positions import strategyPositionData
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysobjects.production.tradeable_object import instrumentStrategy
 
 DATE_INDEX_NAME = "DATETIME"

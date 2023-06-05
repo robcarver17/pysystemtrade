@@ -4,7 +4,7 @@ import numpy as np
 from syscore.exceptions import missingData
 from sysdata.futures.spread_costs import spreadCostData
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 SPREAD_COST_COLLECTION = "spread_costs"
 INSTRUMENT_KEY = "instrument_code"

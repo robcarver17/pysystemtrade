@@ -12,7 +12,7 @@ from sysobjects.dict_of_named_futures_per_contract_prices import (
     list_of_price_column_names,
     contract_name_from_column_name,
 )
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 MULTIPLE_COLLECTION = "futures_multiple_prices"
 

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from syscore.fileutils import (
     resolve_path_and_filename_for_package,
     files_with_extension_in_pathname,

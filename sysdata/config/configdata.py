@@ -30,8 +30,7 @@ from sysdata.config.private_directory import (
     get_full_path_for_private_config,
     PRIVATE_CONFIG_DIR_ENV_VAR,
 )
-from syslogdiag.log_to_screen import logtoscreen
-from syslogdiag.pst_logger import TYPE_LOG_LABEL, STAGE_LOG_LABEL
+from syslogging.logger import *
 from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
 
 RESERVED_NAMES = [
@@ -168,7 +167,7 @@ class Config(object):
 
         When we've close self will be an object where the attributes are
 
-        So if config_objec=dict(a=2, b=2)
+        So if config_object=dict(a=2, b=2)
         Then this object will become self.a=2, self.b=2
         """
         base_config = config_object.get("base_config")

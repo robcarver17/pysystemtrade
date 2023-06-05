@@ -811,7 +811,7 @@ class Portfolios(SystemStage):
         ]
 
         self.log.msg(
-            "Following instruments will have zero weight in optimisation of instrument weights as they have no positions (possible too expensive?) %s"
+            "Following instruments will have zero weight in optimisation of instrument weights as they have no positions (possibly too expensive?) %s"
             % str(list_of_empty_markets)
         )
 

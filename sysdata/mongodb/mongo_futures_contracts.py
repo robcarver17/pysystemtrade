@@ -9,7 +9,7 @@ from sysobjects.contracts import (
     key_contains_instrument_code,
     listOfFuturesContracts,
 )
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 
 
@@ -33,7 +33,7 @@ class mongoFuturesContractData(futuresContractData):
         self._mongo_data = mongo_data
 
     def __repr__(self):
-        return "mongoFuturesInstrumentData %s" % str(self.mongo_data)
+        return "mongoFuturesContractData %s" % str(self.mongo_data)
 
     @property
     def mongo_data(self):

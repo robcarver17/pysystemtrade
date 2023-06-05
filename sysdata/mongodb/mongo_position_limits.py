@@ -8,7 +8,7 @@ from sysobjects.production.tradeable_object import (
     listOfInstrumentStrategies,
     instrumentStrategy,
 )
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 POSITION_LIMIT_STATUS_COLLECTION = "position_limit_status"
 

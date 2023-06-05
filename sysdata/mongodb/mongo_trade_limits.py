@@ -6,7 +6,7 @@ from sysdata.production.trade_limits import (
 )
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 LIMIT_STATUS_COLLECTION = "limit_status"
 

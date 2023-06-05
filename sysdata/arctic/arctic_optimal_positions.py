@@ -7,7 +7,7 @@ from typing import Union
 from syscore.exceptions import missingData
 from sysdata.arctic.arctic_connection import arcticData
 from sysdata.production.optimal_positions import optimalPositionData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 from sysobjects.production.tradeable_object import (
     instrumentStrategy,

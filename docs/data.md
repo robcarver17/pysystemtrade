@@ -295,7 +295,7 @@ The objects `csvFuturesContractPriceData` and `arcticFuturesContractPriceData` a
 <a name="roll_calendars"></a>
 ## Roll calendars
 
-We're now ready to set up a *roll calendar*. A roll calendar is the series of dates on which we roll from one futures contract to the next. It might be helpful to read [my blog post](https://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html) on rolling futures contracts (though bear in mind some of the details relate to my original defunct trading system and do no reflect how pysystemtrade works).
+We're now ready to set up a *roll calendar*. A roll calendar is the series of dates on which we roll from one futures contract to the next. It might be helpful to read [my blog post](https://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html) on rolling futures contracts (though bear in mind some of the details relate to my original defunct trading system and do not reflect how pysystemtrade works).
 
 You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). On each date we roll from the current_contract shown to the next_contract. We also see the current carry_contract; we use the differential between this and the current_contract to calculate forecasts for carry trading rules. The key thing is that on each roll date we *MUST* have prices for both the price and forward contract (we don't need carry). Here is a snippet from another roll calendar. This particular contract rolls quarterly on IMM dates (HMUZ), trades the first contract, and uses the second contract for carry. 
 

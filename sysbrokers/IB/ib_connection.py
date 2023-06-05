@@ -11,8 +11,7 @@ from sysbrokers.IB.ib_connection_defaults import ib_defaults
 from syscore.exceptions import missingData
 from syscore.constants import arg_not_supplied
 
-from syslogdiag.log_to_screen import logtoscreen
-from syslogdiag.pst_logger import pst_logger, BROKER_LOG_LABEL, CLIENTID_LOG_LABEL
+from syslogging.logger import *
 
 from sysdata.config.production_config import get_production_config
 

@@ -5,7 +5,7 @@ from syscore.constants import arg_not_supplied
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 
 from sysdata.production.margin import marginData, seriesOfMargin
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 MARGIN_COLLECTION = "margin"
 STRATEGY_REF = "strategy_name"

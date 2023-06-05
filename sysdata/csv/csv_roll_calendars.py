@@ -6,7 +6,7 @@ from syscore.fileutils import (
 )
 from syscore.pandas.pdutils import pd_readcsv
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 CSV_ROLL_CALENDAR_DIRECTORY = "data.futures.roll_calendars_csv"
 DATE_INDEX_NAME = "DATE_TIME"

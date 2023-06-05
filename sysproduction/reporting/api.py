@@ -115,7 +115,7 @@ class reportingApi(object):
         start_date = self.start_date
         end_date = self.end_date
         std_header = header(
-            "%s report produced on %s from %s to %s"
+            "%s produced on %s from %s to %s"
             % (
                 report_name,
                 datetime.datetime.now().strftime(REPORT_DATETIME_FORMAT),
@@ -128,7 +128,8 @@ class reportingApi(object):
 
     def terse_header(self, report_name: str):
         terse_header = header(
-            "%s report produced on %s" % (report_name, str(datetime.datetime.now()))
+            "%s produced on %s"
+            % (report_name, datetime.datetime.now().strftime(REPORT_DATETIME_FORMAT))
         )
 
         return terse_header

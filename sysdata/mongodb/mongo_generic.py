@@ -9,7 +9,7 @@ from sysdata.mongodb.mongo_connection import (
     mongo_clean_ints,
     clean_mongo_host,
 )
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class mongoDataWithSingleKey(object):
@@ -135,7 +135,7 @@ class mongoDataWithSingleKey(object):
                 self._update_existing_data_with_cleaned_dict(key, cleaned_data_dict)
             else:
                 raise existingData(
-                    "Can't overwite existing data %s/%s for %s"
+                    "Can't overwrite existing data %s/%s for %s"
                     % (self.key_name, key, self.name)
                 )
         else:
@@ -144,7 +144,7 @@ class mongoDataWithSingleKey(object):
             except:
                 ## this could happen if the key has just been added most likely for logs
                 raise existingData(
-                    "Can't overwite existing data %s/%s for %s"
+                    "Can't overwrite existing data %s/%s for %s"
                     % (self.key_name, key, self.name)
                 )
 
@@ -258,7 +258,7 @@ class mongoDataWithMultipleKeys(object):
                 )
             else:
                 raise existingData(
-                    "Can't overwite existing data %s for %s"
+                    "Can't overwrite existing data %s for %s"
                     % (str(dict_of_keys), self.name)
                 )
         else:

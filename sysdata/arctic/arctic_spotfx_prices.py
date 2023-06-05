@@ -1,8 +1,7 @@
 from sysdata.fx.spotfx import fxPricesData
 from sysobjects.spot_fx_prices import fxPrices
 from sysdata.arctic.arctic_connection import arcticData
-from syslogdiag.log_to_screen import logtoscreen
-from syslogdiag.pst_logger import CURRENCY_CODE_LOG_LABEL
+from syslogging.logger import *
 import pandas as pd
 
 SPOTFX_COLLECTION = "spotfx_prices"

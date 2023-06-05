@@ -27,7 +27,7 @@ from sysexecution.orders.list_of_orders import listOfOrders
 
 from sysobjects.production.tradeable_object import instrumentStrategy, futuresContract
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class genericOrdersData(baseData):
