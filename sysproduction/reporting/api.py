@@ -8,7 +8,7 @@ from syscore.dateutils import (
     calculate_start_and_end_dates,
     get_date_from_period_and_end_date,
 )
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysobjects.production.roll_state import ALL_ROLL_INSTRUMENTS
 from syscore.pandas.pdutils import top_and_tail
 from sysdata.data_blob import dataBlob
@@ -1154,10 +1154,6 @@ def filter_data_for_delays(
 ) -> pd.DataFrame:
 
     max_delay_in_seconds = max_delay_in_days * SECONDS_PER_DAY
-    # ignore missing data
-    data_with_datetime = data_with_datetime[
-        data_with_datetime[datetime_colum] != missing_data
-    ]
     time_delays = datetime.datetime.now() - data_with_datetime[datetime_colum]
     delayed = [
         time_difference.total_seconds() > max_delay_in_seconds
