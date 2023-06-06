@@ -42,6 +42,7 @@ from sysproduction.data.prices import diagPrices, get_valid_instrument_code_from
 from sysproduction.reporting.data.rolls import (
     rollingAdjustedAndMultiplePrices,
     relative_volume_in_forward_contract_versus_price,
+    volume_contracts_in_forward_contract,
 )
 
 
@@ -91,6 +92,7 @@ class RollDataWithStateReporting(object):
     allowable_roll_states_as_list_of_str: list
     days_until_roll: int
     relative_volume: float
+    absolute_volume: float
 
     @property
     def original_roll_status_as_string(self):
@@ -241,17 +243,25 @@ def days_until_earliest_expiry(data: dataBlob, instrument_code: str) -> int:
 
 @dataclass
 class autoRollParameters:
-    min_volume: float
+    min_rel_volume: float
+    min_abs_volume: float
     manual_prompt_for_position: bool
     state_when_position_held: RollState
 
 
 def get_auto_roll_parameters() -> autoRollParameters:
-    min_volume = get_input_from_user_and_convert_to_type(
+    min_rel_volume = get_input_from_user_and_convert_to_type(
         "Minimum relative volume before rolling",
         type_expected=float,
         allow_default=True,
         default_value=0.1,
+    )
+    
+    min_abs_volume = get_input_from_user_and_convert_to_type(
+        "Minimum absolute volume before rolling",
+        type_expected=float,
+        allow_default=True,
+        default_value=100,
     )
 
     manual_prompt_for_position = true_if_answer_is_yes(
@@ -264,7 +274,8 @@ def get_auto_roll_parameters() -> autoRollParameters:
         state_when_position_held = get_state_to_use_for_held_position()
 
     auto_parameters = autoRollParameters(
-        min_volume=min_volume,
+        min_rel_volume=min_rel_volume,
+        min_abs_volume=min_abs_volume,
         manual_prompt_for_position=manual_prompt_for_position,
         state_when_position_held=state_when_position_held,
     )
@@ -304,7 +315,7 @@ def auto_selected_roll_state_instrument(
     auto_parameters: autoRollParameters,
 ) -> RollState:
 
-    if roll_data.relative_volume < auto_parameters.min_volume:
+    if roll_data.relative_volume < auto_parameters.min_rel_volume:
 
         run_roll_report(data, roll_data.instrument_code)
         print_with_landing_strips_around(
@@ -312,11 +323,25 @@ def auto_selected_roll_state_instrument(
             % (
                 roll_data.instrument_code,
                 roll_data.relative_volume,
-                auto_parameters.min_volume,
+                auto_parameters.min_rel_volume,
             )
         )
         return no_change_required
 
+ 
+    if roll_data.absolute_volume < auto_parameters.min_abs_volume:
+
+        run_roll_report(data, roll_data.instrument_code)
+        print_with_landing_strips_around(
+            "For %s absolute volume of %f is less than minimum of %s : NOT AUTO ROLLING"
+            % (
+                roll_data.instrument_code,
+                roll_data.absolute_volume,
+                auto_parameters.min_abs_volume,
+            )
+        )
+        return no_change_required
+ 
     no_position_held = roll_data.position_priced_contract == 0
 
     if no_position_held:
@@ -451,8 +476,13 @@ def setup_roll_data_with_state_reporting(
     relative_volume = relative_volume_in_forward_contract_versus_price(
         data=data, instrument_code=instrument_code
     )
+    absolute_volume = volume_contracts_in_forward_contract(
+        data=data, instrument_code=instrument_code
+    )
     if np.isnan(relative_volume):
         relative_volume = 0.0
+    if np.isnan(absolute_volume):
+        absolute_volume = 0.0
 
     roll_data_with_state = RollDataWithStateReporting(
         instrument_code=instrument_code,
@@ -461,6 +491,7 @@ def setup_roll_data_with_state_reporting(
         allowable_roll_states_as_list_of_str=allowable_roll_states,
         days_until_roll=days_until_roll,
         relative_volume=relative_volume,
+        absolute_volume=absolute_volume
     )
 
     return roll_data_with_state
