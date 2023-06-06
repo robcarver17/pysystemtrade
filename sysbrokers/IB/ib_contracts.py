@@ -110,7 +110,7 @@ def _is_eurex_symbol_monthly(symbol: str):
     #FIX ME SOME LOGGING INFORMATION
     is_daily = _is_eurex_symbol_daily(symbol)
     is_monthly = not is_daily
-    print("%s is daily? %s is monthly? %s" % (symbol, str(is_daily), str(is_monthly))
+    print("%s is daily? %s is monthly? %s" % (symbol, str(is_daily), str(is_monthly)))
 
     return is_monthly
 
