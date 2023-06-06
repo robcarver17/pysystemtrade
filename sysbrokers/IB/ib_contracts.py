@@ -74,13 +74,14 @@ def resolve_multiple_expiries_for_generic_futures(
 
     # Get the symbols
     contract_symbols = [ibcontract.localSymbol for ibcontract in ibcontract_list]
+
     try:
         are_monthly = [is_monthly_function(symbol) for symbol in contract_symbols]
     except Exception as exception:
         raise Exception(exception.args[0])
 
-    if are_monthly.count(monthly) == 1:
-        index_of_monthly = are_monthly.index(monthly)
+    if are_monthly.count(True) == 1:
+        index_of_monthly = are_monthly.index(True)
         resolved_contract = ibcontract_list[index_of_monthly]
     else:
         # no matches or multiple matches
@@ -90,27 +91,21 @@ def resolve_multiple_expiries_for_generic_futures(
 
 
 
-monthly = object()
-weekly = object()
-daily = object()
-
 def _is_vix_symbol_monthly(symbol):
     if re.match("VX[0-9][0-9][A-Z][0-9]", symbol):
         # weekly
-        return weekly
+        return False
     elif re.match("VX[A-Z][0-9]", symbol):
         # monthly
-        return monthly
+        return True
     else:
         raise Exception("IB Local Symbol %s not recognised" % symbol)
 
 
 def _is_eurex_symbol_monthly(symbol: str):
     ## only two possibilties
-    #FIX ME SOME LOGGING INFORMATION
     is_daily = _is_eurex_symbol_daily(symbol)
     is_monthly = not is_daily
-    print("%s is daily? %s is monthly? %s" % (symbol, str(is_daily), str(is_monthly)))
 
     return is_monthly
 
