@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from systems.accounts.pandl_calculators.pandl_calculation import (
     pandlCalculation,
     apply_weighting,
@@ -15,7 +15,8 @@ class pandlCalculationWithFills(pandlCalculation):
         # if fills aren't supplied, can be inferred from positions
         super().__init__(*args, **kwargs)
         self._fills = fills
-        self._calculated_price = missing_data
+        # This attribute is not used
+        self._calculated_price = None
 
     def weight(self, weight: pd.Series):
         ## we don't weight fills, instead will be inferred from positions
@@ -91,6 +92,7 @@ class pandlCalculationWithFills(pandlCalculation):
 
         return positions
 
+    # This method is never used
     def _calculate_and_set_prices_from_fills_and_input_prices(self) -> pd.Series:
 
         ## this will be set in the parent __init__
