@@ -566,7 +566,7 @@ class reportingApi(object):
         return table_result
 
     def _roll_data_as_pd(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):
-        roll_data_dict = self.roll_data_dict_for_instrument_code(instrument_code)
+        roll_data_dict = self.roll_data_dict(instrument_code)
 
         result_pd = pd.DataFrame.from_dict(roll_data_dict, orient="index")
 
@@ -574,21 +574,14 @@ class reportingApi(object):
 
         return result_pd
 
-    def roll_data_dict_for_instrument_code(
-        self, instrument_code: str = ALL_ROLL_INSTRUMENTS
-    ):
-        roll_data_dict = self.roll_data_dict
+    def roll_data_dict(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):
+        return self.cache.get(self._get_roll_data_dict, instrument_code)
+
+    def _get_roll_data_dict(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):
         if instrument_code is ALL_ROLL_INSTRUMENTS:
-            return roll_data_dict
+            list_of_instruments = self._list_of_all_instruments()
         else:
-            return {instrument_code: roll_data_dict[instrument_code]}
-
-    @property
-    def roll_data_dict(self):
-        return self.cache.get(self._get_roll_data_dict)
-
-    def _get_roll_data_dict(self):
-        list_of_instruments = self._list_of_all_instruments()
+            list_of_instruments = [instrument_code]
         data = self.data
 
         roll_data_dict = {}
