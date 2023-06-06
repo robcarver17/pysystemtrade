@@ -50,7 +50,7 @@ def short_bias(price):
 
     """
 
-    avg_abs_forecast = system_defaults["average_absolute_forecast"]
+    avg_abs_forecast = 10
 
     forecast = -1.0 * avg_abs_forecast
 
@@ -70,7 +70,7 @@ def long_bias(price):
 
     """
 
-    avg_abs_forecast = system_defaults["average_absolute_forecast"]
+    avg_abs_forecast = 10.0
 
     forecast = 1.0 * avg_abs_forecast
 

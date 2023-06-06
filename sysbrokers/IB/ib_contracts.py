@@ -1,3 +1,5 @@
+from typing import Callable
+
 from ib_insync import Contract as ibContract, Contract, ComboLeg
 from ib_insync import ContractDetails as ibContractDetails
 import re
@@ -11,6 +13,11 @@ from syscore.genutils import list_of_ints_with_highest_common_factor_positive_fi
 from sysexecution.trade_qty import tradeQuantity
 from sysobjects.contract_dates_and_expiries import contractDate
 
+## Yes it's awful. What are you gonna do? At least it's buried in a nice abstraction
+
+VIX_CODE = "VIX"
+EUREX_CODES_WITH_DAILYS = ["MSCIWORLD", "MSCIASIA"]
+EUREX_DAY_FLAG = "D"
 
 def resolve_multiple_expiries(
     ibcontract_list: list,
@@ -28,17 +35,47 @@ def resolve_multiple_expiries(
             % code
         )
 
-    # It's a contract with weekly expiries (probably VIX)
-    # Check it's the VIX
-    if not code == "VIX":
+    # It's a contract with weekly expiries - we know two different cases of these
+    if code == VIX_CODE:
+        resolved_contract = resolve_multiple_expiries_for_VIX(ibcontract_list)
+    elif code in EUREX_CODES_WITH_DAILYS:
+        resolved_contract = resolve_multiple_expiries_for_EUREX(ibcontract_list)
+    else:
         raise Exception(
             "You have specified weekly expiries, but I don't have logic for %s" % code
         )
 
+    return resolved_contract
+
+
+def resolve_multiple_expiries_for_EUREX(
+        ibcontract_list: list
+) -> ibContract:
+    resolved_contract = resolve_multiple_expiries_for_generic_futures(ibcontract_list=ibcontract_list,
+                                                                      is_monthly_function=_is_eurex_symbol_monthly)
+
+    return resolved_contract
+
+
+def resolve_multiple_expiries_for_VIX(
+        ibcontract_list: list
+) -> ibContract:
+
+    # Get the symbols
+    resolved_contract = resolve_multiple_expiries_for_generic_futures(ibcontract_list=ibcontract_list,
+                                                          is_monthly_function=_is_vix_symbol_monthly)
+
+    return resolved_contract
+
+def resolve_multiple_expiries_for_generic_futures(
+        ibcontract_list: list,
+        is_monthly_function: Callable
+) -> ibContract:
+
     # Get the symbols
     contract_symbols = [ibcontract.localSymbol for ibcontract in ibcontract_list]
     try:
-        are_monthly = [_is_vix_symbol_monthly(symbol) for symbol in contract_symbols]
+        are_monthly = [is_monthly_function(symbol) for symbol in contract_symbols]
     except Exception as exception:
         raise Exception(exception.args[0])
 
@@ -52,9 +89,10 @@ def resolve_multiple_expiries(
     return resolved_contract
 
 
+
 monthly = object()
 weekly = object()
-
+daily = object()
 
 def _is_vix_symbol_monthly(symbol):
     if re.match("VX[0-9][0-9][A-Z][0-9]", symbol):
@@ -66,6 +104,14 @@ def _is_vix_symbol_monthly(symbol):
     else:
         raise Exception("IB Local Symbol %s not recognised" % symbol)
 
+
+def _is_eurex_symbol_monthly(symbol: str):
+    ## only two possibilties
+    return not _is_eurex_symbol_daily(symbol)
+
+
+def _is_eurex_symbol_daily(symbol: str):
+    return symbol[-1]==EUREX_DAY_FLAG
 
 NO_LEGS = []
 
