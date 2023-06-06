@@ -19,6 +19,7 @@ VIX_CODE = "VIX"
 EUREX_CODES_WITH_DAILYS = ["MSCIWORLD", "MSCIASIA"]
 EUREX_DAY_FLAG = "D"
 
+
 def resolve_multiple_expiries(
     ibcontract_list: list,
     futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
@@ -48,28 +49,26 @@ def resolve_multiple_expiries(
     return resolved_contract
 
 
-def resolve_multiple_expiries_for_EUREX(
-        ibcontract_list: list
-) -> ibContract:
-    resolved_contract = resolve_multiple_expiries_for_generic_futures(ibcontract_list=ibcontract_list,
-                                                                      is_monthly_function=_is_eurex_symbol_monthly)
+def resolve_multiple_expiries_for_EUREX(ibcontract_list: list) -> ibContract:
+    resolved_contract = resolve_multiple_expiries_for_generic_futures(
+        ibcontract_list=ibcontract_list, is_monthly_function=_is_eurex_symbol_monthly
+    )
 
     return resolved_contract
 
 
-def resolve_multiple_expiries_for_VIX(
-        ibcontract_list: list
-) -> ibContract:
+def resolve_multiple_expiries_for_VIX(ibcontract_list: list) -> ibContract:
 
     # Get the symbols
-    resolved_contract = resolve_multiple_expiries_for_generic_futures(ibcontract_list=ibcontract_list,
-                                                          is_monthly_function=_is_vix_symbol_monthly)
+    resolved_contract = resolve_multiple_expiries_for_generic_futures(
+        ibcontract_list=ibcontract_list, is_monthly_function=_is_vix_symbol_monthly
+    )
 
     return resolved_contract
 
+
 def resolve_multiple_expiries_for_generic_futures(
-        ibcontract_list: list,
-        is_monthly_function: Callable
+    ibcontract_list: list, is_monthly_function: Callable
 ) -> ibContract:
 
     # Get the symbols
@@ -88,7 +87,6 @@ def resolve_multiple_expiries_for_generic_futures(
         raise Exception("Can't find a unique monthly expiry")
 
     return resolved_contract
-
 
 
 def _is_vix_symbol_monthly(symbol):
@@ -111,7 +109,8 @@ def _is_eurex_symbol_monthly(symbol: str):
 
 
 def _is_eurex_symbol_daily(symbol: str):
-    return symbol[-1]==EUREX_DAY_FLAG
+    return symbol[-1] == EUREX_DAY_FLAG
+
 
 NO_LEGS = []
 
