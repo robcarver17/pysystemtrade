@@ -107,7 +107,12 @@ def _is_vix_symbol_monthly(symbol):
 
 def _is_eurex_symbol_monthly(symbol: str):
     ## only two possibilties
-    return not _is_eurex_symbol_daily(symbol)
+    #FIX ME SOME LOGGING INFORMATION
+    is_daily = _is_eurex_symbol_daily(symbol)
+    is_monthly = not is_daily
+    print("%s is daily? %s is monthly? %s" % (symbol, str(is_daily), str(is_monthly))
+
+    return is_monthly
 
 
 def _is_eurex_symbol_daily(symbol: str):
