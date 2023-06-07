@@ -629,13 +629,13 @@ Linux script:
 . $SCRIPT_PATH/backup_arctic_to_csv
 ```
 
-
+[//]: # (# TODO logging docs)
 ## Echos, Logging, diagnostics and reporting
 
 We need to know what our system is doing, especially if it is fully automated. Here are the methods by which this should be done:
 
 - Echos of stdout output from processes that are running
-- Storage of logging output in a database, tagged with keys to identify them
+- Logging output in a file, tagged with keys to identify them
 - Storage of diagnostics in a database, tagged with keys to identify them
 - the option to run reports both scheduled and ad-hoc, which can optionally be automatically emailed
 
@@ -660,12 +660,12 @@ Note: the configuration variable echo_extension will need changing in `private_c
 
 ### Logging
 
-Logging in pysystemtrade is done via loggers. See the [user guide for more detail](/docs/backtesting.md#logging). The logging levels are:
+pysystemtrade uses the [Python logging module](https://docs.python.org/3.8/library/logging.html). See the [user guide for more detail](/docs/backtesting.md#logging). The logging levels are:
 
 ```
-self.log.msg("this is a normal message")
-self.log.terse("not really used in production code since everything is logged by default, but if we were only running log=terse then you'd see this but not normal .msg")
-self.log.warn("this is a warning message means something unexpected has happened but probably no big deal")
+self.log.debug("this is a message at level DEBUG")
+self.log.info("this is a message at level INFO")
+self.log.warning("this is a warning message means something unexpected has happened but probably no big deal")
 self.log.error("this error message means something bad but recoverable has happened")
 self.log.critical("this critical message will always be printed, and an email will be sent to the user if emails are set up. Use this if user action is required, or if a process cannot continue")
 ```

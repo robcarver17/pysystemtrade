@@ -653,6 +653,7 @@ Production only data storage objects:
         - `brokerOrderStackData`
             - `mongoBrokerOrderStackData`
 
+[//]: # (# TODO logging docs)
 Used for logging:
     - `pst_logger`
         - `logtoscreen`
@@ -686,7 +687,7 @@ Simulation interface layer:
 
 
 
-
+[//]: # (# TODO logging docs)
 ## Directory structure (not the whole package! Just related to data objects, storage and interfaces)
 
 - [/sysbrokers/IB/](/sysbrokers/IB/): IB specific data storage / access objects
@@ -1111,7 +1112,7 @@ csvFxPricesData accessing data.futures.fx_prices_csv
 In production I use the objects in [this module](/sysproduction/data) to act as interfaces between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
 
 `diag` classes are read only, `update` are write only, `data` are read/write (created because it's not worth creating a separate read and write class):
-
+[//]: (# TODO logging docs)
 - `dataBacktest`: read/write pickled backtests from production `run_systems`
 - `dataBroker`: interact with broker
 - `dataCapital`: read/write total and strategy capital
@@ -1122,7 +1123,7 @@ In production I use the objects in [this module](/sysproduction/data) to act as 
 - `dataPositionLimits`: read/write position limits 
 - `dataTradeLimits`: read/write limits on individual trades
 - `diagInstruments`: get configuration for instruments
-- `diagLogs`: read logging information
+- `diagLogs`: read logging information  
 - `dataOrders`: read/write historic orders and order 'stacks' (current orders)
 - `diagPositions`, `updatePositions`: Read/Write historic and current positions
 - `dataOptimalPositions`: Read/Write optimal position data
