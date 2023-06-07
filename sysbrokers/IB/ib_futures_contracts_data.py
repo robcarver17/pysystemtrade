@@ -6,8 +6,7 @@ from sysbrokers.IB.ib_instruments_data import (
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_futures_contract_data import brokerFuturesContractData
 
-from syscore.constants import missing_instrument
-from syscore.exceptions import missingContract, missingData
+from syscore.exceptions import missingContract, missingData, missingInstrument
 from sysdata.data_blob import dataBlob
 from sysobjects.contract_dates_and_expiries import expiryDate, listOfContractDateStr
 from sysobjects.contracts import futuresContract
@@ -132,14 +131,14 @@ class ibFuturesContractData(brokerFuturesContractData):
         self, contract_object: futuresContract
     ) -> futuresContract:
 
-        futures_instrument_with_ib_data = (
-            self._get_futures_instrument_object_with_IB_data(
-                contract_object.instrument_code
+        try:
+            futures_instrument_with_ib_data = (
+                self._get_futures_instrument_object_with_IB_data(
+                    contract_object.instrument_code
+                )
             )
-        )
-
-        if futures_instrument_with_ib_data is missing_instrument:
-            raise missingContract
+        except missingInstrument as e:
+            raise missingContract from e
 
         contract_object_with_ib_data = (
             contract_object.new_contract_with_replaced_instrument_object(
