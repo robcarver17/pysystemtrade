@@ -8,11 +8,10 @@ from sysbrokers.IB.config.ib_fx_config import (
     ibFXConfig,
 )
 from sysbrokers.broker_fx_prices_data import brokerFxPricesData
-from syscore.exceptions import missingData
+from syscore.exceptions import missingData, missingInstrument
 from sysdata.data_blob import dataBlob
 from sysobjects.spot_fx_prices import fxPrices
 from syslogging.logger import *
-from syscore.constants import missing_instrument
 
 
 class ibFxPricesData(brokerFxPricesData):
@@ -45,9 +44,9 @@ class ibFxPricesData(brokerFxPricesData):
         return list_of_codes
 
     def _get_fx_prices_without_checking(self, currency_code: str) -> fxPrices:
-        ib_config_for_code = self._get_config_info_for_code(currency_code)
-
-        if ib_config_for_code is missing_instrument:
+        try:
+            ib_config_for_code = self._get_config_info_for_code(currency_code)
+        except missingInstrument:
             log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
             log.warn("Can't get prices as missing IB config for %s" % currency_code)
             return fxPrices.create_empty()
