@@ -629,7 +629,6 @@ Linux script:
 . $SCRIPT_PATH/backup_arctic_to_csv
 ```
 
-[//]: # (# TODO logging docs)
 ## Echos, Logging, diagnostics and reporting
 
 We need to know what our system is doing, especially if it is fully automated. Here are the methods by which this should be done:
@@ -660,24 +659,103 @@ Note: the configuration variable echo_extension will need changing in `private_c
 
 ### Logging
 
-pysystemtrade uses the [Python logging module](https://docs.python.org/3.8/library/logging.html). See the [user guide for more detail](/docs/backtesting.md#logging). The logging levels are:
+pysystemtrade uses the [Python logging module](https://docs.python.org/3.8/library/logging.html). See the [user guide for more detail](/docs/backtesting.md#logging) about logging in sim. Python logging is powerful and flexible, and log messages can be [formatted as you like, and sent virtually anywhere](https://docs.python.org/3.8/howto/logging.html#logging-advanced-tutorial) by providing your own config. But this section describes the default provided production setup. 
+
+In production, the requirements are more complex than in sim. As well as the context relevant attributes (that we have with sim), we also need
+- ability to log to the same file from different processes
+- output to console for echo files
+- critical level messages to trigger an email
+
+Configure the default production setup with:
 
 ```
-self.log.debug("this is a message at level DEBUG")
-self.log.info("this is a message at level INFO")
-self.log.warning("this is a warning message means something unexpected has happened but probably no big deal")
-self.log.error("this error message means something bad but recoverable has happened")
-self.log.critical("this critical message will always be printed, and an email will be sent to the user if emails are set up. Use this if user action is required, or if a process cannot continue")
+PYSYS_LOGGING_CONFIG=syslogging.logging_prod.yaml
 ```
 
-The default pst_logger in production code is to the mongo database. This method will also try and email the user if a critical message is logged.
+At the client side, (pysystemtrade) there are three handlers: socket, console, and email. There is a server (separate process) for the socket handler. More details on each below
+
+### socket
+
+Python doesn't support more than one process writing to a file at the same time. So, on the client side, log messages are serialised and sent over the wire. A simple TCP socket server receives, de-serialises, and writes them to disk. The socket server needs to be running first. The simplest way to start it:
+
+```
+python -u $PYSYS_CODE/syslogging/server.py
+```
+
+But that would write logs to the current working directory. Probably not what you want. Instead, pass the log file path 
+
+```
+python -u $PYSYS_CODE/syslogging/server.py --file /home/path/to/your/pysystemtrade.log
+```
+
+By default, the server accepts connections on port 6020. But if you want to use another
+
+```
+python -u $PYSYS_CODE/syslogging/server.py --port 6021 --file /home/path/to/your/pysystemtrade.log
+```
+
+The socket server also handles rotating the log files daily; the default setup rotates creates a new log at midnight each day, keeping the last 5 days' files. So after a week, the log directory file listing would look something like 
+
+```
+-rw-r--r--  1 user group 19944754 May  4 15:42 pysystemtrade.log
+-rw-r--r--  1 user group 19030250 Apr 24 22:16 pysystemtrade.log.2023-04-24
+-rw-r--r--  1 user group  6178163 Apr 25 22:16 pysystemtrade.log.2023-04-25
+-rw-r--r--  1 user group  9465225 Apr 26 22:16 pysystemtrade.log.2023-04-26
+-rw-r--r--  1 user group  4593885 Apr 27 16:53 pysystemtrade.log.2023-04-27
+-rw-r--r--  1 user group  4414970 May  3 22:16 pysystemtrade.log.2023-05-03
+```
+
+The server needs to be running all the time. It needs to run in the background, start up on reboot, restart automatically in case of failure, etc. So a better way to do it would be to make it a service
+
+#### socket server as a service
+
+There is an example Linux systemd service file provided, see `examples/logging/logging_server.service`. And a setup guide [here](https://tecadmin.net/setup-autorun-python-script-using-systemd/). Basic setup for Debian/Ubuntu is:
+
+- create a new file at `/etc/systemd/system/logging_server.service`
+- paste the example file into it
+- update the paths in `ExecStart`. If using a virtual environment, make sure to use the correct path to Python 
+- update the `User` and `Group` values, so the log file is not owned by root
+- update the path in `Environment`, if using a custom private config directory
+- run the following commands to start/stop/restart etc
+
+```
+# reload daemon
+sudo systemctl daemon-reload
+
+# enable service (restart on boot)
+sudo systemctl enable log_server.service
+
+# view service status
+sudo systemctl status log_server.service 
+
+# start service
+sudo systemctl start log_server.service
+
+# stop service
+sudo systemctl stop log_server.service
+
+# restart
+sudo systemctl restart log_server.service
+
+# view service log (not pysystemtrade log)
+sudo journalctl -e -u log_server.service
+```
+
+### console
+
+All log messages also get sent to console, as with sim. The supplied `crontab` entries would therefore also pipe their output to the echo files
+
+### email
+
+There is a special SMTP handler, for CRITICAL log messages only. This handler uses the configured pysystemtrade email settings to send those messages as emails
+
 
 #### Adding logging to your code
 
-The default for logging is to do this via mongodb. Here is an example of logging code:
+Here is an example of logging code (needs to adjusted for new style logging):
 
 ```python
-from syslogdiag.pst_logger import logToMongod as pst_logger
+from syslogging.logger import *
 
 
 def top_level_function():
@@ -685,68 +763,74 @@ def top_level_function():
     This is a function that's called as the top level of a process
     """
 
-    # can optionally pass mongodb connection attributes here
-    log = pst_logger("top-level-function")
+    # logger setup
+    log = get_logger("top-level-function")
 
-    # note use of log.setup when passing log to other components, this creates a copy of the existing log with an additional attribute set
+    # note use of log.setup when passing log to other components, this creates a copy of the existing log with an additional attribute set - TODO transition to sysloggging
     conn = connectionIB(client=100, log=log.setup(component="IB-connection"))
 
+    #  - TODO transition to sysloggging
     ibfxpricedata = ibFxPricesData(conn, log=log.setup(component="ibFxPricesData"))
 
+    #  - TODO transition to sysloggging
     arcticfxdata = arcticFxPricesData(log=log.setup(component="arcticFxPricesData"))
 
     list_of_codes_all = ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
-    log.msg("FX Codes: %s" % str(list_of_codes_all))
+    log.debug("FX Codes: %s" % str(list_of_codes_all))
     for fx_code in list_of_codes_all:
 
-        # Using log.label permanently adds the labelled attribute (although in this case it will be replaced on each iteration of the loop
+        # Using log.label permanently adds the labelled attribute (although in this case it will be replaced on each iteration of the loop - TODO transition to sysloggging
         log.label(currency_code=fx_code)
         new_fx_prices = ibfxpricedata.get_fx_prices(fx_code)
 
         if len(new_fx_prices) == 0:
             log.error("Error trying to get data for %s" % fx_code)
             continue
-
-
-
 ```
 
-The following should be used as logging attributes (failure to do so will break reporting code):
+#### Refactoring logging
 
-- type: the argument passed when the pst_logger is setup. Should be the name of the top level calling function. Production types include price collection, execution and so on.
-- stage: Used by stages in System objects, such as 'rawdata'
-- component: other parts of the top level function that have their own loggers
-- currency_code: Currency code (used for fx), format 'GBPUSD'
-- instrument_code: Self explanatory
-- contract_date: Self explanatory, format 'yyyymmdd'
-- instrument_order_id, contract_order_id, broker_order_id: Self explanatory, used for live trading
-- strategy_name: Self explanatory
+There is an ongoing project (June 2023) to migrate [legacy logging](/syslogdiag/pst_logger.py)  to the built-in Python logging module. Currently, lots of methods are marked as deprecated - they will be refactored away in time. But if you are working on some code and want to make a change now:
+- `log.msg()` - > `log.debug()`
+- `log.terse()` - > `log.info()`
+- `log.warn()` - > `log.warning()`
 
+For other methods, like `label()`, `setup()`, each should be taken on a case by case basis. Under the hood, a call to `get_logger()` creates an instance of `DynamicAttributeLogger` which has an instance of a [Python logger](https://docs.python.org/3.8/library/logging.html#logging.Logger). From the docs:
 
-#### Getting log data back
+> Multiple calls to getLogger() with the same name will always return a reference to the same Logger object.
 
-Python:
+So our outer object handles the context attributes, and the inner `logging.Logger` object does the rest. We cannot copy logger instances as we did with the legacy system. Instead, we can manage the attributes with three ways to merge: *overwrite* (the default), *preserve*, and *clear*.
 
 ```python
-from syslogdiag.pst_logger import accessLogFromMongodb
+# merging attributes: method 'overwrite' (default if no method supplied)
+    overwrite = get_logger("Overwrite", {"type": "first"})
+    overwrite.info("overwrite, type 'first'")
+    overwrite.info(
+        "overwrite, type 'second', stage 'one'",
+        method="overwrite",
+        type="second",
+        stage="one",
+    )
 
-# can optionally pass mongodb connection attributes here
-mlog = accessLogFromMongodb()
-# Return a list of strings per log line
-mlog.get_log_items(
-    dict(type="top-level-function"))  # any attribute directory here is fine as a filter, defaults to last days results
-# Printout log entries
-mlog.print_log_items(dict(type="top-level-function"), lookback_days=7)  # get last weeks worth
-# Return a list of logEntry objects, useful for dissecting
-mlog.get_log_items_as_entries(dict(type="top-level-function"))
+    # merging attributes: method 'preserve'
+    preserve = get_logger("Preserve", {"type": "first"})
+    preserve.info("preserve, type 'first'")
+    preserve.info(
+        "preserve, type 'first', stage 'one'", method="preserve", type="second", stage="one"
+    )
+
+    # merging attributes: method 'clear'
+    clear = get_logger("Clear", {"type": "first", "stage": "one"})
+    clear.info("clear, type 'first', stage 'one'")
+    clear.info("clear, type 'second', no stage", method="clear", type="second")
+    clear.info("clear, no attributes", method="clear")
 ```
-
-Alternatively you can use the [interactive diagnostics](#view-logs) process to get old log data.
 
 #### Cleaning old logs
 
+##### Echos
 
-This code is run automatically from the [daily cleaning process](#clean-up-old-logs).
+There is some code to clean up **echo** files. This code is run automatically from the [daily cleaning process](#clean-up-old-logs).
 
 Python:
 
@@ -756,6 +840,10 @@ clean_truncate_log_files()
 ```
 
 It defaults to deleting anything more than 30 days old.
+
+##### Logs
+
+With the provided production logging config, the cleaning of **log** files is managed by the Python logging server. Default config is to keep the last 5 days of production logs. To adjust this, see [syslogging/server.py](syslogging/server.py) 
 
 
 ### Reporting
@@ -2050,28 +2138,6 @@ Allows you to look at various system diagnostics.
 ##### View stored emails
 
 The system sends emails quite a bit: when critical errors occur, when reports are sent, and when price spikes occur. To avoid spamming a user, it won't send an email with the same subject line as a previous email sent in the last 24 hours. Instead these emails are stored, and if you view them here they will be printed and then deleted from the store. The most common case is if you get a large price move which affects many different contracts for the same instrument; the first spike email will be sent, and the rest stored.
-
-##### View errors
-
-Log entries are tagged with a level; higher levels are more likely to be serious errors. You can view log entries for any time period at a given level. In theory this could be ordinary messages, but you'd be better off using 'view logs' which allows you to filter logs further.
-
-##### View logs
-
-You can view logs filtered by any group of attributes, over a given period. Log attributes are selected iteratively, until you have narrowed down exactly what you want to look at.
-
-Alternatively you can do this in python directly:
-
-```python
-from sysproduction._DEPRECATED.logs import diagLogs
-
-d = diagLogs()
-lookback_days = 1
-d.get_list_of_unique_log_attribute_keys(
-    lookback_days=lookback_days)  # what attributes do we have eg type, instrument_code...
-d.get_list_of_values_for_log_attribute("type", lookback_days=lookback_days)  # what value can an attribute take
-d.get_log_items(dict(instrument_code="EDOLLAR", type="process_fills_stack"),
-                lookback_days=lookback_days)  # get the log items with some attribute dict
-```
 
 
 #### View prices

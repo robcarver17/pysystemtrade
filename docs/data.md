@@ -653,14 +653,7 @@ Production only data storage objects:
         - `brokerOrderStackData`
             - `mongoBrokerOrderStackData`
 
-[//]: # (# TODO logging docs)
-Used for logging:
-    - `pst_logger`
-        - `logtoscreen`
-        - `logToDb`
-            - `logToMongod`
-
-
+    
 Specific data sources
 
 - Mongo / Arctic
@@ -685,9 +678,7 @@ Simulation interface layer:
                 - [csvFuturesSimData](/sysdata/sim/csv_futures_sim_data.py): Access to sim data in .csv files
                 - [dbFuturesSimData](/sysdata/sim/db_futures_sim_data.py): Access to sim data in arctic / mongodb files
 
-
-
-[//]: # (# TODO logging docs)
+    
 ## Directory structure (not the whole package! Just related to data objects, storage and interfaces)
 
 - [/sysbrokers/IB/](/sysbrokers/IB/): IB specific data storage / access objects
@@ -701,7 +692,6 @@ Simulation interface layer:
     - [/sysdata/csv/](/sysdata/csv/): Data storage objects, csv specific
     - [/sysdata/sim/](/sysdata/sim/): Backtesting interface layer
 - [/sysexecution/](/sysexecution/): Order and order stack data objects
-- [/syslogdiag/](/syslogdiag): Logging data objects
 - [/sysobjects/](/sysobjects/): Most production and generic (backtesting and production) data objects live here
 - [/sysproduction/data/](/sysproduction/data/): Production interface layer
 
@@ -1123,7 +1113,6 @@ In production I use the objects in [this module](/sysproduction/data) to act as 
 - `dataPositionLimits`: read/write position limits 
 - `dataTradeLimits`: read/write limits on individual trades
 - `diagInstruments`: get configuration for instruments
-- `diagLogs`: read logging information  
 - `dataOrders`: read/write historic orders and order 'stacks' (current orders)
 - `diagPositions`, `updatePositions`: Read/Write historic and current positions
 - `dataOptimalPositions`: Read/Write optimal position data

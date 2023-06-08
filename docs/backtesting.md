@@ -3848,7 +3848,6 @@ These functions are used internally whenever a file name is passed in, so feel f
 "syscore.tests.pricedata.csv"
 ```
 
-[//]: # (# TODO logging docs)
 <a name="logging"> </a>
 
 ## Logging
