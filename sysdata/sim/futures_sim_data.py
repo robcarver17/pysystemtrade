@@ -146,7 +146,9 @@ class futuresSimData(simData):
         """
 
         try:
-            cost_data_object = self.get_instrument_object_with_meta_data(instrument_code)
+            cost_data_object = self.get_instrument_object_with_meta_data(
+                instrument_code
+            )
         except missingInstrument:
             self.log.warn(
                 "Cost data missing for %s will use zero costs" % instrument_code
