@@ -13,8 +13,6 @@ from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.client.ib_client import ibClient
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
 
-from syscore.constants import missing_contract
-from syscore.exceptions import missingContract
 from sysdata.data_blob import dataBlob
 
 from syslogging.logger import *
@@ -41,9 +39,6 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
                 broker_contract_object
             )
         )
-
-        if instrument_code is missing_contract:
-            raise missingContract
 
         return instrument_code
 

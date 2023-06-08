@@ -11,7 +11,7 @@ from sysbrokers.IB.config.ib_instrument_config import (
     IBInstrumentIdentity,
 )
 
-from syscore.constants import arg_not_supplied, missing_contract
+from syscore.constants import arg_not_supplied
 from syscore.cache import Cache
 from syscore.exceptions import missingContract
 
