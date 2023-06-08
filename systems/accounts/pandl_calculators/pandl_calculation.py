@@ -111,9 +111,9 @@ class pandlCalculation(object):
         positions = self.positions
         price_returns = self.price_returns
         pos_series = positions.groupby(positions.index).last()
-        pos_series = pos_series.reindex(price_returns.index, method="ffill")
+        price_returns_indexed = price_returns.reindex(pos_series.index, method="ffill")
 
-        returns = pos_series.shift(1) * price_returns
+        returns = pos_series.shift(1) * price_returns_indexed
 
         returns[returns.isna()] = 0.0
 

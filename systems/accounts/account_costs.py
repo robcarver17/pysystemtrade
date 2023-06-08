@@ -344,7 +344,7 @@ class accountCosts(accountInputs):
 
     @diagnostic()
     def _recent_average_price(self, instrument_code: str) -> float:
-        daily_price = self.get_daily_price(instrument_code)
+        daily_price = self.get_instrument_prices_for_position_or_forecast(instrument_code)
         start_date = self._date_one_year_before_end_of_price_index(instrument_code)
         average_price = float(daily_price[start_date:].mean())
 
@@ -352,7 +352,7 @@ class accountCosts(accountInputs):
 
     @diagnostic()
     def _date_one_year_before_end_of_price_index(self, instrument_code: str):
-        daily_price = self.get_daily_price(instrument_code)
+        daily_price = self.get_instrument_prices_for_position_or_forecast(instrument_code)
 
         last_date = daily_price.index[-1]
         start_date = last_date - pd.DateOffset(years=1)
