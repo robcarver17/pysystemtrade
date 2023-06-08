@@ -1102,7 +1102,6 @@ csvFxPricesData accessing data.futures.fx_prices_csv
 In production I use the objects in [this module](/sysproduction/data) to act as interfaces between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
 
 `diag` classes are read only, `update` are write only, `data` are read/write (created because it's not worth creating a separate read and write class):
-[//]: (# TODO logging docs)
 - `dataBacktest`: read/write pickled backtests from production `run_systems`
 - `dataBroker`: interact with broker
 - `dataCapital`: read/write total and strategy capital
