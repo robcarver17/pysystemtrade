@@ -6,8 +6,8 @@ from sysbrokers.IB.ib_instruments import (
     NOT_REQUIRED_FOR_IB,
     ibInstrumentConfigData,
 )
-from syscore.constants import missing_file, missing_instrument, arg_not_supplied
-from syscore.exceptions import missingData
+from syscore.constants import missing_file
+from syscore.exceptions import missingData, missingInstrument
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.genutils import return_another_value_if_nan
 from syslogging.logger import *
@@ -47,14 +47,14 @@ def get_instrument_object_from_config(
             "Can't get config for instrument %s as IB configuration file missing"
             % instrument_code
         )
-        return missing_instrument
+        raise missingInstrument
 
     list_of_instruments = get_instrument_list_from_ib_config(config=config, log=log)
     try:
         assert instrument_code in list_of_instruments
     except:
         new_log.warn("Instrument %s is not in IB configuration file" % instrument_code)
-        return missing_instrument
+        raise missingInstrument
 
     futures_instrument_with_ib_data = _get_instrument_object_from_valid_config(
         instrument_code=instrument_code, config=config
