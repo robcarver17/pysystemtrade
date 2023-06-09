@@ -1,6 +1,6 @@
 import pandas as pd
 
-from syscore.constants import missing_instrument
+from syscore.exceptions import missingInstrument
 from sysdata.sim.sim_data import simData
 
 from sysobjects.adjusted_prices import futuresAdjustedPrices
@@ -145,9 +145,11 @@ class futuresSimData(simData):
 
         """
 
-        cost_data_object = self.get_instrument_object_with_meta_data(instrument_code)
-
-        if cost_data_object is missing_instrument:
+        try:
+            cost_data_object = self.get_instrument_object_with_meta_data(
+                instrument_code
+            )
+        except missingInstrument:
             self.log.warn(
                 "Cost data missing for %s will use zero costs" % instrument_code
             )

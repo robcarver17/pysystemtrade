@@ -3,6 +3,10 @@ Custom exceptions
 """
 
 
+class missingInstrument(Exception):
+    pass
+
+
 class missingContract(Exception):
     pass
 
