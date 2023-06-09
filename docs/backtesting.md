@@ -3848,86 +3848,88 @@ These functions are used internally whenever a file name is passed in, so feel f
 "syscore.tests.pricedata.csv"
 ```
 
-
 <a name="logging"> </a>
 
 ## Logging
 
 ### Basic logging
 
-The system, data, config and each stage object all have a .log attribute, to
-allow the system to report to the user; as do the functions provided to
-estimate correlations and do optimisations.
+pysystemtrade uses the [Python logging module](https://docs.python.org/3.8/library/logging.html). The system, data, config and each stage object all have a .log attribute, to allow the system to report to the user; as do the functions provided to estimate correlations and do optimisations.
 
-In the backtest this just prints to screen, although in [production systems it
-will write to a database](/docs/production.md#logging), and send emails if critical
-events are happening.
+By default, log messages will print out to the console (`std.out`) at level DEBUG. This what you get in sim. This is configured by function `_configure_sim()` in `syslogging.logger.py`.
 
-The pre-baked systems I've included all include a parameter log_level. This can
-be one of the following:
+If you want to change the level, or the format of the messages, then create an environment variable that points to an alternative YAML logging configuration. Something like this for Bash
 
-- Off: No logging, except for warnings and errors
-- Terse: Print
-- On: Print everything.
-
-Alternatively you can set this yourself:
-
-```python
-system.set_logging_level(log_level)
+```
+PYSYS_LOGGING_CONFIG=/home/path/to/your/logging_config.yaml
 ```
 
-If you're writing your own code, and want to inform the user that something is
-happening you should do one of the following:
+It could be a file within the project, so will accept the relative dotted path format. There's an example YAML file that replicates the default sim configuration
+
+```
+PYSYS_LOGGING_CONFIG=syslogging.logging_sim.yaml
+```
+
+If you're writing your own code, and want to inform the user that something is happening you should do one of the following:
 
 ```python
 ## self could be a system, stage, config or data object
 #
-self.log.msg("this is a normal message, will only be printed if logging is On")
-self.log.terse("this message will only be printed if logging is Terse or On")
-self.log.warn("this warning message will always be printed")
-self.log.error("this error message will always be printed")
-self.log.critical("this critical message will always be printed, and an exception will be raised")
+self.log.debug("this is a message at level logging.DEBUG")
+self.log.info("this is a message at level logging.INFO")
+self.log.warning("level logging.WARNING")
+self.log.error("level logging.ERROR")
+self.log.critical("level logging.CRITICAL")
+
+# parameterise the message
+log.info("Hello %s", "world")
+log.info("Goodbye %s %s", "cruel", "world")
 ```
 
-I strongly encourage the use of logging, rather than printing, since printing
-on a 'headless' automated trading server will not be visible. As you can see
-the log is also currently used for very basic error handling.
+I strongly encourage the use of logging, rather than printing, since printing on a 'headless' automated trading server will not be visible
 
 
 ### Advanced logging
 
-In my experience wading through long log files is a rather time consuming
-experience. On the other hand it's often more useful to use a logging approach
-to monitor system behaviour than to try and create quantitative diagnostics.
-For this reason I'm a big fan of logging with *attributes*. Every time a log
-method is called, it will typically know one or more of the following:
+In my experience wading through long log files is a rather time-consuming experience. On the other hand it's often more useful to use a logging approach to monitor system behaviour than to try and create quantitative diagnostics. For this reason I'm a big fan of logging with *attributes*. This project uses a custom version of [logging.LoggerAdapter](https://docs.python.org/3.8/library/logging.html#loggeradapter-objects) for that purpose:
 
-- type: the argument passed when the pst_logger is setup. Should be the name of the top level calling function. Production types include price collection, execution and so on.
+```python
+from syslogging.logger import *
+
+# setting attributes on logger initialisation
+log = get_logger("logger name", {"stage": "first"})
+
+# setting attributes on message creation
+log.info("logger name", instrument_code="GOLD")
+```
+
+A logger is initialised with a name; should be the name of the top level calling function. Production types include price collection, execution and so on. Every time a log method is called, it will typically know one or more of the following:
+
 - stage: Used by stages in System objects, such as 'rawdata'
 - component: other parts of the top level function that have their own loggers
 - currency_code: Currency code (used for fx), format 'GBPUSD'
 - instrument_code: Self explanatory
 - contract_date: Self explanatory, format 'yyyymm'
+- broker: broker name
+- clientid: IB unique identification
+- strategy_name: self explanatory
 - order_id: Self explanatory, used for live trading
+- instrument_order_id: Self explanatory, used for live trading
+- contract_order_id: Self explanatory, used for live trading
+- broker_order_id: Self explanatory, used for live trading
 
-
-Then we'll be able to save the log message with its attributes in a database
-(in future). We can then query the database to get, for example, all the log
-activity relating to a particular instrument code or trade, for particular
-dates.
-
-You do need to keep track of what attributes your pst_logger has. Generally
-speaking you should use this kind of pattern to write a log item
+You do need to keep track of what attributes your logger has. Generally speaking you should use this kind of pattern to write a log item
 
 ```python
 # this is from the ForecastScaleCap code
 #
 # This log will already have type=base_system, and stage=forecastScaleCap
 #
-self.log.msg("Calculating scaled forecast for %s %s" % (instrument_code, rule_variation_name),
-                               instrument_code=instrument_code, rule_variation_name=rule_variation_name)
+self.log.debug("Calculating scaled forecast for %s %s" % (instrument_code, rule_variation_name),
+    instrument_code=instrument_code, rule_variation_name=rule_variation_name
+)
 ```
-This has the advantage of keeping the original log attributes intact. If you want to do something more complex it's worth looking at the doc string for the pst_logger class [here](/syslogdiag/pst_logger.py) which shows how attributes are inherited and added to log instances.
+This has the advantage of keeping the original log attributes intact. If you want to do something more complex it's worth looking at the docstring for [`syslogging.get_logger()`](/syslogging/logger.py) which shows usage patterns, including how to merge attributes.
 
 
 <a name="optimisation"> </a>
