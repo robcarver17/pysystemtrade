@@ -186,8 +186,9 @@ class accountForecast(accountCosts):
 
         forecast = self.get_capped_forecast(instrument_code, rule_variation_name)
 
-        price = self.get_instrument_prices_for_position_or_forecast(instrument_code=instrument_code,
-                                                                    position_or_forecast=forecast)
+        price = self.get_instrument_prices_for_position_or_forecast(
+            instrument_code=instrument_code, position_or_forecast=forecast
+        )
 
         daily_returns_volatility = self.get_daily_returns_volatility(instrument_code)
 

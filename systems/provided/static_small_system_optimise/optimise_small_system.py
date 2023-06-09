@@ -281,7 +281,9 @@ def net_SR_for_instrument_in_system(
 
 
 def calculate_maximum_position(system, instrument_code, instrument_weight_idm=0.25):
-    pos_at_average = system.positionSize.get_average_position_at_subsystem_level(instrument_code)
+    pos_at_average = system.positionSize.get_average_position_at_subsystem_level(
+        instrument_code
+    )
     pos_at_average_in_system = pos_at_average * instrument_weight_idm
     forecast_multiplier = (
         system.combForecast.get_forecast_cap() / system.positionSize.avg_abs_forecast()
