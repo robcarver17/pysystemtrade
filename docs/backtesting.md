@@ -4397,7 +4397,7 @@ Other methods exist to access logging and caching.
 | `positionSize.get_block_value` | Standard | `instrument_code` | D | Get value of a 1% move in the price |
 | `positionSize.get_instrument_currency_vol` | Standard | `instrument_code` |D | Get daily volatility in the currency of the instrument |
 | `positionSize.get_instrument_value_vol` | Standard | `instrument_code` |D | Get daily volatility in the currency of the trading account |
-| `positionSize.get_volatility_scalar` | Standard | `instrument_code` | D |Get ratio of target volatility vs volatility of instrument in instrument's own currency |
+| `positionSize.get_average_position_at_subsystem_level` | Standard | `instrument_code` | D |Get ratio of target volatility vs volatility of instrument in instrument's own currency |
 | `positionSize.get_subsystem_position`| Standard | `instrument_code` | D, O |Get position if we put our entire trading capital into one instrument |
 
 

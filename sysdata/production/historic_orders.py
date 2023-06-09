@@ -19,7 +19,7 @@ from syscore.constants import arg_not_supplied
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysdata.base_data import baseData
-from sysobjects.fills import listOfFills, fill_from_order
+from sysobjects.fills import ListOfFills, fill_from_order
 from sysexecution.orders.base_orders import Order
 from sysexecution.orders.broker_orders import single_fill_from_broker_order
 from sysexecution.order_stacks.order_stack import missingOrder
@@ -71,7 +71,7 @@ class genericOrdersData(baseData):
 class strategyHistoricOrdersData(genericOrdersData):
     def get_fills_history_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
-    ) -> listOfFills:
+    ) -> ListOfFills:
         """
 
         :param instrument_code:  str
@@ -82,7 +82,7 @@ class strategyHistoricOrdersData(genericOrdersData):
             instrument_strategy
         )
         order_list_as_fills = [fill_from_order(order) for order in order_list]
-        list_of_fills = listOfFills(order_list_as_fills)
+        list_of_fills = ListOfFills(order_list_as_fills)
 
         return list_of_fills
 
@@ -115,7 +115,7 @@ class contractHistoricOrdersData(genericOrdersData):
 class brokerHistoricOrdersData(contractHistoricOrdersData):
     def get_fills_history_for_contract(
         self, futures_contract: futuresContract
-    ) -> listOfFills:
+    ) -> ListOfFills:
         """
 
         :param instrument_code:  str
@@ -133,7 +133,7 @@ class brokerHistoricOrdersData(contractHistoricOrdersData):
             for orderid in list_of_order_ids
         ]
         list_of_fills = [fill for fill in list_of_fills if fill is not missing_order]
-        list_of_fills = listOfFills(list_of_fills)
+        list_of_fills = ListOfFills(list_of_fills)
 
         return list_of_fills
 

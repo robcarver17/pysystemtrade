@@ -162,7 +162,7 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
     ) -> float:
 
         ## assumes we use all capital
-        average_position_for_turnover = self.get_volatility_scalar(instrument_code)
+        average_position_for_turnover = self.get_average_position_at_subsystem_level(instrument_code)
 
         ## Using actual capital
         positions = self.get_buffered_position(

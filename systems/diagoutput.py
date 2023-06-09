@@ -299,7 +299,7 @@ class systemDiag(object):
             "positionSize.get_instrument_currency_vol",
             "positionSize.get_fx_rate",
             "positionSize.get_instrument_value_vol",
-            "positionSize.get_volatility_scalar",
+            "positionSize.get_average_position_at_subsystem_level",
             "positionSize.get_subsystem_position",
             "portfolio.get_notional_position",
         ]

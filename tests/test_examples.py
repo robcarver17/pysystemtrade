@@ -222,7 +222,11 @@ class TestExamples:
         print(my_system.positionSize.get_block_value("EDOLLAR").tail(5))
         print(my_system.positionSize.get_underlying_price("EDOLLAR"))
         print(my_system.positionSize.get_instrument_value_vol("EDOLLAR").tail(5))
-        print(my_system.positionSize.get_volatility_scalar("EDOLLAR").tail(5))
+        print(
+            my_system.positionSize.get_average_position_at_subsystem_level(
+                "EDOLLAR"
+            ).tail(5)
+        )
         print(my_system.positionSize.get_vol_target_dict())
         print(my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5))
 

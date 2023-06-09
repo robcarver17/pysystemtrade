@@ -257,8 +257,8 @@ class Portfolios(SystemStage):
         instrument_weight_this_code = instr_weights[instrument_code]
 
         inst_weight_this_code_reindexed = instrument_weight_this_code.reindex(
-            subsys_position.index
-        ).ffill()
+            subsys_position.index, method="ffill"
+        )
 
         notional_position_without_idm = (
             subsys_position * inst_weight_this_code_reindexed
@@ -915,7 +915,7 @@ class Portfolios(SystemStage):
         ()], data, config)
         >>>
         >>> ## from config
-        >>> system.portfolio.get_volatility_scalar("EDOLLAR").tail(2)
+        >>> system.portfolio.get_average_position_at_subsystem_level("EDOLLAR").tail(2)
                     vol_scalar
         2015-12-10   11.187869
         2015-12-11   10.332930

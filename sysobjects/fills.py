@@ -15,7 +15,7 @@ Fill = namedtuple("Fill", ["date", "qty", "price"])
 NOT_FILLED = named_object("not filled")
 
 
-class listOfFills(list):
+class ListOfFills(list):
     def __init__(self, list_of_fills):
         list_of_fills = [fill for fill in list_of_fills if fill is not missing_order]
         super().__init__(list_of_fills)
@@ -47,7 +47,7 @@ class listOfFills(list):
 
 def _list_of_fills_from_position_series_and_prices(
     positions: pd.Series, price: pd.Series
-) -> listOfFills:
+) -> ListOfFills:
 
     (
         trades_without_zeros,
@@ -63,7 +63,7 @@ def _list_of_fills_from_position_series_and_prices(
         for date, qty, price in zip(dates_as_list, trades_as_list, prices_as_list)
     ]
 
-    list_of_fills = listOfFills(list_of_fills_as_list)
+    list_of_fills = ListOfFills(list_of_fills_as_list)
 
     return list_of_fills
 
