@@ -115,7 +115,7 @@ class csvFxPricesData(fxPricesData):
             filename, index_label=date_column, date_format=date_format, header=True
         )
 
-        self.log.msg(
+        self.log.debug(
             "Wrote currency prices to %s for %s" % (filename, code),
             **{CURRENCY_CODE_LOG_LABEL: code},
         )

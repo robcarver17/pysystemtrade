@@ -340,7 +340,7 @@ class orderStackData(object):
 
         self._change_order_on_stack(order_id, new_order)
 
-        log.msg(
+        log.debug(
             "Changed fill qty from %s to %s for order %s"
             % (str(existing_order.fill), str(fill_qty), str(existing_order))
         )

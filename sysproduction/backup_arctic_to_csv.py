@@ -75,7 +75,7 @@ class backupArcticToCsv:
         backup_data = get_data_and_create_csv_directories(self.data.log_name)
         log = self.data.log
 
-        log.msg("Dumping from arctic, mongo to .csv files")
+        log.debug("Dumping from arctic, mongo to .csv files")
         backup_futures_contract_prices_to_csv(backup_data)
         backup_spreads_to_csv(backup_data)
         backup_fx_to_csv(backup_data)
@@ -89,7 +89,7 @@ class backupArcticToCsv:
         backup_spread_cost_data(backup_data)
         backup_optimal_positions(backup_data)
         backup_roll_state_data(backup_data)
-        log.msg("Copying to backup directory")
+        log.debug("Copying to backup directory")
         backup_csv_dump(self.data)
 
 
@@ -206,7 +206,7 @@ def backup_futures_contract_prices_for_contract_to_csv(
     if ignore_long_expired:
         if futures_contract.days_since_expiry() > CALENDAR_DAYS_IN_YEAR:
             ## Almost certainly expired, skip
-            data.log.msg("Skipping expired contract %s" % str(futures_contract))
+            data.log.debug("Skipping expired contract %s" % str(futures_contract))
 
             return None
 
@@ -222,7 +222,7 @@ def backup_futures_contract_prices_for_contract_to_csv(
 
     if check_df_equals(arctic_data, csv_data):
         # No update needed, move on
-        data.log.msg("No prices backup needed for %s" % str(futures_contract))
+        data.log.debug("No prices backup needed for %s" % str(futures_contract))
     else:
         # Write backup
         try:
@@ -231,7 +231,7 @@ def backup_futures_contract_prices_for_contract_to_csv(
                 arctic_data,
                 ignore_duplication=True,
             )
-            data.log.msg("Written backup .csv of prices for %s" % str(futures_contract))
+            data.log.debug("Written backup .csv of prices for %s" % str(futures_contract))
         except BaseException:
             data.log.warn(
                 "Problem writing .csv of prices for %s" % str(futures_contract)
@@ -245,14 +245,14 @@ def backup_fx_to_csv(data):
         arctic_data = data.arctic_fx_prices.get_fx_prices(fx_code)
         csv_data = data.csv_fx_prices.get_fx_prices(fx_code)
         if check_ts_equals(arctic_data, csv_data):
-            data.log.msg("No fx backup needed for %s" % fx_code)
+            data.log.debug("No fx backup needed for %s" % fx_code)
         else:
             # Write backup
             try:
                 data.csv_fx_prices.add_fx_prices(
                     fx_code, arctic_data, ignore_duplication=True
                 )
-                data.log.msg("Written .csv backup for %s" % fx_code)
+                data.log.debug("Written .csv backup for %s" % fx_code)
             except BaseException:
                 data.log.warn("Problem writing .csv backup for %s" % fx_code)
 
@@ -270,14 +270,14 @@ def backup_multiple_to_csv_for_instrument(data, instrument_code: str):
     csv_data = data.csv_futures_multiple_prices.get_multiple_prices(instrument_code)
 
     if check_df_equals(arctic_data, csv_data):
-        data.log.msg("No multiple prices backup needed for %s" % instrument_code)
+        data.log.debug("No multiple prices backup needed for %s" % instrument_code)
         pass
     else:
         try:
             data.csv_futures_multiple_prices.add_multiple_prices(
                 instrument_code, arctic_data, ignore_duplication=True
             )
-            data.log.msg("Written .csv backup multiple prices for %s" % instrument_code)
+            data.log.debug("Written .csv backup multiple prices for %s" % instrument_code)
         except BaseException:
             data.log.warn(
                 "Problem writing .csv backup multiple prices for %s" % instrument_code
@@ -297,14 +297,14 @@ def backup_adj_to_csv_for_instrument(data: dataBlob, instrument_code: str):
     csv_data = data.csv_futures_adjusted_prices.get_adjusted_prices(instrument_code)
 
     if check_ts_equals(arctic_data, csv_data):
-        data.log.msg("No adjusted prices backup needed for %s" % instrument_code)
+        data.log.debug("No adjusted prices backup needed for %s" % instrument_code)
         pass
     else:
         try:
             data.csv_futures_adjusted_prices.add_adjusted_prices(
                 instrument_code, arctic_data, ignore_duplication=True
             )
-            data.log.msg("Written .csv backup for adjusted prices %s" % instrument_code)
+            data.log.debug("Written .csv backup for adjusted prices %s" % instrument_code)
         except BaseException:
             data.log.warn(
                 "Problem writing .csv backup for adjusted prices %s" % instrument_code
@@ -322,14 +322,14 @@ def backup_spreads_to_csv_for_instrument(data: dataBlob, instrument_code: str):
     csv_data = data.csv_spreads_for_instrument.get_spreads(instrument_code)
 
     if check_ts_equals(arctic_data, csv_data):
-        data.log.msg("No spreads backup needed for %s" % instrument_code)
+        data.log.debug("No spreads backup needed for %s" % instrument_code)
         pass
     else:
         try:
             data.csv_spreads_for_instrument.add_spreads(
                 instrument_code, arctic_data, ignore_duplication=True
             )
-            data.log.msg("Written .csv backup for spreads %s" % instrument_code)
+            data.log.debug("Written .csv backup for spreads %s" % instrument_code)
         except BaseException:
             data.log.warn(
                 "Problem writing .csv backup for spreads %s" % instrument_code
@@ -357,7 +357,7 @@ def backup_contract_position_data(data):
                 data.csv_contract_position.overwrite_position_series_for_contract_object_without_checking(
                     contract, arctic_data
                 )
-            data.log.msg(
+            data.log.debug(
                 "Backed up %s %s contract position data" % (instrument_code, contract)
             )
 
@@ -381,36 +381,36 @@ def backup_strategy_position_data(data):
             data.csv_strategy_position.overwrite_position_series_for_instrument_strategy_without_checking(
                 instrument_strategy, arctic_data
             )
-            data.log.msg(
+            data.log.debug(
                 "Backed up %s %s strategy position data"
                 % (instrument_code, strategy_name)
             )
 
 
 def backup_historical_orders(data):
-    data.log.msg("Backing up strategy orders...")
+    data.log.debug("Backing up strategy orders...")
     list_of_orders = [
         data.mongo_strategy_historic_orders.get_order_with_orderid(id)
         for id in data.mongo_strategy_historic_orders.get_list_of_order_ids()
     ]
     data.csv_strategy_historic_orders.write_orders(list_of_orders)
-    data.log.msg("Done")
+    data.log.debug("Done")
 
-    data.log.msg("Backing up contract orders...")
+    data.log.debug("Backing up contract orders...")
     list_of_orders = [
         data.mongo_contract_historic_orders.get_order_with_orderid(order_id)
         for order_id in data.mongo_contract_historic_orders.get_list_of_order_ids()
     ]
     data.csv_contract_historic_orders.write_orders(list_of_orders)
-    data.log.msg("Done")
+    data.log.debug("Done")
 
-    data.log.msg("Backing up broker orders...")
+    data.log.debug("Backing up broker orders...")
     list_of_orders = [
         data.mongo_broker_historic_orders.get_order_with_orderid(order_id)
         for order_id in data.mongo_broker_historic_orders.get_list_of_order_ids()
     ]
     data.csv_broker_historic_orders.write_orders(list_of_orders)
-    data.log.msg("Done")
+    data.log.debug("Done")
 
 
 def backup_capital(data):
@@ -463,13 +463,13 @@ def backup_optimal_positions(data):
         data.csv_optimal_position.write_optimal_position_as_df_for_instrument_strategy_without_checking(
             instrument_strategy, arctic_data
         )
-        data.log.msg("Backed up %s  optimal position data" % str(instrument_strategy))
+        data.log.debug("Backed up %s  optimal position data" % str(instrument_strategy))
 
 
 def backup_spread_cost_data(data):
     spread_cost_as_series = data.mongo_spread_cost.get_spread_costs_as_series()
     data.csv_spread_cost.write_all_instrument_spreads(spread_cost_as_series)
-    data.log.msg("Backed up spread cost data")
+    data.log.debug("Backed up spread cost data")
 
 
 def backup_roll_state_data(data):
@@ -482,7 +482,7 @@ def backup_roll_state_data(data):
     roll_state_df = pd.DataFrame(roll_state_list, index=instrument_list)
     roll_state_df.columns = ["state"]
     data.csv_roll_state.write_all_instrument_data(roll_state_df)
-    data.log.msg("Backed up roll state")
+    data.log.debug("Backed up roll state")
 
 
 def backup_contract_data(data):
@@ -498,13 +498,13 @@ def backup_contract_data(data):
         data.csv_futures_contract.write_contract_list_as_df(
             instrument_code, contract_list
         )
-        data.log.msg("Backed up contract data for %s" % instrument_code)
+        data.log.debug("Backed up contract data for %s" % instrument_code)
 
 
 def backup_csv_dump(data):
     source_path = get_csv_dump_dir()
     destination_path = get_csv_backup_directory()
-    data.log.msg("Copy from %s to %s" % (source_path, destination_path))
+    data.log.debug("Copy from %s to %s" % (source_path, destination_path))
     os.system("rsync -av %s %s" % (source_path, destination_path))
 
 

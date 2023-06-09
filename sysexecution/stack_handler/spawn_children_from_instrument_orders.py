@@ -52,7 +52,7 @@ class stackHandlerForSpawning(stackHandlerCore):
             instrument_order.instrument_code
         )
         if instrument_locked:
-            # log.msg("Instrument is locked, not spawning order")
+            # log.debug("Instrument is locked, not spawning order")
             return None
 
         list_of_contract_orders = spawn_children_from_instrument_order(
@@ -60,7 +60,7 @@ class stackHandlerForSpawning(stackHandlerCore):
         )
 
         log = instrument_order.log_with_attributes(self.log)
-        log.msg("List of contract orders spawned %s" % str(list_of_contract_orders))
+        log.debug("List of contract orders spawned %s" % str(list_of_contract_orders))
 
         self.add_children_to_stack_and_child_id_to_parent(
             self.instrument_stack,
@@ -216,7 +216,7 @@ def get_required_contract_trade_for_instrument(
         diag_contracts = dataContracts(data)
         current_contract = diag_contracts.get_priced_contract_id(instrument_code)
 
-        log.msg(
+        log.debug(
             "No roll, allocating entire order %s to current contract %s"
             % (str(instrument_order), current_contract)
         )
@@ -226,7 +226,7 @@ def get_required_contract_trade_for_instrument(
         diag_contracts = dataContracts(data)
         current_contract = diag_contracts.get_priced_contract_id(instrument_code)
 
-        log.msg(
+        log.debug(
             "Closing roll state, allocating entire order %s to current contract %s"
             % (str(instrument_order), current_contract)
         )
@@ -241,7 +241,7 @@ def get_required_contract_trade_for_instrument(
         return list_of_child_contract_dates_and_trades
 
     elif diag_positions.is_type_of_active_rolling_roll_state(instrument_code):
-        log.msg(
+        log.debug(
             "Roll state is active rolling, not going to generate trade for order %s"
             % (str(instrument_order))
         )
@@ -280,7 +280,7 @@ def passive_roll_child_order(
     if position_current_contract == 0:
         # Passive roll and no position in the current contract, start trading
         # the next contract
-        log.msg(
+        log.debug(
             "Passive roll handling order %s, no position in current contract, entire trade in next contract %s"
             % (str(instrument_order), next_contract)
         )
@@ -291,7 +291,7 @@ def passive_roll_child_order(
     if increasing_trade:
         # Passive roll and increasing trade
         # Do it all in next contract
-        log.msg(
+        log.debug(
             "Passive roll handling order %s, increasing trade, entire trade in next contract %s"
             % (str(instrument_order), next_contract)
         )
@@ -304,7 +304,7 @@ def passive_roll_child_order(
     )
     if new_position == 0 or sign_of_position_is_unchanged:
         # A reducing trade that we can do entirely in the current contract
-        log.msg(
+        log.debug(
             "Passive roll handling order %s, reducing trade, entire trade in next contract %s"
             % (str(instrument_order), next_contract)
         )
@@ -318,7 +318,7 @@ def passive_roll_child_order(
         next_contract=next_contract,
         position_current_contract=position_current_contract,
     )
-    log.msg(
+    log.debug(
         "Passive roll handling order %s, reducing trade, split trade between contract %s and %s"
         % (str(instrument_order), current_contract, next_contract)
     )

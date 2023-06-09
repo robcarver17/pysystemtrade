@@ -134,7 +134,7 @@ class Algo(object):
             limit_price=limit_price,
         )
 
-        log.msg(
+        log.debug(
             "Created a broker order %s (not yet submitted or written to local DB)"
             % str(broker_order)
         )
@@ -148,7 +148,7 @@ class Algo(object):
             return missing_order
 
         log = placed_broker_order_with_controls.order.log_with_attributes(log)
-        log.msg(
+        log.debug(
             "Submitted order to IB %s" % str(placed_broker_order_with_controls.order)
         )
 

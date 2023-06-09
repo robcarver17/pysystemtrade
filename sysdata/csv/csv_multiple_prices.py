@@ -73,7 +73,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
         filename = self._filename_given_instrument_code(instrument_code)
         multiple_price_data.to_csv(filename, index_label=DATE_INDEX_NAME)
 
-        self.log.msg(
+        self.log.debug(
             "Written multiple prices for %s to %s" % (instrument_code, filename),
             instrument_code=instrument_code,
         )

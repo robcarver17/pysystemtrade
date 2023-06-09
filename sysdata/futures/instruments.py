@@ -50,7 +50,7 @@ class futuresInstrumentData(baseData):
             )
         setattr(existing_meta_data, meta_name, new_value)
         self.add_instrument_data(instrument_object, ignore_duplication=True)
-        self.log.msg(
+        self.log.debug(
             "Updated %s for %s from %s to %s"
             % (meta_name, instrument_code, existing_meta_data_value, new_value)
         )

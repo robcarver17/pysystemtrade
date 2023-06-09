@@ -104,7 +104,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         self.arctic_connection.write(ident, futures_price_data_as_pd)
 
-        log.msg(
+        log.debug(
             "Wrote %s lines of prices for %s at %s to %s"
             % (
                 len(futures_price_data),
@@ -198,7 +198,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
             contract=futures_contract_object, frequency=frequency
         )
         self.arctic_connection.delete(ident)
-        log.msg(
+        log.debug(
             "Deleted all prices for %s from %s"
             % (futures_contract_object.key, str(self))
         )

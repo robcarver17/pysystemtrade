@@ -94,13 +94,6 @@ class TestLogging:
         with pytest.raises(Exception):
             logger.label(stage="left", foo="bar")
 
-    def test_msg(self, caplog):
-        logger = get_logger("Msg")
-        logger.msg("msg() is an alias for DEBUG")
-        assert caplog.record_tuples == [
-            ("Msg", logging.DEBUG, "msg() is an alias for DEBUG")
-        ]
-
     def test_terse(self, caplog):
         logger = get_logger("Terse")
         logger.terse("terse() is an alias for INFO")

@@ -136,7 +136,7 @@ class ibClient(object):
         log.warn(msg)
 
     def broker_message(self, log, msg):
-        log.msg(msg)
+        log.debug(msg)
 
     def refresh(self):
         self.ib.sleep(0.00001)

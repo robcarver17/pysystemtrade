@@ -40,7 +40,7 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
         0.13908407620762306
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating pandl for instrument for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -88,7 +88,7 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
         0.13908407620762306
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating pandl for instrument for %s" % instrument_code,
             instrument_code=instrument_code,
         )

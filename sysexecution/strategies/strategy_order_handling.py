@@ -133,7 +133,7 @@ class orderGeneratorForStrategy(object):
 
         if revised_order.trade != proposed_order.trade:
             log = proposed_order.log_with_attributes(self.log)
-            log.msg(
+            log.debug(
                 "%s trade change from %s to %s because of override %s"
                 % (
                     instrument_strategy.key,
@@ -174,11 +174,11 @@ class orderGeneratorForStrategy(object):
             # try:
             # we allow existing orders to be modified
             log = order.log_with_attributes(self.log)
-            log.msg("Required order %s" % str(order))
+            log.debug("Required order %s" % str(order))
 
             instrument_locked = data_lock.is_instrument_locked(order.instrument_code)
             if instrument_locked:
-                log.msg("Instrument locked, not submitting")
+                log.debug("Instrument locked, not submitting")
                 continue
             self.submit_order(order)
 
@@ -195,7 +195,7 @@ class orderGeneratorForStrategy(object):
             )
 
         else:
-            log.msg(
+            log.debug(
                 "Added order %s to instrument order stack with order id %d"
                 % (str(order), order_id),
                 instrument_order_id=order_id,

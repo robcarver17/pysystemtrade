@@ -180,7 +180,7 @@ def trade_given_optimal_and_actual_positions(
     )
 
     log = order_required.log_with_attributes(data.log)
-    log.msg(
+    log.debug(
         "Upper %.2f Lower %.2f Current %d Required position %d Required trade %d Reference price %f  for contract %s"
         % (
             upper_for_instrument,

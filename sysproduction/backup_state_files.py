@@ -21,14 +21,14 @@ class backupStateFiles(object):
 
     def backup_files(self):
         data = self.data
-        self.data.log.msg("Backing up state files")
+        self.data.log.debug("Backing up state files")
         backup_state_files_with_data_object(data)
 
 
 def backup_state_files_with_data_object(data):
     source_path = get_statefile_directory()
     destination_path = get_statefile_backup_directory()
-    data.log.msg("Copy from %s to %s" % (source_path, destination_path))
+    data.log.debug("Copy from %s to %s" % (source_path, destination_path))
     os.system("rsync -av %s %s" % (source_path, destination_path))
 
 

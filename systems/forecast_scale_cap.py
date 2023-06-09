@@ -56,7 +56,7 @@ class ForecastScaleCap(SystemStage):
         2015-12-11  0.200000
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating capped forecast for %s %s"
             % (instrument_code, rule_variation_name),
             instrument_code=instrument_code,
@@ -303,7 +303,7 @@ class ForecastScaleCap(SystemStage):
             ## not pooled
             instrument_list = [instrument_code]
 
-        self.log.msg(
+        self.log.debug(
             "Getting cross sectional forecasts for scalar calculation for %s over %s"
             % (rule_variation_name, ", ".join(instrument_list))
         )

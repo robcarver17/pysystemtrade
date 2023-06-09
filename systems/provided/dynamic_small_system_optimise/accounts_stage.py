@@ -41,7 +41,7 @@ class accountForOptimisedStage(Account):
         self, instrument_code: str, delayfill: bool = True
     ) -> accountCurve:
 
-        self.log.msg(
+        self.log.debug(
             "Calculating pandl for instrument for %s" % instrument_code,
             instrument_code=instrument_code,
         )

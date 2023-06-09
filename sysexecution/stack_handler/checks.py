@@ -63,7 +63,7 @@ class stackHandlerChecks(stackHandlerCore):
                 instrument not in instruments_with_breaks
             )
             if instrument_is_locked_but_no_longer_has_a_break:
-                self.log.msg("Clearing lock for %s" % instrument)
+                self.log.debug("Clearing lock for %s" % instrument)
                 data_locks.remove_lock_for_instrument(instrument)
             else:
                 # instrument has a break and needs a break
@@ -76,5 +76,5 @@ class stackHandlerChecks(stackHandlerCore):
         else:
             locked_instruments = [instrument_code]
         for instrument in locked_instruments:
-            self.log.msg("Clearing lock for %s" % instrument)
+            self.log.debug("Clearing lock for %s" % instrument)
             data_locks.remove_lock_for_instrument(instrument)

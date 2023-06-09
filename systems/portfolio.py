@@ -85,7 +85,7 @@ class Portfolios(SystemStage):
         KEY OUTPUT
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating actual position for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -108,7 +108,7 @@ class Portfolios(SystemStage):
         KEY OUTPUT
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating actual buffers for position for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -202,7 +202,7 @@ class Portfolios(SystemStage):
 
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating notional position for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -535,7 +535,7 @@ class Portfolios(SystemStage):
         2015-12-11  0.333333  0.333333  0.333333
         """
 
-        self.log.msg("Calculating raw instrument weights")
+        self.log.debug("Calculating raw instrument weights")
         instrument_weights_dict = self.get_fixed_instrument_weights_from_config()
 
         # Now we have a dict, fixed_weights.
@@ -791,7 +791,7 @@ class Portfolios(SystemStage):
                 )
 
         if len(allocate_zero_instrument_weights_to_these_instruments) > 0:
-            self.log.msg(
+            self.log.debug(
                 "Following instruments will have zero weight in optimisation of instrument weights as configured zero or auto removal of configured bad%s"
                 % str(allocate_zero_instrument_weights_to_these_instruments)
             )
@@ -810,7 +810,7 @@ class Portfolios(SystemStage):
             if empty
         ]
 
-        self.log.msg(
+        self.log.debug(
             "Following instruments will have zero weight in optimisation of instrument weights as they have no positions (possibly too expensive?) %s"
             % str(list_of_empty_markets)
         )
@@ -942,7 +942,7 @@ class Portfolios(SystemStage):
             "risk_overlay"
         )
         if risk_overlay_config is arg_not_supplied:
-            self.log.msg("No risk overlay in config: won't apply risk scaling")
+            self.log.debug("No risk overlay in config: won't apply risk scaling")
             return 1.0
 
         normal_risk = self.get_portfolio_risk_for_original_positions()

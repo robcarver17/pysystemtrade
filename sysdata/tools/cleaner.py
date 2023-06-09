@@ -46,7 +46,7 @@ def apply_price_cleaning(
         broker_prices = broker_prices.remove_future_data()
         new_price_length = len(broker_prices)
         if new_price_length < price_length:
-            log.msg(
+            log.debug(
                 "Ignoring %d prices with future timestamps"
                 % (price_length - new_price_length)
             )
@@ -65,7 +65,7 @@ def apply_price_cleaning(
         broker_prices = broker_prices.remove_zero_volumes()
         new_price_length = len(broker_prices)
         if new_price_length < price_length:
-            log.msg(
+            log.debug(
                 "Ignoring %d prices with zero volumes"
                 % (price_length - new_price_length)
             )
@@ -75,7 +75,7 @@ def apply_price_cleaning(
         broker_prices = broker_prices.remove_zero_prices()
         new_price_length = len(broker_prices)
         if new_price_length < price_length:
-            log.msg(
+            log.debug(
                 "Ignoring %d prices with zero prices"
                 % (price_length - new_price_length)
             )

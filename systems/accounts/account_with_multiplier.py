@@ -57,7 +57,7 @@ class accountWithMultiplier(accountPortfolio, accountBufferingSystemLevel):
 
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating pandl for instrument for %s with capital multiplier"
             % instrument_code,
             instrument_code=instrument_code,

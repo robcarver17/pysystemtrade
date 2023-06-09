@@ -297,7 +297,7 @@ class ibExecutionStackData(brokerExecutionStackData):
         """
 
         log = broker_order.log_with_attributes(self.log)
-        log.msg("Going to submit order %s to IB" % str(broker_order))
+        log.debug("Going to submit order %s to IB" % str(broker_order))
 
         trade_list = broker_order.trade
         order_type = broker_order.order_type
@@ -320,7 +320,7 @@ class ibExecutionStackData(brokerExecutionStackData):
             log.warn("Couldn't submit order")
             return missing_order
 
-        log.msg("Order submitted to IB")
+        log.debug("Order submitted to IB")
 
         return placed_broker_trade_object
 
@@ -385,7 +385,7 @@ class ibExecutionStackData(brokerExecutionStackData):
             return None
 
         self.cancel_order_given_control_object(matched_control_order)
-        log.msg("Sent cancellation for %s" % str(broker_order))
+        log.debug("Sent cancellation for %s" % str(broker_order))
 
     def cancel_order_given_control_object(
         self, broker_orders_with_controls: ibOrderWithControls

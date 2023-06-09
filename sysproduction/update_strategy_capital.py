@@ -120,7 +120,7 @@ def write_allocated_strategy_capital(data: dataBlob, strategy_capital_dict: dict
         capital_data.update_capital_value_for_strategy(
             strategy_name, strategy_capital, date=date
         )
-        data.log.msg(
+        data.log.debug(
             "Updated capital for %s to %f" % (strategy_name, strategy_capital),
             strategy_name=strategy_name,
         )
@@ -133,7 +133,7 @@ def write_allocated_strategy_margin(data: dataBlob, strategy_margin_dict: dict):
             strategy_name=strategy_name, margin_entry=strategy_margin
         )
 
-        data.log.msg(
+        data.log.debug(
             "Updated margin for %s to %f" % (strategy_name, strategy_margin),
             strategy_name=strategy_name,
         )

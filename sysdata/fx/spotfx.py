@@ -199,10 +199,10 @@ class fxPricesData(baseData):
 
         if rows_added == 0:
             if len(old_fx_prices) == 0:
-                log.msg("No new or old prices for %s" % code)
+                log.debug("No new or old prices for %s" % code)
 
             else:
-                log.msg(
+                log.debug(
                     "No additional data since %s for %s"
                     % (str(old_fx_prices.index[-1]), code)
                 )
@@ -210,7 +210,7 @@ class fxPricesData(baseData):
 
         self.add_fx_prices(code, merged_fx_prices, ignore_duplication=True)
 
-        log.msg("Added %d additional rows for %s" % (rows_added, code))
+        log.debug("Added %d additional rows for %s" % (rows_added, code))
 
         return rows_added
 

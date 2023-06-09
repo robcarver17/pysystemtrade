@@ -541,14 +541,14 @@ def state_change_to_roll_adjusted_prices(
 
     if roll_result is success:
         # Return the state back to default (no roll) state
-        data.log.msg(
+        data.log.debug(
             "Successful roll! Returning roll state of %s to %s"
             % (instrument_code, default_state)
         )
 
         update_positions.set_roll_state(instrument_code, default_state)
     else:
-        data.log.msg(
+        data.log.debug(
             "Something has gone wrong with rolling adjusted of %s! Returning roll state to previous state of %s"
             % (instrument_code, original_roll_state)
         )

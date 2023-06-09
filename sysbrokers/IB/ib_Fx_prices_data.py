@@ -78,7 +78,7 @@ class ibFxPricesData(brokerFxPricesData):
         # turn into a fxPrices
         fx_prices = fxPrices(raw_fx_prices)
 
-        log.msg("Downloaded %d prices" % len(fx_prices))
+        log.debug("Downloaded %d prices" % len(fx_prices))
 
         return fx_prices
 

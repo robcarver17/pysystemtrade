@@ -51,7 +51,7 @@ class algoMarket(Algo):
         log = contract_order.log_with_attributes(self.data.log)
 
         if contract_order.panic_order:
-            log.msg("PANIC ORDER! DON'T RESIZE AND DO ENTIRE TRADE")
+            log.debug("PANIC ORDER! DON'T RESIZE AND DO ENTIRE TRADE")
             cut_down_contract_order = copy(contract_order)
         else:
             cut_down_contract_order = contract_order.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
@@ -59,7 +59,7 @@ class algoMarket(Algo):
             )
 
         if cut_down_contract_order.trade != contract_order.trade:
-            log.msg(
+            log.debug(
                 "Cut down order to size %s from %s because of algo size limit"
                 % (str(contract_order.trade), str(cut_down_contract_order.trade))
             )
@@ -79,7 +79,7 @@ class algoMarket(Algo):
         data_broker = self.data_broker
 
         trade_open = True
-        log.msg(
+        log.debug(
             "Managing trade %s with market order"
             % str(broker_order_with_controls.order)
         )
@@ -100,11 +100,11 @@ class algoMarket(Algo):
                 )
             )
             if is_order_completed:
-                log.msg("Trade completed")
+                log.debug("Trade completed")
                 break
 
             if is_order_timeout:
-                log.msg("Run out of time to execute: cancelling")
+                log.debug("Run out of time to execute: cancelling")
                 broker_order_with_controls = cancel_order(
                     self.data, broker_order_with_controls
                 )

@@ -207,7 +207,7 @@ class stackHandlerForRolls(stackHandlerCore):
             )
 
         # phew got there
-        parent_log.msg(
+        parent_log.debug(
             "Added parent order with ID %d %s to stack"
             % (parent_order_id, str(instrument_order))
         )

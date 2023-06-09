@@ -153,7 +153,7 @@ class processToRun(object):
                 % self.process_name
             )
         elif result_of_finish is success:
-            self.log.msg("Process control %s marked close" % self.process_name)
+            self.log.debug("Process control %s marked close" % self.process_name)
 
 
 ### STARTUP CODE
@@ -334,7 +334,7 @@ def wait_for_next_method_run_time(process_to_run: processToRun):
             "Sleeping for %d seconds as %d seconds until next method ready to run (will react to STOP or PAUSE at that point)"
             % (sleep_time, seconds_to_next_run)
         )
-        process_to_run.log.msg(msg)
+        process_to_run.log.debug(msg)
         sys.stdout.flush()
         time.sleep(seconds_to_next_run)
 
@@ -377,13 +377,13 @@ def _check_for_stop(process_to_run: processToRun) -> bool:
     log = process_to_run.log
 
     if process_requires_stop:
-        log.msg("Process control marked as STOP")
+        log.debug("Process control marked as STOP")
 
     if all_methods_finished:
-        log.msg("Finished doing all executions of provided methods")
+        log.debug("Finished doing all executions of provided methods")
 
     if time_to_stop:
-        log.msg("Passed finish time of process")
+        log.debug("Passed finish time of process")
 
     if process_requires_stop or all_methods_finished or time_to_stop:
         return True

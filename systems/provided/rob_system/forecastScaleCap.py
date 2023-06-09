@@ -6,7 +6,7 @@ class volAttenForecastScaleCap(ForecastScaleCap):
     @diagnostic()
     def get_vol_quantile_points(self, instrument_code):
         ## More properly this would go in raw data perhaps
-        self.log.msg("Calculating vol quantile for %s" % instrument_code)
+        self.log.debug("Calculating vol quantile for %s" % instrument_code)
         daily_vol = self.parent.rawdata.get_daily_percentage_volatility(instrument_code)
         ten_year_vol = daily_vol.rolling(2500, min_periods=10).mean()
         normalised_vol = daily_vol / ten_year_vol

@@ -75,7 +75,7 @@ class rollCalendarData(baseData):
             instrument_code, roll_calendar
         )
 
-        self.log.msg("Added roll calendar for instrument %s" % instrument_code)
+        self.log.debug("Added roll calendar for instrument %s" % instrument_code)
 
     def is_code_in_data(self, instrument_code: str) -> bool:
         if instrument_code in self.get_list_of_instruments():

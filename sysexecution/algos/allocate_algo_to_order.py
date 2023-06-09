@@ -75,7 +75,7 @@ def check_and_if_required_allocate_algo_to_single_contract_order(
     is_roll_order = instrument_order.roll_order
 
     if instrument_order_type == market_order_type:
-        log.msg("Market order type, so allocating to algo_market")
+        log.debug("Market order type, so allocating to algo_market")
         contract_order.algo_to_use = MARKET_ALGO
 
     elif (
@@ -108,7 +108,7 @@ def allocate_for_best_execution_no_limit(
     # in the future could be randomized...
     log = contract_order.log_with_attributes(data.log)
 
-    log.msg("'Best' order so allocating to original_best")
+    log.debug("'Best' order so allocating to original_best")
     contract_order.algo_to_use = ORIGINAL_BEST
 
     return contract_order
@@ -119,7 +119,7 @@ def allocate_for_limit_order(
 ) -> contractOrder:
     # in the future could be randomized...
     log = contract_order.log_with_attributes(data.log)
-    log.msg("Allocating to limit order")
+    log.debug("Allocating to limit order")
     contract_order.algo_to_use = LIMIT_ALGO
 
     return contract_order

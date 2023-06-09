@@ -329,7 +329,7 @@ def _avoid_pacing_violation(
     printed_warning_already = False
     while _pause_for_pacing(last_call_datetime):
         if not printed_warning_already:
-            log.msg(
+            log.debug(
                 "Pausing %f seconds to avoid pacing violation"
                 % (
                     last_call_datetime

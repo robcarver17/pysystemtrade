@@ -41,7 +41,7 @@ def update_fx_prices_with_data(data: dataBlob):
     list_of_codes_all = (
         broker_fx_source.get_list_of_fxcodes()
     )  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
-    data.log.msg("FX Codes: %s" % str(list_of_codes_all))
+    data.log.debug("FX Codes: %s" % str(list_of_codes_all))
 
     for fx_code in list_of_codes_all:
         data.log.label(**{CURRENCY_CODE_LOG_LABEL: fx_code})

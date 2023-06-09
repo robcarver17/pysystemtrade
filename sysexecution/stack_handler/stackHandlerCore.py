@@ -160,7 +160,7 @@ def log_successful_adding(
 
     for child_order, child_id in zip(list_of_child_orders, list_of_child_ids):
         child_log = child_order.log_with_attributes(parent_log)
-        child_log.msg(
+        child_log.debug(
             "Put child order %s on stack with ID %d from parent order %s"
             % (str(child_order), child_id, str(parent_order))
         )

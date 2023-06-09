@@ -180,7 +180,7 @@ class dataContracts(productionDataLayerGeneric):
                 ignore_duplication=True,
             )
         else:
-            self.log.msg("Have to be sure to modify roll parameters")
+            self.log.debug("Have to be sure to modify roll parameters")
 
     def get_roll_parameters(self, instrument_code: str) -> rollParameters:
         roll_parameters = self.db_roll_parameters.get_roll_parameters(instrument_code)
