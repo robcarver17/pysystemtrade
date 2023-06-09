@@ -14,6 +14,8 @@ class missingContract(Exception):
 class missingData(Exception):
     pass
 
+class missingFile(Exception):
+    pass
 
 class existingData(Exception):
     pass
