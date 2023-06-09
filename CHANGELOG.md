@@ -1,5 +1,12 @@
 # Release notes
 
+## Version 1.62
+
+- Added order simulator as an optimal replacement for vectorised p&l calculation; prequisite for limit order simulation
+- Replace pst logging with python logging
+- ignore daily expiries for certain EUREX contracts
+- Allow fixed instrument and forecast weights to be specificed as a hierarchy
+ 
 ## Version 1.61
 
 - Replaced log to database with log to file
