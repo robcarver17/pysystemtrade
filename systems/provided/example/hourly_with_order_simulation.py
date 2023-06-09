@@ -19,13 +19,17 @@ from systems.forecast_combine import ForecastCombine
 from systems.forecast_scale_cap import ForecastScaleCap
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
-from systems.accounts.account_curve_order_simulator import (
+from systems.accounts.order_simulator.hourly_market_orders import (
     AccountWithOrderSimulatorForHourlyMarketOrders,
+)
+from systems.accounts.order_simulator.hourly_limit_orders import (
+    AccountWithOrderSimulatorForLimitOrders,
 )
 
 
 def futures_system(
     sim_data=arg_not_supplied,
+    use_limit_orders: bool = False,
     config_filename="systems.provided.example.hourly_with_order_simulator.yaml",
 ):
 
@@ -33,10 +37,13 @@ def futures_system(
         sim_data = dbFuturesSimData()
 
     config = Config(config_filename)
-
+    if use_limit_orders:
+        account = AccountWithOrderSimulatorForLimitOrders()
+    else:
+        account = AccountWithOrderSimulatorForHourlyMarketOrders()
     system = System(
         [
-            AccountWithOrderSimulatorForHourlyMarketOrders(),
+            account,
             Portfolios(),
             PositionSizing(),
             ForecastCombine(),

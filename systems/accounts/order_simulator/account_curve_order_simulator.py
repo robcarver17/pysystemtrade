@@ -8,10 +8,7 @@ from systems.accounts.pandl_calculators.pandl_cash_costs import (
 
 from systems.accounts.curves.account_curve import accountCurve
 from systems.accounts.accounts_stage import Account
-from systems.accounts.pandl_calculators.pandl_order_simulator import (
-    OrderSimulator,
-    HourlyOrderSimulatorOfMarketOrders,
-)
+from systems.accounts.order_simulator.pandl_order_simulator import OrderSimulator
 
 
 class AccountWithOrderSimulator(Account):
@@ -131,30 +128,6 @@ class AccountWithOrderSimulator(Account):
         self, instrument_code, is_subsystem: bool
     ) -> OrderSimulator:
         raise NotImplemented("Need to inherit to get an order simulator")
-
-
-## example
-class AccountWithOrderSimulatorForHourlyMarketOrders(AccountWithOrderSimulator):
-    @diagnostic(not_pickable=True)
-    def get_order_simulator(
-        self, instrument_code, is_subsystem: bool
-    ) -> HourlyOrderSimulatorOfMarketOrders:
-        order_simulator = HourlyOrderSimulatorOfMarketOrders(
-            system_accounts_stage=self,
-            instrument_code=instrument_code,
-            is_subsystem=is_subsystem,
-        )
-        return order_simulator
-
-    def get_unrounded_subsystem_position_for_order_simulator(
-        self, instrument_code: str
-    ) -> pd.Series:
-        return self.get_subsystem_position(instrument_code)
-
-    def get_unrounded_instrument_position_for_order_simulator(
-        self, instrument_code: str
-    ) -> pd.Series:
-        return self.get_notional_position(instrument_code)
 
 
 def _raise_exceptions(

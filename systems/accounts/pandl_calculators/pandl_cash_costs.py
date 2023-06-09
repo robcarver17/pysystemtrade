@@ -191,12 +191,14 @@ class pandlCalculationWithCashCostsAndFills(
     def calculate_cost_instrument_currency_for_a_fill(self, fill: Fill) -> float:
         trade = fill.qty
         price = fill.price
+        include_slippage = fill.includes_slippage
 
         block_price_multiplier = self.value_per_point
         cost_for_trade = self.raw_costs.calculate_cost_instrument_currency(
             blocks_traded=trade,
             price=price,
             block_price_multiplier=block_price_multiplier,
+            include_slippage=include_slippage,
         )
 
         return cost_for_trade

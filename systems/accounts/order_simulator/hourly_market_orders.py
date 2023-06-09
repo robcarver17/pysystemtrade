@@ -1,63 +1,22 @@
-import numpy as np
 import datetime
-from typing import Tuple
 from dataclasses import dataclass
+from typing import Tuple
+
+import numpy as np
 import pandas as pd
+
 from syscore.cache import Cache
-
-from sysobjects.orders import SimpleOrderWithDate, ListOfSimpleOrdersWithDate
 from sysobjects.fills import ListOfFills, Fill
+from sysobjects.orders import ListOfSimpleOrdersWithDate, SimpleOrderWithDate
 
-
-@dataclass
-class PositionsOrdersFills:
-    positions: pd.Series
-    list_of_orders: ListOfSimpleOrdersWithDate
-    list_of_fills: ListOfFills
-
-
-@dataclass
-class OrderSimulator:
-    system_accounts_stage: object  ## no explicit type as would cause circular import
-    instrument_code: str
-    is_subsystem: bool = False
-
-    def diagnostic_df(self) -> pd.DataFrame:
-        return self.cache.get(self._diagnostic_df)
-
-    def _diagnostic_df(self) -> pd.DataFrame:
-        raise NotImplemented("Need to inherit from this class to get diagnostics")
-
-    def prices(self) -> pd.Series:
-        raise NotImplemented("Need to inherit from this class to get prices")
-
-    def positions(self) -> pd.Series:
-        positions_orders_fills = self.positions_orders_and_fills_from_series_data()
-        return positions_orders_fills.positions
-
-    def list_of_fills(self) -> ListOfFills:
-        positions_orders_fills = self.positions_orders_and_fills_from_series_data()
-        return positions_orders_fills.list_of_fills
-
-    def list_of_orders(self) -> ListOfSimpleOrdersWithDate:
-        positions_orders_fills = self.positions_orders_and_fills_from_series_data()
-        return positions_orders_fills.list_of_orders
-
-    def positions_orders_and_fills_from_series_data(self) -> PositionsOrdersFills:
-        ## Because p&l with orders is path dependent, we generate everything together
-        return self.cache.get(self._positions_orders_and_fills_from_series_data)
-
-    def _positions_orders_and_fills_from_series_data(self) -> PositionsOrdersFills:
-        raise NotImplemented(
-            "Need to inherit from this class and implement positions, orders, fills"
-        )
-
-    @property
-    def cache(self) -> Cache:
-        return getattr(self, "_cache", Cache(self))
-
-
-## Example to show how to do this
+from systems.accounts.order_simulator.account_curve_order_simulator import (
+    AccountWithOrderSimulator,
+)
+from systems.accounts.order_simulator.pandl_order_simulator import (
+    OrderSimulator,
+    PositionsOrdersFills,
+)
+from systems.system_cache import diagnostic
 
 
 @dataclass
@@ -115,10 +74,6 @@ class HourlyOrderSimulatorOfMarketOrders(OrderSimulator):
             is_subsystem=self.is_subsystem,
         )
         return series_data
-
-    @property
-    def cache(self) -> Cache:
-        return getattr(self, "_cache", Cache(self))
 
 
 def _build_series_data_for_order_simulator(
@@ -213,3 +168,26 @@ def _generate_order_and_fill_at_idx_point(
     fill = Fill(date=next_datetime, price=next_price, qty=simple_order.quantity)
 
     return simple_order, fill
+
+
+class AccountWithOrderSimulatorForHourlyMarketOrders(AccountWithOrderSimulator):
+    @diagnostic(not_pickable=True)
+    def get_order_simulator(
+        self, instrument_code, is_subsystem: bool
+    ) -> HourlyOrderSimulatorOfMarketOrders:
+        order_simulator = HourlyOrderSimulatorOfMarketOrders(
+            system_accounts_stage=self,
+            instrument_code=instrument_code,
+            is_subsystem=is_subsystem,
+        )
+        return order_simulator
+
+    def get_unrounded_subsystem_position_for_order_simulator(
+        self, instrument_code: str
+    ) -> pd.Series:
+        return self.get_subsystem_position(instrument_code)
+
+    def get_unrounded_instrument_position_for_order_simulator(
+        self, instrument_code: str
+    ) -> pd.Series:
+        return self.get_notional_position(instrument_code)
