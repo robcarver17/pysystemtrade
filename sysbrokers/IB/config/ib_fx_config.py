@@ -2,7 +2,8 @@ from collections import namedtuple
 
 import pandas as pd
 
-from syscore.constants import missing_file, missing_instrument
+from syscore.constants import missing_file
+from syscore.exceptions import missingInstrument
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syslogging.logger import *
 
@@ -31,7 +32,7 @@ def config_info_for_code(config_data: pd.DataFrame, currency_code, log) -> ibFXC
             "Can't get IB FX config for %s as config file missing" % currency_code
         )
 
-        return missing_instrument
+        raise missingInstrument
 
     ccy1 = config_data[config_data.CODE == currency_code].CCY1.values[0]
     ccy2 = config_data[config_data.CODE == currency_code].CCY2.values[0]
