@@ -543,7 +543,7 @@ Moved most examples except core to separate git [here](https://github.com/robcar
 * Introduced maximum cap on IDM and FDM of 2.5, as per the book.
 * Correlation cleaning wasn't working as documented - now does.
 * cleaning up:
-  * renamed misleading 'get_daily_price' method to 'get_raw_price', to fix some tests that hadn't realised the difference
+  * renamed misleading 'get_instrument_prices_for_position_or_forecast' method to 'get_raw_price', to fix some tests that hadn't realised the difference
   * fixed a bunch of tests
   * changed the way cross rates are calculated to ensure data isn't lost 
 

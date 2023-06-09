@@ -653,13 +653,7 @@ Production only data storage objects:
         - `brokerOrderStackData`
             - `mongoBrokerOrderStackData`
 
-Used for logging:
-    - `pst_logger`
-        - `logtoscreen`
-        - `logToDb`
-            - `logToMongod`
-
-
+    
 Specific data sources
 
 - Mongo / Arctic
@@ -684,9 +678,7 @@ Simulation interface layer:
                 - [csvFuturesSimData](/sysdata/sim/csv_futures_sim_data.py): Access to sim data in .csv files
                 - [dbFuturesSimData](/sysdata/sim/db_futures_sim_data.py): Access to sim data in arctic / mongodb files
 
-
-
-
+    
 ## Directory structure (not the whole package! Just related to data objects, storage and interfaces)
 
 - [/sysbrokers/IB/](/sysbrokers/IB/): IB specific data storage / access objects
@@ -700,7 +692,6 @@ Simulation interface layer:
     - [/sysdata/csv/](/sysdata/csv/): Data storage objects, csv specific
     - [/sysdata/sim/](/sysdata/sim/): Backtesting interface layer
 - [/sysexecution/](/sysexecution/): Order and order stack data objects
-- [/syslogdiag/](/syslogdiag): Logging data objects
 - [/sysobjects/](/sysobjects/): Most production and generic (backtesting and production) data objects live here
 - [/sysproduction/data/](/sysproduction/data/): Production interface layer
 
@@ -1111,7 +1102,6 @@ csvFxPricesData accessing data.futures.fx_prices_csv
 In production I use the objects in [this module](/sysproduction/data) to act as interfaces between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
 
 `diag` classes are read only, `update` are write only, `data` are read/write (created because it's not worth creating a separate read and write class):
-
 - `dataBacktest`: read/write pickled backtests from production `run_systems`
 - `dataBroker`: interact with broker
 - `dataCapital`: read/write total and strategy capital
@@ -1122,7 +1112,6 @@ In production I use the objects in [this module](/sysproduction/data) to act as 
 - `dataPositionLimits`: read/write position limits 
 - `dataTradeLimits`: read/write limits on individual trades
 - `diagInstruments`: get configuration for instruments
-- `diagLogs`: read logging information
 - `dataOrders`: read/write historic orders and order 'stacks' (current orders)
 - `diagPositions`, `updatePositions`: Read/Write historic and current positions
 - `dataOptimalPositions`: Read/Write optimal position data

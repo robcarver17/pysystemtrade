@@ -4,12 +4,16 @@ import numpy as np
 import pandas as pd
 
 from syscore.dateutils import (
+    Frequency,
+    BUSINESS_DAY_FREQ,
+    HOURLY_FREQ,
     NOTIONAL_CLOSING_TIME_AS_PD_OFFSET,
     check_time_matches_closing_time_to_second,
     BUSINESS_DAYS_IN_YEAR,
     WEEKS_IN_YEAR,
     MONTHS_IN_YEAR,
     CALENDAR_DAYS_IN_YEAR,
+    HOURS_PER_DAY,
 )
 from syscore.pandas.pdutils import uniquets
 
@@ -217,3 +221,42 @@ def reindex_last_monthly_include_first_date(df: pd.DataFrame) -> pd.DataFrame:
     df_reindex = df.reindex(df_monthly_index).ffill()
 
     return df_reindex
+
+
+def infer_frequency(df_or_ts: Union[pd.DataFrame, pd.Series]) -> Frequency:
+    inferred = pd.infer_freq(df_or_ts.index)
+    if inferred is None:
+        return _infer_frequency_approx(df_or_ts)
+    if inferred == "B":
+        return BUSINESS_DAY_FREQ
+    if inferred == "H":
+        return HOURLY_FREQ
+    raise Exception("Frequency of time series unknown")
+
+
+UPPER_BOUND_HOUR_FRACTION_OF_A_DAY = 1.0 / 2.0
+LOWER_BOUND_HOUR_FRACTION_OF_A_DAY = 1.0 / HOURS_PER_DAY
+BUSINESS_CALENDAR_FRACTION = CALENDAR_DAYS_IN_YEAR / BUSINESS_DAYS_IN_YEAR
+
+
+def _infer_frequency_approx(df_or_ts: Union[pd.DataFrame, pd.Series]) -> Frequency:
+    avg_time_delta = abs(np.diff(df_or_ts.index)).mean()
+    avg_time_delta_in_days = avg_time_delta / np.timedelta64(1, "D")
+
+    if _probably_daily_freq(avg_time_delta_in_days):
+        return BUSINESS_DAY_FREQ
+
+    if _probably_hourly_freq(avg_time_delta_in_days):
+        return HOURLY_FREQ
+
+    raise Exception("Can't work out approximate frequency")
+
+
+def _probably_daily_freq(avg_time_delta_in_days: float) -> bool:
+    return round(avg_time_delta_in_days, 1) == BUSINESS_CALENDAR_FRACTION
+
+
+def _probably_hourly_freq(avg_time_delta_in_days: float) -> bool:
+    return (avg_time_delta_in_days < UPPER_BOUND_HOUR_FRACTION_OF_A_DAY) & (
+        avg_time_delta_in_days >= LOWER_BOUND_HOUR_FRACTION_OF_A_DAY
+    )

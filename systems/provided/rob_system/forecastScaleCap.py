@@ -45,8 +45,8 @@ class volAttenForecastScaleCap(ForecastScaleCap):
             return raw_forecast_before_atten
         else:
             vol_attenutation = self.get_vol_attenuation(instrument_code)
-
-            attenuated_forecast = raw_forecast_before_atten * vol_attenutation
+            vol_attenutation_reindex = vol_attenutation.reindex(raw_forecast_before_atten.index, method="ffill")
+            attenuated_forecast = raw_forecast_before_atten * vol_attenutation_reindex
 
             return attenuated_forecast
 
