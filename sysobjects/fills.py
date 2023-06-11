@@ -1,23 +1,35 @@
+from typing import Union
 import datetime
+from dataclasses import dataclass
 from collections import namedtuple
 
 import pandas as pd
 
 from syscore.constants import named_object
-from sysexecution.orders.named_order_objects import missing_order
-from sysobjects.orders import SimpleOrder, ListOfSimpleOrders
+from sysexecution.orders.named_order_objects import missing_order, not_filled
+from sysobjects.orders import (
+    SimpleOrder,
+    ListOfSimpleOrders,
+    ListOfSimpleOrdersWithDate,
+    SimpleOrderWithDate,
+)
 
-from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.base_orders import Order
 
-Fill = namedtuple("Fill", ["date", "qty", "price"])
 
-NOT_FILLED = named_object("not filled")
+@dataclass
+class Fill:
+    date: datetime.datetime
+    qty: int
+    price: float
+    includes_slippage: bool = False
 
 
-class listOfFills(list):
+class ListOfFills(list):
     def __init__(self, list_of_fills):
-        list_of_fills = [fill for fill in list_of_fills if fill is not missing_order]
+        list_of_fills = [
+            fill for fill in list_of_fills if fill is not (missing_order or not_filled)
+        ]
         super().__init__(list_of_fills)
 
     def _as_dict_of_lists(self) -> dict:
@@ -47,7 +59,7 @@ class listOfFills(list):
 
 def _list_of_fills_from_position_series_and_prices(
     positions: pd.Series, price: pd.Series
-) -> listOfFills:
+) -> ListOfFills:
 
     (
         trades_without_zeros,
@@ -63,7 +75,7 @@ def _list_of_fills_from_position_series_and_prices(
         for date, qty, price in zip(dates_as_list, trades_as_list, prices_as_list)
     ]
 
-    list_of_fills = listOfFills(list_of_fills_as_list)
+    list_of_fills = ListOfFills(list_of_fills_as_list)
 
     return list_of_fills
 
@@ -103,20 +115,44 @@ def fill_from_order(order: Order) -> Fill:
     return Fill(fill_datetime, fill_qty, fill_price)
 
 
+def fill_list_of_simple_orders(
+    list_of_orders: ListOfSimpleOrders,
+    fill_datetime: datetime.datetime,
+    market_price: float,
+) -> Fill:
+    list_of_fills = [
+        fill_from_simple_order(
+            simple_order=simple_order,
+            fill_datetime=fill_datetime,
+            market_price=market_price,
+        )
+        for simple_order in list_of_orders
+    ]
+    list_of_fills = ListOfFills(list_of_fills)  ## will remove unfilled
+
+    if len(list_of_fills) == 0:
+        return not_filled
+    elif len(list_of_fills) == 1:
+        return list_of_fills[0]
+    else:
+        raise Exception(
+            "List of orders %s has produced more than one fill %s!"
+            % (str(list_of_orders), str(list_of_orders))
+        )
+
+
 def fill_from_simple_order(
     simple_order: SimpleOrder,
     market_price: float,
     fill_datetime: datetime.datetime,
-    slippage: float = 0,
 ) -> Fill:
     if simple_order.is_zero_order:
-        return NOT_FILLED
+        return not_filled
 
     elif simple_order.is_market_order:
         fill = fill_from_simple_market_order(
             simple_order,
             market_price=market_price,
-            slippage=slippage,
             fill_datetime=fill_datetime,
         )
     else:
@@ -129,31 +165,39 @@ def fill_from_simple_order(
 
 
 def fill_from_simple_limit_order(
-    simple_order: SimpleOrder, market_price: float, fill_datetime: datetime.datetime
+    simple_order: Union[SimpleOrder, SimpleOrderWithDate],
+    market_price: float,
+    fill_datetime: datetime.datetime,
 ) -> Fill:
 
     limit_price = simple_order.limit_price
     if simple_order.quantity > 0:
         if limit_price > market_price:
-            return Fill(fill_datetime, simple_order.quantity, limit_price)
+            return Fill(
+                fill_datetime,
+                simple_order.quantity,
+                limit_price,
+                includes_slippage=True,
+            )
 
     if simple_order.quantity < 0:
         if limit_price < market_price:
-            return Fill(fill_datetime, simple_order.quantity, limit_price)
+            return Fill(
+                fill_datetime,
+                simple_order.quantity,
+                limit_price,
+                includes_slippage=True,
+            )
 
-    return NOT_FILLED
+    return not_filled
 
 
 def fill_from_simple_market_order(
-    simple_order: SimpleOrder,
+    simple_order: Union[SimpleOrder, SimpleOrderWithDate],
     market_price: float,
     fill_datetime: datetime.datetime,
-    slippage: float = 0,
 ) -> Fill:
 
-    if simple_order.quantity > 0:
-        fill_price_with_slippage = market_price + slippage
-    else:
-        fill_price_with_slippage = market_price - slippage
-
-    return Fill(fill_datetime, simple_order.quantity, fill_price_with_slippage)
+    return Fill(
+        fill_datetime, simple_order.quantity, market_price, includes_slippage=False
+    )

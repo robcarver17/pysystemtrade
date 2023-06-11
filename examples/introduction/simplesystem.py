@@ -150,7 +150,7 @@ print(my_system.positionSize.get_price_volatility("SOFR").tail(5))
 print(my_system.positionSize.get_block_value("SOFR").tail(5))
 print(my_system.positionSize.get_underlying_price("SOFR"))
 print(my_system.positionSize.get_instrument_value_vol("SOFR").tail(5))
-print(my_system.positionSize.get_volatility_scalar("SOFR").tail(5))
+print(my_system.positionSize.get_average_position_at_subsystem_level("SOFR").tail(5))
 print(my_system.positionSize.get_vol_target_dict())
 print(my_system.positionSize.get_subsystem_position("SOFR").tail(5))
 

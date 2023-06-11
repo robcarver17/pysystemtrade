@@ -132,6 +132,10 @@ def str_of_int(x: int) -> str:
         return ""
 
 
+def same_sign(x, y):
+    return sign(x) == sign(y)
+
+
 def sign(x: Union[int, float]) -> float:
     """
     >>> sign(3)

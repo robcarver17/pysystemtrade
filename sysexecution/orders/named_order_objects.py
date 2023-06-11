@@ -1,5 +1,6 @@
 from syscore.constants import named_object
 
+not_filled = named_object("not filled")
 missing_order = named_object("missing order")
 locked_order = named_object("locked order")
 duplicate_order = named_object("duplicate order")

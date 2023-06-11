@@ -178,14 +178,14 @@ class PositionSizing(SystemStage):
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>>
-        >>> system.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
+        >>> system.positionSize.get_average_position_at_subsystem_level("EDOLLAR").tail(2)
                     vol_scalar
         2015-12-10   11.187869
         2015-12-11   10.332930
         >>>
         >>> ## without raw data
         >>> system2=System([ rules, fcs, comb, PositionSizing()], data, config)
-        >>> system2.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
+        >>> system2.positionSize.get_average_position_at_subsystem_level("EDOLLAR").tail(2)
                     vol_scalar
         2015-12-10   11.180444
         2015-12-11   10.344278

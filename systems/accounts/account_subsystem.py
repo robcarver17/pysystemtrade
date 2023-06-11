@@ -106,7 +106,9 @@ class accountSubsystem(accountBufferingSubSystemLevel):
     ) -> accountCurve:
 
         positions = self.get_buffered_subsystem_position(instrument_code)
-        price = self.get_instrument_prices_for_position_or_forecast(instrument_code, position_or_forecast=positions)
+        price = self.get_instrument_prices_for_position_or_forecast(
+            instrument_code, position_or_forecast=positions
+        )
 
         fx = self.get_fx_rate(instrument_code)
 
@@ -114,7 +116,7 @@ class accountSubsystem(accountBufferingSubSystemLevel):
         daily_returns_volatility = self.get_daily_returns_volatility(instrument_code)
 
         ## following doesn't include IDM or instrument weight
-        average_position = self.get_volatility_scalar(instrument_code)
+        average_position = self.get_average_position_at_subsystem_level(instrument_code)
 
         subsystem_turnover = self.subsystem_turnover(instrument_code)
         annualised_SR_cost = self.get_SR_cost_given_turnover(
@@ -147,8 +149,9 @@ class accountSubsystem(accountBufferingSubSystemLevel):
 
         raw_costs = self.get_raw_cost_data(instrument_code)
         positions = self.get_buffered_subsystem_position(instrument_code)
-        price = self.get_instrument_prices_for_position_or_forecast(instrument_code,
-                                                                    position_or_forecast=positions) ### here!
+        price = self.get_instrument_prices_for_position_or_forecast(
+            instrument_code, position_or_forecast=positions
+        )  ### here!
 
         fx = self.get_fx_rate(instrument_code)
 

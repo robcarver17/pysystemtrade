@@ -9,7 +9,6 @@ class named_object:
         return self._name
 
 
-missing_instrument = named_object("missing instrument")
 missing_file = named_object("missing file")
 market_closed = named_object("market closed")
 fill_exceeds_trade = named_object("fill too big for trade")
