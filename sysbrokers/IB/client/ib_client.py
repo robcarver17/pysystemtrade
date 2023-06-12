@@ -133,7 +133,7 @@ class ibClient(object):
             self.broker_message(msg=msg, log=self.log)
 
     def broker_error(self, msg, log, myerror_type):
-        log.warn(msg)
+        log.warning(msg)
 
     def broker_message(self, log, msg):
         log.debug(msg)

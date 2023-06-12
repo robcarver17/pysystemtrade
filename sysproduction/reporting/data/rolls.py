@@ -521,7 +521,7 @@ def rollback_adjustment(
             instrument_code, current_multiple_prices, ignore_duplication=True
         )
     except Exception as e:
-        data.log.warn(
+        data.log.warning(
             "***** ROLLBACK FAILED! %s!You may need to rebuild your data! Check before trading!! *****"
             % e
         )

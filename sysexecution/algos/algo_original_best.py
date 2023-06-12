@@ -337,7 +337,7 @@ def is_market_about_to_close(
     )
 
     if short_of_time is market_closed:
-        log.warn("Market has closed for active limit order %s!" % str(order))
+        log.warning("Market has closed for active limit order %s!" % str(order))
         return True
 
     return short_of_time

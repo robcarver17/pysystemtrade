@@ -499,7 +499,7 @@ def add_reference_price_to_a_direct_child_order(
         )
     except missingData:
         log = instrument_order.log_with_attributes(data.log)
-        log.warn(
+        log.warning(
             "Couldn't adjust reference price for order %s child %s going from %s to %s, can't do TCA"
             % (
                 str(instrument_order),

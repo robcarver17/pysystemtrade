@@ -190,7 +190,7 @@ class orderGeneratorForStrategy(object):
         except zeroOrderException:
             # we checked for zero already, which means that there is an existing order on the stack
             # An existing order of the same size
-            log.warn(
+            log.warning(
                 "Ignoring new order as either zero size or it replicates an existing order on the stack"
             )
 

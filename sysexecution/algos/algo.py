@@ -173,7 +173,7 @@ class Algo(object):
                 )
             )
         except missingData:
-            log.warn(
+            log.warning(
                 "Can't get market data for %s so not trading with limit order %s"
                 % (contract_order.instrument_code, str(contract_order))
             )
@@ -231,7 +231,7 @@ class Algo(object):
             min_tick = self.data_broker.get_min_tick_size_for_contract(contract)
         except missingContract:
             log = contract_order.log_with_attributes(self.data.log)
-            log.warn(
+            log.warning(
                 "Couldn't find min tick size for %s, not rounding limit price %f"
                 % (str(contract), limit_price)
             )

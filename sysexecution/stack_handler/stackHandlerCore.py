@@ -136,7 +136,7 @@ def add_children_to_parent_or_rollback_children(
     except Exception as e:
         try:
             child_stack.rollback_list_of_orders_on_stack(list_of_child_ids)
-            parent_log.warn(
+            parent_log.warning(
                 "Tried to add child orders to parent but %s; rolled back so can try again (parent %s)"
                 % (str(e), str(parent_order))
             )
@@ -183,7 +183,7 @@ def rollback_parents_and_children_and_handle_exceptions(
             list_of_child_order_ids=list_of_child_order_ids,
             parent_order_id=parent_order_id,
         )
-        parent_log.warn(
+        parent_log.warning(
             "Error %s when adding a set of parents and children but managed to rollback"
             % str(error_from_adding_child_orders)
         )

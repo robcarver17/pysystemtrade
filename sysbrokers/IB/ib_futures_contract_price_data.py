@@ -256,14 +256,14 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 allow_expired=allow_expired,
             )
         except missingData:
-            new_log.warn(
+            new_log.warning(
                 "Something went wrong getting IB price data for %s"
                 % str(contract_object_with_ib_broker_config)
             )
             raise
 
         if len(price_data) == 0:
-            new_log.warn(
+            new_log.warning(
                 "No IB price data found for %s"
                 % str(contract_object_with_ib_broker_config)
             )
@@ -284,7 +284,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 )
             )
         except missingContract:
-            new_log.warn("Can't get data for %s" % str(contract_object))
+            new_log.warning("Can't get data for %s" % str(contract_object))
             return futuresContractPrices.create_empty()
 
         ticker_with_bs = self.ib_client.get_ticker_object(
@@ -309,7 +309,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 )
             )
         except missingContract:
-            new_log.warn("Can't get data for %s" % str(contract_object))
+            new_log.warning("Can't get data for %s" % str(contract_object))
             return futuresContractPrices.create_empty()
 
         self.ib_client.cancel_market_data_for_contract_object(
@@ -335,7 +335,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 )
             )
         except missingContract:
-            new_log.warn("Can't get data for %s" % str(contract_object))
+            new_log.warning("Can't get data for %s" % str(contract_object))
             return dataFrameOfRecentTicks.create_empty()
 
         try:

@@ -127,7 +127,7 @@ class instrumentOrderStackData(orderStackData):
             error_msg = "Adjusted order %s is zero, zero orders not allowed" % str(
                 adjusted_order
             )
-            log.warn(error_msg)
+            log.warning(error_msg)
             raise zeroOrderException(error_msg)
 
         order_id = self._put_order_on_stack_and_get_order_id(adjusted_order)

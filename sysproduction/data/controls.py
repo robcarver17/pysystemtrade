@@ -684,7 +684,7 @@ class dataPositionLimits(productionDataLayerGeneric):
                 )
             )
         except missingData:
-            self.log.warn("No temporary position limit stored")
+            self.log.warning("No temporary position limit stored")
             return None
 
         self.set_abs_position_limit_for_instrument(

@@ -150,7 +150,7 @@ def get_loader_config(data: dataBlob, strategy_name: str) -> dict:
             object="sysproduction.strategy_code.run_system_classic.runSystemClassic",
             function="system_method",
         )
-        data.log.warn(
+        data.log.warning(
             "No configuration strategy_list/strategy_name/load_backtests; using defaults %s"
             % str(strategy_loader_config)
         )
@@ -279,7 +279,7 @@ def pickle_state(data, system, backtest_filename):
         data.log.debug("Pickled backtest state to %s" % backtest_filename)
         return success
     except Exception as e:
-        data.log.warn(
+        data.log.warning(
             "Couldn't save backtest state to %s error %s" % (backtest_filename, e)
         )
         return failure
@@ -294,7 +294,7 @@ def copy_config_file(data, resolved_backtest_config_filename, config_save_filena
         )
         return success
     except Exception as e:
-        data.log.warn(
+        data.log.warning(
             "Couldn't copy config file from %s to %s error %s"
             % (resolved_backtest_config_filename, config_save_filename, e)
         )

@@ -284,7 +284,7 @@ class diagPositions(productionDataLayerGeneric):
             )
         except ContractNotFound:
             log = original_contract.specific_log(self.data.log)
-            log.warn(
+            log.warning(
                 "Contract %s is missing from database - expiry not found and will mismatch"
                 % str(original_contract)
             )
