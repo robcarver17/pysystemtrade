@@ -165,7 +165,12 @@ def _generate_order_and_fill_at_idx_point(
         quantity=quantity,
         submit_date=current_datetime,
     )
-    fill = Fill(date=next_datetime, price=next_price, qty=simple_order.quantity)
+    fill = Fill(
+        date=next_datetime,
+        price=next_price,
+        qty=simple_order.quantity,
+        price_requires_slippage_adjustment=True,
+    )
 
     return simple_order, fill
 
