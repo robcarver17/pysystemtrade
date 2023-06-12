@@ -62,13 +62,13 @@ def seed_price_data_for_contract_at_frequency(
             )
         )
     except missingData:
-        log.warn("Error getting data for %s" % str(contract_object))
+        log.warning("Error getting data for %s" % str(contract_object))
         return None
 
     log.debug("Got %d lines of prices for %s" % (len(prices), str(contract_object)))
 
     if len(prices) == 0:
-        log.warn("No price data for %s" % str(contract_object))
+        log.warning("No price data for %s" % str(contract_object))
     else:
         update_prices.overwrite_prices_at_frequency_for_contract(
             contract_object=contract_object, frequency=frequency, new_prices=prices

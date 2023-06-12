@@ -83,7 +83,7 @@ class mongoOverrideData(overrideData):
         return result_dict_of_overrides
 
     def _delete_all_overrides_without_checking(self):
-        self.log.warn("DELETING ALL OVERRIDES!")
+        self.log.warning("DELETING ALL OVERRIDES!")
         all_keys = self.mongo_data.get_list_of_all_dicts()
         for key in all_keys:
             self.mongo_data.delete_data_without_any_warning(key)

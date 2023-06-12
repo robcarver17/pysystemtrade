@@ -106,7 +106,7 @@ def put_children_on_stack(
             list_of_child_orders
         )
     except failureWithRollback as e:
-        parent_log.warn(
+        parent_log.warning(
             "Tried to add child orders but %s; rolled back so can try again (parent %s)"
             % (str(e), str(parent_order))
         )

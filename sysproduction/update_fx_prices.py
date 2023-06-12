@@ -69,11 +69,11 @@ def report_fx_data_spike(data: dataBlob, fx_code: str):
         "Spike found in prices for %s: need to manually check by running interactive_manual_check_fx_prices"
         % str(fx_code)
     )
-    data.log.warn(msg)
+    data.log.warning(msg)
     try:
         send_production_mail_msg(data, msg, "FX Price Spike %s" % str(fx_code))
     except BaseException:
-        data.log.warn("Couldn't send email about price spike")
+        data.log.warning("Couldn't send email about price spike")
 
 
 if __name__ == "__main__":

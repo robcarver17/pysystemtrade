@@ -62,22 +62,6 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
 
         return merged
 
-    def terse(self, msg, *args, **kwargs):
-        warnings.warn(
-            "The 'terse' function is deprecated, " "use 'info' instead",
-            DeprecationWarning,
-            2,
-        )
-        self.log(logging.INFO, msg, *args, **kwargs)
-
-    def warn(self, msg, *args, **kwargs):
-        warnings.warn(
-            "The 'warn' function is deprecated, " "use 'warning' instead",
-            DeprecationWarning,
-            2,
-        )
-        self.log(logging.WARNING, msg, *args, **kwargs)
-
     def setup(self, **kwargs):
         # Create a copy of me with different attributes
         warnings.warn(

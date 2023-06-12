@@ -608,7 +608,7 @@ class ForecastCombine(SystemStage):
         :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
         """
 
-        self.log.terse("Calculating raw forecast weights for %s" % instrument_code)
+        self.log.info("Calculating raw forecast weights for %s" % instrument_code)
 
         config = self.config
         # Get some useful stuff from the config
@@ -816,7 +816,7 @@ class ForecastCombine(SystemStage):
                 "No rules are cheap enough for %s with threshold %.3f SR units! Raise threshold (system.config.forecast_weight_estimate['ceiling_cost_SR']), add rules, or drop instrument."
                 % (instrument_code, ceiling_cost_SR)
             )
-            self.log.warn(error_msg)
+            self.log.warning(error_msg)
 
         else:
             self.log.debug(
@@ -852,7 +852,7 @@ class ForecastCombine(SystemStage):
                 "You need an accounts stage in the system to estimate forecast costs for %s %s. Using costs of zero"
                 % (instrument_code, rule_variation_name)
             )
-            self.log.warn(warn_msg)
+            self.log.warning(warn_msg)
             return 0.0
 
         return accounts.get_SR_cost_for_instrument_forecast(
@@ -995,7 +995,7 @@ class ForecastCombine(SystemStage):
             % (equal_weight, len(rules))
         )
 
-        self.log.warn(warn_msg, instrument_code=instrument_code)
+        self.log.warning(warn_msg, instrument_code=instrument_code)
 
         fixed_weights = dict([(rule_name, equal_weight) for rule_name in rules])
 
@@ -1129,7 +1129,7 @@ class ForecastCombine(SystemStage):
         2015-12-10  1.1
         2015-12-11  1.1
         """
-        self.log.terse(
+        self.log.info(
             "Calculating forecast div multiplier for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -1283,7 +1283,7 @@ class ForecastCombine(SystemStage):
         # which function to use for calculation
         corr_func = resolve_function(corr_params.pop("func"))
 
-        self.log.terse(
+        self.log.info(
             "Calculating forecast correlations over %s" % ", ".join(codes_to_use)
         )
 

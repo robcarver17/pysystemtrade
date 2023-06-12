@@ -111,7 +111,9 @@ class algoMarket(Algo):
                 break
 
             if is_order_cancelled:
-                log.warn("Order has been cancelled apparently by broker: not by algo!")
+                log.warning(
+                    "Order has been cancelled apparently by broker: not by algo!"
+                )
                 break
 
         return broker_order_with_controls

@@ -343,7 +343,9 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         # release contract order from algo
         contract_order_id = broker_order.parent
         self.contract_stack.release_order_from_algo_control(contract_order_id)
-        self.log.debug("Released contract order %s from algo control" % contract_order_id)
+        self.log.debug(
+            "Released contract order %s from algo control" % contract_order_id
+        )
 
     def add_trade_to_trade_limits(self, executed_order: brokerOrder):
 

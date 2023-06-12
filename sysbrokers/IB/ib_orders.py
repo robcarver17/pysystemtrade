@@ -225,7 +225,7 @@ class ibExecutionStackData(brokerExecutionStackData):
                 instrument_code=instrument_code,
             )
         except ibOrderCouldntCreateException:
-            self.log.warn(
+            self.log.warning(
                 "Couldn't create order from ib returned order %s, usual behaviour for FX and equities trades"
                 % str(trade_with_contract_from_ib)
             )
@@ -317,7 +317,7 @@ class ibExecutionStackData(brokerExecutionStackData):
             limit_price=limit_price,
         )
         if placed_broker_trade_object is missing_order:
-            log.warn("Couldn't submit order")
+            log.warning("Couldn't submit order")
             return missing_order
 
         log.debug("Order submitted to IB")
@@ -381,7 +381,7 @@ class ibExecutionStackData(brokerExecutionStackData):
             self.match_db_broker_order_to_control_order_from_brokers(broker_order)
         )
         if matched_control_order is missing_order:
-            log.warn("Couldn't cancel non existent order")
+            log.warning("Couldn't cancel non existent order")
             return None
 
         self.cancel_order_given_control_object(matched_control_order)

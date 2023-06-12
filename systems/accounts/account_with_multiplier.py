@@ -18,7 +18,7 @@ class accountWithMultiplier(accountPortfolio, accountBufferingSystemLevel):
     @output(not_pickable=True)
     def portfolio_with_multiplier(self, delayfill=True, roundpositions=True):
 
-        self.log.terse("Calculating pandl for portfolio with multiplier")
+        self.log.info("Calculating pandl for portfolio with multiplier")
         capital = self.get_actual_capital()
         instruments = self.get_instrument_list()
         port_pandl = [

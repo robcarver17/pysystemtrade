@@ -85,7 +85,7 @@ def apply_price_cleaning(
         broker_prices = broker_prices.remove_negative_prices()
         new_price_length = len(broker_prices)
         if new_price_length < price_length:
-            log.warn(
+            log.warning(
                 "Ignoring %d prices with negative prices ****COULD BE REAL PRICES****"
                 % (price_length - new_price_length)
             )

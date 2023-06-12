@@ -312,7 +312,7 @@ def update_historical_prices_for_instrument(
     contract_list = all_contracts_list.currently_sampling()
 
     if len(contract_list) == 0:
-        data.log.warn("No contracts marked for sampling for %s" % instrument_code)
+        data.log.warning("No contracts marked for sampling for %s" % instrument_code)
         return failure
 
     for contract_object in contract_list:
@@ -445,7 +445,7 @@ def price_updating_or_errors(
         return failure
 
     if error_or_rows_added is failure:
-        data.log.warn("Something went wrong when adding rows")
+        data.log.warning("Something went wrong when adding rows")
         return failure
 
     return error_or_rows_added
@@ -458,13 +458,13 @@ def report_price_spike(data: dataBlob, contract_object: futuresContract):
         "Spike found in prices for %s: need to manually check by running interactive_manual_check_historical_prices"
         % str(contract_object)
     )
-    data.log.warn(msg)
+    data.log.warning(msg)
     try:
         send_production_mail_msg(
             data, msg, "Price Spike %s" % contract_object.instrument_code
         )
     except BaseException:
-        data.log.warn(
+        data.log.warning(
             "Couldn't send email about price spike for %s" % str(contract_object)
         )
 

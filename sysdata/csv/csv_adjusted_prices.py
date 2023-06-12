@@ -49,7 +49,7 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
         try:
             instrpricedata = pd_readcsv(filename)
         except OSError:
-            self.log.warn("Can't find adjusted price file %s" % filename)
+            self.log.warning("Can't find adjusted price file %s" % filename)
             return futuresAdjustedPrices.create_empty()
 
         instrpricedata.columns = ["price"]

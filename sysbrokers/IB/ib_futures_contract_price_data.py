@@ -229,7 +229,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 )
             )
         except missingContract:
-            new_log.warn("Can't get data for %s" % str(futures_contract_object))
+            new_log.warning("Can't get data for %s" % str(futures_contract_object))
             raise missingData
 
         price_data = self._get_prices_at_frequency_for_ibcontract_object_no_checking(

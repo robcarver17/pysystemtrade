@@ -50,7 +50,7 @@ def cancel_order(
             log.debug("Cancelled order")
             break
         if timer.finished:
-            log.warn("Ran out of time to cancel order - may cause weird behaviour!")
+            log.warning("Ran out of time to cancel order - may cause weird behaviour!")
             break
 
     return broker_order_with_controls

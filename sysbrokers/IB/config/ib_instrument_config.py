@@ -27,7 +27,7 @@ def read_ib_config_from_file(log: pst_logger = logtoscreen("")) -> IBconfig:
     try:
         df = pd.read_csv(IB_FUTURES_CONFIG_FILE)
     except BaseException:
-        log.warn("Can't read file %s" % IB_FUTURES_CONFIG_FILE)
+        log.warning("Can't read file %s" % IB_FUTURES_CONFIG_FILE)
         return missing_file
 
     return IBconfig(df)
@@ -43,7 +43,7 @@ def get_instrument_object_from_config(
         config = read_ib_config_from_file()
 
     if config is missing_file:
-        new_log.warn(
+        new_log.warning(
             "Can't get config for instrument %s as IB configuration file missing"
             % instrument_code
         )
@@ -53,7 +53,9 @@ def get_instrument_object_from_config(
     try:
         assert instrument_code in list_of_instruments
     except:
-        new_log.warn("Instrument %s is not in IB configuration file" % instrument_code)
+        new_log.warning(
+            "Instrument %s is not in IB configuration file" % instrument_code
+        )
         raise missingInstrument
 
     futures_instrument_with_ib_data = _get_instrument_object_from_valid_config(
@@ -200,7 +202,7 @@ def get_instrument_list_from_ib_config(
     config: IBconfig, log: pst_logger = logtoscreen("")
 ):
     if config is missing_file:
-        log.warn("Can't get list of instruments because IB config file missing")
+        log.warning("Can't get list of instruments because IB config file missing")
         return []
 
     instrument_list = list(config.Instrument)

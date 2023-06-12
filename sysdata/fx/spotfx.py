@@ -84,7 +84,7 @@ class fxPricesData(baseData):
         raw_fx_data = self._get_fx_prices_vs_default(currency2)
         if raw_fx_data.empty:
             log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: fx_code})
-            log.warn(
+            log.warning(
                 "Data for %s is missing, needed to calculate %s"
                 % (currency2 + DEFAULT_CURRENCY, DEFAULT_CURRENCY + currency2)
             )
@@ -130,7 +130,7 @@ class fxPricesData(baseData):
     def _get_fx_prices(self, code: str) -> fxPrices:
         if not self.is_code_in_data(code):
             log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: code})
-            log.warn("Currency %s is missing from list of FX data" % code)
+            log.warning("Currency %s is missing from list of FX data" % code)
 
             return fxPrices.create_empty()
 
@@ -144,13 +144,13 @@ class fxPricesData(baseData):
         if are_you_sure:
             if self.is_code_in_data(code):
                 self._delete_fx_prices_without_any_warning_be_careful(code)
-                log.terse("Deleted fx price data for %s" % code)
+                log.info("Deleted fx price data for %s" % code)
 
             else:
                 # doesn't exist anyway
-                log.warn("Tried to delete non existent fx prices for %s" % code)
+                log.warning("Tried to delete non existent fx prices for %s" % code)
         else:
-            log.warn("You need to call delete_fx_prices with a flag to be sure")
+            log.warning("You need to call delete_fx_prices with a flag to be sure")
 
     def is_code_in_data(self, code: str) -> bool:
         if code in self.get_list_of_fxcodes():
@@ -166,14 +166,14 @@ class fxPricesData(baseData):
             if ignore_duplication:
                 pass
             else:
-                log.warn(
+                log.warning(
                     "There is already %s in the data, you have to delete it first, or set ignore_duplication=True, or use update_fx_prices"
                     % code
                 )
                 return None
 
         self._add_fx_prices_without_checking_for_existing_entry(code, fx_price_data)
-        log.terse("Added fx data for code %s" % code)
+        log.info("Added fx data for code %s" % code)
 
     def update_fx_prices(
         self, code: str, new_fx_prices: fxPrices, check_for_spike=True

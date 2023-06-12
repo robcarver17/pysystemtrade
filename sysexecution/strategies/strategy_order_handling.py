@@ -157,11 +157,11 @@ class orderGeneratorForStrategy(object):
         if new_order.trade != order.trade:
             if new_order.is_zero_trade():
                 ## at position limit, can't do anything
-                log.warn(
+                log.warning(
                     "Can't trade at all because of position limits %s" % str(order)
                 )
             else:
-                log.warn(
+                log.warning(
                     "Can't do trade of %s because of position limits,instead will do %s"
                     % (str(order), str(new_order.trade))
                 )

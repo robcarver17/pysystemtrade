@@ -38,14 +38,14 @@ class spreadsForInstrumentData(baseData):
         if are_you_sure:
             if self.is_code_in_data(instrument_code):
                 self._delete_spreads_without_any_warning_be_careful(instrument_code)
-                self.log.terse(
+                self.log.info(
                     "Deleted spread data for %s" % instrument_code,
                     instrument_code=instrument_code,
                 )
 
             else:
                 # doesn't exist anyway
-                self.log.warn(
+                self.log.warning(
                     "Tried to delete non existent spreads for %s" % instrument_code,
                     instrument_code=instrument_code,
                 )
@@ -79,7 +79,7 @@ class spreadsForInstrumentData(baseData):
 
         self._add_spreads_without_checking_for_existing_entry(instrument_code, spreads)
 
-        self.log.terse(
+        self.log.info(
             "Added data for instrument %s" % instrument_code,
             instrument_code=instrument_code,
         )

@@ -213,7 +213,7 @@ class contractPositionData(baseData):
             )
         except missingData:
             ## no existing data can't delete
-            self.log.warn(
+            self.log.warning(
                 "Can't delete last position for %s, as none present"
                 % str(contract_object)
             )

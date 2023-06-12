@@ -28,7 +28,7 @@ class accountPortfolio(accountInstruments):
         0.2638225179274214
         """
 
-        self.log.terse("Calculating pandl for portfolio")
+        self.log.info("Calculating pandl for portfolio")
         capital = self.get_notional_capital()
         instruments = self.get_instrument_list()
         dict_of_pandl_by_instrument = dict(

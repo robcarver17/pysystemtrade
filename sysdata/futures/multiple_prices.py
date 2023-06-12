@@ -56,13 +56,13 @@ class futuresMultiplePricesData(baseData):
                 self._delete_multiple_prices_without_any_warning_be_careful(
                     instrument_code
                 )
-                log.terse("Deleted multiple price data for %s" % instrument_code)
+                log.info("Deleted multiple price data for %s" % instrument_code)
 
                 return success
 
             else:
                 # doesn't exist anyway
-                log.warn(
+                log.warning(
                     "Tried to delete non existent multiple prices for %s"
                     % instrument_code
                 )
@@ -98,7 +98,7 @@ class futuresMultiplePricesData(baseData):
             instrument_code, multiple_price_data
         )
 
-        log.terse("Added data for instrument %s" % instrument_code)
+        log.info("Added data for instrument %s" % instrument_code)
 
         return success
 

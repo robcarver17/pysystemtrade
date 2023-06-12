@@ -48,7 +48,7 @@ class ibFxPricesData(brokerFxPricesData):
             ib_config_for_code = self._get_config_info_for_code(currency_code)
         except missingInstrument:
             log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
-            log.warn("Can't get prices as missing IB config for %s" % currency_code)
+            log.warning("Can't get prices as missing IB config for %s" % currency_code)
             return fxPrices.create_empty()
 
         data = self._get_fx_prices_with_ib_config(currency_code, ib_config_for_code)
@@ -63,7 +63,7 @@ class ibFxPricesData(brokerFxPricesData):
         log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
 
         if len(raw_fx_prices_as_series) == 0:
-            log.warn(
+            log.warning(
                 "No available IB prices for %s %s"
                 % (currency_code, str(ib_config_for_code))
             )

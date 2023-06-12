@@ -19,7 +19,7 @@ def get_ib_config_from_file(log) -> pd.DataFrame:
     try:
         config_data = pd.read_csv(IB_CCY_CONFIG_FILE)
     except BaseException:
-        log.warn("Can't read file %s" % IB_CCY_CONFIG_FILE)
+        log.warning("Can't read file %s" % IB_CCY_CONFIG_FILE)
         config_data = missing_file
 
     return config_data
@@ -28,7 +28,7 @@ def get_ib_config_from_file(log) -> pd.DataFrame:
 def config_info_for_code(config_data: pd.DataFrame, currency_code, log) -> ibFXConfig:
     new_log = log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
     if config_data is missing_file:
-        new_log.warn(
+        new_log.warning(
             "Can't get IB FX config for %s as config file missing" % currency_code
         )
 
@@ -45,7 +45,7 @@ def config_info_for_code(config_data: pd.DataFrame, currency_code, log) -> ibFXC
 
 def get_list_of_codes(log, config_data: pd.DataFrame) -> list:
     if config_data is missing_file:
-        log.warn("Can't get list of fxcodes for IB as config file missing")
+        log.warning("Can't get list of fxcodes for IB as config file missing")
         return []
 
     list_of_codes = list(config_data.CODE)

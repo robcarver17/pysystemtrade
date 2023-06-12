@@ -406,7 +406,7 @@ class RawData(SystemStage):
         try:
             rolls_per_year = self.data_stage.get_rolls_per_year(instrument_code)
         except:
-            self.log.warn(
+            self.log.warning(
                 "No roll data for %s, this is fine for spot instruments but not for futures"
                 % instrument_code
             )
@@ -674,7 +674,7 @@ class RawData(SystemStage):
         try:
             prices = self.get_instrument_raw_carry_data(instrument_code).PRICE
         except missingData:
-            self.log.warn(
+            self.log.warning(
                 "No carry data found for %s, using adjusted prices to calculate percentage returns"
                 % instrument_code
             )

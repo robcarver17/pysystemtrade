@@ -596,7 +596,7 @@ def roll_adjusted_and_multiple_prices(
     try:
         rolling_adj_and_mult_object.write_new_rolled_data()
     except Exception as e:
-        data.log.warn(
+        data.log.warning(
             "%s went wrong when rolling: Going to roll-back to original multiple/adjusted prices"
             % e
         )

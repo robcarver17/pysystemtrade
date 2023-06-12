@@ -186,7 +186,7 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
     ) -> accountCurve:
 
         if not roundpositions:
-            self.log.warn(
+            self.log.warning(
                 "Using roundpositions=False with cash costs may lead to inaccurate costs (fixed costs, eg commissions will be overstated!!!"
             )
 

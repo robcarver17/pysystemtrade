@@ -148,7 +148,7 @@ class processToRun(object):
         result_of_finish = self.data_control.finish_process(self.process_name)
 
         if result_of_finish is failure:
-            self.log.warn(
+            self.log.warning(
                 "Process %s won't finish in process control as already close: weird!"
                 % self.process_name
             )
@@ -300,11 +300,13 @@ def _check_if_okay_to_wait_before_starting_process(
 
     log = process_to_run.log
     if okay_to_run is process_running:
-        log.warn("Can't start process %s at all since already running" % process_name)
+        log.warning(
+            "Can't start process %s at all since already running" % process_name
+        )
         return False
 
     elif okay_to_run is process_stop:
-        log.warn(
+        log.warning(
             "Can't start process %s at all since STOPPED by control" % process_name
         )
         return False

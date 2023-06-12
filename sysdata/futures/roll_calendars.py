@@ -40,11 +40,11 @@ class rollCalendarData(baseData):
                 self._delete_roll_calendar_data_without_any_warning_be_careful(
                     instrument_code
                 )
-                self.log.terse("Deleted roll calendar for %s" % instrument_code)
+                self.log.info("Deleted roll calendar for %s" % instrument_code)
 
             else:
                 # doesn't exist anyway
-                self.log.warn(
+                self.log.warning(
                     "Tried to delete roll calendar for non existent instrument code %s"
                     % instrument_code
                 )

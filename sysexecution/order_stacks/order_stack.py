@@ -95,7 +95,7 @@ class orderStackData(object):
             try:
                 order_id = self.put_order_on_stack(order)
             except Exception as e:
-                log.warn(
+                log.warning(
                     "Failed to put order %s on stack error %s, rolling back entire transaction"
                     % (str(order), str(e))
                 )

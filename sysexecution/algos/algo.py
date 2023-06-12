@@ -144,7 +144,7 @@ class Algo(object):
         )
 
         if placed_broker_order_with_controls is missing_order:
-            log.warn("Order could not be submitted")
+            log.warning("Order could not be submitted")
             return missing_order
 
         log = placed_broker_order_with_controls.order.log_with_attributes(log)

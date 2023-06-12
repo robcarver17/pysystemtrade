@@ -84,7 +84,7 @@ class csvFxPricesData(fxPricesData):
                 filename, date_format=date_format, date_index_name=date_column
             )
         except OSError:
-            self.log.warn(
+            self.log.warning(
                 "Can't find currency price file %s" % filename,
                 **{CURRENCY_CODE_LOG_LABEL: code},
             )

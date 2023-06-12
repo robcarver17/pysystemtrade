@@ -111,7 +111,7 @@ class connectionIB(object):
             # Try and disconnect IB client
             self.ib.disconnect()
         except BaseException:
-            self.log.warn(
+            self.log.warning(
                 "Trying to disconnect IB client failed... ensure process is killed"
             )
 

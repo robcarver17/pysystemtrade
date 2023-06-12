@@ -133,7 +133,9 @@ class algoOriginalBest(Algo):
             )
         else:
             # do a market order
-            log.debug("Conditions are wrong so doing market trade instead of limit trade")
+            log.debug(
+                "Conditions are wrong so doing market trade instead of limit trade"
+            )
             broker_order_with_controls = (
                 self.get_and_submit_broker_order_for_contract_order(
                     cut_down_contract_order, order_type=market_order_type
@@ -213,7 +215,7 @@ class algoOriginalBest(Algo):
                 broker_order_with_controls_and_order_id
             )
             if order_cancelled:
-                log.warn("Order has been cancelled: not by algo")
+                log.warning("Order has been cancelled: not by algo")
                 break
 
         return broker_order_with_controls_and_order_id

@@ -100,7 +100,7 @@ class ibFuturesContractData(brokerFuturesContractData):
         """
         log = futures_contract.specific_log(self.log)
         if futures_contract.is_spread_contract():
-            log.warn("Can't find expiry for multiple leg contract here")
+            log.warning("Can't find expiry for multiple leg contract here")
             raise missingContract
 
         contract_object_with_ib_data = self.get_contract_object_with_IB_data(
@@ -116,7 +116,7 @@ class ibFuturesContractData(brokerFuturesContractData):
     ) -> expiryDate:
         log = futures_contract_with_ib_data.specific_log(self.log)
         if futures_contract_with_ib_data.is_spread_contract():
-            log.warn("Can't find expiry for multiple leg contract here")
+            log.warning("Can't find expiry for multiple leg contract here")
             raise missingContract
 
         expiry_date = self.ib_client.broker_get_single_contract_expiry_date(

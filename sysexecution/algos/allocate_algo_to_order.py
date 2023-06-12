@@ -93,7 +93,7 @@ def check_and_if_required_allocate_algo_to_single_contract_order(
         log.critical("Balance orders aren't executed, shouldn't even be here!")
         return missing_order
     else:
-        log.warn(
+        log.warning(
             "Don't recognise order type %s so allocating to default algo_market"
             % instrument_order_type
         )
