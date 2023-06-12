@@ -71,7 +71,7 @@ class PositionSizing(SystemStage):
 
         position = self.get_subsystem_position(instrument_code)
 
-        vol_scalar = self.get_volatility_scalar(instrument_code)
+        vol_scalar = self.get_average_position_at_subsystem_level(instrument_code)
         log = self.log
         config = self.config
 
@@ -123,7 +123,7 @@ class PositionSizing(SystemStage):
         """
 
         avg_abs_forecast = self.avg_abs_forecast()
-        vol_scalar = self.get_volatility_scalar(instrument_code)
+        vol_scalar = self.get_average_position_at_subsystem_level(instrument_code)
         forecast = self.get_combined_forecast(instrument_code)
 
         vol_scalar = vol_scalar.reindex(forecast.index, method="ffill")
@@ -164,7 +164,9 @@ class PositionSizing(SystemStage):
         return self.parent.config
 
     @diagnostic()
-    def get_volatility_scalar(self, instrument_code: str) -> pd.Series:
+    def get_average_position_at_subsystem_level(
+        self, instrument_code: str
+    ) -> pd.Series:
         """
         Get ratio of required volatility vs volatility of instrument in instrument's own currency
 

@@ -2,6 +2,7 @@
 percentage_vol_target: 25
 notional_trading_capital: 50000
 base_currency: "USD"
+buffer_method: 'none' # not used with order sim, for consistency with vanilla
 trading_rules:
   ewmac8:
      function: systems.provided.rules.ewmac.ewmac_forecast_with_defaults

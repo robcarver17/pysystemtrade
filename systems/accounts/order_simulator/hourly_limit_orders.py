@@ -4,7 +4,8 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 
-from sysobjects.fills import ListOfFills, Fill, fill_list_of_simple_orders, not_filled
+from sysobjects.fills import ListOfFills, Fill, not_filled
+from systems.accounts.order_simulator.fills_and_orders import fill_list_of_simple_orders
 from sysobjects.orders import ListOfSimpleOrdersWithDate, SimpleOrderWithDate
 
 from systems.accounts.order_simulator.pandl_order_simulator import (

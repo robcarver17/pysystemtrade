@@ -25,11 +25,13 @@ from systems.accounts.order_simulator.hourly_market_orders import (
 from systems.accounts.order_simulator.hourly_limit_orders import (
     AccountWithOrderSimulatorForLimitOrders,
 )
+from systems.accounts.accounts_stage import Account
 
 
 def futures_system(
     sim_data=arg_not_supplied,
     use_limit_orders: bool = False,
+    use_vanilla_accounting: bool = False,
     config_filename="systems.provided.example.hourly_with_order_simulator.yaml",
 ):
 
@@ -37,7 +39,9 @@ def futures_system(
         sim_data = dbFuturesSimData()
 
     config = Config(config_filename)
-    if use_limit_orders:
+    if use_vanilla_accounting:
+        account = Account()
+    elif use_limit_orders:
         account = AccountWithOrderSimulatorForLimitOrders()
     else:
         account = AccountWithOrderSimulatorForHourlyMarketOrders()
