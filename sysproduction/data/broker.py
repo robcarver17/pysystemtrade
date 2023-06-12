@@ -288,7 +288,9 @@ class dataBroker(productionDataLayerGeneric):
                 contract_order
             )
         except missingData:
-            self.log.warning("Can't get market conditions, setting available size to zero")
+            self.log.warning(
+                "Can't get market conditions, setting available size to zero"
+            )
             side_qty = offside_qty = len(contract_order.trade) * [0]
             return side_qty, offside_qty
 
