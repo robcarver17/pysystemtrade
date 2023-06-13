@@ -28,8 +28,26 @@ class AccountWithOrderSimulator(Account):
             delayfill=delayfill,
             use_SR_costs=use_SR_costs,
         )
+        pandl_calculator = self._pandl_calculator_for_subsystem_with_cash_costs(
+            instrument_code=instrument_code,
+            delayfill=delayfill,
+            roundpositions=roundpositions,
+        )
+        account_curve = accountCurve(pandl_calculator)
 
-        order_simulator = self.get_order_simulator(instrument_code, is_subsystem=False)
+        return account_curve
+
+    @diagnostic(not_pickable=True)
+    def _pandl_calculator_for_subsystem_with_cash_costs(
+        self, instrument_code, delayfill=True, roundpositions=True
+    ) -> pandlCalculationWithCashCostsAndFills:
+
+        ## Should be checked earlier, but just in case called directly
+        ## Order simulator doesn't work otherwise
+        assert delayfill
+        assert roundpositions
+
+        order_simulator = self.get_order_simulator(instrument_code, is_subsystem=True)
         price = order_simulator.prices()
         fills = order_simulator.list_of_fills()
 
@@ -53,9 +71,7 @@ class AccountWithOrderSimulator(Account):
             rolls_per_year=rolls_per_year,
         )
 
-        account_curve = accountCurve(pandl_calculator)
-
-        return account_curve
+        return pandl_calculator
 
     @diagnostic(not_pickable=True)
     def pandl_for_instrument(
@@ -71,6 +87,25 @@ class AccountWithOrderSimulator(Account):
             delayfill=delayfill,
             use_SR_costs=use_SR_costs,
         )
+
+        pandl_calculator = self._pandl_calculator_for_instrument_with_cash_costs(
+            instrument_code=instrument_code,
+            roundpositions=roundpositions,
+            delayfill=delayfill,
+        )
+        account_curve = accountCurve(pandl_calculator, weighted=True)
+
+        return account_curve
+
+    @diagnostic(not_pickable=True)
+    def _pandl_calculator_for_instrument_with_cash_costs(
+        self, instrument_code, delayfill=True, roundpositions=True
+    ) -> pandlCalculationWithCashCostsAndFills:
+
+        ## Should be checked earlier, but just in case called directly
+        ## Order simulator doesn't work otherwise
+        assert delayfill
+        assert roundpositions
 
         order_simulator = self.get_order_simulator(instrument_code, is_subsystem=False)
         fills = order_simulator.list_of_fills()
@@ -101,9 +136,7 @@ class AccountWithOrderSimulator(Account):
             multiply_roll_costs_by=multiply_roll_costs_by,
         )
 
-        account_curve = accountCurve(pandl_calculator, weighted=True)
-
-        return account_curve
+        return pandl_calculator
 
     @diagnostic()
     def get_buffered_position(
@@ -123,11 +156,25 @@ class AccountWithOrderSimulator(Account):
 
         return order_simulator.positions()
 
+    def get_unrounded_subsystem_position_for_order_simulator(
+        self, instrument_code: str
+    ) -> pd.Series:
+        return self.get_subsystem_position(instrument_code)
+
+    def get_unrounded_instrument_position_for_order_simulator(
+        self, instrument_code: str
+    ) -> pd.Series:
+        return self.get_notional_position(instrument_code)
+
     @diagnostic(not_pickable=True)
     def get_order_simulator(
         self, instrument_code, is_subsystem: bool
     ) -> OrderSimulator:
-        raise NotImplemented("Need to inherit to get an order simulator")
+        return OrderSimulator(
+            system_accounts_stage=self,
+            instrument_code=instrument_code,
+            is_subsystem=is_subsystem,
+        )
 
 
 def _raise_exceptions(

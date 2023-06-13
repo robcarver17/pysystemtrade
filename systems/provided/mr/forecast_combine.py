@@ -23,16 +23,27 @@ class MrForecastCombine(ForecastCombine):
         return forecast_after_filter
 
     def conditioning_forecast(self, instrument_code) -> pd.Series:
-        conditioning_rule_name = self.config.mr["conditioning_rule"]
         return self._get_capped_individual_forecast(
-            instrument_code=instrument_code, rule_variation_name=conditioning_rule_name
+            instrument_code=instrument_code,
+            rule_variation_name=self.conditioning_rule_name,
         )
 
     def mr_forecast(self, instrument_code) -> pd.Series:
-        mr_rule_name = self.config.mr["mr_rule"]
         return self._get_capped_individual_forecast(
-            instrument_code=instrument_code, rule_variation_name=mr_rule_name
+            instrument_code=instrument_code, rule_variation_name=self.mr_rule_name
         )
+
+    @property
+    def conditioning_rule_name(self) -> str:
+        return self.mr_config["conditioning_rule"]
+
+    @property
+    def mr_rule_name(self) -> str:
+        return self.mr_config["mr_rule"]
+
+    @property
+    def mr_config(self) -> dict:
+        return self.config.mr
 
 
 def apply_forecast_filter(forecast, conditioning_forecast):

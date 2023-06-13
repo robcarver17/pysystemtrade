@@ -11,11 +11,13 @@ from sysdata.config.configdata import Config
 from systems.forecasting import Rules
 from systems.basesystem import System
 from systems.provided.mr.forecast_combine import MrForecastCombine
-from systems.provided.rob_system.forecastScaleCap import volAttenForecastScaleCap
-from systems.provided.rob_system.rawdata import myFuturesRawData
+from systems.provided.attenuate_vol.vol_attenuation_forecast_scale_cap import (
+    volAttenForecastScaleCap,
+)
+from systems.provided.mr.rawdata import MrRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
-from systems.accounts.accounts_stage import Account
+from systems.provided.mr.accounts import MrAccount
 
 
 def futures_system(
@@ -29,10 +31,10 @@ def futures_system(
 
     system = System(
         [
-            Account(),
+            MrAccount(),
             Portfolios(),
             PositionSizing(),
-            myFuturesRawData(),
+            MrRawData(),
             MrForecastCombine(),
             volAttenForecastScaleCap(),
             Rules(),

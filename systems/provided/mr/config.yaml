@@ -16,7 +16,6 @@ trading_rules:
       function: 'systems.provided.mr.rules.mr_rule'
       data:
         - "rawdata.get_hourly_prices"
-        - "rawdata.get_daily_prices"
         - "rawdata.daily_returns_volatility"
         - "rawdata.daily_equilibrium_price"
 forecast_scalars:

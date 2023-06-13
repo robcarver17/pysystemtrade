@@ -1,118 +1,72 @@
 import datetime
-from typing import Tuple
+from typing import Tuple, Callable
 
 import numpy as np
-import pandas as pd
 
-from sysobjects.fills import ListOfFills, Fill, not_filled
-from systems.accounts.order_simulator.fills_and_orders import fill_list_of_simple_orders
-from sysobjects.orders import ListOfSimpleOrdersWithDate, SimpleOrderWithDate
 
+from sysobjects.fills import Fill, empty_fill
+from systems.accounts.order_simulator.fills_and_orders import (
+    fill_list_of_simple_orders,
+    empty_list_of_orders_with_no_fills,
+    ListOfSimpleOrdersAndResultingFill,
+)
+from systems.accounts.order_simulator.simple_orders import (
+    ListOfSimpleOrdersWithDate,
+    SimpleOrderWithDate,
+)
+
+from systems.accounts.order_simulator.account_curve_order_simulator import (
+    AccountWithOrderSimulator,
+)
 from systems.accounts.order_simulator.pandl_order_simulator import (
-    PositionsOrdersFills,
+    DataAtIDXPoint,
 )
 from systems.accounts.order_simulator.hourly_market_orders import (
-    HourlyMarketOrdersSeriesData,
     HourlyOrderSimulatorOfMarketOrders,
-    AccountWithOrderSimulatorForHourlyMarketOrders,
 )
 from systems.system_cache import diagnostic
 
 
 class HourlyOrderSimulatorOfLimitOrders(HourlyOrderSimulatorOfMarketOrders):
-    def _positions_orders_and_fills_from_series_data(self) -> PositionsOrdersFills:
-
-        positions_orders_fills = _generate_positions_orders_and_fills_from_hourly_series_data_using_limit_orders(
-            self.series_data
-        )
-
-        return positions_orders_fills
+    @property
+    def orders_fills_function(self) -> Callable:
+        return generate_order_and_fill_at_idx_point_for_limit_orders
 
 
-## We only use limit orders
-def _generate_positions_orders_and_fills_from_hourly_series_data_using_limit_orders(
-    series_data: HourlyMarketOrdersSeriesData,
-) -> PositionsOrdersFills:
-
-    unrounded_positions = series_data.hourly_unrounded_positions
-    hourly_prices = series_data.hourly_price_series
-
-    list_of_positions = []
-    list_of_orders = []
-    list_of_fills = []
-
-    starting_position = 0  ## doesn't do anything but makes intention clear
-    current_position = starting_position
-
-    for idx, current_datetime in enumerate(unrounded_positions.index[:-1]):
-        list_of_positions.append(current_position)
-
-        current_optimal_position = unrounded_positions[idx]
-        current_price = hourly_prices[idx]
-        next_price = hourly_prices[idx + 1]
-        next_datetime = unrounded_positions.index[idx + 1]
-
-        order, fill = _generate_limit_order_and_fill_at_idx_point(
-            current_position=current_position,
-            current_optimal_position=current_optimal_position,
-            current_datetime=current_datetime,
-            current_price=current_price,
-            next_price=next_price,
-            next_datetime=next_datetime,
-        )
-        if not order.is_zero_order:
-            list_of_orders.append(order)
-
-        filled_okay = not (fill is not_filled)
-        if filled_okay:
-            list_of_fills.append(fill)
-            current_position = current_position + fill.qty
-
-    ## Because we don't loop at the final point as no fill is possible, we keep our last position
-    ## This ensures the list of positions has the same index as the unrounded list
-    list_of_positions.append(current_position)
-
-    positions = pd.Series(list_of_positions, unrounded_positions.index)
-    list_of_orders = ListOfSimpleOrdersWithDate(list_of_orders)
-    list_of_fills = ListOfFills(list_of_fills)
-
-    return PositionsOrdersFills(
-        positions=positions, list_of_orders=list_of_orders, list_of_fills=list_of_fills
-    )
-
-
-def _generate_limit_order_and_fill_at_idx_point(
+def generate_order_and_fill_at_idx_point_for_limit_orders(
     current_position: int,
-    current_optimal_position: int,
     current_datetime: datetime.datetime,
-    current_price: float,
-    next_datetime: datetime.datetime,
-    next_price: float,
-) -> Tuple[SimpleOrderWithDate, Fill]:
+    data_for_idx: DataAtIDXPoint,
+) -> Tuple[ListOfSimpleOrdersWithDate, Fill]:
+
+    current_optimal_position = data_for_idx.current_optimal_position
     if np.isnan(current_optimal_position):
         quantity = 0
     else:
         quantity = round(current_optimal_position) - current_position
 
+    if quantity == 0:
+        notional_datetime_for_empty_fill = data_for_idx.next_datetime
+        return empty_list_of_orders_with_no_fills(
+            fill_datetime=notional_datetime_for_empty_fill
+        )
+
     simple_order = SimpleOrderWithDate(
-        quantity=quantity, submit_date=current_datetime, limit_price=current_price
+        quantity=quantity,
+        submit_date=current_datetime,
+        limit_price=data_for_idx.current_price,
     )
-    simple_order_as_list = ListOfSimpleOrdersWithDate(
-        [simple_order]
-    )  ## future proofing for when we have 2 possible orders that can be filled
-
+    list_of_orders = ListOfSimpleOrdersWithDate([simple_order])
     fill = fill_list_of_simple_orders(
-        simple_order_as_list,
-        market_price=next_price,
-        fill_datetime=next_datetime,
+        list_of_orders=list_of_orders,
+        market_price=data_for_idx.next_price,
+        fill_datetime=data_for_idx.next_datetime,
     )
 
-    return simple_order, fill
+    return ListOfSimpleOrdersAndResultingFill(list_of_orders=list_of_orders, fill=fill)
 
 
-class AccountWithOrderSimulatorForLimitOrders(
-    AccountWithOrderSimulatorForHourlyMarketOrders
-):
+class AccountWithOrderSimulatorForLimitOrders(AccountWithOrderSimulator):
     @diagnostic(not_pickable=True)
     def get_order_simulator(
         self, instrument_code, is_subsystem: bool
