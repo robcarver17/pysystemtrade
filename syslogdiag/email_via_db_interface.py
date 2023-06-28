@@ -42,10 +42,10 @@ def send_email_and_record_date_or_store_on_fail(
     try:
         send_mail_msg(body, subject)
         record_date_of_email_send(data, subject)
-        data.log.msg("Sent email subject %s" % subject)
+        data.log.debug("Sent email subject %s" % subject)
     except Exception as e:
         # problem sending emails will store instead
-        data.log.msg(
+        data.log.debug(
             "Problem %s sending email subject %s, will store message instead"
             % (str(e), subject)
         )
