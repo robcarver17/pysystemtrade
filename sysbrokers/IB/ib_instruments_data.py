@@ -12,6 +12,7 @@ from sysbrokers.IB.ib_contracts import ibContract
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.client.ib_client import ibClient
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
+from syscore.exceptions import missingFile
 
 from sysdata.data_blob import dataBlob
 
@@ -64,8 +65,13 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
         :return: list of str
         """
 
-        config = self.ib_config
-        instrument_list = get_instrument_list_from_ib_config(config, log=self.log)
+        try:
+            config = self.ib_config
+        except missingFile:
+            self.log.warn("Can't get list of instruments because IB config file missing")
+            return []
+
+        instrument_list = get_instrument_list_from_ib_config(config)
 
         return instrument_list
 
