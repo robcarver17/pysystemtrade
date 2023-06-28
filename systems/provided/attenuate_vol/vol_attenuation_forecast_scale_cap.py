@@ -1,4 +1,5 @@
 from syscore.pandas.strategy_functions import quantile_of_points_in_data_series
+from syscore.pandas.pdutils import from_scalar_values_to_ts
 from systems.forecast_scale_cap import *
 
 
@@ -39,16 +40,37 @@ class volAttenForecastScaleCap(ForecastScaleCap):
         raw_forecast_before_atten = self.get_raw_forecast_before_attenuation(
             instrument_code, rule_variation_name
         )
+        vol_attenutation_reindex = (
+            self.get_attenuation_for_rule_and_instrument_indexed_to_forecast(
+                instrument_code=instrument_code, rule_variation_name=rule_variation_name
+            )
+        )
+
+        attenuated_forecast = raw_forecast_before_atten * vol_attenutation_reindex
+
+        return attenuated_forecast
+
+    @diagnostic()
+    def get_attenuation_for_rule_and_instrument_indexed_to_forecast(
+        self, instrument_code, rule_variation_name
+    ) -> pd.Series:
+
+        raw_forecast_before_atten = self.get_raw_forecast_before_attenuation(
+            instrument_code, rule_variation_name
+        )
+
         use_attenuation = self.config.get_element_or_default("use_attenuation", [])
 
         if rule_variation_name not in use_attenuation:
-            return raw_forecast_before_atten
-        else:
-            vol_attenutation = self.get_vol_attenuation(instrument_code)
-            vol_attenutation_reindex = vol_attenutation.reindex(raw_forecast_before_atten.index, method="ffill")
-            attenuated_forecast = raw_forecast_before_atten * vol_attenutation_reindex
+            forecast_ts = raw_forecast_before_atten.index
+            return from_scalar_values_to_ts(1.0, forecast_ts)
 
-            return attenuated_forecast
+        vol_attenutation = self.get_vol_attenuation(instrument_code)
+        vol_attenutation_reindex = vol_attenutation.reindex(
+            raw_forecast_before_atten.index, method="ffill"
+        )
+
+        return vol_attenutation_reindex
 
 
 # this is a little slow so suggestions for speeding up are welcome

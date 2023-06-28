@@ -98,6 +98,9 @@ class accountInputs(SystemStage):
     def average_forecast(self) -> float:
         return self.config.average_absolute_forecast
 
+    def forecast_cap(self) -> float:
+        return self.config.forecast_cap
+
     def get_raw_cost_data(self, instrument_code: str) -> instrumentCosts:
         return self.parent.data.get_raw_cost_data(instrument_code)
 
@@ -151,7 +154,9 @@ class accountInputs(SystemStage):
     def get_average_position_for_instrument_at_portfolio_level(
         self, instrument_code: str
     ) -> pd.Series:
-        average_position_for_subsystem = self.get_volatility_scalar(instrument_code)
+        average_position_for_subsystem = self.get_average_position_at_subsystem_level(
+            instrument_code
+        )
         scaling_factor = self.get_instrument_scaling_factor(instrument_code)
         scaling_factor_aligned = scaling_factor.reindex(
             average_position_for_subsystem.index, method="ffill"
@@ -160,7 +165,9 @@ class accountInputs(SystemStage):
 
         return average_position
 
-    def get_volatility_scalar(self, instrument_code: str) -> pd.Series:
+    def get_average_position_at_subsystem_level(
+        self, instrument_code: str
+    ) -> pd.Series:
         """
         Get the volatility scalar (position with forecast of +10 using all capital)
 
@@ -173,7 +180,9 @@ class accountInputs(SystemStage):
 
         """
 
-        return self.parent.positionSize.get_volatility_scalar(instrument_code)
+        return self.parent.positionSize.get_average_position_at_subsystem_level(
+            instrument_code
+        )
 
     def get_notional_position(self, instrument_code: str) -> pd.Series:
         """

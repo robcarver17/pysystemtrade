@@ -19,7 +19,7 @@ from sysdata.production.historic_orders import (
 )
 from sysdata.data_blob import dataBlob
 
-from sysobjects.fills import listOfFills
+from sysobjects.fills import ListOfFills
 from sysexecution.order_stacks.broker_order_stack import brokerOrderStackData
 from sysexecution.order_stacks.contract_order_stack import contractOrderStackData
 from sysexecution.order_stacks.instrument_order_stack import instrumentOrderStackData
@@ -160,7 +160,7 @@ class dataOrders(object):
 
     def get_fills_history_for_contract(
         self, futures_contract: futuresContract
-    ) -> listOfFills:
+    ) -> ListOfFills:
         ## We get this from broker fills, as they have leg by leg information
         list_of_fills = (
             self.db_broker_historic_orders_data.get_fills_history_for_contract(
@@ -172,7 +172,7 @@ class dataOrders(object):
 
     def get_fills_history_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
-    ) -> listOfFills:
+    ) -> ListOfFills:
         list_of_fills = self.db_strategy_historic_orders_data.get_fills_history_for_instrument_strategy(
             instrument_strategy
         )

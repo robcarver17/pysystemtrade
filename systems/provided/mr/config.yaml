@@ -1,4 +1,5 @@
 mr:
+  mr_span_days: 5
   conditioning_rule: momentum16
   mr_rule: mean_reversion
 ## this rule is used for the
@@ -15,10 +16,8 @@ trading_rules:
       function: 'systems.provided.mr.rules.mr_rule'
       data:
         - "rawdata.get_hourly_prices"
-        - "rawdata.get_daily_prices"
         - "rawdata.daily_returns_volatility"
-      other_args:
-        mr_span_days: 5
+        - "rawdata.daily_equilibrium_price"
 forecast_scalars:
   momentum16: 4.1
   mean_reversion: 20.0

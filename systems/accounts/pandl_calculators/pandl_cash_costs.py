@@ -128,6 +128,7 @@ class pandlCalculationWithCashCostsAndFills(
                 date=date,
                 qty=qty * multiply_roll_costs_by,
                 price=get_row_of_series_before_date(price_series, date),
+                price_requires_slippage_adjustment=True,
             )
             for date, qty in zip(date_list, average_holding_by_period)
             if date <= last_date_with_positions and abs(qty) > 0
@@ -189,14 +190,8 @@ class pandlCalculationWithCashCostsAndFills(
         return normalised_costs
 
     def calculate_cost_instrument_currency_for_a_fill(self, fill: Fill) -> float:
-        trade = fill.qty
-        price = fill.price
-
-        block_price_multiplier = self.value_per_point
-        cost_for_trade = self.raw_costs.calculate_cost_instrument_currency(
-            blocks_traded=trade,
-            price=price,
-            block_price_multiplier=block_price_multiplier,
+        cost_for_trade = calculate_cost_from_fill_with_cost_object(
+            fill=fill, value_per_point=self.value_per_point, raw_costs=self.raw_costs
         )
 
         return cost_for_trade
@@ -231,3 +226,21 @@ class pandlCalculationWithCashCostsAndFills(
     @property
     def multiply_roll_costs_by(self) -> float:
         return self._multiply_roll_costs_by
+
+
+def calculate_cost_from_fill_with_cost_object(
+    fill: Fill, value_per_point: float, raw_costs: instrumentCosts
+) -> float:
+    trade = fill.qty
+    price = fill.price
+    include_slippage = fill.price_requires_slippage_adjustment
+
+    block_price_multiplier = value_per_point
+    cost_for_trade = raw_costs.calculate_cost_instrument_currency(
+        blocks_traded=trade,
+        price=price,
+        block_price_multiplier=block_price_multiplier,
+        include_slippage=include_slippage,
+    )
+
+    return cost_for_trade

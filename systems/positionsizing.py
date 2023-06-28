@@ -71,7 +71,7 @@ class PositionSizing(SystemStage):
 
         position = self.get_subsystem_position(instrument_code)
 
-        vol_scalar = self.get_volatility_scalar(instrument_code)
+        vol_scalar = self.get_average_position_at_subsystem_level(instrument_code)
         log = self.log
         config = self.config
 
@@ -123,7 +123,7 @@ class PositionSizing(SystemStage):
         """
 
         avg_abs_forecast = self.avg_abs_forecast()
-        vol_scalar = self.get_volatility_scalar(instrument_code)
+        vol_scalar = self.get_average_position_at_subsystem_level(instrument_code)
         forecast = self.get_combined_forecast(instrument_code)
 
         vol_scalar = vol_scalar.reindex(forecast.index, method="ffill")
@@ -164,7 +164,9 @@ class PositionSizing(SystemStage):
         return self.parent.config
 
     @diagnostic()
-    def get_volatility_scalar(self, instrument_code: str) -> pd.Series:
+    def get_average_position_at_subsystem_level(
+        self, instrument_code: str
+    ) -> pd.Series:
         """
         Get ratio of required volatility vs volatility of instrument in instrument's own currency
 
@@ -178,14 +180,14 @@ class PositionSizing(SystemStage):
         >>> (comb, fcs, rules, rawdata, data, config)=get_test_object_futures_with_comb_forecasts()
         >>> system=System([rawdata, rules, fcs, comb, PositionSizing()], data, config)
         >>>
-        >>> system.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
+        >>> system.positionSize.get_average_position_at_subsystem_level("EDOLLAR").tail(2)
                     vol_scalar
         2015-12-10   11.187869
         2015-12-11   10.332930
         >>>
         >>> ## without raw data
         >>> system2=System([ rules, fcs, comb, PositionSizing()], data, config)
-        >>> system2.positionSize.get_volatility_scalar("EDOLLAR").tail(2)
+        >>> system2.positionSize.get_average_position_at_subsystem_level("EDOLLAR").tail(2)
                     vol_scalar
         2015-12-10   11.180444
         2015-12-11   10.344278

@@ -156,7 +156,7 @@ class Portfolios(SystemStage):
     def get_buffers(self, instrument_code: str) -> pd.Series:
 
         position = self.get_notional_position(instrument_code)
-        vol_scalar = self.get_volatility_scalar(instrument_code)
+        vol_scalar = self.get_average_position_at_subsystem_level(instrument_code)
         log = self.log
         config = self.config
         idm = self.get_instrument_diversification_multiplier()
@@ -257,8 +257,8 @@ class Portfolios(SystemStage):
         instrument_weight_this_code = instr_weights[instrument_code]
 
         inst_weight_this_code_reindexed = instrument_weight_this_code.reindex(
-            subsys_position.index
-        ).ffill()
+            subsys_position.index, method="ffill"
+        )
 
         notional_position_without_idm = (
             subsys_position * inst_weight_this_code_reindexed
@@ -897,7 +897,9 @@ class Portfolios(SystemStage):
         return turnovers
 
     @input
-    def get_volatility_scalar(self, instrument_code: str) -> pd.Series:
+    def get_average_position_at_subsystem_level(
+        self, instrument_code: str
+    ) -> pd.Series:
         """
         Get the vol scalar, from a previous module
 
@@ -915,13 +917,15 @@ class Portfolios(SystemStage):
         ()], data, config)
         >>>
         >>> ## from config
-        >>> system.portfolio.get_volatility_scalar("EDOLLAR").tail(2)
+        >>> system.portfolio.get_average_position_at_subsystem_level("EDOLLAR").tail(2)
                     vol_scalar
         2015-12-10   11.187869
         2015-12-11   10.332930
         """
 
-        return self.position_size_stage.get_volatility_scalar(instrument_code)
+        return self.position_size_stage.get_average_position_at_subsystem_level(
+            instrument_code
+        )
 
     @input
     def capital_multiplier(self):

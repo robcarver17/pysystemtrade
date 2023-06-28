@@ -123,7 +123,7 @@ class Test(unittest.TestCase):
     @unittest.SkipTest
     def test_get_get_volatility_scalar(self):
         self.assertAlmostEqual(
-            self.system.positionSize.get_volatility_scalar("EDOLLAR")
+            self.system.positionSize.get_average_position_at_subsystem_level("EDOLLAR")
             .ffill()
             .values[-1],
             10.33292952955,

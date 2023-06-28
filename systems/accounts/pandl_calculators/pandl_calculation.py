@@ -108,23 +108,9 @@ class pandlCalculation(object):
         return pandl_in_points * point_size
 
     def pandl_in_points(self) -> pd.Series:
-        positions = self.positions
-        price_returns = self.price_returns
-        pos_series = positions.groupby(positions.index).last()
-        price_returns_indexed = price_returns.reindex(pos_series.index, method="ffill")
 
-        returns = pos_series.shift(1) * price_returns_indexed
-
-        returns[returns.isna()] = 0.0
-
-        return returns
-
-    @property
-    def price_returns(self) -> pd.Series:
-        prices = self.price
-        price_returns = prices.ffill().diff()
-
-        return price_returns
+        pandl_in_points = calculate_pandl(positions=self.positions, prices=self.price)
+        return pandl_in_points
 
     @property
     def price(self) -> pd.Series:
@@ -207,3 +193,18 @@ def apply_weighting(weight: pd.Series, thing_to_weight: pd.Series) -> pd.Series:
     weighted_thing = thing_to_weight * aligned_weight
 
     return weighted_thing
+
+
+def calculate_pandl(positions: pd.Series, prices: pd.Series):
+    pos_series = positions.groupby(positions.index).last()
+    both_series = pd.concat([pos_series, prices], axis=1)
+    both_series.columns = ["positions", "prices"]
+    both_series = both_series.ffill()
+
+    price_returns = both_series.prices.diff()
+
+    returns = both_series.positions.shift(1) * price_returns
+
+    returns[returns.isna()] = 0.0
+
+    return returns
