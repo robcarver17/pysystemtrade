@@ -7,7 +7,7 @@ import seaborn.objects as so
 import fire 
 
 class FuturesSystemCLI:
-    def run_and_pickle(self, destination = "private.Tests.testing.pck", yaml = "private.Tests.private_config24.yaml"):
+    def run_and_pickle(self, destination = "private.Tests.testing.pck", yaml = "command_line.Tests.private_config24.yaml"):
         """Runs the futures system and pickles it.
         :param destination (str): The relative path where the file will be saved. 
         :param yaml (str): The yaml file that will be used to configure the futures system.
@@ -16,7 +16,7 @@ class FuturesSystemCLI:
         system=futures_system(config=my_config)
         system.cache.pickle(destination)
     
-    def run_and_save_to_csv(self, destination = "data.csv", yaml = "private.Tests.private_config24.yaml" ):
+    def run_and_save_to_csv(self, destination = "data.csv", yaml = "command_line.Tests.private_config24.yaml" ):
         """Runs the futures system and saves specific data to a csv.
         :param destination (str): The relative path where the file will be saved. 
         :param yaml (str): The yaml file that will be used to configure the futures system.
@@ -34,7 +34,7 @@ class FuturesSystemCLI:
         concat_accel_df.to_csv(destination)
         
 
-    def from_pickle(self, location = "private.Tests.testing.pck"):
+    def from_pickle(self, location = "command_line.Tests.testing.pck"):
         """Unpickes the futrues system and runs specified functionalities.
         :param location (str): The relative path to where the pickeled system is located.
         """
