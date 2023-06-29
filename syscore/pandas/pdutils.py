@@ -293,8 +293,9 @@ def make_df_from_list_of_named_tuple(
     if make_index:
         if field_name_for_index is arg_not_supplied:
             field_name_for_index = elements[0]
-        pdf.index = pdf[field_name_for_index]
+        pdf_index = list(pdf[field_name_for_index])
         pdf = pdf.drop(labels=field_name_for_index, axis=1)
+        pdf.index = pdf_index
 
     return pdf
 

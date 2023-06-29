@@ -226,7 +226,7 @@ def reindex_last_monthly_include_first_date(df: pd.DataFrame) -> pd.DataFrame:
 def infer_frequency(df_or_ts: Union[pd.DataFrame, pd.Series]) -> Frequency:
     inferred = pd.infer_freq(df_or_ts.index)
     if inferred is None:
-        return _infer_frequency_approx(df_or_ts)
+        return infer_frequency_approx(df_or_ts)
     if inferred == "B":
         return BUSINESS_DAY_FREQ
     if inferred == "H":
@@ -239,9 +239,8 @@ LOWER_BOUND_HOUR_FRACTION_OF_A_DAY = 1.0 / HOURS_PER_DAY
 BUSINESS_CALENDAR_FRACTION = CALENDAR_DAYS_IN_YEAR / BUSINESS_DAYS_IN_YEAR
 
 
-def _infer_frequency_approx(df_or_ts: Union[pd.DataFrame, pd.Series]) -> Frequency:
-    avg_time_delta = abs(np.diff(df_or_ts.index)).mean()
-    avg_time_delta_in_days = avg_time_delta / np.timedelta64(1, "D")
+def infer_frequency_approx(df_or_ts: Union[pd.DataFrame, pd.Series]) -> Frequency:
+    avg_time_delta_in_days = average_time_delta_for_time_series(df_or_ts)
 
     if _probably_daily_freq(avg_time_delta_in_days):
         return BUSINESS_DAY_FREQ
@@ -260,3 +259,12 @@ def _probably_hourly_freq(avg_time_delta_in_days: float) -> bool:
     return (avg_time_delta_in_days < UPPER_BOUND_HOUR_FRACTION_OF_A_DAY) & (
         avg_time_delta_in_days >= LOWER_BOUND_HOUR_FRACTION_OF_A_DAY
     )
+
+
+def average_time_delta_for_time_series(
+    df_or_ts: Union[pd.DataFrame, pd.Series]
+) -> float:
+    avg_time_delta = abs(np.diff(df_or_ts.index)).mean()
+    avg_time_delta_in_days = avg_time_delta / np.timedelta64(1, "D")
+
+    return avg_time_delta_in_days

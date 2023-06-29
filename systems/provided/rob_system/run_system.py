@@ -11,7 +11,9 @@ from sysdata.config.configdata import Config
 from systems.forecasting import Rules
 from systems.basesystem import System
 from systems.forecast_combine import ForecastCombine
-from systems.provided.attenuate_vol.vol_attenuation_forecast_scale_cap import volAttenForecastScaleCap
+from systems.provided.attenuate_vol.vol_attenuation_forecast_scale_cap import (
+    volAttenForecastScaleCap,
+)
 from systems.provided.rob_system.rawdata import myFuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
