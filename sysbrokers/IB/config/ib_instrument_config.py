@@ -25,9 +25,9 @@ IB_FUTURES_CONFIG_FILE = resolve_path_and_filename_for_package(
 def read_ib_config_from_file(log: pst_logger = logtoscreen("")) -> IBconfig:
     try:
         df = pd.read_csv(IB_FUTURES_CONFIG_FILE)
-    except Exception:
+    except Exception as e:
         log.warning("Can't read file %s" % IB_FUTURES_CONFIG_FILE)
-        raise missingFile
+        raise missingFile from e
 
     return IBconfig(df)
 
