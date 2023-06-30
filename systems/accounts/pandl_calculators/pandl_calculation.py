@@ -16,6 +16,7 @@ class pandlCalculation(object):
         value_per_point: float = 1.0,
         roundpositions=False,
         delayfill=False,
+        passed_diagnostic_df: pd.DataFrame = arg_not_supplied,
     ):
 
         self._price = price
@@ -23,9 +24,21 @@ class pandlCalculation(object):
         self._fx = fx
         self._capital = capital
         self._value_per_point = value_per_point
-
+        self._passed_diagnostic_df = passed_diagnostic_df
         self._delayfill = delayfill
         self._roundpositions = roundpositions
+
+    def calculations_and_diagnostic_df(self) -> pd.DataFrame:
+        diagnostic_df = self.passed_diagnostic_df
+        calculations = self.calculations_df()
+        calculations_and_diagnostic_df = pd.concat(
+            [diagnostic_df, calculations], axis=1
+        )  ## no ffill
+
+        return calculations_and_diagnostic_df
+
+    def calculations_df(self) -> pd.Series:
+        raise NotImplemented("Not implemented")
 
     def weight(self, weight: pd.Series):
 
@@ -108,23 +121,9 @@ class pandlCalculation(object):
         return pandl_in_points * point_size
 
     def pandl_in_points(self) -> pd.Series:
-        positions = self.positions
-        price_returns = self.price_returns
-        pos_series = positions.groupby(positions.index).last()
-        price_returns_indexed = price_returns.reindex(pos_series.index, method="ffill")
 
-        returns = pos_series.shift(1) * price_returns_indexed
-
-        returns[returns.isna()] = 0.0
-
-        return returns
-
-    @property
-    def price_returns(self) -> pd.Series:
-        prices = self.price
-        price_returns = prices.ffill().diff()
-
-        return price_returns
+        pandl_in_points = calculate_pandl(positions=self.positions, prices=self.price)
+        return pandl_in_points
 
     @property
     def price(self) -> pd.Series:
@@ -177,6 +176,18 @@ class pandlCalculation(object):
         return self._value_per_point
 
     @property
+    def passed_diagnostic_df(self) -> pd.DataFrame:
+        diagnostic_df = self._passed_diagnostic_df
+        if diagnostic_df is arg_not_supplied:
+            return self._default_diagnostic_df
+        return diagnostic_df
+
+    @property
+    def _default_diagnostic_df(self) -> pd.DataFrame:
+        diagnostic_df = pd.DataFrame(dict(price=self.price))
+        return diagnostic_df
+
+    @property
     def fx(self) -> pd.Series:
         fx = self._fx
         if fx is arg_not_supplied:
@@ -207,3 +218,18 @@ def apply_weighting(weight: pd.Series, thing_to_weight: pd.Series) -> pd.Series:
     weighted_thing = thing_to_weight * aligned_weight
 
     return weighted_thing
+
+
+def calculate_pandl(positions: pd.Series, prices: pd.Series):
+    pos_series = positions.groupby(positions.index).last()
+    both_series = pd.concat([pos_series, prices], axis=1)
+    both_series.columns = ["positions", "prices"]
+    both_series = both_series.ffill()
+
+    price_returns = both_series.prices.diff()
+
+    returns = both_series.positions.shift(1) * price_returns
+
+    returns[returns.isna()] = 0.0
+
+    return returns

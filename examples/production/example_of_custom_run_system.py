@@ -66,8 +66,8 @@ from sysdata.config.configdata import Config
 from systems.forecasting import Rules
 from systems.basesystem import System
 from systems.forecast_combine import ForecastCombine
-from private.systems.carrytrend.forecastScaleCap import volAttenForecastScaleCap
-from private.systems.carrytrend.rawdata import myFuturesRawData
+from private.systems.arch.carrytrend.forecastScaleCap import volAttenForecastScaleCap
+from private.systems.arch.carrytrend import myFuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
 from systems.provided.dynamic_small_system_optimise.optimised_positions_stage import (

@@ -1,9 +1,15 @@
+from collections import namedtuple
 import datetime
 from typing import Union
 
-from sysexecution.orders.named_order_objects import not_filled
-from sysobjects.fills import Fill, ListOfFills
-from sysobjects.orders import ListOfSimpleOrders, SimpleOrder, SimpleOrderWithDate
+
+from sysobjects.fills import Fill, ListOfFills, empty_fill
+from systems.accounts.order_simulator.simple_orders import (
+    ListOfSimpleOrders,
+    SimpleOrder,
+    SimpleOrderWithDate,
+    empty_list_of_orders_with_date,
+)
 
 
 def fill_list_of_simple_orders(
@@ -22,7 +28,7 @@ def fill_list_of_simple_orders(
     list_of_fills = ListOfFills(list_of_fills)  ## will remove unfilled
 
     if len(list_of_fills) == 0:
-        return not_filled
+        return empty_fill(fill_datetime)
     elif len(list_of_fills) == 1:
         return list_of_fills[0]
     else:
@@ -38,7 +44,7 @@ def fill_from_simple_order(
     fill_datetime: datetime.datetime,
 ) -> Fill:
     if simple_order.is_zero_order:
-        return not_filled
+        return empty_fill(fill_datetime)
 
     elif simple_order.is_market_order:
         fill = fill_from_simple_market_order(
@@ -80,7 +86,7 @@ def fill_from_simple_limit_order(
                 price_requires_slippage_adjustment=True,
             )
 
-    return not_filled
+    return empty_fill(fill_datetime)
 
 
 def fill_from_simple_market_order(
@@ -94,4 +100,17 @@ def fill_from_simple_market_order(
         simple_order.quantity,
         market_price,
         price_requires_slippage_adjustment=True,
+    )
+
+
+ListOfSimpleOrdersAndResultingFill = namedtuple(
+    "ListOfSimpleOrdersAndResultingFill", ["list_of_orders", "fill"]
+)
+
+
+def empty_list_of_orders_with_no_fills(
+    fill_datetime: datetime.datetime,
+) -> ListOfSimpleOrdersAndResultingFill:
+    return ListOfSimpleOrdersAndResultingFill(
+        empty_list_of_orders_with_date(), empty_fill(fill_datetime)
     )

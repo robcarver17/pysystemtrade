@@ -1,9 +1,11 @@
+from typing import Union
 import datetime
 from dataclasses import dataclass
 
 import pandas as pd
+import numpy as np
 
-from sysexecution.orders.named_order_objects import missing_order, not_filled
+from sysexecution.orders.named_order_objects import missing_order, named_object
 
 from sysexecution.orders.base_orders import Order
 
@@ -15,12 +17,31 @@ class Fill:
     price: float
     price_requires_slippage_adjustment: bool = False
 
+    @classmethod
+    def zero_fill(cls, date):
+        return cls(date=date, qty=0, price=np.nan)
+
+    @property
+    def is_unfilled(self) -> bool:
+        return self.qty == 0
+
+
+def is_empty_fill(fill: Union[named_object, Fill]) -> bool:
+    if fill is missing_order:
+        return True
+    if fill.is_unfilled:
+        return True
+
+    return False
+
+
+def empty_fill(date: datetime.datetime) -> Fill:
+    return Fill.zero_fill(date)
+
 
 class ListOfFills(list):
     def __init__(self, list_of_fills):
-        list_of_fills = [
-            fill for fill in list_of_fills if fill is not (missing_order or not_filled)
-        ]
+        list_of_fills = [fill for fill in list_of_fills if not is_empty_fill(fill)]
         super().__init__(list_of_fills)
 
     def _as_dict_of_lists(self) -> dict:
@@ -62,7 +83,7 @@ def _list_of_fills_from_position_series_and_prices(
     dates_as_list = list(prices_aligned_to_trades.index)
 
     list_of_fills_as_list = [
-        Fill(date, qty, price)
+        Fill(date, qty, price, price_requires_slippage_adjustment=True)
         for date, qty, price in zip(dates_as_list, trades_as_list, prices_as_list)
     ]
 

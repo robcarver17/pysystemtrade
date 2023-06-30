@@ -37,6 +37,17 @@ class pandlCalculationWithCashCostsAndFills(
         self._rolls_per_year = rolls_per_year
         self._multiply_roll_costs_by = multiply_roll_costs_by
 
+    def calculations_df(self):
+        #### TEMPORARY
+        costs = self.costs_from_trading_in_instrument_currency_as_series()
+        pandl = self.pandl_in_instrument_currency()
+        net = self.net_pandl_in_instrument_currency()
+
+        calculations_df = pd.concat([pandl, costs, net], axis=1)
+        calculations_df.index = ["gross", "costs", "net"]
+
+        return calculations_df
+
     def costs_pandl_in_points(self) -> pd.Series:
         ## We work backwards since the cost calculator returns a currency cost
         costs_pandl_in_instrument_currency = self.costs_pandl_in_instrument_currency()

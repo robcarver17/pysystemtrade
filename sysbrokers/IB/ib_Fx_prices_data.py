@@ -8,7 +8,7 @@ from sysbrokers.IB.config.ib_fx_config import (
     ibFXConfig,
 )
 from sysbrokers.broker_fx_prices_data import brokerFxPricesData
-from syscore.exceptions import missingData, missingInstrument
+from syscore.exceptions import missingData, missingInstrument, missingFile
 from sysdata.data_blob import dataBlob
 from sysobjects.spot_fx_prices import fxPrices
 from syslogging.logger import *
@@ -38,8 +38,13 @@ class ibFxPricesData(brokerFxPricesData):
         return client
 
     def get_list_of_fxcodes(self) -> list:
-        config_data = self._get_ib_fx_config()
-        list_of_codes = get_list_of_codes(log=list, config_data=config_data)
+        try:
+            config_data = self._get_ib_fx_config()
+        except missingFile:
+            self.log.warn("Can't get list of fxcodes for IB as config file missing")
+            return []
+
+        list_of_codes = get_list_of_codes(config_data=config_data)
 
         return list_of_codes
 
@@ -95,9 +100,17 @@ class ibFxPricesData(brokerFxPricesData):
 
     def _get_config_info_for_code(self, currency_code: str) -> ibFXConfig:
 
-        config_data = self._get_ib_fx_config()
+        try:
+            config_data = self._get_ib_fx_config()
+        except missingFile as e:
+            new_log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
+            new_log.warn(
+                "Can't get IB FX config for %s as config file missing" % currency_code
+            )
+            raise missingInstrument from e
+
         ib_config_for_code = config_info_for_code(
-            config_data=config_data, log=self.log, currency_code=currency_code
+            config_data=config_data, currency_code=currency_code
         )
 
         return ib_config_for_code

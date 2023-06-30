@@ -92,16 +92,6 @@ class pandlCalculationWithFills(pandlCalculation):
 
         return positions
 
-    # This method is never used
-    def _calculate_and_set_prices_from_fills_and_input_prices(self) -> pd.Series:
-
-        ## this will be set in the parent __init__
-        passed_prices = self._price
-        merged_price = merge_fill_prices_with_prices(passed_prices, self.fills)
-        self._calculated_price = merged_price
-
-        return merged_price
-
 
 def merge_fill_prices_with_prices(
     prices: pd.Series, list_of_fills: ListOfFills
