@@ -1,7 +1,6 @@
 import os
 from os.path import join as join_file_and_path
 
-from syscore.constants import missing_file
 from syscore.fileutils import get_resolved_pathname, does_resolved_filename_exist
 
 from sysdata.config.production_config import get_production_config
@@ -91,20 +90,22 @@ class logToFile(pst_logger):
         )
 
     def close_log_file(self):
-        file_handle = getattr(self, "_file_handle", None)
-        if file_handle is None:
+        try:
+            file_handle = getattr(self, "_file_handle")
+        except AttributeError:
             ## no file, logging won't work
             print("No log file open to close")
         else:
             file_handle.close()
 
             ## force reopen on new log
-            self._file_handle = missing_file
+            delattr(self, "_file_handle")
 
     @property
     def log_file_handle(self):
-        file_handle = getattr(self, "_file_handle", missing_file)
-        if file_handle is missing_file:
+        try:
+            file_handle = getattr(self, "_file_handle")
+        except AttributeError:
             filename = self.log_filename_with_path
             file_handle = open(filename, "a", 5)
 
