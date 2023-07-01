@@ -2,13 +2,21 @@ from enum import Enum
 
 RollState = Enum(
     "RollState",
-    ("No_Roll", "Passive", "Force", "Force_Outright", "Roll_Adjusted", "Close"),
+    (
+        "No_Roll",
+        "Passive",
+        "Force",
+        "Force_Outright",
+        "Roll_Adjusted",
+        "Close",
+        "No_Open",
+    ),
 )
 
 no_roll_state = RollState.No_Roll
 roll_adj_state = RollState.Roll_Adjusted
 roll_close_state = RollState.Close
-
+no_open_state = RollState.No_Open
 default_state = no_roll_state
 
 roll_explanations = {
@@ -17,12 +25,13 @@ roll_explanations = {
     RollState.Force: "Force the contract to roll ASAP using spread order",
     RollState.Force_Outright: "Force the contract to roll ASAP using two outright orders",
     RollState.Roll_Adjusted: "Roll adjusted prices from existing priced to new forward contract (after adjusted prices have been changed, will automatically move state to no roll",
-    RollState.Close: "Close position in near contract by setting position limit to zero",
+    RollState.Close: "Close position in near contract only",
+    RollState.No_Open: "No opening trades as close to expiry but forward not liquid enough",
 }
 
 
 def is_forced_roll_state(roll_state: RollState):
-    if roll_state == RollState.Force or roll_state == RollState.Force_Outright:
+    if roll_state in [RollState.Force, RollState.Force_Outright, RollState.Close]:
         return True
     else:
         return False
@@ -59,18 +68,27 @@ def allowable_roll_state_from_current_and_position(
     # A 0 suffix indicates we have no position in the priced contract
     # A 1 suffix indicates we do have a position in the priced contract
     allowed_transition = dict(
-        No_Roll0=["Roll_Adjusted", "Passive", "No_Roll"],
-        No_Roll1=["Passive", "Force", "Force_Outright", "No_Roll", "Close"],
-        Passive0=["Roll_Adjusted", "Passive", "No_Roll"],
-        Passive1=["Force", "Force_Outright", "Passive", "No_Roll", "Close"],
+        No_Roll0=["Roll_Adjusted", "Passive", "No_Roll", "No_Open"],
+        No_Roll1=["Passive", "Force", "Force_Outright", "No_Roll", "Close", "No_Open"],
+        Passive0=["Roll_Adjusted", "Passive", "No_Roll", "No_Open"],
+        Passive1=["Force", "Force_Outright", "Passive", "No_Roll", "Close", "No_Open"],
         Force0=["Roll_Adjusted", "Passive"],
-        Force1=["Force", "Force_Outright", "Passive", "No_Roll", "Close"],
+        Force1=["Force", "Force_Outright", "Passive", "No_Roll", "Close", "No_Open"],
         Force_Outright0=["Roll_Adjusted", "Passive"],
-        Force_Outright1=["Force", "Force_Outright", "Passive", "No_Roll", "Close"],
+        Force_Outright1=[
+            "Force",
+            "Force_Outright",
+            "Passive",
+            "No_Roll",
+            "Close",
+            "No_Open",
+        ],
         Close0=["Roll_Adjusted", "Passive"],
-        Close1=["Close", "Force", "Force_Outright", "Passive", "No_Roll"],
+        Close1=["Close", "Force", "Force_Outright", "Passive", "No_Roll", "No_Open"],
         Roll_Adjusted0=["No_Roll"],
         Roll_Adjusted1=["Roll_Adjusted"],
+        No_Open0=["Roll_Adjusted", "Passive"],
+        No_Open1=["Close", "Force", "Force_Outright", "Passive", "No_Roll"],
     )
 
     status_plus_position = complete_roll_state(current_roll_state, priced_position)

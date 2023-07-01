@@ -28,7 +28,7 @@ from sysobjects.production.roll_state import (
     allowable_roll_state_from_current_and_position,
     RollState,
     no_roll_state,
-    roll_close_state,
+    no_open_state,
 )
 from sysproduction.reporting.api import reportingApi
 
@@ -36,7 +36,7 @@ from sysproduction.reporting.report_configs import roll_report_config
 from sysproduction.reporting.reporting_functions import run_report_with_data_blob
 
 from sysproduction.data.positions import diagPositions, updatePositions
-from sysproduction.data.controls import dataPositionLimits
+from sysproduction.data.controls import updateOverrides
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices, get_valid_instrument_code_from_user
 
@@ -482,18 +482,21 @@ def modify_roll_state(
     confirm_adjusted_price_change: bool = True,
 ):
 
-    if roll_state_required is no_change_required:
+    roll_state_is_unchanged = (roll_state_required is no_change_required) or (
+        roll_state_required is original_roll_state
+    )
+    if roll_state_is_unchanged:
         return
 
-    if roll_state_required is original_roll_state:
-        return
+    if original_roll_state is no_open_state:
+        roll_state_was_no_open_now_something_else(data, instrument_code)
 
     update_positions = updatePositions(data)
-
-    if original_roll_state is roll_close_state:
-        roll_state_was_closed_now_something_else(data, instrument_code)
-
     update_positions.set_roll_state(instrument_code, roll_state_required)
+
+    if roll_state_required is no_open_state:
+        roll_state_is_now_no_open(data, instrument_code)
+
     if roll_state_required is roll_adj_state:
         state_change_to_roll_adjusted_prices(
             data=data,
@@ -502,26 +505,19 @@ def modify_roll_state(
             confirm_adjusted_price_change=confirm_adjusted_price_change,
         )
 
-    if roll_state_required is roll_close_state:
-        roll_state_is_now_closing(data, instrument_code)
 
-
-def roll_state_was_closed_now_something_else(data: dataBlob, instrument_code: str):
+def roll_state_was_no_open_now_something_else(data: dataBlob, instrument_code: str):
     print(
-        "Roll state is no longer closed, so removing temporary position limit of zero"
+        "Roll state is no longer no open, so removing temporary reduce only constraint"
     )
-    data_position_limits = dataPositionLimits(data)
-    data_position_limits.reset_position_limit_for_instrument_to_original_value(
-        instrument_code
-    )
+    update_overrides = updateOverrides(data)
+    update_overrides.remove_temporary_override_for_instrument(instrument_code)
 
 
-def roll_state_is_now_closing(data: dataBlob, instrument_code: str):
-    print("Roll state is Close, so setting temporary position limit of zero")
-    data_position_limits = dataPositionLimits(data)
-    data_position_limits.temporarily_set_position_limit_to_zero_and_store_original_limit(
-        instrument_code
-    )
+def roll_state_is_now_no_open(data: dataBlob, instrument_code: str):
+    print("Roll state is no open, so adding temporary reduce only constraint")
+    update_overrides = updateOverrides(data)
+    update_overrides.add_temporary_reduce_only_for_instrument(instrument_code)
 
 
 def state_change_to_roll_adjusted_prices(

@@ -1,6 +1,8 @@
 import datetime
 from dataclasses import dataclass
 from sysexecution.orders.named_order_objects import missing_order
+from sysobjects.production.roll_state import roll_close_state
+from syscore.constants import named_object
 
 from sysdata.data_blob import dataBlob
 
@@ -229,16 +231,36 @@ def create_force_roll_orders(
     :return: tuple; instrument_order (or missing_order), contract_orders
     """
     roll_spread_info = get_roll_spread_information(data, instrument_code)
-
+    type_of_roll = flat_roll_or_close_near_contract(data, instrument_code)
     instrument_order = create_instrument_roll_order(
-        roll_spread_info=roll_spread_info, instrument_code=instrument_code
+        roll_spread_info=roll_spread_info,
+        instrument_code=instrument_code,
+        type_of_roll=type_of_roll,
     )
 
     list_of_contract_orders = create_contract_roll_orders(
-        data=data, roll_spread_info=roll_spread_info, instrument_order=instrument_order
+        data=data,
+        roll_spread_info=roll_spread_info,
+        instrument_order=instrument_order,
+        type_of_roll=type_of_roll,
     )
 
     return instrument_order, list_of_contract_orders
+
+
+roll_state_is_flat_roll = named_object("flat_roll")
+roll_state_is_close_near_contract = named_object("close_near_contract")
+
+
+def flat_roll_or_close_near_contract(data: dataBlob, instrument_code: str):
+    diag_positions = diagPositions(data)
+    roll_state = diag_positions.get_roll_state(instrument_code)
+
+    if roll_state is roll_close_state:
+        return roll_state_is_close_near_contract
+    else:
+        ## force or force outright
+        return roll_state_is_flat_roll
 
 
 @dataclass
@@ -294,7 +316,25 @@ def get_roll_spread_information(
 
 
 def create_instrument_roll_order(
-    roll_spread_info: rollSpreadInformation, instrument_code: str
+    roll_spread_info: rollSpreadInformation,
+    instrument_code: str,
+    type_of_roll: named_object,
+) -> instrumentOrder:
+    if type_of_roll is roll_state_is_flat_roll:
+        instrument_order = create_instrument_roll_order_for_flat_roll(
+            roll_spread_info=roll_spread_info, instrument_code=instrument_code
+        )
+    else:
+        instrument_order = create_instrument_roll_order_closing_priced_contract(
+            roll_spread_info=roll_spread_info, instrument_code=instrument_code
+        )
+
+    return instrument_order
+
+
+def create_instrument_roll_order_for_flat_roll(
+    roll_spread_info: rollSpreadInformation,
+    instrument_code: str,
 ) -> instrumentOrder:
     strategy = ROLL_PSEUDO_STRATEGY
     trade = 0
@@ -312,10 +352,32 @@ def create_instrument_roll_order(
     return instrument_order
 
 
+def create_instrument_roll_order_closing_priced_contract(
+    roll_spread_info: rollSpreadInformation,
+    instrument_code: str,
+) -> instrumentOrder:
+    strategy = ROLL_PSEUDO_STRATEGY
+    position_priced = roll_spread_info.position_in_priced
+    trade = -position_priced
+    instrument_order = instrumentOrder(
+        strategy,
+        instrument_code,
+        trade,
+        roll_order=True,
+        order_type=best_order_type,
+        reference_price=roll_spread_info.reference_price_spread,
+        reference_contract=ROLL_PSEUDO_STRATEGY,
+        reference_datetime=roll_spread_info.reference_date,
+    )
+
+    return instrument_order
+
+
 def create_contract_roll_orders(
     data: dataBlob,
     roll_spread_info: rollSpreadInformation,
     instrument_order: instrumentOrder,
+    type_of_roll: named_object,
 ) -> listOfOrders:
     diag_positions = diagPositions(data)
     instrument_code = instrument_order.instrument_code
@@ -323,7 +385,10 @@ def create_contract_roll_orders(
     if roll_spread_info.position_in_priced == 0:
         return missing_order
 
-    if diag_positions.is_roll_state_force(instrument_code):
+    if type_of_roll is roll_state_is_close_near_contract:
+        contract_orders = create_contract_orders_close_first_contract(roll_spread_info)
+
+    elif diag_positions.is_roll_state_force(instrument_code):
         contract_orders = create_contract_orders_spread(roll_spread_info)
 
     elif diag_positions.is_roll_state_force_outright(instrument_code):
@@ -340,6 +405,24 @@ def create_contract_roll_orders(
     )
 
     return contract_orders
+
+
+def create_contract_orders_close_first_contract(
+    roll_spread_info: rollSpreadInformation,
+) -> listOfOrders:
+    strategy = ROLL_PSEUDO_STRATEGY
+
+    first_order = contractOrder(
+        strategy,
+        roll_spread_info.instrument_code,
+        roll_spread_info.priced_contract_id,
+        -roll_spread_info.position_in_priced,
+        reference_price=roll_spread_info.reference_price_priced_contract,
+        roll_order=True,
+        order_type=CONTRACT_ORDER_TYPE_FOR_ROLL_ORDERS,
+    )
+
+    return listOfOrders([first_order])
 
 
 def create_contract_orders_outright(
