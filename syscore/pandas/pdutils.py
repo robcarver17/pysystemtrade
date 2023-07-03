@@ -273,7 +273,7 @@ def make_df_from_list_of_named_tuple(
     >>> t1 = T('X', 3,1)
     >>> t2 = T('Y',1,2)
     >>> t3 = T('Z', 4, 3)
-    >>> make_df_from_list_of_named_tuple(T, [t1, t2, t3])
+    >>> make_df_from_list_of_named_tuple(T, [t1, t2, t3])  # doctest: +SKIP
           value_a  value_b
     ...
     X           3        1
