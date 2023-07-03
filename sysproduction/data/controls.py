@@ -122,9 +122,32 @@ class dataTradeLimits(productionDataLayerGeneric):
         self, instrument_strategy: instrumentStrategy, proposed_trade: tradeQuantity
     ) -> int:
 
-        proposed_trade_as_int = proposed_trade.total_abs_qty()
-        possible_trade = self.db_trade_limit_data.what_trade_is_possible(
-            instrument_strategy, proposed_trade_as_int
+        proposed_trade_qty = proposed_trade.total_abs_qty()
+        possible_trade = self.what_trade_qty_possible_for_instrument_strategy(
+            instrument_strategy=instrument_strategy,
+            proposed_trade_qty=proposed_trade_qty,
+        )
+
+        return possible_trade
+
+    def what_trade_qty_possible_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy, proposed_trade_qty: int
+    ) -> int:
+
+        possible_trade = (
+            self.db_trade_limit_data.what_trade_is_possible_for_instrument_strategy(
+                instrument_strategy, proposed_trade_qty
+            )
+        )
+
+        return possible_trade
+
+    def what_trade_qty_possible_for_instrument_code(
+        self, instrument_code, proposed_trade_qty: int
+    ) -> int:
+
+        possible_trade = self.db_trade_limit_data.what_trade_is_possible_for_instrument(
+            instrument_code=instrument_code, proposed_trade=proposed_trade_qty
         )
 
         return possible_trade

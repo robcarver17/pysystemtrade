@@ -29,6 +29,7 @@ from sysobjects.production.roll_state import (
     RollState,
     no_roll_state,
     no_open_state,
+    is_double_sided_trade_roll_state,
 )
 from sysproduction.reporting.api import reportingApi
 
@@ -36,7 +37,7 @@ from sysproduction.reporting.report_configs import roll_report_config
 from sysproduction.reporting.reporting_functions import run_report_with_data_blob
 
 from sysproduction.data.positions import diagPositions, updatePositions
-from sysproduction.data.controls import updateOverrides
+from sysproduction.data.controls import updateOverrides, dataTradeLimits
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices, get_valid_instrument_code_from_user
 
@@ -505,6 +506,11 @@ def modify_roll_state(
             confirm_adjusted_price_change=confirm_adjusted_price_change,
         )
 
+    ## Following roll states require trading: force, forceoutright, close
+    check_trading_limits_for_roll_state(
+        data=data, roll_state_required=roll_state_required
+    )
+
 
 def roll_state_was_no_open_now_something_else(data: dataBlob, instrument_code: str):
     print(
@@ -656,6 +662,60 @@ def _get_roll_adjusted_multiple_prices_object_ffill_option(
         return failure
 
     return rolling_adj_and_mult_object
+
+
+def check_trading_limits_for_roll_state(
+    data: dataBlob, roll_state_required: RollState, instrument_code: str
+):
+    abs_trades_required_for_roll = calculate_abs_trades_required_for_roll(
+        data=data,
+        roll_state_required=roll_state_required,
+        instrument_code=instrument_code,
+    )
+    trades_possible = get_remaining_trades_possible_today_in_contracts_for_instrument(
+        data=data,
+        instrument_code=instrument_code,
+        proposed_trade_qty=abs_trades_required_for_roll,
+    )
+    if trades_possible < abs_trades_required_for_roll:
+        print("**** WARNING ****")
+        print(
+            "Roll for %s requires %d contracts, but we can only trade %d today"
+            % (instrument_code, abs_trades_required_for_roll, trades_possible)
+        )
+        print(
+            "Use interactive controls/trade limits to set higher limit (and don't forget to reset afterwards)"
+        )
+
+
+def calculate_abs_trades_required_for_roll(
+    data: dataBlob, roll_state_required: RollState, instrument_code: str
+) -> int:
+    data_contacts = dataContracts(data)
+    diag_positions = diagPositions(data)
+    current_priced_contract_id = data_contacts.get_priced_contract_id(
+        instrument_code=instrument_code
+    )
+    position = diag_positions.get_position_for_contract(
+        futuresContract(
+            instrument_object=instrument_code,
+            contract_date_object=current_priced_contract_id,
+        )
+    )
+
+    if is_double_sided_trade_roll_state(roll_state_required):
+        position = position * 2
+
+    return position
+
+
+def get_remaining_trades_possible_today_in_contracts_for_instrument(
+    data: dataBlob, instrument_code: str, proposed_trade_qty
+) -> int:
+    data_trade_limits = dataTradeLimits(data)
+    return data_trade_limits.what_trade_qty_possible_for_instrument_code(
+        instrument_code=instrument_code, proposed_trade_qty=proposed_trade_qty
+    )
 
 
 if __name__ == "__main__":

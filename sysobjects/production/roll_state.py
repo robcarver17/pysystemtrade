@@ -30,6 +30,13 @@ roll_explanations = {
 }
 
 
+def is_double_sided_trade_roll_state(roll_state: RollState):
+    if roll_state in [RollState.Force, RollState.Force_Outright]:
+        return True
+    else:
+        return False
+
+
 def is_forced_roll_state(roll_state: RollState):
     if roll_state in [RollState.Force, RollState.Force_Outright, RollState.Close]:
         return True
