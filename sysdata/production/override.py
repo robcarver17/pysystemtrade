@@ -26,7 +26,7 @@ class overrideData(baseData):
         strategy_override = self._get_override_for_strategy(
             instrument_strategy.strategy_name
         )
-        instrument_override = self._get_override_for_instrument(
+        instrument_override = self.get_override_for_instrument(
             instrument_strategy.instrument_code
         )
         strategy_instrument_override = self._get_override_for_instrument_strategy(
@@ -50,7 +50,7 @@ class overrideData(baseData):
             strategy_instruments_overrides, key
         )
 
-    def _get_override_for_instrument(self, instrument_code: str) -> Override:
+    def get_override_for_instrument(self, instrument_code: str) -> Override:
         return self._get_override_object_for_type_and_key(
             instrument_overrides, instrument_code
         )

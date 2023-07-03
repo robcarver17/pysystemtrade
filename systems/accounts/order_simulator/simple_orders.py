@@ -84,7 +84,9 @@ class ListOfSimpleOrdersWithDate(ListOfSimpleOrders):
 
     def as_pd_df(self):
         return make_df_from_list_of_named_tuple(
-            _SimpleOrderWithDateAsTuple, self._as_list_of_named_tuples()
+            _SimpleOrderWithDateAsTuple,
+            self._as_list_of_named_tuples(),
+            field_name_for_index="submit_date",
         )
 
     def _as_list_of_named_tuples(self) -> list:

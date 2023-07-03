@@ -69,6 +69,7 @@ class AccountWithOrderSimulator(Account):
             roundpositions=roundpositions,
             vol_normalise_currency_costs=vol_normalise_currency_costs,
             rolls_per_year=rolls_per_year,
+            passed_diagnostic_df=order_simulator.diagnostic_df(),
         )
 
         return pandl_calculator

@@ -16,6 +16,7 @@ class pandlCalculation(object):
         value_per_point: float = 1.0,
         roundpositions=False,
         delayfill=False,
+        passed_diagnostic_df: pd.DataFrame = arg_not_supplied,
     ):
 
         self._price = price
@@ -23,9 +24,21 @@ class pandlCalculation(object):
         self._fx = fx
         self._capital = capital
         self._value_per_point = value_per_point
-
+        self._passed_diagnostic_df = passed_diagnostic_df
         self._delayfill = delayfill
         self._roundpositions = roundpositions
+
+    def calculations_and_diagnostic_df(self) -> pd.DataFrame:
+        diagnostic_df = self.passed_diagnostic_df
+        calculations = self.calculations_df()
+        calculations_and_diagnostic_df = pd.concat(
+            [diagnostic_df, calculations], axis=1
+        )  ## no ffill
+
+        return calculations_and_diagnostic_df
+
+    def calculations_df(self) -> pd.Series:
+        raise NotImplemented("Not implemented")
 
     def weight(self, weight: pd.Series):
 
@@ -161,6 +174,18 @@ class pandlCalculation(object):
     @property
     def value_per_point(self) -> float:
         return self._value_per_point
+
+    @property
+    def passed_diagnostic_df(self) -> pd.DataFrame:
+        diagnostic_df = self._passed_diagnostic_df
+        if diagnostic_df is arg_not_supplied:
+            return self._default_diagnostic_df
+        return diagnostic_df
+
+    @property
+    def _default_diagnostic_df(self) -> pd.DataFrame:
+        diagnostic_df = pd.DataFrame(dict(price=self.price))
+        return diagnostic_df
 
     @property
     def fx(self) -> pd.Series:

@@ -42,27 +42,41 @@ class OrderSimulator:
         return self.cache.get(self._diagnostic_df)
 
     def _diagnostic_df(self) -> pd.DataFrame:
+        other_df = self._other_diagnostics()
+        orders_and_fills_df = self._orders_and_fills_df()
+        diagnostic_df = pd.concat([other_df, orders_and_fills_df], axis=1)
+
+        return diagnostic_df
+
+    def _other_diagnostics(self) -> pd.DataFrame:
         position_series = self.positions()
         position_df = pd.DataFrame(position_series)
 
         optimal_positions_series = self.optimal_positions_series()
         optimal_position_df = pd.DataFrame(optimal_positions_series)
 
+        df_positions = pd.concat([optimal_position_df, position_df], axis=1)
+        df_positions.columns = [
+            "optimal_position",
+            "position",
+        ]
+
+        return df_positions
+
+    def _orders_and_fills_df(self) -> pd.DataFrame:
         list_of_fills = self.list_of_fills()
         fills_df = list_of_fills.as_pd_df()
         list_of_orders = self.list_of_orders()
         orders_df = list_of_orders.as_pd_df()
-        df = pd.concat([optimal_position_df, orders_df, fills_df, position_df], axis=1)
-        df.columns = [
-            "optimal_position",
+        orders_and_fills_df = pd.concat([orders_df, fills_df], axis=1)
+        orders_and_fills_df.columns = [
             "order_qty",
             "limit_price",
             "fill_qty",
             "fill_price",
-            "position",
         ]
 
-        return df
+        return orders_and_fills_df
 
     def prices(self) -> pd.Series:
         return self.series_data.price_series
