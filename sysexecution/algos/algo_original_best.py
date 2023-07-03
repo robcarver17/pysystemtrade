@@ -3,7 +3,6 @@ This is the original 'best execution' algo I used in my legacy system
 """
 from typing import Union
 
-from syscore.constants import market_closed
 from syscore.exceptions import missingData
 from sysexecution.orders.named_order_objects import missing_order
 
@@ -329,14 +328,12 @@ def is_market_about_to_close(
     log: pst_logger,
 ) -> bool:
     data_broker = dataBroker(data)
-    short_of_time = data_broker.less_than_N_hours_of_trading_left_for_contract(
-        order.futures_contract,
-        N_hours=HOURS_BEFORE_MARKET_CLOSE_TO_SWITCH_TO_MARKET,
-    )
+    hours_left = data_broker.hours_of_trading_left_for_contract(order.futures_contract)
 
-    if short_of_time is market_closed:
+    if hours_left < 0:
         log.warn("Market has closed for active limit order %s!" % str(order))
-        return True
+
+    short_of_time = hours_left < HOURS_BEFORE_MARKET_CLOSE_TO_SWITCH_TO_MARKET
 
     return short_of_time
 

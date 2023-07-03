@@ -10,9 +10,9 @@ from sysbrokers.broker_capital_data import brokerCapitalData
 from sysbrokers.broker_contract_position_data import brokerContractPositionData
 from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
-from syscore.exceptions import missingContract, missingData
+from syscore.exceptions import missingData
 
-from syscore.constants import market_closed, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.exceptions import orderCannotBeModified
 from sysexecution.orders.named_order_objects import missing_order
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
@@ -176,27 +176,18 @@ class dataBroker(productionDataLayerGeneric):
     ) -> futuresInstrumentWithMetaData:
         return self.broker_futures_instrument_data.get_instrument_data(instrument_code)
 
-    def less_than_N_hours_of_trading_left_for_contract(
-        self, contract: futuresContract, N_hours: float = 1.0
-    ) -> bool:
+    def hours_of_trading_left_for_contract(self, contract: futuresContract) -> float:
 
         diag_controls = diagControlProcess()
         hours_left_before_process_finishes = (
             diag_controls.how_long_in_hours_before_trading_process_finishes()
         )
 
-        if hours_left_before_process_finishes < N_hours:
-            ## irespective of instrument traded
-            return True
-
-        less_than_N_hours_of_trading_left = self.broker_futures_contract_data.less_than_N_hours_of_trading_left_for_contract(
-            contract, N_hours=N_hours
+        hours_of_trading_left = self.broker_futures_contract_data.hours_of_trading_left_for_contract(
+            contract
         )
 
-        if less_than_N_hours_of_trading_left is market_closed:
-            return market_closed
-
-        return less_than_N_hours_of_trading_left
+        return min(hours_of_trading_left, hours_left_before_process_finishes)
 
     def is_contract_okay_to_trade(self, contract: futuresContract) -> bool:
         check_open = self.broker_futures_contract_data.is_contract_okay_to_trade(

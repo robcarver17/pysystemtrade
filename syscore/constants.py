@@ -9,7 +9,6 @@ class named_object:
         return self._name
 
 
-market_closed = named_object("market closed")
 fill_exceeds_trade = named_object("fill too big for trade")
 arg_not_supplied = named_object("arg not supplied")
 user_exit = named_object("exit")
