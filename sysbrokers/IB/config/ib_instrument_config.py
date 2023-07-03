@@ -6,8 +6,7 @@ from sysbrokers.IB.ib_instruments import (
     NOT_REQUIRED_FOR_IB,
     ibInstrumentConfigData,
 )
-from syscore.constants import missing_file
-from syscore.exceptions import missingData, missingInstrument
+from syscore.exceptions import missingData, missingInstrument, missingFile
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.genutils import return_another_value_if_nan
 from syslogging.logger import *
@@ -26,9 +25,9 @@ IB_FUTURES_CONFIG_FILE = resolve_path_and_filename_for_package(
 def read_ib_config_from_file(log: pst_logger = logtoscreen("")) -> IBconfig:
     try:
         df = pd.read_csv(IB_FUTURES_CONFIG_FILE)
-    except BaseException:
+    except Exception as e:
         log.warning("Can't read file %s" % IB_FUTURES_CONFIG_FILE)
-        return missing_file
+        raise missingFile from e
 
     return IBconfig(df)
 
@@ -40,16 +39,16 @@ def get_instrument_object_from_config(
     new_log = log.setup(instrument_code=instrument_code)
 
     if config is None:
-        config = read_ib_config_from_file()
+        try:
+            config = read_ib_config_from_file()
+        except missingFile as e:
+            new_log.warning(
+                "Can't get config for instrument %s as IB configuration file missing"
+                % instrument_code
+            )
+            raise missingInstrument from e
 
-    if config is missing_file:
-        new_log.warning(
-            "Can't get config for instrument %s as IB configuration file missing"
-            % instrument_code
-        )
-        raise missingInstrument
-
-    list_of_instruments = get_instrument_list_from_ib_config(config=config, log=log)
+    list_of_instruments = get_instrument_list_from_ib_config(config=config)
     try:
         assert instrument_code in list_of_instruments
     except:
@@ -198,13 +197,6 @@ def _get_relevant_config_rows_from_broker_instrument_identity_fields(
     return config_rows
 
 
-def get_instrument_list_from_ib_config(
-    config: IBconfig, log: pst_logger = logtoscreen("")
-):
-    if config is missing_file:
-        log.warning("Can't get list of instruments because IB config file missing")
-        return []
-
+def get_instrument_list_from_ib_config(config: IBconfig):
     instrument_list = list(config.Instrument)
-
     return instrument_list

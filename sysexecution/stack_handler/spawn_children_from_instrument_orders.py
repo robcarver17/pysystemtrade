@@ -192,12 +192,13 @@ def get_required_contract_trade_for_instrument(
     Depends on roll status and trade vs position:
      - roll_states = ['No_Roll', 'Passive', 'Force', 'Force_Outright', 'Roll_Adjusted']
 
-    If 'No Roll' then trade current contract
+    If 'No Roll' then trade current contract (also 'No Open', since constraint applied upstream)
     If 'Passive', and no position in current contract: trade next contract
     If 'Passive', and reducing trade which leaves zero or something in current contract: trade current contract
     If 'Passive', and reducing trade which is larger than current contract position: trade current and next contract
     If 'Passive', and increasing trade: trade next contract
-    If 'Force' or 'Force Outright' or 'Roll_Adjusted': don't trade
+    If 'Force' or 'Force Outright' or 'Roll_Adjusted' or 'Close': don't trade
+
 
     :param instrument_order:
     :param data: dataBlog
