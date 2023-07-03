@@ -89,7 +89,7 @@ class listOfTradingHours(list):
                 return True
         return False
 
-    def hours_left(self):
+    def hours_left_before_market_close(self):
         for check_period in self:
             if check_period.okay_to_trade_now():
                 # market is open, but for how long?

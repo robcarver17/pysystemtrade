@@ -44,7 +44,7 @@ class brokerFuturesContractData(futuresContractData):
         except missingContract:
             return MARKET_CLOSED_HOURS_LEFT
 
-        hours_of_trading_left_for_contract = trading_hours.hours_left()
+        hours_of_trading_left_for_contract = trading_hours.hours_left_before_market_close()
 
         return hours_of_trading_left_for_contract
 
