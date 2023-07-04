@@ -413,7 +413,7 @@ def auto_selected_roll_state_instrument(
     roll_state_required = suggest_roll_state_for_instrument(
         roll_data=roll_data, auto_parameters=auto_parameters
     )
-    if roll_state_required is ASK_FOR_STATE:
+    if roll_state_required == ASK_FOR_STATE:
         print("Have to input roll state (recommend Force, Force_Outright or Close)")
         roll_state_required = get_roll_state_required(roll_data)
 
