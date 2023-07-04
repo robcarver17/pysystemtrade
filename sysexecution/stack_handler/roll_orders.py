@@ -147,7 +147,7 @@ class stackHandlerForRolls(stackHandlerCore):
             )
 
         except Exception as parent_order_error:
-            parent_log.warn(
+            parent_log.warning(
                 "Couldn't put parent order %s on instrument order stack error %s"
                 % (str(instrument_order), str(parent_order_error))
             )
@@ -209,7 +209,7 @@ class stackHandlerForRolls(stackHandlerCore):
             )
 
         # phew got there
-        parent_log.msg(
+        parent_log.debug(
             "Added parent order with ID %d %s to stack"
             % (parent_order_id, str(instrument_order))
         )
@@ -421,7 +421,7 @@ def create_contract_roll_orders(
     else:
         log = instrument_order.log_with_attributes(data.log)
         roll_state = diag_positions.get_roll_state(instrument_code)
-        log.warn("Roll state %s is unexpected, might have changed" % str(roll_state))
+        log.warning("Roll state %s is unexpected, might have changed" % str(roll_state))
         return missing_order
 
     contract_orders = allocate_algo_to_list_of_contract_orders(

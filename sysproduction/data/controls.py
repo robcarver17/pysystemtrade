@@ -743,7 +743,7 @@ class dataPositionLimits(productionDataLayerGeneric):
         self.db_temporary_close_data.add_stored_position_limit(original_limit)
         self.set_abs_position_limit_for_instrument(instrument_code, 0)
 
-        self.log.msg(
+        self.log.debug(
             "Temporarily setting position limit, was %s, now zero"
             % (str(original_limit))
         )
@@ -756,7 +756,7 @@ class dataPositionLimits(productionDataLayerGeneric):
                 )
             )
         except missingData:
-            self.log.warn("No temporary position limit stored")
+            self.log.warning("No temporary position limit stored")
             return None
 
         self.set_abs_position_limit_for_instrument(
@@ -766,7 +766,7 @@ class dataPositionLimits(productionDataLayerGeneric):
         self.db_temporary_close_data.clear_stored_position_limit_for_instrument(
             instrument_code
         )
-        self.log.msg(
+        self.log.debug(
             "Reset position limit from temporary zero limit, now %s"
             % str(original_limit)
         )

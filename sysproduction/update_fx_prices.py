@@ -41,7 +41,7 @@ def update_fx_prices_with_data(data: dataBlob):
     list_of_codes_all = (
         broker_fx_source.get_list_of_fxcodes()
     )  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
-    data.log.msg("FX Codes: %s" % str(list_of_codes_all))
+    data.log.debug("FX Codes: %s" % str(list_of_codes_all))
 
     for fx_code in list_of_codes_all:
         data.log.label(**{CURRENCY_CODE_LOG_LABEL: fx_code})
@@ -69,11 +69,11 @@ def report_fx_data_spike(data: dataBlob, fx_code: str):
         "Spike found in prices for %s: need to manually check by running interactive_manual_check_fx_prices"
         % str(fx_code)
     )
-    data.log.warn(msg)
+    data.log.warning(msg)
     try:
         send_production_mail_msg(data, msg, "FX Price Spike %s" % str(fx_code))
     except BaseException:
-        data.log.warn("Couldn't send email about price spike")
+        data.log.warning("Couldn't send email about price spike")
 
 
 if __name__ == "__main__":

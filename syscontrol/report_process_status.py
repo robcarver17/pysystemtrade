@@ -68,7 +68,7 @@ class reportStatus(object):
         return elapsed_minutes
 
     def _log_and_mark_timing(self, status: str):
-        self.log.msg(status)
+        self.log.debug(status)
         self._mark_timing_of_log(status)
 
     def _mark_timing_of_log(self, status):
@@ -91,7 +91,7 @@ class reportStatus(object):
         return all_keys
 
     def _log_clear_and_mark(self, status: str):
-        self.log.msg("No longer- %s" % status)
+        self.log.debug("No longer- %s" % status)
         self._mark_log_of_clear(status)
 
     def _mark_log_of_clear(self, status):

@@ -94,7 +94,7 @@ class runSystemClassic(object):
         currency_data = dataCurrency(data)
         base_currency = currency_data.get_base_currency()
 
-        self.data.log.msg(
+        self.data.log.debug(
             "Using capital of %s %.2f" % (base_currency, notional_trading_capital)
         )
 
@@ -172,7 +172,7 @@ def updated_buffered_positions(data: dataBlob, strategy_name: str, system: Syste
         data_optimal_positions.update_optimal_position_for_instrument_strategy(
             instrument_strategy=instrument_strategy, position_entry=position_entry
         )
-        log.msg(
+        log.debug(
             "New buffered positions %.3f %.3f"
             % (position_entry.lower_position, position_entry.upper_position),
             instrument_code=instrument_code,

@@ -40,7 +40,7 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
         0.13908407620762306
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating pandl for instrument for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -88,7 +88,7 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
         0.13908407620762306
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating pandl for instrument for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -186,7 +186,7 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
     ) -> accountCurve:
 
         if not roundpositions:
-            self.log.warn(
+            self.log.warning(
                 "Using roundpositions=False with cash costs may lead to inaccurate costs (fixed costs, eg commissions will be overstated!!!"
             )
 

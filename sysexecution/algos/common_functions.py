@@ -47,10 +47,10 @@ def cancel_order(
             broker_order_with_controls
         )
         if is_cancelled:
-            log.msg("Cancelled order")
+            log.debug("Cancelled order")
             break
         if timer.finished:
-            log.warn("Ran out of time to cancel order - may cause weird behaviour!")
+            log.warning("Ran out of time to cancel order - may cause weird behaviour!")
             break
 
     return broker_order_with_controls
@@ -71,9 +71,9 @@ def set_limit_price(
                 broker_order_with_controls, new_limit_price
             )
         )
-        log.msg("Tried to change limit price to %f" % new_limit_price)
+        log.debug("Tried to change limit price to %f" % new_limit_price)
     except orderCannotBeModified as error:
-        log.msg("Can't modify limit price for order, error %s" % str(error))
+        log.debug("Can't modify limit price for order, error %s" % str(error))
 
     return broker_order_with_controls
 
@@ -112,4 +112,4 @@ def file_log_report_market_order(log, broker_order_with_controls: orderWithContr
 
     log_report = "Market order execution current tick %s" % current_tick
 
-    log.msg(log_report)
+    log.debug(log_report)

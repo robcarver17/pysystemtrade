@@ -284,7 +284,7 @@ class diagPositions(productionDataLayerGeneric):
             )
         except ContractNotFound:
             log = original_contract.specific_log(self.data.log)
-            log.warn(
+            log.warning(
                 "Contract %s is missing from database - expiry not found and will mismatch"
                 % str(original_contract)
             )
@@ -414,7 +414,7 @@ class updatePositions(productionDataLayerGeneric):
         )
 
         log = original_instrument_order.log_with_attributes(self.log)
-        log.msg(
+        log.debug(
             "Updated position of %s from %d to %d because of trade %s %d fill %s"
             % (
                 str(instrument_strategy),
@@ -450,7 +450,7 @@ class updatePositions(productionDataLayerGeneric):
             self._update_positions_for_individual_contract_leg(
                 contract=contract, trade_done=trade_done, time_date=time_date
             )
-            log.msg(
+            log.debug(
                 "Updated position of %s because of trade %s ID:%d with fills %d"
                 % (
                     str(contract),
@@ -475,7 +475,7 @@ class updatePositions(productionDataLayerGeneric):
         new_position_db = self.diag_positions.get_position_for_contract(contract)
 
         log = contract.specific_log(self.log)
-        log.msg(
+        log.debug(
             "Updated position of %s from %d to %d; new position in db is %d"
             % (
                 str(contract),

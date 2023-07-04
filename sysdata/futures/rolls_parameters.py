@@ -47,11 +47,11 @@ class rollParametersData(baseData):
                 self._delete_roll_parameters_data_without_any_warning_be_careful(
                     instrument_code
                 )
-                self.log.terse("Deleted roll parameters for %s" % instrument_code)
+                self.log.info("Deleted roll parameters for %s" % instrument_code)
 
             else:
                 # doesn't exist anyway
-                self.log.warn(
+                self.log.warning(
                     "Tried to delete roll parameters for non existent instrument code %s"
                     % instrument_code
                 )
@@ -73,7 +73,7 @@ class rollParametersData(baseData):
             if ignore_duplication:
                 pass
             else:
-                raise self.log.warn(
+                raise self.log.warning(
                     "There is already %s in the data, you have to delete it first"
                     % instrument_code
                 )
@@ -82,7 +82,7 @@ class rollParametersData(baseData):
             instrument_code, roll_parameters
         )
 
-        self.log.terse("Added roll parameters for instrument %s" % instrument_code)
+        self.log.info("Added roll parameters for instrument %s" % instrument_code)
 
     def is_code_in_data(self, instrument_code: str) -> bool:
         if instrument_code in self.get_list_of_instruments():

@@ -133,7 +133,7 @@ class orderGeneratorForStrategy(object):
 
         if revised_order.trade != proposed_order.trade:
             log = proposed_order.log_with_attributes(self.log)
-            log.msg(
+            log.debug(
                 "%s trade change from %s to %s because of override %s"
                 % (
                     instrument_strategy.key,
@@ -157,11 +157,11 @@ class orderGeneratorForStrategy(object):
         if new_order.trade != order.trade:
             if new_order.is_zero_trade():
                 ## at position limit, can't do anything
-                log.warn(
+                log.warning(
                     "Can't trade at all because of position limits %s" % str(order)
                 )
             else:
-                log.warn(
+                log.warning(
                     "Can't do trade of %s because of position limits,instead will do %s"
                     % (str(order), str(new_order.trade))
                 )
@@ -174,11 +174,11 @@ class orderGeneratorForStrategy(object):
             # try:
             # we allow existing orders to be modified
             log = order.log_with_attributes(self.log)
-            log.msg("Required order %s" % str(order))
+            log.debug("Required order %s" % str(order))
 
             instrument_locked = data_lock.is_instrument_locked(order.instrument_code)
             if instrument_locked:
-                log.msg("Instrument locked, not submitting")
+                log.debug("Instrument locked, not submitting")
                 continue
             self.submit_order(order)
 
@@ -190,12 +190,12 @@ class orderGeneratorForStrategy(object):
         except zeroOrderException:
             # we checked for zero already, which means that there is an existing order on the stack
             # An existing order of the same size
-            log.warn(
+            log.warning(
                 "Ignoring new order as either zero size or it replicates an existing order on the stack"
             )
 
         else:
-            log.msg(
+            log.debug(
                 "Added order %s to instrument order stack with order id %d"
                 % (str(order), order_id),
                 instrument_order_id=order_id,

@@ -42,7 +42,7 @@ def calculate_buffers(
     log: pst_logger = logtoscreen(""),
 ) -> pd.Series:
 
-    log.msg(
+    log.debug(
         "Calculating buffers for %s" % instrument_code,
         instrument_code=instrument_code,
     )
@@ -50,7 +50,7 @@ def calculate_buffers(
     buffer_method = config.buffer_method
 
     if buffer_method == "forecast":
-        log.msg(
+        log.debug(
             "Calculating forecast method buffers for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -68,14 +68,14 @@ def calculate_buffers(
         )
 
     elif buffer_method == "position":
-        log.msg(
+        log.debug(
             "Calculating position method buffer for %s" % instrument_code,
             instrument_code=instrument_code,
         )
 
         buffer = get_position_method_buffer(config=config, position=position)
     elif buffer_method == "none":
-        log.msg(
+        log.debug(
             "None method, no buffering for %s" % instrument_code,
             instrument_code=instrument_code,
         )

@@ -42,7 +42,7 @@ def get_instrument_object_from_config(
         try:
             config = read_ib_config_from_file()
         except missingFile as e:
-            new_log.warn(
+            new_log.warning(
                 "Can't get config for instrument %s as IB configuration file missing"
                 % instrument_code
             )
@@ -52,7 +52,9 @@ def get_instrument_object_from_config(
     try:
         assert instrument_code in list_of_instruments
     except:
-        new_log.warn("Instrument %s is not in IB configuration file" % instrument_code)
+        new_log.warning(
+            "Instrument %s is not in IB configuration file" % instrument_code
+        )
         raise missingInstrument
 
     futures_instrument_with_ib_data = _get_instrument_object_from_valid_config(

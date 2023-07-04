@@ -137,7 +137,7 @@ def updated_optimal_positions_for_dynamic_system(
             position_entry=position_entry,
         )
 
-        log.msg("New Optimal position %s %s" % (str(position_entry), instrument_code))
+        log.debug("New Optimal position %s %s" % (str(position_entry), instrument_code))
 
 
 def construct_optimal_position_entry(

@@ -39,7 +39,7 @@ class timerClassWithFunction(object):
         log = self.log
         method_name = self.method_name
         if self.run_on_completion_only:
-            log.msg("%s will run once only on process completion" % method_name)
+            log.debug("%s will run once only on process completion" % method_name)
             return None
 
         max_executions = self.max_executions
@@ -49,7 +49,7 @@ class timerClassWithFunction(object):
         else:
             exec_string = "at most %d times" % max_executions
 
-        log.msg(
+        log.debug(
             "%s will run every %d minutes %s with heartbeats every %d minutes"
             % (
                 method_name,
@@ -108,7 +108,7 @@ class timerClassWithFunction(object):
         return self._report_status
 
     def log_msg(self, msg: str):
-        self.log.msg(msg, type=self.process_name)
+        self.log.debug(msg, type=self.process_name)
 
     def check_and_run(self, last_run: bool = False, **kwargs):
         """

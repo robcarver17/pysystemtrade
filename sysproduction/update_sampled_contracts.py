@@ -275,7 +275,7 @@ def mark_existing_contract_as_sampling(
     data_contracts.mark_contract_as_sampling(contract_to_add)
     log = contract_to_add.specific_log(data.log)
 
-    log.msg("Contract %s now sampling" % str(contract_to_add))
+    log.debug("Contract %s now sampling" % str(contract_to_add))
 
 
 def add_new_contract_with_sampling_on(contract_to_add: futuresContract, data: dataBlob):
@@ -290,7 +290,7 @@ def add_new_contract_with_sampling_on(contract_to_add: futuresContract, data: da
 
     log = contract_to_add.specific_log(data.log)
 
-    log.msg("Contract %s now added to database and sampling" % str(contract_to_add))
+    log.debug("Contract %s now added to database and sampling" % str(contract_to_add))
 
 
 def update_expiries_and_sampling_status_for_contracts(
@@ -341,7 +341,7 @@ def update_expiry_and_sampling_status_for_contract(
     try:
         broker_expiry_date = get_contract_expiry_from_broker(contract_object, data=data)
     except missingContract:
-        log.msg(
+        log.debug(
             "Can't find expiry for %s, could be a connection problem but could be because contract has already expired"
             % (str(contract_object))
         )
@@ -350,7 +350,7 @@ def update_expiry_and_sampling_status_for_contract(
         unsample_reason = "Contract not available from IB"
     else:
         if broker_expiry_date == db_expiry_date:
-            log.msg(
+            log.debug(
                 "No change to contract expiry %s to %s"
                 % (str(contract_object), str(broker_expiry_date))
             )
@@ -374,7 +374,7 @@ def update_expiry_and_sampling_status_for_contract(
     if turn_off_sampling:
         # Mark it as stop sampling in the database
         data_contracts.mark_contract_as_not_sampling(contract_object)
-        log.msg(
+        log.debug(
             "Contract %s %s so now stopped sampling"
             % (str(contract_object), unsample_reason),
             contract_date=contract_object.date_str,
@@ -402,7 +402,7 @@ def update_contract_object_with_new_expiry_date(
 
     log = contract_object.specific_log(data.log)
 
-    log.msg(
+    log.debug(
         "Updated expiry of contract %s to %s"
         % (str(contract_object), str(broker_expiry_date))
     )

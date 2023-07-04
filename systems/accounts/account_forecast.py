@@ -178,7 +178,7 @@ class accountForecast(accountCosts):
 
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating pandl for instrument forecast for %s %s"
             % (instrument_code, rule_variation_name),
             instrument_code=instrument_code,

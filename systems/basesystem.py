@@ -260,7 +260,7 @@ class System(object):
             days_required=days_required,
         )
 
-        self.log.msg(
+        self.log.debug(
             "Following instruments removed entirely from sim: %s"
             % str(list_of_instruments_to_remove)
         )
@@ -300,7 +300,7 @@ class System(object):
             set(instrument_list).intersection(set(not_trading))
         )
 
-        self.log.msg(
+        self.log.debug(
             "Following instruments marked as not trading %s"
             % str(not_trading_in_instrument_list)
         )
@@ -349,7 +349,7 @@ class System(object):
         )
         duplicate_list.sort()
         if len(duplicate_list) > 0:
-            self.log.msg(
+            self.log.debug(
                 "Following instruments are 'duplicate_markets' %s "
                 % str(duplicate_list)
             )
@@ -360,7 +360,7 @@ class System(object):
         ignore_instruments = get_list_of_ignored_instruments_in_config(self.config)
         ignore_instruments.sort()
         if len(ignore_instruments) > 0:
-            self.log.msg(
+            self.log.debug(
                 "Following instruments are marked as 'ignore_instruments': not included: %s"
                 % str(ignore_instruments)
             )
@@ -374,7 +374,7 @@ class System(object):
         trading_restrictions.sort()
         if len(trading_restrictions) > 0:
             ## will only log once as cached
-            self.log.msg(
+            self.log.debug(
                 "Following instruments have restricted trading:  %s "
                 % str(trading_restrictions)
             )
@@ -385,7 +385,7 @@ class System(object):
         bad_markets.sort()
         if len(bad_markets) > 0:
             ## will only log once as cached
-            self.log.msg(
+            self.log.debug(
                 "Following instruments are marked as 'bad_markets':  %s"
                 % str(bad_markets)
             )
@@ -405,7 +405,7 @@ class System(object):
         too_short.sort()
 
         if len(too_short) > 0:
-            self.log.msg(
+            self.log.debug(
                 "Following instruments have insufficient history: %s" % str(too_short)
             )
 

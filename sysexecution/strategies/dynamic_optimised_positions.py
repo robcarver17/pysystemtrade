@@ -207,7 +207,7 @@ def get_data_for_objective_instance(
 ) -> dataForObjectiveInstance:
 
     list_of_instruments = list(raw_optimal_position_data.keys())
-    data.log.msg("Getting data for optimisation")
+    data.log.debug("Getting data for optimisation")
 
     previous_positions_as_weights_object = portfolioWeights(previous_positions)
     previous_positions_as_weights_object = (
@@ -244,19 +244,19 @@ def get_data_for_objective_instance(
         ]
     )
 
-    data.log.msg("Getting maximum positions")
+    data.log.debug("Getting maximum positions")
     maximum_position_contracts = get_maximum_position_contracts(
         data, strategy_name=strategy_name, list_of_instruments=list_of_instruments
     )
 
-    data.log.msg("Getting covariance matrix")
+    data.log.debug("Getting covariance matrix")
 
-    data.log.msg("Getting per contract values")
+    data.log.debug("Getting per contract values")
     per_contract_value = get_per_contract_values(
         data, strategy_name=strategy_name, list_of_instruments=list_of_instruments
     )
 
-    data.log.msg("Getting costs")
+    data.log.debug("Getting costs")
     costs = calculate_costs_per_portfolio_weight(
         data,
         per_contract_value=per_contract_value,
@@ -517,11 +517,11 @@ def get_speed_control(data):
             "config.small_system doesn't include buffer or shadow cost or cost_multiplier: you've probably messed up your private_config"
         )
 
-    data.log.msg(
+    data.log.debug(
         "Shadow cost %f multiply by cost multiplier %f) = %f"
         % (trade_shadow_cost, cost_multiplier, trade_shadow_cost * cost_multiplier)
     )
-    data.log.msg("Tracking error buffer %f" % tracking_error_buffer)
+    data.log.debug("Tracking error buffer %f" % tracking_error_buffer)
 
     speed_control = speedControlForDynamicOpt(
         trade_shadow_cost=trade_shadow_cost * cost_multiplier,
@@ -682,7 +682,7 @@ def write_optimised_positions_data_for_code(
         instrument_code=instrument_code, strategy_name=strategy_name
     )
 
-    data.log.msg(
+    data.log.debug(
         "Adding optimal position for %s: %s"
         % (str(instrument_strategy), optimised_position_entry.verbose_repr())
     )
@@ -743,7 +743,7 @@ def trade_given_optimal_and_actual_positions(
     )
 
     log = order_required.log_with_attributes(data.log)
-    log.msg(
+    log.debug(
         "Current %d Required position %d Required trade %d Reference price %f  for contract %s"
         % (
             current_position,

@@ -17,7 +17,7 @@ class cleanTruncateBacktestStates:
 
     def clean_backtest_states(self):
         directory_to_use = get_directory_store_backtests()
-        self.data.log.msg(
+        self.data.log.debug(
             "Deleting old .pck and .yaml backtest state files in directory %s"
             % directory_to_use
         )

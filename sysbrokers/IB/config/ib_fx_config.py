@@ -18,7 +18,7 @@ def get_ib_config_from_file(log) -> pd.DataFrame:
     try:
         config_data = pd.read_csv(IB_CCY_CONFIG_FILE)
     except Exception as e:
-        log.warn("Can't read file %s" % IB_CCY_CONFIG_FILE)
+        log.warning("Can't read file %s" % IB_CCY_CONFIG_FILE)
         raise missingFile from e
 
     return config_data

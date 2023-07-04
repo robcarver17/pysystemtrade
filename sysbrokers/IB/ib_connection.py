@@ -106,12 +106,12 @@ class connectionIB(object):
         return self._account
 
     def close_connection(self):
-        self.log.msg("Terminating %s" % str(self._ib_connection_config))
+        self.log.debug("Terminating %s" % str(self._ib_connection_config))
         try:
             # Try and disconnect IB client
             self.ib.disconnect()
         except BaseException:
-            self.log.warn(
+            self.log.warning(
                 "Trying to disconnect IB client failed... ensure process is killed"
             )
 

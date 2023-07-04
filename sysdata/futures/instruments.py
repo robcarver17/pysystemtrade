@@ -50,7 +50,7 @@ class futuresInstrumentData(baseData):
             )
         setattr(existing_meta_data, meta_name, new_value)
         self.add_instrument_data(instrument_object, ignore_duplication=True)
-        self.log.msg(
+        self.log.debug(
             "Updated %s for %s from %s to %s"
             % (meta_name, instrument_code, existing_meta_data_value, new_value)
         )
@@ -101,11 +101,11 @@ class futuresInstrumentData(baseData):
                 self._delete_instrument_data_without_any_warning_be_careful(
                     instrument_code
                 )
-                self.log.terse("Deleted instrument object %s" % instrument_code)
+                self.log.info("Deleted instrument object %s" % instrument_code)
 
             else:
                 # doesn't exist anyway
-                self.log.warn("Tried to delete non existent instrument")
+                self.log.warning("Tried to delete non existent instrument")
         else:
             self.log.error(
                 "You need to call delete_instrument_data with a flag to be sure"
@@ -137,7 +137,7 @@ class futuresInstrumentData(baseData):
 
         self._add_instrument_data_without_checking_for_existing_entry(instrument_object)
 
-        self.log.terse("Added instrument object %s" % instrument_object.instrument_code)
+        self.log.info("Added instrument object %s" % instrument_object.instrument_code)
 
     def get_list_of_instruments(self):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)

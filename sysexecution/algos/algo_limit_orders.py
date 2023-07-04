@@ -29,7 +29,7 @@ class algoLimit(Algo):
 
     def submit_trade(self) -> orderWithControls:
         contract_order = self.contract_order
-        self.data.log.msg(
+        self.data.log.debug(
             "Submitting limit order for %s, limit price %f"
             % (str(contract_order), contract_order.limit_price)
         )

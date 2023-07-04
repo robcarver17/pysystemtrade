@@ -301,7 +301,7 @@ class futuresContractPriceData(baseData):
         if not_ignoring_duplication:
             if self.has_merged_price_data_for_contract(futures_contract_object):
                 log = futures_contract_object.log(self.log)
-                log.warn(
+                log.warning(
                     "There is already existing data for %s"
                     % futures_contract_object.key
                 )
@@ -332,7 +332,7 @@ class futuresContractPriceData(baseData):
                 contract_object=futures_contract_object, frequency=frequency
             ):
                 log = futures_contract_object.log(self.log)
-                log.warn(
+                log.warning(
                     "There is already existing data for %s"
                     % futures_contract_object.key
                 )
@@ -356,7 +356,7 @@ class futuresContractPriceData(baseData):
         new_log = contract_object.log(self.log)
 
         if len(new_futures_per_contract_prices) == 0:
-            new_log.msg("No new data")
+            new_log.debug("No new data")
             return 0
 
         if frequency is MIXED_FREQ:
@@ -373,7 +373,7 @@ class futuresContractPriceData(baseData):
         )
 
         if merged_prices is SPIKE_IN_DATA:
-            new_log.msg(
+            new_log.debug(
                 "Price has moved too much - will need to manually check - no price update done"
             )
             return SPIKE_IN_DATA
@@ -387,10 +387,12 @@ class futuresContractPriceData(baseData):
 
         elif rows_added == 0:
             if len(old_prices) == 0:
-                new_log.msg("No existing or additional data")
+                new_log.debug("No existing or additional data")
                 return 0
             else:
-                new_log.msg("No additional data since %s " % str(old_prices.index[-1]))
+                new_log.debug(
+                    "No additional data since %s " % str(old_prices.index[-1])
+                )
             return 0
 
         # We have guaranteed no duplication
@@ -406,7 +408,7 @@ class futuresContractPriceData(baseData):
                 ignore_duplication=True,
             )
 
-        new_log.msg("Added %d additional rows of data" % rows_added)
+        new_log.debug("Added %d additional rows of data" % rows_added)
 
         return rows_added
 
@@ -428,7 +430,7 @@ class futuresContractPriceData(baseData):
             )
         else:
             log = futures_contract_object.log(self.log)
-            log.warn("Tried to delete non existent contract")
+            log.warning("Tried to delete non existent contract")
 
     def delete_prices_at_frequency_for_contract_object(
         self,
@@ -453,7 +455,7 @@ class futuresContractPriceData(baseData):
             )
         else:
             log = futures_contract_object.log(self.log)
-            log.warn(
+            log.warning(
                 "Tried to delete non existent contract at frequency %s" % frequency
             )
 

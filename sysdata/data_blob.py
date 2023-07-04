@@ -192,7 +192,7 @@ class dataBlob(object):
 
         datapath = csv_data_paths.get(class_name, "")
         if datapath == "":
-            self.log.warn(
+            self.log.warning(
                 "No key for %s in csv_data_paths, will use defaults (may break in production, should be fine in sim)"
                 % class_name
             )

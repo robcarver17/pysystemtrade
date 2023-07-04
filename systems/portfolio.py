@@ -85,7 +85,7 @@ class Portfolios(SystemStage):
         KEY OUTPUT
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating actual position for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -108,7 +108,7 @@ class Portfolios(SystemStage):
         KEY OUTPUT
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating actual buffers for position for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -202,7 +202,7 @@ class Portfolios(SystemStage):
 
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating notional position for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -310,7 +310,7 @@ class Portfolios(SystemStage):
         2015-12-11  1.133153
         """
 
-        self.log.terse("Calculating instrument div. multiplier")
+        self.log.info("Calculating instrument div. multiplier")
 
         # Get some useful stuff from the config
         div_mult_params = copy(self.config.instrument_div_mult_estimate)
@@ -358,7 +358,7 @@ class Portfolios(SystemStage):
 
         div_mult = self.config.instrument_div_multiplier
 
-        self.log.terse("Using fixed diversification multiplier %f" % div_mult)
+        self.log.info("Using fixed diversification multiplier %f" % div_mult)
 
         # Now we have a fixed weight
         # Need to turn into a two row timeseries covering the range of forecast
@@ -402,7 +402,7 @@ class Portfolios(SystemStage):
          [ 0.99        0.78858156  1.        ]]
         """
 
-        self.log.terse("Calculating instrument correlations")
+        self.log.info("Calculating instrument correlations")
 
         config = self.config
 
@@ -487,7 +487,7 @@ class Portfolios(SystemStage):
 
     @diagnostic()
     def get_unsmoothed_raw_instrument_weights(self) -> pd.DataFrame:
-        self.log.terse("Calculating instrument weights")
+        self.log.info("Calculating instrument weights")
 
         if self.use_estimated_instrument_weights():
             ## will probably be annnual
@@ -535,7 +535,7 @@ class Portfolios(SystemStage):
         2015-12-11  0.333333  0.333333  0.333333
         """
 
-        self.log.msg("Calculating raw instrument weights")
+        self.log.debug("Calculating raw instrument weights")
         instrument_weights_dict = self.get_fixed_instrument_weights_from_config()
 
         # Now we have a dict, fixed_weights.
@@ -576,7 +576,7 @@ class Portfolios(SystemStage):
             % (weight, len(instruments_with_weights))
         )
 
-        self.log.warn(warn_msg)
+        self.log.warning(warn_msg)
 
         instrument_weights = dict(
             [(instrument_code, weight) for instrument_code in instruments_with_weights]
@@ -671,7 +671,7 @@ class Portfolios(SystemStage):
 
         returns_pre_processor = self.returns_pre_processor()
 
-        self.log.terse("Calculating raw instrument weights")
+        self.log.info("Calculating raw instrument weights")
 
         weight_func = weighting_func(
             returns_pre_processor, log=self.log, **weighting_params
@@ -770,7 +770,7 @@ class Portfolios(SystemStage):
         )
         if len(configured_bad_but_not_configured_zero_allocation) > 0:
             if auto_remove_bad_instruments:
-                self.log.warn(
+                self.log.warning(
                     "*** Following instruments are listed as trading_restrictions and/or bad_markets and will be removed from instrument weight optimisation: ***\n%s"
                     % str(configured_bad_but_not_configured_zero_allocation)
                 )
@@ -779,19 +779,19 @@ class Portfolios(SystemStage):
                     + configured_bad_but_not_configured_zero_allocation
                 )
             else:
-                self.log.warn(
+                self.log.warning(
                     "*** Following instruments are listed as trading_restrictions and/or bad_markets but still included in instrument weight optimisation: ***\n%s"
                     % str(configured_bad_but_not_configured_zero_allocation)
                 )
-                self.log.warn(
+                self.log.warning(
                     "This is fine for dynamic systems where we remove them in later optimisation, but may be problematic for static systems"
                 )
-                self.log.warn(
+                self.log.warning(
                     "Consider adding to config element allocate_zero_instrument_weights_to_these_instruments"
                 )
 
         if len(allocate_zero_instrument_weights_to_these_instruments) > 0:
-            self.log.msg(
+            self.log.debug(
                 "Following instruments will have zero weight in optimisation of instrument weights as configured zero or auto removal of configured bad%s"
                 % str(allocate_zero_instrument_weights_to_these_instruments)
             )
@@ -810,7 +810,7 @@ class Portfolios(SystemStage):
             if empty
         ]
 
-        self.log.msg(
+        self.log.debug(
             "Following instruments will have zero weight in optimisation of instrument weights as they have no positions (possibly too expensive?) %s"
             % str(list_of_empty_markets)
         )
@@ -946,7 +946,7 @@ class Portfolios(SystemStage):
             "risk_overlay"
         )
         if risk_overlay_config is arg_not_supplied:
-            self.log.msg("No risk overlay in config: won't apply risk scaling")
+            self.log.debug("No risk overlay in config: won't apply risk scaling")
             return 1.0
 
         normal_risk = self.get_portfolio_risk_for_original_positions()

@@ -101,7 +101,7 @@ class algoOriginalBest(Algo):
             )
         )
         if cut_down_contract_order.trade != contract_order.trade:
-            log.msg(
+            log.debug(
                 "Cut down order to size %s from %s because of algo size limit"
                 % (str(contract_order.trade), str(cut_down_contract_order.trade))
             )
@@ -133,7 +133,9 @@ class algoOriginalBest(Algo):
             )
         else:
             # do a market order
-            log.msg("Conditions are wrong so doing market trade instead of limit trade")
+            log.debug(
+                "Conditions are wrong so doing market trade instead of limit trade"
+            )
             broker_order_with_controls = (
                 self.get_and_submit_broker_order_for_contract_order(
                     cut_down_contract_order, order_type=market_order_type
@@ -154,7 +156,7 @@ class algoOriginalBest(Algo):
 
         trade_open = True
         is_aggressive = False
-        log.msg(
+        log.debug(
             "Managing trade %s with algo 'original-best'"
             % str(broker_order_with_controls_and_order_id.order)
         )
@@ -187,7 +189,7 @@ class algoOriginalBest(Algo):
                     need_to_switch = required_to_switch_to_aggressive(reason_to_switch)
 
                     if need_to_switch:
-                        log.msg("Switch to aggressive because %s" % reason_to_switch)
+                        log.debug("Switch to aggressive because %s" % reason_to_switch)
                         is_aggressive = True
             else:
                 # market trade nothing to do
@@ -195,7 +197,7 @@ class algoOriginalBest(Algo):
 
             order_completed = broker_order_with_controls_and_order_id.completed()
             if order_completed:
-                log.msg("Trade completed")
+                log.debug("Trade completed")
                 break
 
             order_timeout = (
@@ -203,7 +205,7 @@ class algoOriginalBest(Algo):
                 > TOTAL_TIME_OUT
             )
             if order_timeout:
-                log.msg("Run out of time: cancelling")
+                log.debug("Run out of time: cancelling")
                 broker_order_with_controls_and_order_id = cancel_order(
                     data, broker_order_with_controls_and_order_id
                 )
@@ -213,7 +215,7 @@ class algoOriginalBest(Algo):
                 broker_order_with_controls_and_order_id
             )
             if order_cancelled:
-                log.warn("Order has been cancelled: not by algo")
+                log.warning("Order has been cancelled: not by algo")
                 break
 
         return broker_order_with_controls_and_order_id
@@ -230,13 +232,13 @@ def limit_trade_viable(
     )
 
     if raise_adverse_size_issue:
-        log.msg("Limit trade not viable")
+        log.debug("Limit trade not viable")
         return False
 
     # or if not enough time left
     if is_market_about_to_close(data, order=order, log=log):
 
-        log.msg(
+        log.debug(
             "Market about to close or stack handler nearly close - doing market order"
         )
         return False
@@ -279,7 +281,7 @@ def file_log_report_limit_order(
         current_tick,
     )
 
-    log.msg(log_report)
+    log.debug(log_report)
 
 
 def reason_to_switch_to_aggressive(
@@ -335,7 +337,7 @@ def is_market_about_to_close(
     )
 
     if short_of_time is market_closed:
-        log.warn("Market has closed for active limit order %s!" % str(order))
+        log.warning("Market has closed for active limit order %s!" % str(order))
         return True
 
     return short_of_time
@@ -380,7 +382,7 @@ def _is_imbalance_ratio_exceeded(
     latest_imbalance_ratio_exceeded = latest_imbalance_ratio > IMBALANCE_THRESHOLD
 
     if latest_imbalance_ratio_exceeded:
-        log.msg(
+        log.debug(
             "Imbalance ratio for ticker %s %f exceeds threshold %f"
             % (str(current_tick_analysis), latest_imbalance_ratio, IMBALANCE_THRESHOLD)
         )
@@ -400,7 +402,7 @@ def _is_insufficient_size_on_our_preferred_side(
     )
 
     if insufficient_size_on_our_preferred_side:
-        log.msg(
+        log.debug(
             "On ticker %s we require size of %f (our trade %f * adjustment %f) for a limit order but only %f available"
             % (
                 str(current_tick_analysis),

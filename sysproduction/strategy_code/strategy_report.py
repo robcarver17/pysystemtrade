@@ -26,7 +26,7 @@ def get_reporting_function_for_strategy_name(data: dataBlob, strategy_name: str)
         reporting_config = config_for_strategy["reporting_code"]
         reporting_function = reporting_config["function"]
     except BaseException:
-        data.log.warn(
+        data.log.warning(
             "Something went wrong for reporting with strategy %s, using default function %s"
             % (strategy_name, default_reporting_method)
         )

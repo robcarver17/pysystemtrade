@@ -44,13 +44,13 @@ class totalCapitalUpdate(object):
         log = data.log
 
         margin_in_base_currency = broker_data.get_margin_used_in_base_currency()
-        log.msg("Broker margin value is %f" % margin_in_base_currency)
+        log.debug("Broker margin value is %f" % margin_in_base_currency)
 
         # Update total capital
         margin_data.add_total_margin_entry(margin_in_base_currency)
         margin_series = margin_data.get_series_of_total_margin()
 
-        log.msg("Recent margin\n %s" % str(margin_series.tail(10)))
+        log.debug("Recent margin\n %s" % str(margin_series.tail(10)))
 
     def update_capital(self):
         data = self.data
@@ -61,7 +61,7 @@ class totalCapitalUpdate(object):
         total_account_value_in_base_currency = (
             broker_data.get_total_capital_value_in_base_currency()
         )
-        data.log.msg(
+        data.log.debug(
             "Broker account value is %f" % total_account_value_in_base_currency
         )
 
@@ -111,7 +111,7 @@ def _update_capital_with_broker_account_value_if_capital_data_exists(
         log.critical("Error %s whilst updating total capital" % e)
         return failure
 
-    log.msg("New capital is %f" % new_capital)
+    log.debug("New capital is %f" % new_capital)
 
 
 if __name__ == "__main__":

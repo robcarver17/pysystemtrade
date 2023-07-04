@@ -21,7 +21,7 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
             contract_order
         )
 
-        log.msg("Putting balancing trades on stacks")
+        log.debug("Putting balancing trades on stacks")
 
         (
             result,
@@ -42,7 +42,7 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
         contract_order.order_id = contract_order_id
         instrument_order.order_id = instrument_order_id
 
-        log.msg("Updating positions")
+        log.debug("Updating positions")
         self.apply_position_change_to_stored_contract_positions(
             contract_order, contract_order.fill, apply_entire_trade=True
         )
@@ -50,7 +50,7 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
             instrument_order, instrument_order.fill, apply_entire_trade=True
         )
 
-        log.msg("Marking balancing trades as completed and historic order data")
+        log.debug("Marking balancing trades as completed and historic order data")
         self.handle_completed_instrument_order(
             instrument_order_id, treat_inactive_as_complete=True
         )
@@ -64,7 +64,7 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
         broker_order: brokerOrder,
     ):
         log = instrument_order.log_with_attributes(self.log)
-        log.msg("Putting balancing trades on stacks")
+        log.debug("Putting balancing trades on stacks")
 
         try:
             instrument_order_id = (
@@ -111,7 +111,7 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
             log.error("Couldn't add children to contract order exception %s" % str(e))
             return failure, instrument_order_id, contract_order_id, broker_order_id
 
-        log.msg("All balancing trades added to stacks")
+        log.debug("All balancing trades added to stacks")
 
         return success, instrument_order_id, contract_order_id, broker_order_id
 
@@ -128,7 +128,7 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
 
     def create_balance_instrument_trade(self, instrument_order: instrumentOrder):
         log = instrument_order.log_with_attributes(self.log)
-        log.msg("Putting balancing order on instrument stack")
+        log.debug("Putting balancing order on instrument stack")
         instrument_order_id = (
             self.instrument_stack.put_manual_order_on_stack_and_return_order_id(
                 instrument_order
@@ -137,7 +137,7 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
 
         instrument_order.order_id = instrument_order_id
 
-        log.msg(
+        log.debug(
             "Marking balancing trades as completed and updating positions and historic order data"
         )
         self.apply_position_change_to_instrument(

@@ -82,7 +82,7 @@ class ibFxClient(ibPriceClient):
         try:
             ibcontract = self.ib_spotfx_contract(ccy1, ccy2=ccy2)
         except missingContract:
-            log.warn("Can't find IB contract for %s%s" % (ccy1, ccy2))
+            log.warning("Can't find IB contract for %s%s" % (ccy1, ccy2))
             raise missingData
 
         # uses parent class ibClientPrices
