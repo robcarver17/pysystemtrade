@@ -410,13 +410,15 @@ def update_contract_object_with_new_expiry_date(
     )
 
 
-def check_key_contracts_have_not_expired(instrument_code: str, data: dataBlob) -> bool:
+def check_key_contracts_have_not_expired(instrument_code: str, data: dataBlob):
 
     key_contract_ids = get_list_of_key_contract_ids(
         instrument_code=instrument_code, data=data
     )
     list_of_expired_ids = [
-        has_contract_expired(instrument_code=instrument_code, contract_id=contract_id)
+        has_contract_expired(
+            instrument_code=instrument_code, contract_id=contract_id, data=data
+        )
         for contract_id in key_contract_ids
     ]
 
