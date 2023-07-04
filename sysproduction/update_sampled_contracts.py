@@ -408,5 +408,9 @@ def update_contract_object_with_new_expiry_date(
     )
 
 
+def check_key_contracts_have_not_expired():
+    pass
+
+
 if __name__ == "__main__":
     update_sampled_contracts()
