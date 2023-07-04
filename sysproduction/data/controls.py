@@ -486,7 +486,7 @@ class updateOverrides(productionDataLayerGeneric):
         self.db_temporary_override_data.clear_stored_override_for_instrument(
             instrument_code
         )
-        self.log.msg(
+        self.log.debug(
             "Removed temporary override for %s, was %s, now back to %s"
             % (instrument_code, str(temporary_override), str(stored_override))
         )

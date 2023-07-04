@@ -508,7 +508,7 @@ def check_if_getting_close_to_expiry(
 def warn_not_rolling(instrument_code: str, auto_parameters: autoRollParameters):
 
     print_with_landing_strips_around(
-        "\n N change to rolling status for %s given parameters %s\n"
+        "\nNo change to rolling status for %s given parameters %s\n"
         % (instrument_code, str(auto_parameters))
     )
 
