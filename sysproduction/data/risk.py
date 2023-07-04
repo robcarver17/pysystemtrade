@@ -159,6 +159,26 @@ def get_perc_of_strategy_capital_for_instrument_per_contract(
     return exposure_per_contract / capital_base_fx
 
 
+def get_current_ann_stdev_of_prices(data, instrument_code):
+    try:
+        current_stdev_ann_price_units = get_ann_ts_stdev_of_prices(
+            data=data, instrument_code=instrument_code
+        )[-1]
+    except:
+        ## can happen for brand new instruments not properly loaded
+        return np.nan
+
+    return current_stdev_ann_price_units
+
+
+def get_ann_ts_stdev_of_prices(data, instrument_code):
+    stdev_ann_price_units = get_daily_ts_stdev_of_prices(
+        data=data, instrument_code=instrument_code
+    )
+
+    return stdev_ann_price_units * ROOT_BDAYS_INYEAR
+
+
 def get_daily_ts_stdev_of_prices(data, instrument_code):
     dailyreturns = get_daily_returns_for_risk(data, instrument_code)
     volconfig = copy(vol_config(data))

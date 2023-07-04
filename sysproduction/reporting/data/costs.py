@@ -19,7 +19,7 @@ from sysproduction.reporting.data.trades import (
     get_recent_broker_orders,
     create_raw_slippage_df,
 )
-from sysproduction.data.risk import get_current_annualised_perc_stdev_for_instrument
+from sysproduction.data.risk import get_current_ann_stdev_of_prices
 
 
 def get_current_configured_spread_cost(data) -> pd.Series:
@@ -35,34 +35,8 @@ def get_SR_cost_calculation_for_instrument(
     include_spread: bool = True,
 ):
 
-    percentage_cost = get_percentage_cost_for_instrument(
-        data,
-        instrument_code,
-        include_spread=include_spread,
-        include_commission=include_commission,
-    )
-    avg_annual_vol_perc = get_percentage_ann_stdev(data, instrument_code)
-
-    # cost per round trip
-    SR_cost = 2.0 * percentage_cost / avg_annual_vol_perc
-
-    return dict(
-        percentage_cost=percentage_cost,
-        avg_annual_vol_perc=avg_annual_vol_perc,
-        SR_cost=SR_cost,
-    )
-
-
-def get_percentage_cost_for_instrument(
-    data: dataBlob,
-    instrument_code: str,
-    include_spread: bool = True,
-    include_commission: bool = True,
-):
     diag_instruments = diagInstruments(data)
     costs_object = diag_instruments.get_cost_object(instrument_code)
-    if not include_spread and not include_commission:
-        return 0
     if not include_spread:
         costs_object = costs_object.commission_only()
 
@@ -72,23 +46,31 @@ def get_percentage_cost_for_instrument(
     blocks_traded = 1
     block_price_multiplier = get_block_size(data, instrument_code)
     price = recent_average_price(data, instrument_code)
+
+    stdev_ann_price_units = get_current_ann_stdev_of_prices(
+        data=data, instrument_code=instrument_code
+    )
+
+    SR_cost = costs_object.calculate_sr_cost(
+        blocks_traded=blocks_traded,
+        block_price_multiplier=block_price_multiplier,
+        ann_stdev_price_units=stdev_ann_price_units,
+        price=price,
+    )
+
     percentage_cost = costs_object.calculate_cost_percentage_terms(
         blocks_traded=blocks_traded,
         block_price_multiplier=block_price_multiplier,
         price=price,
     )
 
-    return percentage_cost
+    avg_annual_vol_perc = stdev_ann_price_units / price
 
-
-def get_percentage_ann_stdev(data, instrument_code):
-    try:
-        perc = get_current_annualised_perc_stdev_for_instrument(data, instrument_code)
-    except:
-        ## can happen for brand new instruments not properly loaded
-        return np.nan
-
-    return perc
+    return dict(
+        percentage_cost=percentage_cost,
+        avg_annual_vol_perc=avg_annual_vol_perc,
+        SR_cost=SR_cost,
+    )
 
 
 def adjust_df_costs_show_ticks(

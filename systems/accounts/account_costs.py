@@ -315,38 +315,40 @@ class accountCosts(accountInputs):
         0.0065584086244069775
         """
 
-        cost_in_percentage_terms = self.get_SR_cost_per_trade_for_instrument_percentage(
-            instrument_code
-        )
-        avg_annual_vol_perc = self._recent_average_annual_perc_vol(instrument_code)
+        raw_costs = self.get_raw_cost_data(instrument_code)
+        block_price_multiplier = self.get_value_of_block_price_move(instrument_code)
+        notional_blocks_traded = 1
+        average_price = self._recent_average_price(instrument_code)
+        ann_stdev_price_units = self._recent_average_annual_price_vol(instrument_code)
 
-        # cost per round trip so double
-        SR_cost = 2.0 * cost_in_percentage_terms / avg_annual_vol_perc
+        SR_cost = raw_costs.calculate_sr_cost(
+            block_price_multiplier=block_price_multiplier,
+            ann_stdev_price_units=ann_stdev_price_units,
+            blocks_traded=notional_blocks_traded,
+            price=average_price,
+        )
 
         return SR_cost
 
     @diagnostic()
-    def get_SR_cost_per_trade_for_instrument_percentage(
-        self, instrument_code: str
-    ) -> float:
-        raw_costs = self.get_raw_cost_data(instrument_code)
-        block_price_multiplier = self.get_value_of_block_price_move(instrument_code)
-        average_price = self._recent_average_price(instrument_code)
-        notional_blocks_traded = 1
+    def _recent_average_annual_price_vol(self, instrument_code: str) -> float:
+        average_vol = self._recent_average_daily_vol(instrument_code)
 
-        cost_in_percentage_terms = raw_costs.calculate_cost_percentage_terms(
-            blocks_traded=notional_blocks_traded,
-            block_price_multiplier=block_price_multiplier,
-            price=average_price,
-        )
+        avg_annual_vol = average_vol * ROOT_BDAYS_INYEAR
 
-        return cost_in_percentage_terms
+        return avg_annual_vol
+
+    @diagnostic()
+    def _recent_average_daily_vol(self, instrument_code: str) -> float:
+        daily_vol = self.get_daily_returns_volatility(instrument_code)
+        start_date = self._date_one_year_before_end_of_price_index(instrument_code)
+        average_vol = float(daily_vol[start_date:].mean())
+
+        return average_vol
 
     @diagnostic()
     def _recent_average_price(self, instrument_code: str) -> float:
-        daily_price = self.get_instrument_prices_for_position_or_forecast(
-            instrument_code
-        )
+        daily_price = self.get_daily_prices(instrument_code)
         start_date = self._date_one_year_before_end_of_price_index(instrument_code)
         average_price = float(daily_price[start_date:].mean())
 
@@ -362,24 +364,6 @@ class accountCosts(accountInputs):
         start_date = last_date - pd.DateOffset(years=1)
 
         return start_date
-
-    @diagnostic()
-    def _recent_average_annual_perc_vol(self, instrument_code: str) -> float:
-        average_vol = self._recent_average_daily_vol(instrument_code)
-
-        avg_annual_vol = average_vol * ROOT_BDAYS_INYEAR
-        average_price = self._recent_average_price(instrument_code)
-        avg_annual_vol_perc = avg_annual_vol / average_price
-
-        return avg_annual_vol_perc
-
-    @diagnostic()
-    def _recent_average_daily_vol(self, instrument_code: str) -> float:
-        daily_vol = self.get_daily_returns_volatility(instrument_code)
-        start_date = self._date_one_year_before_end_of_price_index(instrument_code)
-        average_vol = float(daily_vol[start_date:].mean())
-
-        return average_vol
 
     @property
     def use_SR_costs(self) -> bool:
