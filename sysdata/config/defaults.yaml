@@ -64,6 +64,16 @@ production_capital_method: 'full'
 #
 stale_instruments: ['an_instrument_i_no_longer_trade_or_sample']
 #
+# Roll status auto-update
+roll_status_auto_update:
+  auto_roll_if_relative_volume_higher_than: 1.0
+  min_relative_volume: 0.01
+  min_absolute_volume: 100
+  near_expiry_days: 10
+  ## following has to be one of enum roll states in sysobjects/production/roll_state.py
+  ## eg Close, Force_Outright, Force
+  ## or Ask to request from user
+  default_roll_state_if_undecided: Ask
 #
 #           BACKTESTING STUFF
 #

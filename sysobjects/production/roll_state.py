@@ -13,6 +13,8 @@ RollState = Enum(
     ),
 )
 
+list_of_all_roll_states = [state.name for state in RollState]
+
 no_roll_state = RollState.No_Roll
 roll_adj_state = RollState.Roll_Adjusted
 roll_close_state = RollState.Close
