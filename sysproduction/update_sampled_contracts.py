@@ -427,6 +427,8 @@ def check_key_contracts_have_not_expired(instrument_code: str, data: dataBlob):
             "A key contract for %s has expired - *** YOU NEED TO ROLL ***"
             % instrument_code
         )
+    else:
+        data.log.debug("All key contracts for %s are still active" % instrument_code)
 
 
 def get_list_of_key_contract_ids(instrument_code: str, data: dataBlob) -> list:
