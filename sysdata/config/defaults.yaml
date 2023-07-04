@@ -75,6 +75,17 @@ roll_status_auto_update:
   ## or Ask to request from user
   default_roll_state_if_undecided: Ask
 #
+# Force certain instruments to use a specific execution algo
+# Algos must be classes eg sysexecution.algos.algo_market.algoMarket
+# Copy and paste this into private_config to modify
+execution_algos:
+  default_algo: sysexecution.algos.algo_original_best.algoOriginalBest
+  market_algo: sysexecution.algos.algo_market.algoMarket
+  limit_order_algo: sysexecution.algos.algo_limit_orders.algoLimit
+  best_algo: sysexecution.algos.algo_original_best.algoOriginalBest
+  algo_overrides:
+    some_market_name_eg_IRON: sysexecution.algos.algo_market.algoMarket
+#
 #           BACKTESTING STUFF
 #
 # Raw data

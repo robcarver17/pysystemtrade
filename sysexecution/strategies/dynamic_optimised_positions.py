@@ -178,7 +178,6 @@ class dataForObjectiveInstance:
     maximum_position_contracts: portfolioWeights
     constraints: constraintsForDynamicOpt
     speed_control: speedControlForDynamicOpt
-    constraints: constraintsForDynamicOpt
 
     @property
     def weights_prior(self) -> portfolioWeights:
