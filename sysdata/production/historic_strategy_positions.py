@@ -122,7 +122,7 @@ class strategyPositionData(baseData):
                 instrument_strategy=instrument_strategy
             )
         else:
-            self.log.warn("Have to be sure to delete last position")
+            self.log.warning("Have to be sure to delete last position")
 
     def get_all_current_positions_as_df(self) -> pd.DataFrame:
         return (
@@ -167,7 +167,7 @@ class strategyPositionData(baseData):
             )
         except missingData:
             ## no existing data can't delete
-            self.log.warn(
+            self.log.warning(
                 "Can't delete last position for %s, as none present"
                 % str(instrument_strategy)
             )

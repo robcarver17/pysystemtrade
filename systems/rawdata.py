@@ -54,7 +54,7 @@ class RawData(SystemStage):
 
         KEY OUTPUT
         """
-        self.log.msg(
+        self.log.debug(
             "Calculating daily prices for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -70,7 +70,7 @@ class RawData(SystemStage):
 
     @input
     def get_natural_frequency_prices(self, instrument_code: str) -> pd.Series:
-        self.log.msg(
+        self.log.debug(
             "Retrieving natural prices for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -184,7 +184,7 @@ class RawData(SystemStage):
         2015-12-11  0.058626
 
         """
-        self.log.msg(
+        self.log.debug(
             "Calculating daily volatility for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -281,7 +281,7 @@ class RawData(SystemStage):
         2015-12-10    -1.219510
         2015-12-11     1.985413
         """
-        self.log.msg(
+        self.log.debug(
             "Calculating normalised return for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -304,7 +304,7 @@ class RawData(SystemStage):
         :return: pd.Series
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating cumulative normalised return for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -406,7 +406,7 @@ class RawData(SystemStage):
         try:
             rolls_per_year = self.data_stage.get_rolls_per_year(instrument_code)
         except:
-            self.log.warn(
+            self.log.warning(
                 "No roll data for %s, this is fine for spot instruments but not for futures"
                 % instrument_code
             )
@@ -674,7 +674,7 @@ class RawData(SystemStage):
         try:
             prices = self.get_instrument_raw_carry_data(instrument_code).PRICE
         except missingData:
-            self.log.warn(
+            self.log.warning(
                 "No carry data found for %s, using adjusted prices to calculate percentage returns"
                 % instrument_code
             )

@@ -13,6 +13,8 @@ RollState = Enum(
     ),
 )
 
+list_of_all_roll_states = [state.name for state in RollState]
+
 no_roll_state = RollState.No_Roll
 roll_adj_state = RollState.Roll_Adjusted
 roll_close_state = RollState.Close
@@ -28,6 +30,13 @@ roll_explanations = {
     RollState.Close: "Close position in near contract only",
     RollState.No_Open: "No opening trades as close to expiry but forward not liquid enough",
 }
+
+
+def is_double_sided_trade_roll_state(roll_state: RollState):
+    if roll_state in [RollState.Force, RollState.Force_Outright]:
+        return True
+    else:
+        return False
 
 
 def is_forced_roll_state(roll_state: RollState):
@@ -87,7 +96,7 @@ def allowable_roll_state_from_current_and_position(
         Close1=["Close", "Force", "Force_Outright", "Passive", "No_Roll", "No_Open"],
         Roll_Adjusted0=["No_Roll"],
         Roll_Adjusted1=["Roll_Adjusted"],
-        No_Open0=["Roll_Adjusted", "Passive"],
+        No_Open0=["Roll_Adjusted", "Passive", "No_Open"],
         No_Open1=["Close", "Force", "Force_Outright", "Passive", "No_Roll"],
     )
 

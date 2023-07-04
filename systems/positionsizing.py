@@ -114,7 +114,7 @@ class PositionSizing(SystemStage):
         2015-12-11     2.544598
 
         """
-        self.log.msg(
+        self.log.debug(
             "Calculating subsystem position for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -193,7 +193,7 @@ class PositionSizing(SystemStage):
         2015-12-11   10.344278
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating volatility scalar for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -233,7 +233,7 @@ class PositionSizing(SystemStage):
 
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating instrument value vol for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -275,7 +275,7 @@ class PositionSizing(SystemStage):
 
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating instrument currency vol for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -458,7 +458,7 @@ class PositionSizing(SystemStage):
 
         """
 
-        self.log.msg("Getting vol target")
+        self.log.debug("Getting vol target")
 
         percentage_vol_target = self.get_percentage_vol_target()
 

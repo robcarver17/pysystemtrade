@@ -229,7 +229,7 @@ class Config(object):
         """
         Fills with defaults - private stuff first, then defaults
         """
-        self.log.msg("Adding config defaults")
+        self.log.debug("Adding config defaults")
 
         self_as_dict = self.as_dict()
         defaults_dict = self.default_config_dict

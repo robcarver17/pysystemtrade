@@ -74,7 +74,7 @@ class ibContractsClient(ibClient):
         """
         specific_log = futures_contract_with_ib_data.specific_log(self.log)
         if futures_contract_with_ib_data.is_spread_contract():
-            specific_log.warn("Can only find expiry for single leg contract!")
+            specific_log.warning("Can only find expiry for single leg contract!")
             raise missingContract
 
         try:
@@ -84,7 +84,7 @@ class ibContractsClient(ibClient):
                 always_return_single_leg=True,
             )
         except missingContract:
-            specific_log.warn("Contract is missing can't get expiry")
+            specific_log.warning("Contract is missing can't get expiry")
             raise missingContract
 
         expiry_date = ibcontract.lastTradeDateOrContractMonth
@@ -110,7 +110,7 @@ class ibContractsClient(ibClient):
                 contract_object_with_ib_data
             )
         except Exception as e:
-            specific_log.warn(
+            specific_log.warning(
                 "%s when getting trading hours from %s!"
                 % (str(e), str(contract_object_with_ib_data))
             )
@@ -146,7 +146,7 @@ class ibContractsClient(ibClient):
                 ib_contract_details
             )
         except Exception as e:
-            specific_log.warn(
+            specific_log.warning(
                 "%s when getting trading hours from %s!"
                 % (str(e), str(contract_object_with_ib_data))
             )
@@ -220,7 +220,7 @@ class ibContractsClient(ibClient):
             time_zone_id = self.ib_get_timezoneid(contract_object_with_ib_data)
         except missingData:
             # problem getting timezoneid
-            specific_log.warn(
+            specific_log.warning(
                 "No time zone ID, can't get trading hours for timezone for %s"
                 % str(contract_object_with_ib_data)
             )
@@ -248,7 +248,7 @@ class ibContractsClient(ibClient):
             )
             time_zone_id = ib_contract_details.timeZoneId
         except Exception as e:
-            specific_log.warn(
+            specific_log.warning(
                 "%s when getting time zone from %s!"
                 % (str(e), str(contract_object_with_ib_data))
             )
@@ -279,7 +279,7 @@ class ibContractsClient(ibClient):
                 contract_object_with_ib_data, always_return_single_leg=True
             )
         except missingContract:
-            specific_log.warn("Can't get tick size as contract missing")
+            specific_log.warning("Can't get tick size as contract missing")
             raise
 
         ib_contract_details = self.ib.reqContractDetails(ib_contract)[0]
@@ -287,7 +287,7 @@ class ibContractsClient(ibClient):
         try:
             min_tick = ib_contract_details.minTick
         except Exception as e:
-            specific_log.warn(
+            specific_log.warning(
                 "%s when getting min tick size from %s!"
                 % (str(e), str(ib_contract_details))
             )
@@ -304,7 +304,7 @@ class ibContractsClient(ibClient):
                 contract_object_with_ib_data, always_return_single_leg=True
             )
         except missingContract:
-            specific_log.warn("Can't get price magnifier as contract missing")
+            specific_log.warning("Can't get price magnifier as contract missing")
             raise
 
         ib_contract_details = self.ib.reqContractDetails(ib_contract)[0]
@@ -312,7 +312,7 @@ class ibContractsClient(ibClient):
         try:
             price_magnifier = ib_contract_details.priceMagnifier
         except Exception as e:
-            specific_log.warn(
+            specific_log.warning(
                 "%s when getting price magnifier from %s!"
                 % (str(e), str(ib_contract_details))
             )
@@ -327,7 +327,7 @@ class ibContractsClient(ibClient):
                 contract_object_with_ib_data, always_return_single_leg=True
             )
         except missingContract:
-            specific_log.warn("Can't get trading hours as contract is missing")
+            specific_log.warning("Can't get trading hours as contract is missing")
             raise
 
         # returns a list but should only have one element
@@ -523,7 +523,7 @@ class ibContractsClient(ibClient):
                 futures_instrument_with_ib_data=futures_instrument_with_ib_data,
             )
         except Exception as exception:
-            self.log.warn(
+            self.log.warning(
                 "%s could not resolve contracts: %s"
                 % (str(futures_instrument_with_ib_data), exception.args[0])
             )
@@ -547,14 +547,14 @@ class ibContractsClient(ibClient):
         contract_chain = self.ib_get_contract_chain(ibcontract_pattern)
 
         if len(contract_chain) > 1:
-            log.warn(
+            log.warning(
                 "Got multiple contracts for %s when only expected a single contract: Check contract date"
                 % str(ibcontract_pattern)
             )
             raise missingContract
 
         if len(contract_chain) == 0:
-            log.warn("Failed to resolve contract %s" % str(ibcontract_pattern))
+            log.warning("Failed to resolve contract %s" % str(ibcontract_pattern))
             raise missingContract
 
         resolved_contract = contract_chain[0]

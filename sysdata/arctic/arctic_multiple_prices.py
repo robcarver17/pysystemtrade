@@ -52,7 +52,7 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
     ):
 
         self.arctic.delete(instrument_code)
-        self.log.msg(
+        self.log.debug(
             "Deleted multiple prices for %s from %s" % (instrument_code, str(self))
         )
 
@@ -64,7 +64,7 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
         multiple_price_data_aspd = _change_contracts_to_str(multiple_price_data_aspd)
 
         self.arctic.write(instrument_code, multiple_price_data_aspd)
-        self.log.msg(
+        self.log.debug(
             "Wrote %s lines of prices for %s to %s"
             % (len(multiple_price_data_aspd), instrument_code, str(self)),
             instrument_code=instrument_code,

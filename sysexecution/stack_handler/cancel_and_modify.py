@@ -34,7 +34,7 @@ class stackHandlerCancelAndModify(stackHandlerCore):
             if log_critical_on_timeout:
                 self.critical_cancel_log(list_of_uncancelled_broker_orders)
         else:
-            self.log.msg("All orders cancelled okay")
+            self.log.debug("All orders cancelled okay")
 
     def try_and_cancel_all_broker_orders_and_return_list_of_orders(
         self,
@@ -65,7 +65,7 @@ class stackHandlerCancelAndModify(stackHandlerCore):
             return missing_order
 
         log = broker_order.log_with_attributes(self.log)
-        log.msg("Cancelling order on stack with broker %s" % str(broker_order))
+        log.debug("Cancelling order on stack with broker %s" % str(broker_order))
 
         data_broker = self.data_broker
         data_broker.cancel_order_on_stack(broker_order)
@@ -96,7 +96,7 @@ class stackHandlerCancelAndModify(stackHandlerCore):
             if order_is_cancelled:
                 log = broker_order.log_with_attributes(self.log)
                 new_list_of_orders.remove(broker_order)
-                log.msg("Order %s succesfully cancelled" % broker_order)
+                log.debug("Order %s succesfully cancelled" % broker_order)
 
         new_list_of_orders = listOfOrders(new_list_of_orders)
 

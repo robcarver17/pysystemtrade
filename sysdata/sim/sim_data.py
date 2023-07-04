@@ -224,7 +224,7 @@ class simData(baseData):
         :returns: float
 
         """
-        self.log.warn(
+        self.log.warning(
             "Using base method of simData, value of block price move may not be accurate"
         )
 
@@ -246,7 +246,7 @@ class simData(baseData):
 
         """
 
-        self.log.warn("Using base method of simData, using zero costs")
+        self.log.warning("Using base method of simData, using zero costs")
 
         return instrumentCosts()
 

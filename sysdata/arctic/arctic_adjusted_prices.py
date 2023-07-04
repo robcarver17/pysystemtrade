@@ -43,7 +43,7 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
         self, instrument_code: str
     ):
         self.arctic.delete(instrument_code)
-        self.log.msg(
+        self.log.debug(
             "Deleted adjusted prices for %s from %s" % (instrument_code, str(self)),
             instrument_code=instrument_code,
         )
@@ -55,7 +55,7 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
         adjusted_price_data_aspd.columns = ["price"]
         adjusted_price_data_aspd = adjusted_price_data_aspd.astype(float)
         self.arctic.write(instrument_code, adjusted_price_data_aspd)
-        self.log.msg(
+        self.log.debug(
             "Wrote %s lines of prices for %s to %s"
             % (len(adjusted_price_data), instrument_code, str(self)),
             instrument_code=instrument_code,

@@ -88,10 +88,10 @@ class instrumentOrderStackData(orderStackData):
 
         if new_order.is_zero_trade() and not allow_zero_orders:
             log_msg = "Zero orders not allowed"
-            log.msg(log_msg)
+            log.debug(log_msg)
             raise zeroOrderException(log_msg)
 
-        log.msg("New order %s putting on %s" % (str(new_order), str(self)))
+        log.debug("New order %s putting on %s" % (str(new_order), str(self)))
 
         order_id = self._put_order_on_stack_and_get_order_id(new_order)
 
@@ -127,7 +127,7 @@ class instrumentOrderStackData(orderStackData):
             error_msg = "Adjusted order %s is zero, zero orders not allowed" % str(
                 adjusted_order
             )
-            log.warn(error_msg)
+            log.warning(error_msg)
             raise zeroOrderException(error_msg)
 
         order_id = self._put_order_on_stack_and_get_order_id(adjusted_order)
@@ -154,7 +154,7 @@ def calculate_adjusted_order_given_existing_orders(
         )
     )
 
-    log.msg(
+    log.debug(
         "Already have orders %s wanted %s so putting on order for %s (%s)"
         % (
             str(existing_trades),

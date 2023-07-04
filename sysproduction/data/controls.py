@@ -122,9 +122,32 @@ class dataTradeLimits(productionDataLayerGeneric):
         self, instrument_strategy: instrumentStrategy, proposed_trade: tradeQuantity
     ) -> int:
 
-        proposed_trade_as_int = proposed_trade.total_abs_qty()
-        possible_trade = self.db_trade_limit_data.what_trade_is_possible(
-            instrument_strategy, proposed_trade_as_int
+        proposed_trade_qty = proposed_trade.total_abs_qty()
+        possible_trade = self.what_trade_qty_possible_for_instrument_strategy(
+            instrument_strategy=instrument_strategy,
+            proposed_trade_qty=proposed_trade_qty,
+        )
+
+        return possible_trade
+
+    def what_trade_qty_possible_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy, proposed_trade_qty: int
+    ) -> int:
+
+        possible_trade = (
+            self.db_trade_limit_data.what_trade_is_possible_for_instrument_strategy(
+                instrument_strategy, proposed_trade_qty
+            )
+        )
+
+        return possible_trade
+
+    def what_trade_qty_possible_for_instrument_code(
+        self, instrument_code, proposed_trade_qty: int
+    ) -> int:
+
+        possible_trade = self.db_trade_limit_data.what_trade_is_possible_for_instrument(
+            instrument_code=instrument_code, proposed_trade=proposed_trade_qty
         )
 
         return possible_trade
@@ -443,7 +466,7 @@ class updateOverrides(productionDataLayerGeneric):
             instrument_code, temporary_override
         )
 
-        self.log.msg(
+        self.log.debug(
             "Temporarily setting override for %s, was %s, now %s"
             % (instrument_code, str(original_override), str(temporary_override))
         )
@@ -463,7 +486,7 @@ class updateOverrides(productionDataLayerGeneric):
         self.db_temporary_override_data.clear_stored_override_for_instrument(
             instrument_code
         )
-        self.log.msg(
+        self.log.debug(
             "Removed temporary override for %s, was %s, now back to %s"
             % (instrument_code, str(temporary_override), str(stored_override))
         )
@@ -720,7 +743,7 @@ class dataPositionLimits(productionDataLayerGeneric):
         self.db_temporary_close_data.add_stored_position_limit(original_limit)
         self.set_abs_position_limit_for_instrument(instrument_code, 0)
 
-        self.log.msg(
+        self.log.debug(
             "Temporarily setting position limit, was %s, now zero"
             % (str(original_limit))
         )
@@ -733,7 +756,7 @@ class dataPositionLimits(productionDataLayerGeneric):
                 )
             )
         except missingData:
-            self.log.warn("No temporary position limit stored")
+            self.log.warning("No temporary position limit stored")
             return None
 
         self.set_abs_position_limit_for_instrument(
@@ -743,7 +766,7 @@ class dataPositionLimits(productionDataLayerGeneric):
         self.db_temporary_close_data.clear_stored_position_limit_for_instrument(
             instrument_code
         )
-        self.log.msg(
+        self.log.debug(
             "Reset position limit from temporary zero limit, now %s"
             % str(original_limit)
         )

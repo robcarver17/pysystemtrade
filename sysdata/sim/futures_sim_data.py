@@ -150,7 +150,7 @@ class futuresSimData(simData):
                 instrument_code
             )
         except missingInstrument:
-            self.log.warn(
+            self.log.warning(
                 "Cost data missing for %s will use zero costs" % instrument_code
             )
             return instrumentCosts()

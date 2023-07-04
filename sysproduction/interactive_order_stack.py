@@ -48,7 +48,7 @@ from sysexecution.orders.instrument_orders import (
     instrumentOrderType,
     balance_order_type as instrument_balance_order_type,
 )
-from sysexecution.algos.allocate_algo_to_order import list_of_algos
+from sysexecution.algos.allocate_algo_to_order import get_list_of_algos
 from sysbrokers.IB.ib_connection import connectionIB
 from syscore.constants import arg_not_supplied
 
@@ -508,6 +508,7 @@ def enter_manual_contract_order(data, instrument_order):
         print("It's unlikely you meant to do this...")
 
     NO_ALGO = "None: allow system to allocate"
+    list_of_algos = get_list_of_algos(data)
     algo_to_use = print_menu_of_values_and_get_response(
         list_of_algos, default_str=NO_ALGO
     )

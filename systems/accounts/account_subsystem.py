@@ -82,7 +82,7 @@ class accountSubsystem(accountBufferingSubSystemLevel):
         0.23422378634127036
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating pandl for subsystem for instrument %s" % instrument_code,
             instrument_code=instrument_code,
         )

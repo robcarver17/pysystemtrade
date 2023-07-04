@@ -54,10 +54,10 @@ class futuresContractData(baseData):
                 self._delete_contract_data_without_any_warning_be_careful(
                     instrument_code, contract_date
                 )
-                log.terse("Deleted contract %s/%s" % (instrument_code, contract_date))
+                log.info("Deleted contract %s/%s" % (instrument_code, contract_date))
             else:
                 # doesn't exist anyway
-                log.warn("Tried to delete non existent contract")
+                log.warning("Tried to delete non existent contract")
         else:
             log.error("You need to call delete_contract_data with a flag to be sure")
 
@@ -88,14 +88,14 @@ class futuresContractData(baseData):
             if ignore_duplication:
                 pass
             else:
-                log.warn(
+                log.warning(
                     "There is already %s in the data, you have to delete it first"
                     % (contract_object.key)
                 )
                 return None
 
         self._add_contract_object_without_checking_for_existing_entry(contract_object)
-        log.terse("Added contract %s %s" % (instrument_code, contract_date))
+        log.info("Added contract %s %s" % (instrument_code, contract_date))
 
     def get_list_of_contract_dates_for_instrument_code(
         self, instrument_code: str, allow_expired: bool = False

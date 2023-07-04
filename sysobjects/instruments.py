@@ -314,6 +314,23 @@ class instrumentCosts(object):
     def value_of_pertrade_commission(self):
         return self._value_of_pertrade_commission
 
+    def calculate_sr_cost(
+        self,
+        block_price_multiplier: float,
+        price: float,
+        ann_stdev_price_units: float,
+        blocks_traded: float = 1.0,
+    ) -> float:
+        cost_instrument_currency = self.calculate_cost_instrument_currency(
+            blocks_traded=blocks_traded,
+            block_price_multiplier=block_price_multiplier,
+            price=price,
+        )
+
+        ann_stdev_instrument_currency = ann_stdev_price_units * block_price_multiplier
+
+        return cost_instrument_currency / ann_stdev_instrument_currency
+
     def calculate_cost_percentage_terms(
         self, blocks_traded: float, block_price_multiplier: float, price: float
     ) -> float:

@@ -71,7 +71,7 @@ def run_report_with_data_blob(report_config: reportConfig, data: dataBlob):
     :return:
     """
 
-    data.log.msg("Running report %s" % str(report_config))
+    data.log.debug("Running report %s" % str(report_config))
 
     report_results = run_report_from_config(report_config=report_config, data=data)
     parsed_report = parse_report_results(data=data, report_results=report_results)
@@ -275,7 +275,7 @@ def output_file_report(
             report_text=parsed_report.text, full_filename=full_filename
         )
 
-    data.log.msg("Written report to %s" % full_filename)
+    data.log.debug("Written report to %s" % full_filename)
 
 
 def resolve_report_filename(report_config, data: dataBlob):

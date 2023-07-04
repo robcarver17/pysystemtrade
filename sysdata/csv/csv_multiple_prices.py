@@ -73,7 +73,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
         filename = self._filename_given_instrument_code(instrument_code)
         multiple_price_data.to_csv(filename, index_label=DATE_INDEX_NAME)
 
-        self.log.msg(
+        self.log.debug(
             "Written multiple prices for %s to %s" % (instrument_code, filename),
             instrument_code=instrument_code,
         )
@@ -84,7 +84,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
         try:
             instr_all_price_data = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
         except OSError:
-            self.log.warn(
+            self.log.warning(
                 "Can't find multiple price file %s or error reading" % filename,
                 instrument_code=instrument_code,
             )

@@ -124,12 +124,12 @@ class objectiveFunctionForGreedy:
         tracking_error_smaller_than_buffer = tracking_error < tracking_error_buffer
 
         if tracking_error_smaller_than_buffer:
-            self.log.msg(
+            self.log.debug(
                 "Tracking error of current positions vs unrounded optimal is %.4f smaller than buffer %4.f, no trades needed"
                 % (tracking_error, tracking_error_buffer)
             )
         else:
-            self.log.msg(
+            self.log.debug(
                 "Tracking error of current positions vs unrounded optimal is %.4f larger than buffer %.4f"
                 % (tracking_error, tracking_error_buffer)
             )
@@ -175,7 +175,7 @@ class objectiveFunctionForGreedy:
         tracking_error = self.tracking_error_against_optimal(optimised_weights_as_np)
         costs = self.calculate_costs(optimised_weights_as_np)
 
-        self.log.msg(
+        self.log.debug(
             "%s weights, tracking error vs unrounded optimal %.4f costs %.4f"
             % (label, tracking_error, costs)
         )
@@ -197,7 +197,7 @@ class objectiveFunctionForGreedy:
             tracking_error_of_prior=tracking_error_of_prior, speed_control=speed_control
         )
 
-        self.log.msg(
+        self.log.debug(
             "Tracking error current vs optimised %.4f vs buffer %.4f doing %.3f of adjusting trades (0 means no trade)"
             % (tracking_error_of_prior, speed_control.tracking_error_buffer, adj_factor)
         )

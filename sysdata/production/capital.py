@@ -418,7 +418,7 @@ class totalCapitalCalculationData(object):
                 self.capital_data.get_current_broker_account_value()
             )
         except missingData:
-            self._capital_data.log.warn(
+            self._capital_data.log.warning(
                 "Can't apply a delta to broker account value, since no value in data"
             )
             raise
@@ -447,7 +447,7 @@ class totalCapitalCalculationData(object):
         :return: None
         """
         if not are_you_sure:
-            self.capital_data.log.warn("You need to be sure to modify capital!")
+            self.capital_data.log.warning("You need to be sure to modify capital!")
         if date is arg_not_supplied:
             date = datetime.datetime.now()
 
@@ -512,7 +512,7 @@ class totalCapitalCalculationData(object):
         :return:
         """
         if not are_you_sure:
-            self._capital_data.log.warn("You have to be sure to delete capital")
+            self._capital_data.log.warning("You have to be sure to delete capital")
             return failure
 
         self.capital_data.delete_recent_capital(last_date=last_date)

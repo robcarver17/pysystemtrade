@@ -20,6 +20,7 @@ from syscore.interactive.display import (
 
 from sysdata.data_blob import dataBlob
 
+
 from sysobjects.contracts import futuresContract
 from sysobjects.production.roll_state import (
     default_state,
@@ -29,14 +30,17 @@ from sysobjects.production.roll_state import (
     RollState,
     no_roll_state,
     no_open_state,
+    is_double_sided_trade_roll_state,
+    list_of_all_roll_states,
 )
 from sysproduction.reporting.api import reportingApi
 
 from sysproduction.reporting.report_configs import roll_report_config
 from sysproduction.reporting.reporting_functions import run_report_with_data_blob
+from sysproduction.reporting.data.rolls import volume_contracts_in_forward_contract
 
 from sysproduction.data.positions import diagPositions, updatePositions
-from sysproduction.data.controls import updateOverrides
+from sysproduction.data.controls import updateOverrides, dataTradeLimits
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices, get_valid_instrument_code_from_user
 
@@ -55,7 +59,7 @@ def interactive_update_roll_status():
     with dataBlob(log_name="Interactive_Update-Roll-Status") as data:
         api = reportingApi(data)
         function_to_call = get_rolling_master_function()
-        function_to_call(api)
+        function_to_call(api=api, data=data)
 
 
 def get_rolling_master_function():
@@ -93,6 +97,7 @@ class RollDataWithStateReporting(object):
     allowable_roll_states_as_list_of_str: list
     days_until_roll: int
     relative_volume: float
+    absolute_forward_volume: int
 
     @property
     def original_roll_status_as_string(self):
@@ -116,8 +121,10 @@ class RollDataWithStateReporting(object):
         print("")
 
 
-def update_roll_status_manual_cycle(api: reportingApi):
-
+def update_roll_status_manual_cycle(api: reportingApi, data: dataBlob):
+    auto_parameters = get_auto_roll_parameters_potentially_using_default(
+        data=data, use_default=True
+    )
     do_another = True
     while do_another:
         instrument_code = get_valid_instrument_code_from_user(
@@ -127,27 +134,40 @@ def update_roll_status_manual_cycle(api: reportingApi):
             # belt and braces
             do_another = False
         else:
-            manually_report_and_update_roll_state_for_code(api, instrument_code)
+            roll_data = setup_roll_data_with_state_reporting(api.data, instrument_code)
+            manually_report_and_update_roll_state_for_code(
+                api=api,
+                instrument_code=instrument_code,
+                auto_parameters=auto_parameters,
+                roll_data=roll_data,
+            )
 
     return success
 
 
-def update_roll_status_auto_cycle_manual_decide(api: reportingApi):
+def update_roll_status_auto_cycle_manual_decide(api: reportingApi, data: dataBlob):
     days_ahead = get_days_ahead_to_consider_when_auto_cycling()
     instrument_list = get_list_of_instruments_to_auto_cycle(
         api.data, days_ahead=days_ahead
     )
+    auto_parameters = get_auto_roll_parameters_potentially_using_default(
+        data=data, use_default=True
+    )
     for instrument_code in instrument_list:
+        roll_data = setup_roll_data_with_state_reporting(api.data, instrument_code)
         manually_report_and_update_roll_state_for_code(
-            api=api, instrument_code=instrument_code
+            api=api,
+            instrument_code=instrument_code,
+            auto_parameters=auto_parameters,
+            roll_data=roll_data,
         )
 
     return success
 
 
-def update_roll_status_auto_cycle_manual_confirm(api: reportingApi):
+def update_roll_status_auto_cycle_manual_confirm(api: reportingApi, data: dataBlob):
     days_ahead = get_days_ahead_to_consider_when_auto_cycling()
-    auto_parameters = get_auto_roll_parameters()
+    auto_parameters = get_auto_roll_parameters(data)
     instrument_list = get_list_of_instruments_to_auto_cycle(
         api.data, days_ahead=days_ahead
     )
@@ -170,12 +190,12 @@ def update_roll_status_auto_cycle_manual_confirm(api: reportingApi):
             )
 
 
-def update_roll_status_full_auto(api: reportingApi):
+def update_roll_status_full_auto(api: reportingApi, data: dataBlob):
     days_ahead = get_days_ahead_to_consider_when_auto_cycling()
     instrument_list = get_list_of_instruments_to_auto_cycle(
         api.data, days_ahead=days_ahead
     )
-    auto_parameters = get_auto_roll_parameters()
+    auto_parameters = get_auto_roll_parameters(data)
 
     for instrument_code in instrument_list:
         roll_data = setup_roll_data_with_state_reporting(api.data, instrument_code)
@@ -249,61 +269,138 @@ def days_until_earliest_expiry(data: dataBlob, instrument_code: str) -> int:
 
 @dataclass
 class autoRollParameters:
-    min_volume: float
-    manual_prompt_for_position: bool
-    state_when_position_held: RollState
+    auto_roll_if_relative_volume_higher_than: float
+    min_relative_volume: float
+    min_absolute_volume: float
+    near_expiry_days: int
+    default_roll_state_if_undecided: RollState
 
 
-def get_auto_roll_parameters() -> autoRollParameters:
-    min_volume = get_input_from_user_and_convert_to_type(
-        "Minimum relative volume before rolling",
-        type_expected=float,
-        allow_default=True,
-        default_value=0.1,
+ASK_FOR_STATE = "Ask"
+
+
+def get_auto_roll_parameters(data: dataBlob) -> autoRollParameters:
+    default_parameters = default_auto_roll_parameters(data)
+    print("Auto roll parameters: %s" % str(default_parameters))
+    use_default = true_if_answer_is_yes("Use default parameters? [no to change]")
+    auto_parameters = get_auto_roll_parameters_potentially_using_default(
+        data=data, use_default=use_default
     )
+    describe_roll_rules_from_parameters(auto_parameters)
+    input("Press return to continue (or CTRL-C to abort)")
 
-    manual_prompt_for_position = true_if_answer_is_yes(
-        "Manually prompt for state if have position? (y/n)"
-    )
+    return auto_parameters
 
-    if manual_prompt_for_position:
-        state_when_position_held = no_change_required
+
+def get_auto_roll_parameters_potentially_using_default(
+    data: dataBlob, use_default: bool = False
+) -> autoRollParameters:
+    default_parameters = default_auto_roll_parameters(data)
+
+    auto_roll_if_relative_volume_higher_than = default_parameters[
+        "auto_roll_if_relative_volume_higher_than"
+    ]
+    min_relative_volume = default_parameters["min_relative_volume"]
+    min_absolute_volume = default_parameters["min_absolute_volume"]
+    near_expiry_days = default_parameters["near_expiry_days"]
+    default_roll_state_if_undecided = default_parameters[
+        "default_roll_state_if_undecided"
+    ]
+
+    if use_default:
+        pass
     else:
-        state_when_position_held = get_state_to_use_for_held_position()
+        auto_roll_if_relative_volume_higher_than = get_input_from_user_and_convert_to_type(
+            "Minimum relative volume (forward volume/priced volume) before rolling automatically, regardless of contract volume",
+            type_expected=float,
+            allow_default=True,
+            default_value=auto_roll_if_relative_volume_higher_than,
+        )
+
+        min_relative_volume = get_input_from_user_and_convert_to_type(
+            "Relative volume threshold (forward volume/priced volume) before rolling if contract volume threshold also met",
+            type_expected=float,
+            allow_default=True,
+            default_value=min_relative_volume,
+        )
+
+        min_absolute_volume = get_input_from_user_and_convert_to_type(
+            "Minimum absolute volume in contracts for forward contract before rolling automatically, if relative volume threshold met",
+            type_expected=float,
+            allow_default=True,
+            default_value=min_absolute_volume,
+        )
+
+        near_expiry_days = get_input_from_user_and_convert_to_type(
+            "Days before expiry when we switch to NO_OPEN instead of NO_ROLL (if forward not liquid), or switch to using the roll status specified next instead of PASSIVE (if forward is liquid)",
+            type_expected=int,
+            allow_default=True,
+            default_value=near_expiry_days,
+        )
+
+        default_roll_state_if_undecided = get_input_from_user_and_convert_to_type(
+            "Roll state if we are undecided; has to be one of %s (recommend Force, Force_Outright or Close), or %s when we prompt for state on each instrument)"
+            % (str(list_of_all_roll_states), ASK_FOR_STATE),
+            type_expected=str,
+            allow_default=True,
+            default_value=ASK_FOR_STATE,
+        )
 
     auto_parameters = autoRollParameters(
-        min_volume=min_volume,
-        manual_prompt_for_position=manual_prompt_for_position,
-        state_when_position_held=state_when_position_held,
+        min_absolute_volume=min_absolute_volume,
+        min_relative_volume=min_relative_volume,
+        default_roll_state_if_undecided=default_roll_state_if_undecided,
+        auto_roll_if_relative_volume_higher_than=auto_roll_if_relative_volume_higher_than,
+        near_expiry_days=near_expiry_days,
     )
 
     return auto_parameters
 
 
-STATE_OPTIONS = [
-    RollState.Passive,
-    RollState.Force,
-    RollState.Force_Outright,
-    RollState.Close,
-]
-STATE_OPTIONS_AS_STR = [str(state) for state in STATE_OPTIONS]
+def default_auto_roll_parameters(data: dataBlob) -> dict:
+    try:
+        default_parameters = data.config.roll_status_auto_update
+    except:
+        raise Exception(
+            "defaults.yaml or private_config.yaml should contain element 'roll_status_auto_update'"
+        )
+
+    return default_parameters
 
 
-def get_state_to_use_for_held_position() -> RollState:
+def describe_roll_rules_from_parameters(auto_parameters: autoRollParameters):
 
     print(
-        "Choose state to automatically assume if we have a position in priced contract AND roll state is currently NO ROLL"
+        "AUTO ROLL RULES:\n\n"
+        + "The test for forward being liquid:\n"
+        + "  - if relative volume between current and forward contract > %f, then considered liquid (and no need to check absolute volume)\n"
+        % (auto_parameters.auto_roll_if_relative_volume_higher_than)
+        + "  - if relative volume between current and forward contract > %f, and if absolute volume contracts>%d, then considered liquid\n\n"
+        % (auto_parameters.min_relative_volume, auto_parameters.min_absolute_volume)
+        + "Forward is not liquid. Are we close to the roll point? (is distance to expiry<%d days)\n"
+        % (auto_parameters.near_expiry_days)
+        + "   -  No, miles away from needing to roll. Trade as normal: NO_ROLL\n"
+        + "   -  Yes, going to roll quite soon. Roll status should be NO_OPEN\n\n "
+        + "Forward is liquid. Do we have a position on in the price contract??\n"
+        + "   - We have no position in the priced contract: ROLL ADJUSTED\n"
+        + "   - If we have a position on then:\n"
+        + "      - Do we have plenty of time? (is distance to expiry>%d days)?\n"
+        % auto_parameters.near_expiry_days
+        + "         - Yes, We have plenty of time PASSIVE ROLL\n"
+        + "         - No, we don't. %s"
+        % describe_action_for_default_roll_state_if_undecided(auto_parameters)
     )
 
-    select_state_for_position_held = print_menu_of_values_and_get_response(
-        STATE_OPTIONS_AS_STR, default_str=STATE_OPTIONS_AS_STR[0]
-    )
 
-    state_when_position_held = STATE_OPTIONS[
-        STATE_OPTIONS_AS_STR.index(select_state_for_position_held)
-    ]
-
-    return state_when_position_held
+def describe_action_for_default_roll_state_if_undecided(
+    auto_parameters: autoRollParameters,
+) -> str:
+    if auto_parameters.default_roll_state_if_undecided == ASK_FOR_STATE:
+        return "We will prompt user for required roll state"
+    else:
+        return "Roll state will be set to %s automatically" % str(
+            auto_parameters.default_roll_state_if_undecided
+        )
 
 
 def auto_selected_roll_state_instrument(
@@ -312,75 +409,154 @@ def auto_selected_roll_state_instrument(
     auto_parameters: autoRollParameters,
 ) -> RollState:
 
-    if roll_data.relative_volume < auto_parameters.min_volume:
-
-        run_roll_report(api, roll_data.instrument_code)
-        print_with_landing_strips_around(
-            "For %s relative volume of %f is less than minimum of %s : NOT AUTO ROLLING"
-            % (
-                roll_data.instrument_code,
-                roll_data.relative_volume,
-                auto_parameters.min_volume,
-            )
-        )
-        return no_change_required
-
-    no_position_held = roll_data.position_priced_contract == 0
-
-    if no_position_held:
-        run_roll_report(api, roll_data.instrument_code)
-        print_with_landing_strips_around(
-            "No position held, auto rolling adjusted price for %s"
-            % roll_data.instrument_code
-        )
-        return roll_adj_state
-
-    if auto_parameters.manual_prompt_for_position:
-        run_roll_report(api, roll_data.instrument_code)
+    run_roll_report(api, roll_data.instrument_code)
+    roll_state_required = suggest_roll_state_for_instrument(
+        roll_data=roll_data, auto_parameters=auto_parameters
+    )
+    if roll_state_required == ASK_FOR_STATE:
+        print("Have to input roll state (recommend Force, Force_Outright or Close)")
         roll_state_required = get_roll_state_required(roll_data)
-        return roll_state_required
 
     original_roll_status = roll_data.original_roll_status
-    if original_roll_status is no_roll_state:
-        roll_state_required = auto_parameters.state_when_position_held
-
-        print_with_landing_strips_around(
-            "Automatically changing state from %s to %s for %s"
-            % (original_roll_status, roll_state_required, roll_data.instrument_code)
-        )
-    else:
+    if original_roll_status == roll_state_required:
         print_with_landing_strips_around(
             "Roll status already set to %s for %s: not changing"
             % (original_roll_status, roll_data.instrument_code)
         )
         return no_change_required
 
+    print_with_landing_strips_around(
+        "Automatically changing state from %s to %s for %s"
+        % (original_roll_status, roll_state_required, roll_data.instrument_code)
+    )
+
     return roll_state_required
+
+
+def suggest_roll_state_for_instrument(
+    roll_data: RollDataWithStateReporting,
+    auto_parameters: autoRollParameters,
+) -> RollState:
+
+    forward_liquid = check_if_forward_liquid(
+        roll_data=roll_data, auto_parameters=auto_parameters
+    )
+    getting_close_to_expiry = check_if_getting_close_to_expiry(
+        roll_data=roll_data, auto_parameters=auto_parameters
+    )
+    no_position_held = roll_data.position_priced_contract == 0
+
+    if forward_liquid:
+        if no_position_held:
+            ## liquid forward, with no position
+            return RollState.Roll_Adjusted
+        else:
+            ## liquid forward, with position held
+            if getting_close_to_expiry:
+                ## liquid forward, with position, close to expiry
+                ##   Up to the user to decide
+                return auto_parameters.default_roll_state_if_undecided
+            else:
+                ## liquid forward, with position held, not close to expiring
+                return RollState.Passive
+    else:
+        # forward illiquid
+        if getting_close_to_expiry:
+            ## forward illiqud and getting close
+            # We don't want to trade the forward - it's not liquid yet.
+            # And we don't want to open a position or increase it in the current
+            #   priced contract, since we will only have to close it again soon.
+            # But we do want to allow ourselves to close any position
+            #   we have in the current priced contract.
+            return RollState.No_Open
+        else:
+            ## forward illiquid and miles away. Don't roll yet.
+            return RollState.No_Roll
+
+
+def check_if_forward_liquid(
+    roll_data: RollDataWithStateReporting,
+    auto_parameters: autoRollParameters,
+) -> bool:
+    very_high_forward_volume = (
+        roll_data.relative_volume
+        > auto_parameters.auto_roll_if_relative_volume_higher_than
+    )
+    relative_threshold_met = (
+        roll_data.relative_volume > auto_parameters.min_relative_volume
+    )
+    absolute_threshold_met = (
+        roll_data.absolute_forward_volume > auto_parameters.min_absolute_volume
+    )
+
+    if very_high_forward_volume:
+        return True
+
+    if relative_threshold_met and absolute_threshold_met:
+        return True
+
+    return False
+
+
+def check_if_getting_close_to_expiry(
+    roll_data: RollDataWithStateReporting,
+    auto_parameters: autoRollParameters,
+):
+    return roll_data.days_until_roll < auto_parameters.near_expiry_days
 
 
 def warn_not_rolling(instrument_code: str, auto_parameters: autoRollParameters):
 
     print_with_landing_strips_around(
-        "\n NOT rolling %s as doesn't meet auto parameters %s\n"
+        "\nNo change to rolling status for %s given parameters %s\n"
         % (instrument_code, str(auto_parameters))
     )
 
 
 def manually_report_and_update_roll_state_for_code(
-    api: reportingApi, instrument_code: str
+    api: reportingApi,
+    instrument_code: str,
+    auto_parameters: autoRollParameters,
+    roll_data: RollDataWithStateReporting,
 ):
     run_roll_report(api, instrument_code)
-    manually_update_roll_state_for_code(api.data, instrument_code)
+    manually_update_roll_state_for_code(
+        data=api.data,
+        instrument_code=instrument_code,
+        auto_parameters=auto_parameters,
+        roll_data=roll_data,
+    )
 
 
-def manually_update_roll_state_for_code(data: dataBlob, instrument_code: str):
+def manually_update_roll_state_for_code(
+    data: dataBlob,
+    instrument_code: str,
+    auto_parameters: autoRollParameters,
+    roll_data: RollDataWithStateReporting,
+):
     # First get the roll info
     # This will also update to console
 
     data.log.setup(instrument_code=instrument_code)
-    roll_data = setup_roll_data_with_state_reporting(data, instrument_code)
+    roll_state_suggested = suggest_roll_state_for_instrument(
+        roll_data=roll_data, auto_parameters=auto_parameters
+    )
+    if roll_state_suggested == ASK_FOR_STATE:
+        print(
+            "No specific state suggested: recommend one of Force, Force_Outright or Close)"
+        )
+        default_state = roll_data.original_roll_status.name
+    else:
+        roll_state_suggested_str = roll_state_suggested.name
+        print(
+            "Suggested roll state based on roll parameters in config: %s"
+            % roll_state_suggested_str
+        )
+        default_state = roll_state_suggested_str
 
-    roll_state_required = get_roll_state_required(roll_data)
+    roll_state_required = get_roll_state_required(
+        roll_data, default_state=default_state
+    )
 
     modify_roll_state(
         data=data,
@@ -401,12 +577,13 @@ def run_roll_report(api: reportingApi, instrument_code: str):
         raise Exception("Can't run roll report, so can't change status")
 
 
-def get_roll_state_required(roll_data: RollDataWithStateReporting) -> RollState:
+def get_roll_state_required(
+    roll_data: RollDataWithStateReporting, default_state: str = "No_Roll"
+) -> RollState:
     invalid_input = True
     while invalid_input:
-        roll_data.display_roll_query_banner()
         roll_state_required_as_str = print_menu_of_values_and_get_response(
-            roll_data.allowable_roll_states_as_list_of_str
+            roll_data.allowable_roll_states_as_list_of_str, default_str=default_state
         )
 
         if roll_state_required_as_str != roll_data.original_roll_status_as_string:
@@ -459,8 +636,13 @@ def setup_roll_data_with_state_reporting(
     relative_volume = relative_volume_in_forward_contract_versus_price(
         data=data, instrument_code=instrument_code
     )
+    absolute_forward_volume = int(
+        volume_contracts_in_forward_contract(data=data, instrument_code=instrument_code)
+    )
     if np.isnan(relative_volume):
         relative_volume = 0.0
+    if np.isnan(absolute_forward_volume):
+        forward_volume = 0
 
     roll_data_with_state = RollDataWithStateReporting(
         instrument_code=instrument_code,
@@ -469,6 +651,7 @@ def setup_roll_data_with_state_reporting(
         allowable_roll_states_as_list_of_str=allowable_roll_states,
         days_until_roll=days_until_roll,
         relative_volume=relative_volume,
+        absolute_forward_volume=absolute_forward_volume,
     )
 
     return roll_data_with_state
@@ -505,6 +688,13 @@ def modify_roll_state(
             confirm_adjusted_price_change=confirm_adjusted_price_change,
         )
 
+    ## Following roll states require trading: force, forceoutright, close
+    check_trading_limits_for_roll_state(
+        data=data,
+        roll_state_required=roll_state_required,
+        instrument_code=instrument_code,
+    )
+
 
 def roll_state_was_no_open_now_something_else(data: dataBlob, instrument_code: str):
     print(
@@ -537,14 +727,14 @@ def state_change_to_roll_adjusted_prices(
 
     if roll_result is success:
         # Return the state back to default (no roll) state
-        data.log.msg(
+        data.log.debug(
             "Successful roll! Returning roll state of %s to %s"
             % (instrument_code, default_state)
         )
 
         update_positions.set_roll_state(instrument_code, default_state)
     else:
-        data.log.msg(
+        data.log.debug(
             "Something has gone wrong with rolling adjusted of %s! Returning roll state to previous state of %s"
             % (instrument_code, original_roll_state)
         )
@@ -592,7 +782,7 @@ def roll_adjusted_and_multiple_prices(
     try:
         rolling_adj_and_mult_object.write_new_rolled_data()
     except Exception as e:
-        data.log.warn(
+        data.log.warning(
             "%s went wrong when rolling: Going to roll-back to original multiple/adjusted prices"
             % e
         )
@@ -656,6 +846,70 @@ def _get_roll_adjusted_multiple_prices_object_ffill_option(
         return failure
 
     return rolling_adj_and_mult_object
+
+
+def check_trading_limits_for_roll_state(
+    data: dataBlob, roll_state_required: RollState, instrument_code: str
+):
+    trading_required = roll_state_required in [
+        RollState.Force,
+        RollState.Force_Outright,
+        RollState.Close,
+    ]
+    if not trading_required:
+        return
+
+    abs_trades_required_for_roll = calculate_abs_trades_required_for_roll(
+        data=data,
+        roll_state_required=roll_state_required,
+        instrument_code=instrument_code,
+    )
+    trades_possible = get_remaining_trades_possible_today_in_contracts_for_instrument(
+        data=data,
+        instrument_code=instrument_code,
+        proposed_trade_qty=abs_trades_required_for_roll,
+    )
+    if trades_possible < abs_trades_required_for_roll:
+        print("**** WARNING ****")
+        print(
+            "Roll for %s requires %d contracts, but we can only trade %d today"
+            % (instrument_code, abs_trades_required_for_roll, trades_possible)
+        )
+        print(
+            "Use interactive controls/trade limits to set higher limit (and don't forget to reset afterwards)"
+        )
+
+
+def calculate_abs_trades_required_for_roll(
+    data: dataBlob, roll_state_required: RollState, instrument_code: str
+) -> float:
+
+    data_contacts = dataContracts(data)
+    diag_positions = diagPositions(data)
+    current_priced_contract_id = data_contacts.get_priced_contract_id(
+        instrument_code=instrument_code
+    )
+    position = diag_positions.get_position_for_contract(
+        futuresContract(
+            instrument_object=instrument_code,
+            contract_date_object=current_priced_contract_id,
+        )
+    )
+
+    if is_double_sided_trade_roll_state(roll_state_required):
+        position = position * 2
+    abs_position = abs(position)
+
+    return abs_position
+
+
+def get_remaining_trades_possible_today_in_contracts_for_instrument(
+    data: dataBlob, instrument_code: str, proposed_trade_qty
+) -> int:
+    data_trade_limits = dataTradeLimits(data)
+    return data_trade_limits.what_trade_qty_possible_for_instrument_code(
+        instrument_code=instrument_code, proposed_trade_qty=proposed_trade_qty
+    )
 
 
 if __name__ == "__main__":

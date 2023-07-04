@@ -36,7 +36,7 @@ class mongoIbBrokerClientIdData(ibBrokerClientIdData):
 
     def _lock_clientid(self, next_id: int):
         self.mongo_data.add_data(next_id, {})
-        self.log.msg("Locked IB client ID %d" % next_id)
+        self.log.debug("Locked IB client ID %d" % next_id)
 
     def release_clientid(self, clientid: int):
         """
@@ -45,4 +45,4 @@ class mongoIbBrokerClientIdData(ibBrokerClientIdData):
         :return: None
         """
         self.mongo_data.delete_data_without_any_warning(clientid)
-        self.log.msg("Released IB client ID %d" % clientid)
+        self.log.debug("Released IB client ID %d" % clientid)

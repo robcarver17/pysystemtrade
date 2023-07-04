@@ -179,7 +179,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         )
 
         if contract_order_after_trade_limits.trade != proposed_order.trade:
-            log.msg(
+            log.debug(
                 "%s trade change from %s to %s because of trade limits"
                 % (
                     proposed_order.key,
@@ -206,7 +206,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         )
 
         if liquid_qty != contract_order_after_trade_limits.trade:
-            log.msg(
+            log.debug(
                 "Cut down order to size %s from %s because of liquidity"
                 % (str(liquid_qty), str(contract_order_after_trade_limits.trade))
             )
@@ -235,7 +235,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
             )
         )
 
-        log.msg(
+        log.debug(
             "Sending order %s to algo %s"
             % (
                 str(contract_order_to_trade_with_algo_set),
@@ -343,7 +343,9 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         # release contract order from algo
         contract_order_id = broker_order.parent
         self.contract_stack.release_order_from_algo_control(contract_order_id)
-        self.log.msg("Released contract order %s from algo control" % contract_order_id)
+        self.log.debug(
+            "Released contract order %s from algo control" % contract_order_id
+        )
 
     def add_trade_to_trade_limits(self, executed_order: brokerOrder):
 

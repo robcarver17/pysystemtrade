@@ -103,7 +103,7 @@ class csvRollParametersData(rollParametersData):
         )
         all_parameters.write_to_file(self.config_file)
 
-        self.log.warn(
+        self.log.warning(
             "*** WRITTEN NEW ROLL PARAMETERS TO %s - copy to /data/futures/csvconfig/rollconfig.csv NOW ***"
             % self.config_file
         )

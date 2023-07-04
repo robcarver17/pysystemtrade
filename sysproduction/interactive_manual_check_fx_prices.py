@@ -59,7 +59,7 @@ def update_manual_check_fx_prices_for_code(fx_code: str, data: dataBlob):
 
     new_fx_prices = data_broker.get_fx_prices(fx_code)  # returns fxPrices object
     if len(new_fx_prices) == 0:
-        data.log.warn("No FX prices found for %s" % fx_code)
+        data.log.warning("No FX prices found for %s" % fx_code)
 
     old_fx_prices = db_currency_data.get_fx_prices(fx_code)
 

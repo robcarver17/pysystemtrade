@@ -59,7 +59,7 @@ class stackHandlerForFills(stackHandlerForCompletions):
 
         if matched_broker_order is missing_order:
             log = db_broker_order.log_with_attributes(self.log)
-            log.warn(
+            log.warning(
                 "Order in database %s does not match any broker orders: can't fill"
                 % db_broker_order
             )
@@ -85,7 +85,7 @@ class stackHandlerForFills(stackHandlerForCompletions):
         )
 
         if result is fill_exceeds_trade:
-            self.log.warn(
+            self.log.warning(
                 "Fill for exceeds trade for %s, ignoring fill... (hopefully will go away)"
                 % (broker_order)
             )

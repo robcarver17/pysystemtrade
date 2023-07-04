@@ -16,7 +16,7 @@ class cleanTruncateLogFiles:
     ## FIXME - CHANGE TO FILE ROTATION
     def clean_log_files(self):
         mlog = diagLogs(self.data)
-        self.data.log.msg("Deleting log items more than 30 days old")
+        self.data.log.debug("Deleting log items more than 30 days old")
         mlog.delete_log_items_from_before_n_days(days=30)
 
 
