@@ -541,14 +541,20 @@ def manually_update_roll_state_for_code(
     roll_state_suggested = suggest_roll_state_for_instrument(
         roll_data=roll_data, auto_parameters=auto_parameters
     )
-    roll_state_suggested_str = roll_state_suggested.name
-    print(
-        "Suggested roll state based on roll parameters in config: %s"
-        % roll_state_suggested_str
-    )
-    roll_state_required = get_roll_state_required(
-        roll_data, default_state=roll_state_suggested_str
-    )
+    if roll_state_suggested is ASK_FOR_STATE:
+        print(
+            "No specific state suggested: recommend one of Force, Force_Outright or Close)"
+        )
+        roll_state_required = get_roll_state_required(roll_data)
+    else:
+        roll_state_suggested_str = roll_state_suggested.name
+        print(
+            "Suggested roll state based on roll parameters in config: %s"
+            % roll_state_suggested_str
+        )
+        roll_state_required = get_roll_state_required(
+            roll_data, default_state=roll_state_suggested_str
+        )
 
     modify_roll_state(
         data=data,
