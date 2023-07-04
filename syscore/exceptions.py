@@ -19,6 +19,10 @@ class missingFile(Exception):
     pass
 
 
+class marketClosed(Exception):
+    pass
+
+
 class existingData(Exception):
     pass
 
