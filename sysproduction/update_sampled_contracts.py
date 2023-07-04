@@ -101,6 +101,8 @@ def update_active_contracts_for_instrument(instrument_code: str, data: dataBlob)
         instrument_code, data, contract_chain=required_contract_chain
     )
 
+    check_key_contracts_have_not_expired(instrument_code=instrument_code, data=data)
+
 
 def get_contract_chain(data: dataBlob, instrument_code: str) -> listOfFuturesContracts:
 
@@ -408,8 +410,39 @@ def update_contract_object_with_new_expiry_date(
     )
 
 
-def check_key_contracts_have_not_expired():
-    pass
+def check_key_contracts_have_not_expired(instrument_code: str, data: dataBlob) -> bool:
+
+    key_contract_ids = get_list_of_key_contract_ids(
+        instrument_code=instrument_code, data=data
+    )
+    list_of_expired_ids = [
+        has_contract_expired(instrument_code=instrument_code, contract_id=contract_id)
+        for contract_id in key_contract_ids
+    ]
+
+    if any(list_of_expired_ids):
+        data.log.critical(
+            "A key contract for %s has expired - *** YOU NEED TO ROLL ***"
+            % instrument_code
+        )
+
+
+def get_list_of_key_contract_ids(instrument_code: str, data: dataBlob) -> list:
+    data_contracts = dataContracts(data)
+    labelled_dict_of_contracts = data_contracts.get_labelled_dict_of_current_contracts(
+        instrument_code
+    )
+    return labelled_dict_of_contracts["contracts"]
+
+
+def has_contract_expired(
+    instrument_code: str, contract_id: str, data: dataBlob
+) -> bool:
+    data_contracts = dataContracts(data)
+    contract = futuresContract(instrument_code, contract_id)
+    actual_contract = data_contracts.get_contract_from_db(contract)
+
+    return actual_contract.expired()
 
 
 if __name__ == "__main__":
