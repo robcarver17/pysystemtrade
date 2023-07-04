@@ -466,7 +466,7 @@ class updateOverrides(productionDataLayerGeneric):
             instrument_code, temporary_override
         )
 
-        self.log.msg(
+        self.log.debug(
             "Temporarily setting override for %s, was %s, now %s"
             % (instrument_code, str(original_override), str(temporary_override))
         )
