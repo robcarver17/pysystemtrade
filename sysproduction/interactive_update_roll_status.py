@@ -541,7 +541,7 @@ def manually_update_roll_state_for_code(
     roll_state_suggested = suggest_roll_state_for_instrument(
         roll_data=roll_data, auto_parameters=auto_parameters
     )
-    if roll_state_suggested is ASK_FOR_STATE:
+    if roll_state_suggested == ASK_FOR_STATE:
         print(
             "No specific state suggested: recommend one of Force, Force_Outright or Close)"
         )
