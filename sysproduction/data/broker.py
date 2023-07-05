@@ -10,9 +10,9 @@ from sysbrokers.broker_capital_data import brokerCapitalData
 from sysbrokers.broker_contract_position_data import brokerContractPositionData
 from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
-from syscore.exceptions import missingContract, missingData
+from syscore.exceptions import missingData
 
-from syscore.constants import market_closed, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.exceptions import orderCannotBeModified
 from sysexecution.orders.named_order_objects import missing_order
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
@@ -192,9 +192,6 @@ class dataBroker(productionDataLayerGeneric):
         less_than_N_hours_of_trading_left = self.broker_futures_contract_data.less_than_N_hours_of_trading_left_for_contract(
             contract, N_hours=N_hours
         )
-
-        if less_than_N_hours_of_trading_left is market_closed:
-            return market_closed
 
         return less_than_N_hours_of_trading_left
 
