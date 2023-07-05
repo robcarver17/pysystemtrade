@@ -1,6 +1,5 @@
 import datetime
 import numpy as np
-from syscore.constants import fill_exceeds_trade
 from syscore.exceptions import fillExceedsTrade
 from sysexecution.orders.named_order_objects import (
     missing_order,
