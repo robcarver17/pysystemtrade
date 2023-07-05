@@ -176,18 +176,24 @@ class dataBroker(productionDataLayerGeneric):
     ) -> futuresInstrumentWithMetaData:
         return self.broker_futures_instrument_data.get_instrument_data(instrument_code)
 
-    def hours_of_trading_left_for_contract(self, contract: futuresContract) -> float:
+    def less_than_N_hours_of_trading_left_for_contract(
+        self, contract: futuresContract, N_hours: float = 1.0
+    ) -> bool:
 
         diag_controls = diagControlProcess()
         hours_left_before_process_finishes = (
             diag_controls.how_long_in_hours_before_trading_process_finishes()
         )
 
-        hours_of_trading_left = self.broker_futures_contract_data.hours_of_trading_left_for_contract(
-            contract
+        if hours_left_before_process_finishes < N_hours:
+            ## irespective of instrument traded
+            return True
+
+        less_than_N_hours_of_trading_left = self.broker_futures_contract_data.less_than_N_hours_of_trading_left_for_contract(
+            contract, N_hours=N_hours
         )
 
-        return min(hours_of_trading_left, hours_left_before_process_finishes)
+        return less_than_N_hours_of_trading_left
 
     def is_contract_okay_to_trade(self, contract: futuresContract) -> bool:
         check_open = self.broker_futures_contract_data.is_contract_okay_to_trade(
