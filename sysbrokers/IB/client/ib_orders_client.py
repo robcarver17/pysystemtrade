@@ -22,6 +22,9 @@ from sysexecution.orders.broker_orders import (
     brokerOrderType,
     market_order_type,
     limit_order_type,
+    snap_mkt_type,
+    snap_mid_type,
+    snap_prim_type,
 )
 
 from sysobjects.contracts import futuresContract
@@ -140,6 +143,33 @@ class ibOrdersClient(ibContractsClient):
                 return missing_order
             else:
                 ib_order = ibLimitOrder(ib_BS_str, ib_qty, limit_price)
+        elif order_type is snap_mkt_type:
+            ## auxPrice is the offset so this will submit an order buy at the best offer, etc
+            ## Works like a market order but works for instruments with no streaming data
+            ib_order = ibOrder(
+                orderType="SNAP_MKT",
+                action=ib_BS_str,
+                totalQuantity=ib_qty,
+                auxPrice=0.0,
+            )
+        elif order_type is snap_mid_type:
+            ## auxPrice is the offset so this will submit an order buy at the best offer, etc
+            ## Works like a market order but works for instruments with no streaming data
+            ib_order = ibOrder(
+                orderType="SNAP_MID",
+                action=ib_BS_str,
+                totalQuantity=ib_qty,
+                auxPrice=0.0,
+            )
+        elif order_type is snap_prim_type:
+            ## auxPrice is the offset so this will submit an order buy at the best offer, etc
+            ## Works like a market order but works for instruments with no streaming data
+            ib_order = ibOrder(
+                orderType="SNAP_PRIM",
+                action=ib_BS_str,
+                totalQuantity=ib_qty,
+                auxPrice=0.0,
+            )
         else:
             self.log.critical("Order type %s not recognised!" % order_type)
             return missing_order

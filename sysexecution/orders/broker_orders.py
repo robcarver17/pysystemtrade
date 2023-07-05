@@ -31,12 +31,19 @@ from syscore.constants import fill_exceeds_trade, success
 
 class brokerOrderType(orderType):
     def allowed_types(self):
-        return ["market", "limit", "balance_trade"]
+        return ["market", "limit", "balance_trade", "snap_mkt", "snap_mid", "snap_prim"]
 
 
 market_order_type = brokerOrderType("market")
 limit_order_type = brokerOrderType("limit")
+
+## internal
 balance_order_type = brokerOrderType("balance_trade")
+
+## special order types, may not be implemented by all brokers
+snap_mkt_type = brokerOrderType("snap_mkt")
+snap_mid_type = brokerOrderType("snap_mid")
+snap_prim_type = brokerOrderType("snap_prim")
 
 
 class brokerOrder(Order):
