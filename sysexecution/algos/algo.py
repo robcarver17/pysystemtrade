@@ -114,13 +114,8 @@ class Algo(object):
                 limit_price_from=limit_price_from,
                 input_limit_price=input_limit_price,
             )
-        elif order_type == market_order_type:
-            limit_price = None
         else:
-            error_msg = "Order type %s not valid for broker orders" % str(order_type)
-            log.critical(error_msg)
-
-            return missing_order
+            limit_price = None
 
         broker_order = create_new_broker_order_from_contract_order(
             contract_order,
