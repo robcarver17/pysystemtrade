@@ -651,6 +651,23 @@ class Portfolios(SystemStage):
 
         return instrument_weights
 
+    def fit_periods(self):
+        # FIXME, NO GUARANTEE THIS OBJECT HAS AN ESTIMATOR UNLESS IT INHERITS FROM
+        # SOME KIND OF BASECLASS
+
+        weight_calculator = self.calculation_of_raw_instrument_weights()
+
+        return weight_calculator.fit_dates
+
+    @diagnostic()
+    def correlation_estimator_for_subsystem_returns(self):
+        # FIXME, NO GUARANTEE THIS OBJECT HAS AN ESTIMATOR UNLESS IT INHERITS FROM
+        # SOME KIND OF BASECLASS
+
+        weight_calculator = self.calculation_of_raw_instrument_weights()
+
+        return weight_calculator.correlation_estimator
+
     @diagnostic(protected=True, not_pickable=True)
     def calculation_of_raw_instrument_weights(self):
 
