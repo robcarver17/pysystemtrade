@@ -295,7 +295,11 @@ class instrumentStrategyAndOptimalPosition(object):
         return self.instrument_strategy.key
 
     def is_for_strategy(self, strategy_name: str):
-        return self.instrument_strategy.strategy_name == strategy_name
+        return self.strategy_name == strategy_name
+
+    @property
+    def strategy_name(self) -> str:
+        return self.instrument_strategy.strategy_name
 
 
 class instrumentStrategyWithOptimalAndCurrentPosition(object):
@@ -360,6 +364,21 @@ class listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies(list):
 
 class listOfOptimalPositionsAcrossInstrumentStrategies(list):
     # list of instrumentStrategyAndOptimalPosition
+    def filter_removing_strategies(self, list_of_strategies_to_remove):
+        filtered_list = [
+            instrument_strategy_with_optimal_and_current_position
+            for instrument_strategy_with_optimal_and_current_position in self
+            if instrument_strategy_with_optimal_and_current_position.strategy_name
+            not in list_of_strategies_to_remove
+        ]
+
+        return listOfOptimalPositionsAcrossInstrumentStrategies(filtered_list)
+
+    def list_of_strategies(self) -> list:
+        list_of_strategies = [position.strategy_name for position in self]
+
+        return list_of_strategies
+
     def filter_by_strategy(self, strategy_name: str):
         filtered_list = [
             instrument_strategy_with_optimal_and_current_position
