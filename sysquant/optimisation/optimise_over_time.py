@@ -37,6 +37,18 @@ class optimiseWeightsOverTime(object):
         return self._fit_dates
 
     @property
+    def correlation_estimator(self):
+        return self.optimiser.correlation_estimator()
+
+    @property
+    def mean_estimator(self):
+        return self.optimiser.mean_estimator()
+
+    @property
+    def stdev_estimator(self):
+        return self.optimiser.stdev_estimator()
+
+    @property
     def optimiser(self) -> portfolioOptimiser:
         return self._optimiser
 

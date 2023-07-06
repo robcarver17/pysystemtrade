@@ -55,12 +55,31 @@ class genericOptimiser(object):
         ## apply cost weight
         return weights
 
+    @property
+    def fit_dates(self) -> list:
+        return self.optimiser.fit_dates
+
+    @property
+    def correlation_estimator(self):
+        return self.optimiser.correlation_estimator
+
+    @property
+    def mean_estimator(self):
+        return self.optimiser.mean_estimator
+
+    @property
+    def stdev_estimator(self):
+        return self.optimiser.stdev_estimator
+
     def raw_weights(self) -> pd.DataFrame:
+        return self.optimiser.weights()
+
+    @property
+    def optimiser(self) -> optimiseWeightsOverTime:
         optimiser = optimiseWeightsOverTime(
             self.net_returns, log=self.log, **self.weighting_params
         )
-
-        return optimiser.weights()
+        return optimiser
 
     def weights_post_processing(self, weights: pd.DataFrame) -> pd.DataFrame:
         # apply cost weights

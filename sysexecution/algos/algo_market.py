@@ -3,7 +3,6 @@ Simplest possible execution method, one market order
 """
 from copy import copy
 from sysexecution.orders.named_order_objects import missing_order
-from sysproduction.data.broker import dataBroker
 
 from sysexecution.algos.algo import Algo
 from sysexecution.algos.common_functions import (
@@ -12,10 +11,8 @@ from sysexecution.algos.common_functions import (
     cancel_order,
     file_log_report_market_order,
 )
-from sysdata.data_blob import dataBlob
-from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
-from sysexecution.orders.broker_orders import market_order_type
+from sysexecution.orders.broker_orders import market_order_type, brokerOrderType
 
 SIZE_LIMIT = 1
 ORDER_TIME_OUT = 600
@@ -64,13 +61,18 @@ class algoMarket(Algo):
                 % (str(contract_order.trade), str(cut_down_contract_order.trade))
             )
 
+        order_type = self.order_type_to_use
         broker_order_with_controls = (
             self.get_and_submit_broker_order_for_contract_order(
-                cut_down_contract_order, order_type=market_order_type
+                cut_down_contract_order, order_type=order_type
             )
         )
 
         return broker_order_with_controls
+
+    @property
+    def order_type_to_use(self) -> brokerOrderType:
+        return market_order_type
 
     def manage_live_trade(
         self, broker_order_with_controls: orderWithControls

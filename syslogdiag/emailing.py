@@ -86,7 +86,7 @@ def _send_msg(msg: MIMEMultipart):
 
     # Send the message via our own SMTP server, but don't include the
     # envelope header.
-    s = smtplib.SMTP(email_server, email_port)
+    s = smtplib.SMTP_SSL(email_server, email_port)
 
     try:
         s.starttls()

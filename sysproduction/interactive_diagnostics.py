@@ -312,8 +312,7 @@ def email_or_print_or_file(report_config):
 # logs emails errors
 def retrieve_emails(data):
     messages = retrieve_and_delete_stored_messages(data)
-    for msg in messages:
-        print(msg)
+    print(messages)
 
 
 # prices

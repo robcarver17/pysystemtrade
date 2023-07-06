@@ -114,6 +114,11 @@ class dataOptimalPositions(productionDataLayerGeneric):
             )
         )
 
+        list_of_optimal_positions_and_instrument_strategies = remove_stale_strategies_from_list_of_optimal_positions_and_instrument_strategies(
+            list_of_optimal_positions_and_instrument_strategies=list_of_optimal_positions_and_instrument_strategies,
+            data=self.data,
+        )
+
         return list_of_optimal_positions_and_instrument_strategies
 
     def get_pd_of_position_breaks(self) -> pd.DataFrame:
@@ -213,3 +218,22 @@ def instrument_strategy_with_raw_tag(
 
 def strategy_name_with_raw_tag(strategy_name: str) -> str:
     return strategy_name + POST_TAG_FOR_RAW_OPTIMAL_POSITION
+
+
+def remove_stale_strategies_from_list_of_optimal_positions_and_instrument_strategies(
+    data: dataBlob,
+    list_of_optimal_positions_and_instrument_strategies: listOfOptimalPositionsAcrossInstrumentStrategies,
+) -> listOfOptimalPositionsAcrossInstrumentStrategies:
+
+    list_of_stale_strategies = get_list_of_stale_strategies(data)
+    list_of_all_strategies = (
+        list_of_optimal_positions_and_instrument_strategies.filter_removing_strategies(
+            list_of_stale_strategies
+        )
+    )
+
+    return list_of_all_strategies
+
+
+def get_list_of_stale_strategies(data: dataBlob) -> list:
+    return data.config.get_element_or_default("stale_strategies", [])

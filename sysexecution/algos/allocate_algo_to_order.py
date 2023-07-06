@@ -40,12 +40,10 @@ def allocate_algo_to_list_of_contract_orders(
     :param list_of_contract_orders:
     :return: list of contract orders with algo added
     """
-    config = get_algo_allocation_config(data)
     new_list_of_contract_orders = []
     for contract_order in list_of_contract_orders:
         contract_order = check_and_if_required_allocate_algo_to_single_contract_order(
             data=data,
-            config=config,
             contract_order=contract_order,
             instrument_order=instrument_order,
         )
@@ -79,11 +77,11 @@ def get_algo_allocation_config(data: dataBlob) -> AlgoConfig:
 
 def check_and_if_required_allocate_algo_to_single_contract_order(
     data: dataBlob,
-    config: AlgoConfig,
     contract_order: contractOrder,
     instrument_order: instrumentOrder,
 ) -> contractOrder:
 
+    config = get_algo_allocation_config(data)
     log = contract_order.log_with_attributes(data.log)
 
     if already_has_algo_allocated(contract_order):
