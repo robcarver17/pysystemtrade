@@ -1,6 +1,8 @@
+from typing import Callable
 import pandas as pd
 
 from syscore.exceptions import missingData
+from sysdata.config.configdata import Config
 from systems.accounts.account_buffering_subsystem import apply_buffer
 from syscore.pandas.strategy_functions import turnover
 from systems.system_cache import diagnostic
@@ -79,9 +81,8 @@ class accountBufferingSystemLevel(accountInputs):
 
         optimal_position = self.get_notional_position(instrument_code)
 
-        try:
-            self.config.get_element("buffer_method")
-        except missingData:
+        buffer_method = self.config.get_element_or_default("buffer_method", "none")
+        if buffer_method == "none":
             if roundpositions:
                 return optimal_position.round()
             else:
