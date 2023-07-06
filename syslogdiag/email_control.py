@@ -17,12 +17,3 @@ class emailControlData(baseData):
 
     def record_date_of_email_warning_send(self, subject):
         raise NotImplementedError
-
-    def store_message(self, body, subject):
-        raise NotImplementedError
-
-    def get_stored_messages(self):
-        raise NotImplementedError
-
-    def delete_stored_messages(self):
-        raise NotImplementedError
