@@ -331,7 +331,7 @@ This is the method you'd use if you were really starting from scratch, and you'd
 In this script (which you should run for each instrument in turn):
 
 - We get prices for individual futures contract [from Arctic](#arcticFuturesContractPriceData) that we created in the [previous stage](#get_historical_data)
-- We get roll parameters [from Mongo](#mongoRollParametersData), that [we made earlier](#set_up_roll_parameter_config) 
+- We get roll parameters [from the csv file](#csvRollParametersData), that [we made earlier](#set_up_roll_parameter_config) 
 - We calculate the roll calendar: 
 `roll_calendar = rollCalendar.create_from_prices(dict_of_futures_contract_prices, roll_parameters)` based on the `ExpiryOffset` parameter stored in the instrument roll parameters we already setup. 
 - We do some checks on the roll calendar, for monotonicity and validity (these checks will generate warnings if things go wrong)
@@ -571,7 +571,7 @@ That's it. You've got all the price and configuration data you need to start liv
 
 The paradigm for data storage is that we have a bunch of [*data objects*](#generic_objects) for specific types of data used in both backtesting and simulation, i.e. `futuresInstrument` is the generic class for storing static information about instruments. [Another set](#production_data_objects) of data objects is only used in production.
 
-Each of those data objects then has a matching *data storage object* which accesses data for that object, i.e. futuresInstrumentData. Then we have [specific instances of those for different data sources](#specific_data_storage), i.e. `mongoFuturesInstrumentData` for storing instrument data in a mongo DB database. 
+Each of those data objects then has a matching *data storage object* which accesses data for that object, i.e. futuresInstrumentData. Then we have [specific instances of those for different data sources](#specific_data_storage), i.e. `csvFuturesInstrumentData` for storing instrument data in a csv file. 
 
 I use [`dataBlob`s](/sysdata/data_blob.py) to access collections of data storage objects in both simulation and production. This also hides the exact source of the data and ensures that data objects are using a common database, logging method, and brokerage connection (since the broker is also accessed via data storage objects). More [later](#data_blobs).
 
@@ -658,7 +658,7 @@ Specific data sources
 
 - Mongo / Arctic
     - `mongoDb`: Connection to a database (arctic or mongo) specifying port, databasename and hostname. Usually created by a `dataBlob`, and the instance is used to create various `mongoConnection`
-    - `mongoConnection`: Creates a connection (combination of database and specific collection) that is created inside object like `mongoRollParametersData`, using a `mongoDb`
+    - `mongoConnection`: Creates a connection (combination of database and specific collection) that is created inside object like `mongoPositionLimitData`, using a `mongoDb`
     - `mongoData`: Provides a common abstract interface to mongo, assuming the data is in dicts. Has different classes for single or multiple keys.
     - `arcticData`: Provides a common abstract interface to arctic, assuming the data is passed as pd.DataFrame
 - Interactive brokers: see [this file](/docs/IB.md)
@@ -858,11 +858,11 @@ If your mongoDB is running on your local machine then you can stick with the def
 
 ```python
 # Instead of:
-mfidata=mongoFuturesInstrumentData()
+adj_data=arcticFuturesAdjustedPricesData()
 
 # Do this
 from sysdata.mongodb import mongoDb
-mfidata=mongoFuturesInstrumentData(mongo_db = mongoDb(mongo_database_name='another database')) # could also change host
+adj_data=arcticFuturesAdjustedPricesData(mongo_db = mongoDb(mongo_database_name='another database')) # could also change host
 ```
 
 <a name="arctic"></a>
@@ -1075,7 +1075,7 @@ class dbFuturesSimData2(genericBlobUsingFuturesSimData):
         if data is arg_not_supplied:
             data = dataBlob(log = log,
                               class_list=[arcticFuturesAdjustedPricesData, arcticFuturesMultiplePricesData,
-                         csvFxPricesData, mongoFuturesInstrumentData], csv_data_paths = {'csvFxPricesData': 'some_path'})
+                         csvFxPricesData, csvFuturesInstrumentData], csv_data_paths = {'csvFxPricesData': 'some_path'})
 
         super().__init__(data=data)
 

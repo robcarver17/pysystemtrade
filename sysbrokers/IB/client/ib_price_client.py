@@ -265,6 +265,7 @@ class ibPriceClient(ibContractsClient):
         last_call = self.last_historic_price_calltime
         _avoid_pacing_violation(last_call, log=log)
 
+        ## If live data is available a request for delayed data would be ignored by TWS.
         self.ib.reqMarketDataType(3)
         bars = self.ib.reqHistoricalData(
             ibcontract,

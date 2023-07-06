@@ -19,7 +19,6 @@ class mongoFuturesContractData(futuresContractData):
 
     We store instrument code, and contract date data (date, expiry, roll cycle)
 
-    If you want more information about a given instrument you have to read it in using mongoFuturesInstrumentData
     """
 
     def __init__(
