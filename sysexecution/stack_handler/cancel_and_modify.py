@@ -1,5 +1,6 @@
 from copy import copy
 
+from sysexecution.order_stacks.order_stack import missingOrder
 from sysexecution.orders.named_order_objects import missing_order
 from syscore.genutils import quickTimer
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
@@ -92,7 +93,13 @@ class stackHandlerCancelAndModify(stackHandlerCore):
         new_list_of_orders = copy(list_of_broker_orders)
         for broker_order in list_of_broker_orders:
             # if an order is cancelled, remove from list
-            order_is_cancelled = self.check_order_cancelled(broker_order)
+            try:
+                order_is_cancelled = self.check_order_cancelled(broker_order)
+            except missingOrder:
+                # Maintains previous behavior by assuming an order was cancelled
+                # when the corresponding IB order is not found
+                order_is_cancelled = True
+
             if order_is_cancelled:
                 log = broker_order.log_with_attributes(self.log)
                 new_list_of_orders.remove(broker_order)
