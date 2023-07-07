@@ -25,7 +25,7 @@ class brokerFuturesContractPriceData(futuresContractPriceData):
     """
 
     def __init__(
-        self, data: dataBlob, log=logtoscreen("brokerFuturesContractPriceData")
+        self, data: dataBlob, log=get_logger("brokerFuturesContractPriceData")
     ):
         super().__init__(log=log)
         self._data = data

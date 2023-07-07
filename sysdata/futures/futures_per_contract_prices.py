@@ -31,7 +31,7 @@ class futuresContractPriceData(baseData):
      or object.get_prices_for_contract_object(futuresContract(....))
     """
 
-    def __init__(self, log=logtoscreen("futuresContractPriceData")):
+    def __init__(self, log=get_logger("futuresContractPriceData")):
         super().__init__(log=log)
 
     def __repr__(self):

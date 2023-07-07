@@ -27,7 +27,7 @@ class portfolioOptimiser:
     def __init__(
         self,
         net_returns: returnsForOptimisation,
-        log: pst_logger = logtoscreen("optimiser"),
+        log=get_logger("optimiser"),
         method="handcraft",
         **weighting_args,
     ):

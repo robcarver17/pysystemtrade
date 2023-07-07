@@ -330,7 +330,7 @@ class dataBlob(object):
     def log(self):
         log = getattr(self, "_log", arg_not_supplied)
         if log is arg_not_supplied:
-            log = logToFile(self.log_name, data=self)
+            log = get_logger(self.log_name)
             log.set_logging_level("on")
             self._log = log
 

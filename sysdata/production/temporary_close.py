@@ -13,7 +13,7 @@ class temporaryCloseData(baseData):
 
     """
 
-    def __init__(self, log=logtoscreen("temporaryCloseData")):
+    def __init__(self, log=get_logger("temporaryCloseData")):
         super().__init__(log=log)
 
     def add_stored_position_limit(

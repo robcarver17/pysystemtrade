@@ -19,7 +19,7 @@ from syslogging.logger import *
 
 class dbFuturesSimData(genericBlobUsingFuturesSimData):
     def __init__(
-        self, data: dataBlob = arg_not_supplied, log=logtoscreen("dbFuturesSimData")
+        self, data: dataBlob = arg_not_supplied, log=get_logger("dbFuturesSimData")
     ):
 
         if data is arg_not_supplied:

@@ -173,7 +173,7 @@ class mongoDataWithMultipleKeys(object):
         mongo_db=arg_not_supplied,
         index_config: dict = None,
     ):
-        self._log = logtoscreen("mongoDataWithMultipleKeys")
+        self._log = get_logger("mongoDataWithMultipleKeys")
         self.init_mongo(collection_name, mongo_db=mongo_db, index_config=index_config)
 
     def init_mongo(

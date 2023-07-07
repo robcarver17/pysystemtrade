@@ -22,7 +22,7 @@ class csvRollCalendarData(rollCalendarData):
     """
 
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvRollCalendarData")
+        self, datapath=arg_not_supplied, log=get_logger("csvRollCalendarData")
     ):
 
         super().__init__(log=log)

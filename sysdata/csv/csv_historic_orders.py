@@ -28,7 +28,7 @@ def from_list_of_orders_to_df(list_of_orders):
 
 class csvStrategyHistoricOrdersData(strategyHistoricOrdersData):
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvStrategyPositionData")
+        self, datapath=arg_not_supplied, log=get_logger("csvStrategyPositionData")
     ):
 
         super().__init__(log=log)
@@ -48,7 +48,7 @@ class csvStrategyHistoricOrdersData(strategyHistoricOrdersData):
 
 class csvContractHistoricOrdersData(contractHistoricOrdersData):
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvContractPositionData")
+        self, datapath=arg_not_supplied, log=get_logger("csvContractPositionData")
     ):
 
         super().__init__(log=log)
@@ -68,7 +68,7 @@ class csvContractHistoricOrdersData(contractHistoricOrdersData):
 
 class csvBrokerHistoricOrdersData(contractHistoricOrdersData):
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvBrokerHistoricOrdersData")
+        self, datapath=arg_not_supplied, log=get_logger("csvBrokerHistoricOrdersData")
     ):
 
         super().__init__(log=log)

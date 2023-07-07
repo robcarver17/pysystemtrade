@@ -13,7 +13,7 @@ class brokerFuturesInstrumentData(futuresInstrumentData):
 
     """
 
-    def __init__(self, data: dataBlob, log=logtoscreen("brokerFuturesInstrumentData")):
+    def __init__(self, data: dataBlob, log=get_logger("brokerFuturesInstrumentData")):
         super().__init__(log=log)
         self._data = data
 

@@ -23,7 +23,7 @@ class csvFuturesSimData(genericBlobUsingFuturesSimData):
     """
 
     def __init__(
-        self, csv_data_paths=arg_not_supplied, log=logtoscreen("csvFuturesSimData")
+        self, csv_data_paths=arg_not_supplied, log=get_logger("csvFuturesSimData")
     ):
 
         data = dataBlob(

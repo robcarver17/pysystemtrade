@@ -20,7 +20,7 @@ class timerClassWithFunction(object):
         function_to_execute,
         data: dataBlob,
         parameters: timerClassParameters,
-        log=logtoscreen(""),
+        log=get_logger(""),
     ):
 
         self._function = function_to_execute  # class.method to run

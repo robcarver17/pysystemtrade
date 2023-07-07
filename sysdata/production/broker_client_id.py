@@ -11,7 +11,7 @@ class brokerClientIdData(baseData):
     def __init__(
         self,
         idoffset: int = 0,
-        log=logtoscreen("brokerClientIdTracker"),
+        log=get_logger("brokerClientIdTracker"),
     ):
 
         super().__init__(log=log)

@@ -28,7 +28,7 @@ class ibFuturesContractData(brokerFuturesContractData):
         self,
         ibconnection: connectionIB,
         data: dataBlob,
-        log=logtoscreen("ibFuturesContractData"),
+        log=get_logger("ibFuturesContractData"),
     ):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection

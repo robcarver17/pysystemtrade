@@ -96,7 +96,7 @@ class ibExecutionStackData(brokerExecutionStackData):
         self,
         ibconnection: connectionIB,
         data: dataBlob,
-        log=logtoscreen("ibExecutionStackData"),
+        log=get_logger("ibExecutionStackData"),
     ):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection

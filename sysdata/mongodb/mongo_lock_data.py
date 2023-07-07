@@ -14,7 +14,7 @@ class mongoLockData(lockData):
 
     """
 
-    def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen("mongoLockData")):
+    def __init__(self, mongo_db=arg_not_supplied, log=get_logger("mongoLockData")):
 
         super().__init__(log=log)
         self._mongo_data = mongoDataWithSingleKey(

@@ -10,7 +10,7 @@ class ibStaticData(brokerStaticData):
         self,
         ibconnection: connectionIB,
         data: dataBlob,
-        log=logtoscreen("ibStaticData"),
+        log=get_logger("ibStaticData"),
     ):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection

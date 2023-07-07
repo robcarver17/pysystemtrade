@@ -71,39 +71,6 @@ def get_logger(name, attributes=None):
     return DynamicAttributeLogger(logging.getLogger(name), attributes)
 
 
-def logtoscreen(name="", **kwargs):
-    warnings.warn(
-        "The 'logtoscreen' class is deprecated, "
-        "use get_logger() from syslogging.logger instead",
-        DeprecationWarning,
-        2,
-    )
-    if not name:
-        if "type" in kwargs:
-            name = kwargs["type"]
-    return get_logger(name, kwargs)
-
-
-def nullLog(name):
-    warnings.warn(
-        "The 'nullLog' class is deprecated, "
-        "use get_logger() from syslogging.logger instead",
-        DeprecationWarning,
-        2,
-    )
-    return get_logger(name)
-
-
-def logToFile(name, data):
-    warnings.warn(
-        "The 'logToFile' class is deprecated, "
-        "use get_logger() from syslogging.logger instead",
-        DeprecationWarning,
-        2,
-    )
-    return get_logger(name)
-
-
 def _configure_logging():
     logging_config_path = os.getenv(CONFIG_ENV_VAR, None)
     if logging_config_path:

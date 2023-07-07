@@ -1,9 +1,9 @@
 from sysdata.base_data import baseData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import get_logger
 
 
 class emailControlData(baseData):
-    def __init__(self, log=logtoscreen("email-control-data")):
+    def __init__(self, log=get_logger("email-control-data")):
         super().__init__(log=log)
 
     def get_time_last_email_sent_with_this_subject(self, subject):
