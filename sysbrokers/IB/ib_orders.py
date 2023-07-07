@@ -400,7 +400,7 @@ class ibExecutionStackData(brokerExecutionStackData):
             self.match_db_broker_order_to_control_order_from_brokers(broker_order)
         )
         if matched_control_order is missing_order:
-            return failure
+            raise Exception("Missing order")
         cancellation_status = self.check_order_is_cancelled_given_control_object(
             matched_control_order
         )
