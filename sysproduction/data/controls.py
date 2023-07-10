@@ -18,6 +18,7 @@ from sysdata.mongodb.mongo_override import mongoOverrideData
 from sysdata.production.broker_client_id import brokerClientIdData
 from sysproduction.data.config import (
     remove_stale_instruments_and_strategies_from_list_of_instrument_strategies,
+    remove_stale_instruments_from_list_of_instruments,
 )
 from sysdata.production.locks import lockData
 from sysdata.production.trade_limits import tradeLimitData
@@ -676,6 +677,10 @@ class dataPositionLimits(productionDataLayerGeneric):
         instrument_list_limits = self._get_instruments_with_position_limits()
 
         instrument_list = list(set(instrument_list_held + instrument_list_limits))
+
+        instrument_list = remove_stale_instruments_from_list_of_instruments(
+            instrument_list
+        )
 
         return instrument_list
 

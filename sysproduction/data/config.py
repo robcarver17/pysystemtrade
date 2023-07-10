@@ -27,6 +27,18 @@ def remove_stale_instruments_from_list_of_instrument_strategies(
     return filtered_list
 
 
+def remove_stale_instruments_from_list_of_instruments(
+    list_of_instrument_codes: list,
+) -> list:
+    list_of_stale_instruments = get_list_of_stale_instruments()
+    filtered_list = [
+        instrument_code
+        for instrument_code in list_of_instrument_codes
+        if instrument_code not in list_of_stale_instruments
+    ]
+    return filtered_list
+
+
 def remove_stale_strategies_from_list_of_instrument_strategies(
     list_of_instrument_strategies: listOfInstrumentStrategies,
 ) -> listOfInstrumentStrategies:
