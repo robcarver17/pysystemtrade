@@ -18,8 +18,9 @@ from sysbrokers.IB.ib_translate_broker_order_objects import (
 from sysbrokers.IB.client.ib_orders_client import ibOrdersClient
 from sysbrokers.broker_execution_stack import brokerExecutionStackData
 from sysdata.data_blob import dataBlob
-from syscore.constants import arg_not_supplied, success, failure
+from syscore.constants import arg_not_supplied, success
 from syscore.exceptions import orderCannotBeModified
+from sysexecution.order_stacks.order_stack import missingOrder
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
@@ -400,7 +401,7 @@ class ibExecutionStackData(brokerExecutionStackData):
             self.match_db_broker_order_to_control_order_from_brokers(broker_order)
         )
         if matched_control_order is missing_order:
-            return failure
+            raise missingOrder
         cancellation_status = self.check_order_is_cancelled_given_control_object(
             matched_control_order
         )
