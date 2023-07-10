@@ -16,6 +16,9 @@ from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 from sysdata.mongodb.mongo_temporary_close import mongoTemporaryCloseData
 from sysdata.mongodb.mongo_override import mongoOverrideData
 from sysdata.production.broker_client_id import brokerClientIdData
+from sysproduction.data.config import (
+    remove_stale_instruments_and_strategies_from_list_of_instrument_strategies,
+)
 from sysdata.production.locks import lockData
 from sysdata.production.trade_limits import tradeLimitData
 from sysdata.production.override import overrideData
@@ -733,8 +736,13 @@ class dataPositionLimits(productionDataLayerGeneric):
         strategy_instrument_list_limits = (
             self.db_position_limit_data.get_all_instrument_strategies_with_limits()
         )
+        strategy_instrument_list_limits_with_stale_removed = (
+            remove_stale_instruments_and_strategies_from_list_of_instrument_strategies(
+                strategy_instrument_list_limits
+            )
+        )
 
-        return strategy_instrument_list_limits
+        return strategy_instrument_list_limits_with_stale_removed
 
     def temporarily_set_position_limit_to_zero_and_store_original_limit(
         self, instrument_code
