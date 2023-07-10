@@ -30,7 +30,7 @@ from syslogging.logger import *
 from sysobjects.production.process_control import (
     process_no_run,
     process_running,
-    process_stop,
+    process_stop, processNotRunning,
 )
 
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
@@ -145,14 +145,14 @@ class processToRun(object):
         )
 
     def _finish_control_process(self):
-        result_of_finish = self.data_control.finish_process(self.process_name)
-
-        if result_of_finish is failure:
+        try:
+            self.data_control.finish_process(self.process_name)
+        except processNotRunning:
             self.log.warning(
                 "Process %s won't finish in process control as already close: weird!"
                 % self.process_name
             )
-        elif result_of_finish is success:
+        else:
             self.log.debug("Process control %s marked close" % self.process_name)
 
 

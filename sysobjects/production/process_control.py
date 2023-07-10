@@ -25,7 +25,6 @@ from syscore.constants import (
     named_object,
     arg_not_supplied,
     success,
-    failure,
 )
 
 process_stop = named_object("process stop")
@@ -45,6 +44,10 @@ start_run_idx = 0
 end_run_idx = 1
 
 missing_date_str = ""
+
+
+class processNotRunning(Exception):
+    pass
 
 
 class dictOfRunningMethods(dict):
@@ -214,25 +217,28 @@ class controlProcess(object):
         if pid_running:
             return still_running_and_pid_ok
 
-        self.finish_process()
+        try:
+            self.finish_process()
+        except processNotRunning:
+            # Edge case: process was changed to running since we checked; don't fail
+            pass
+
         self._recently_crashed = True
 
         return was_running_pid_notok_closed
 
-    def finish_process(self) -> named_object:
+    def finish_process(self):
         """
 
         :return: success, or failure if no process running
         """
 
         if not self.currently_running:
-            return failure
+            raise processNotRunning
 
         self._last_end_time = datetime.datetime.now()
         self._currently_running = False
         self._process_id = default_process_id
-
-        return success
 
     def check_if_should_pause(self) -> bool:
         should_pause = self.status == pause_status

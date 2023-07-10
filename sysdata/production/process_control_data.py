@@ -4,7 +4,7 @@ from syscore.exceptions import missingData
 from sysobjects.production.process_control import (
     dictOfControlProcesses,
     controlProcess,
-    was_running_pid_notok_closed,
+    was_running_pid_notok_closed, processNotRunning,
 )
 from syscore.constants import named_object, success
 from sysdata.base_data import baseData
@@ -124,22 +124,23 @@ class controlProcessData(baseData):
     def finish_all_processes(self):
 
         list_of_names = self.get_list_of_process_names()
-        _ = [self.finish_process(process_name) for process_name in list_of_names]
+        for process_name in list_of_names:
+            try:
+                self.finish_process(process_name)
+            except processNotRunning:
+                pass
 
         return success
 
-    def finish_process(self, process_name: str) -> named_object:
+    def finish_process(self, process_name: str):
         """
 
         :param process_name: str
         :return: sucess or failure if can't finish process (maybe already running?)
         """
         original_process = self.get_control_for_process_name(process_name)
-        result = original_process.finish_process()
-        if result is success:
-            self._update_control_for_process_name(process_name, original_process)
-
-        return result
+        original_process.finish_process()
+        self._update_control_for_process_name(process_name, original_process)
 
     def check_if_process_status_stopped(self, process_name: str) -> bool:
         """
