@@ -121,7 +121,6 @@ class dataOptimalPositions(productionDataLayerGeneric):
 
         list_of_optimal_positions_and_instrument_strategies = remove_stale_strategies_and_instruments_from_list_of_optimal_positions_and_instrument_strategies(
             list_of_optimal_positions_and_instrument_strategies=list_of_optimal_positions_and_instrument_strategies,
-            data=self.data,
         )
 
         return list_of_optimal_positions_and_instrument_strategies
