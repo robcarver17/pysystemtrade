@@ -149,7 +149,9 @@ class listOfTradeLimits(list):
     def __init__(self, list_of_trade_limits: List[tradeLimit]):
         super().__init__(list_of_trade_limits)
 
-    def filter_to_remove_list_of_instruments(self, list_of_instruments_to_remove: list):
+    def filter_to_remove_list_of_instruments(
+        self, list_of_instruments_to_remove: list
+    ) -> "listOfTradeLimits":
         new_list = [
             trade_limit
             for trade_limit in self
@@ -159,7 +161,7 @@ class listOfTradeLimits(list):
 
     def filter_to_remove_list_of_strategy_names(
         self, list_of_strategy_names_to_remove: list
-    ):
+    ) -> "listOfTradeLimits":
         new_list = [
             trade_limit
             for trade_limit in self

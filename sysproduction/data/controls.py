@@ -846,7 +846,7 @@ def remove_stale_instruments_from_list_of_trade_limits(
         list_of_stale_instruments
     )
 
-    return list_of_stale_instruments
+    return filtered_list
 
 
 def remove_stale_strategies_from_list_of_trade_limits(
