@@ -870,7 +870,7 @@ def remove_overrides_for_stale_instruments_from_dict_of_overrides(
     filtered_dict = dict(
         [
             (key, value)
-            for key, value in dict_of_overrides
+            for key, value in dict_of_overrides.items()
             if key not in list_of_stale_instruments
         ]
     )
