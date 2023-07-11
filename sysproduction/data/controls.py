@@ -241,6 +241,9 @@ class diagOverrides(productionDataLayerGeneric):
         )
         all_overrides_in_config = self.get_dict_of_all_overrides_in_config()
         all_overrides = {**all_overrides_in_db_with_reason, **all_overrides_in_config}
+        all_overrides = remove_overrides_for_stale_instruments_from_dict_of_overrides(
+            all_overrides
+        )
 
         return all_overrides
 
