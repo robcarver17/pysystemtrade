@@ -30,7 +30,8 @@ from syslogging.logger import *
 from sysobjects.production.process_control import (
     process_no_run,
     process_running,
-    process_stop, processNotRunning,
+    process_stop,
+    processNotRunning,
 )
 
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess

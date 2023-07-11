@@ -4,7 +4,8 @@ from syscore.exceptions import missingData
 from sysobjects.production.process_control import (
     dictOfControlProcesses,
     controlProcess,
-    was_running_pid_notok_closed, processNotRunning,
+    was_running_pid_notok_closed,
+    processNotRunning,
 )
 from syscore.constants import named_object, success
 from sysdata.base_data import baseData
