@@ -858,3 +858,18 @@ def remove_stale_strategies_from_list_of_trade_limits(
     )
 
     return filtered_list
+
+
+def remove_overrides_for_stale_instruments_from_dict_of_overrides(
+    dict_of_overrides: dict,
+) -> dict:
+    list_of_stale_instruments = get_list_of_stale_instruments()
+    filtered_dict = dict(
+        [
+            (key, value)
+            for key, value in dict_of_overrides
+            if key not in list_of_stale_instruments
+        ]
+    )
+
+    return filtered_dict
