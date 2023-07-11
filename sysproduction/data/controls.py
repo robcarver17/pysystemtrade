@@ -256,6 +256,12 @@ class diagOverrides(productionDataLayerGeneric):
             ]
         )
 
+        all_overrides_in_db_with_reason = (
+            remove_overrides_for_stale_instruments_from_dict_of_overrides(
+                all_overrides_in_db_with_reason
+            )
+        )
+
         return all_overrides_in_db_with_reason
 
     def get_cumulative_override_for_instrument_strategy(
