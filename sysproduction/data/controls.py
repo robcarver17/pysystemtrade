@@ -1,3 +1,4 @@
+from typing import List
 from dataclasses import dataclass
 
 from syscore.exceptions import missingData
@@ -19,9 +20,15 @@ from sysdata.production.broker_client_id import brokerClientIdData
 from sysproduction.data.config import (
     remove_stale_instruments_and_strategies_from_list_of_instrument_strategies,
     remove_stale_instruments_from_list_of_instruments,
+    get_list_of_stale_strategies,
+    get_list_of_stale_instruments,
 )
 from sysdata.production.locks import lockData
-from sysdata.production.trade_limits import tradeLimitData
+from sysdata.production.trade_limits import (
+    tradeLimitData,
+    tradeLimit,
+    listOfTradeLimits,
+)
 from sysdata.production.override import overrideData
 from sysdata.production.temporary_close import temporaryCloseData
 from sysdata.production.temporary_override import temporaryOverrideData
@@ -181,8 +188,11 @@ class dataTradeLimits(productionDataLayerGeneric):
 
         return all_limits_sorted
 
-    def get_all_limits(self) -> list:
+    def get_all_limits(self) -> listOfTradeLimits:
         all_limits = self.db_trade_limit_data.get_all_limits()
+        all_limits = remove_stale_instruments_and_strategies_from_list_of_trade_limits(
+            all_limits
+        )
         return all_limits
 
     def update_instrument_limit_with_new_limit(
@@ -815,3 +825,36 @@ class dataPositionLimits(productionDataLayerGeneric):
         self.db_position_limit_data.delete_position_limit_for_instrument(
             instrument_code
         )
+
+
+def remove_stale_instruments_and_strategies_from_list_of_trade_limits(
+    all_limits: listOfTradeLimits,
+) -> listOfTradeLimits:
+    filtered_list = remove_stale_instruments_from_list_of_trade_limits(all_limits)
+    twice_filtered_list = remove_stale_strategies_from_list_of_trade_limits(
+        filtered_list
+    )
+
+    return twice_filtered_list
+
+
+def remove_stale_instruments_from_list_of_trade_limits(
+    all_limits: listOfTradeLimits,
+) -> listOfTradeLimits:
+    list_of_stale_instruments = get_list_of_stale_instruments()
+    filtered_list = all_limits.filter_to_remove_list_of_instruments(
+        list_of_stale_instruments
+    )
+
+    return list_of_stale_instruments
+
+
+def remove_stale_strategies_from_list_of_trade_limits(
+    all_limits: listOfTradeLimits,
+) -> listOfTradeLimits:
+    list_of_stale_strategies = get_list_of_stale_strategies()
+    filtered_list = all_limits.filter_to_remove_list_of_strategy_names(
+        list_of_stale_strategies
+    )
+
+    return filtered_list
