@@ -77,6 +77,14 @@ class tradeLimit(object):
         return self._instrument_strategy
 
     @property
+    def instrument_code(self) -> str:
+        return self.instrument_strategy.instrument_code
+
+    @property
+    def strategy_name(self) -> str:
+        return self.instrument_strategy.strategy_name
+
+    @property
     def trade_capacity_remaining(self) -> int:
         trades_since_last_reset = self.trades_since_last_reset
         limit = self.trade_limit
