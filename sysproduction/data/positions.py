@@ -18,6 +18,7 @@ from sysdata.production.historic_strategy_positions import (
     strategyPositionData,
     listOfInstrumentStrategyPositions,
 )
+from sysproduction.data.contracts import dataContracts
 
 
 from sysdata.data_blob import dataBlob
@@ -36,6 +37,7 @@ from sysobjects.production.roll_state import (
     is_roll_state_requiring_order_generation,
     is_type_of_active_rolling_roll_state,
     is_double_sided_trade_roll_state,
+    passive_roll_state,
 )
 from sysobjects.contracts import futuresContract
 
@@ -49,6 +51,10 @@ class diagPositions(productionDataLayerGeneric):
             [mongoRollStateData, arcticStrategyPositionData, arcticContractPositionData]
         )
         return data
+
+    @property
+    def data_contracts(self) -> dataContracts:
+        return dataContracts(self.data)
 
     @property
     def db_roll_state_data(self) -> rollStateData:
@@ -76,7 +82,7 @@ class diagPositions(productionDataLayerGeneric):
 
     def is_roll_state_passive(self, instrument_code: str) -> bool:
         roll_state = self.get_roll_state(instrument_code)
-        is_roll_state_passive = roll_state == RollState.Passive
+        is_roll_state_passive = roll_state == passive_roll_state
 
         return is_roll_state_passive
 
@@ -105,9 +111,19 @@ class diagPositions(productionDataLayerGeneric):
 
         return is_roll_state_close
 
-    def is_type_of_active_rolling_roll_state(self, instrument_code: str) -> bool:
+    def is_roll_state_no_open(self, instrument_code: str) -> bool:
         roll_state = self.get_roll_state(instrument_code)
-        return is_type_of_active_rolling_roll_state(roll_state)
+
+        is_roll_state_no_open = roll_state == RollState.No_Open
+
+        return is_roll_state_no_open
+
+    def is_roll_state_adjusted(self, instrument_code: str) -> bool:
+        roll_state = self.get_roll_state(instrument_code)
+
+        is_roll_state_adjusted = roll_state == RollState.Roll_Adjusted
+
+        return is_roll_state_adjusted
 
     def get_name_of_roll_state(self, instrument_code: str) -> RollState:
         roll_state_name = self.db_roll_state_data.get_name_of_roll_state(
@@ -363,6 +379,16 @@ class diagPositions(productionDataLayerGeneric):
 
         return list_of_date_str_with_position
 
+    def get_position_in_priced_contract_for_instrument(
+        self, instrument_code: str
+    ) -> float:
+        contract_id = self.data_contracts.get_priced_contract_id(instrument_code)
+        position = self.get_position_for_contract(
+            futuresContract(instrument_code, contract_id)
+        )
+
+        return position
+
 
 class updatePositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
@@ -391,6 +417,25 @@ class updatePositions(productionDataLayerGeneric):
         return self.db_roll_state_data.set_roll_state(
             instrument_code, roll_state_required
         )
+
+    def check_and_auto_update_roll_state(self, instrument_code: str):
+        current_roll_state = self.diag_positions.get_roll_state(instrument_code)
+        priced_contract_position = (
+            self.diag_positions.get_position_in_priced_contract_for_instrument(
+                instrument_code
+            )
+        )
+        has_no_priced_contract_position = priced_contract_position == 0.0
+        roll_state_requires_order_generation = is_roll_state_requiring_order_generation(
+            current_roll_state
+        )
+
+        if has_no_priced_contract_position and roll_state_requires_order_generation:
+            self.set_roll_state(instrument_code, passive_roll_state)
+            self.log.critical(
+                "Set roll state to passive for %s because no longer have position in priced contract"
+                % instrument_code
+            )
 
     def update_strategy_position_table_with_instrument_order(
         self, original_instrument_order: instrumentOrder, new_fill: tradeQuantity

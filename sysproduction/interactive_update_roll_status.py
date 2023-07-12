@@ -28,7 +28,6 @@ from sysobjects.production.roll_state import (
     explain_roll_state_str,
     allowable_roll_state_from_current_and_position,
     RollState,
-    no_roll_state,
     no_open_state,
     is_double_sided_trade_roll_state,
     list_of_all_roll_states,

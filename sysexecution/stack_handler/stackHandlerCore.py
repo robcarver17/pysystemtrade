@@ -17,6 +17,7 @@ from sysproduction.data.orders import dataOrders
 from sysproduction.data.prices import diagPrices, updatePrices
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.broker import dataBroker
+from sysproduction.data.positions import updatePositions
 
 
 class stackHandlerCore(object):

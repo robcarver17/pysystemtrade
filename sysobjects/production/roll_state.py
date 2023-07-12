@@ -20,6 +20,7 @@ roll_adj_state = RollState.Roll_Adjusted
 roll_close_state = RollState.Close
 no_open_state = RollState.No_Open
 default_state = no_roll_state
+passive_roll_state = RollState.Passive
 
 roll_explanations = {
     RollState.No_Roll: "No rolling happens. Will only trade priced contract.",
