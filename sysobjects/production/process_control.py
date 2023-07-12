@@ -46,8 +46,12 @@ end_run_idx = 1
 missing_date_str = ""
 
 
+class processNotStarted(Exception):
+    """Unable to start the process"""
+
+
 class processNotRunning(Exception):
-    pass
+    """Process expected to be running, but was not"""
 
 
 class dictOfRunningMethods(dict):
