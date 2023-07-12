@@ -88,6 +88,7 @@ class ibPriceClient(ibContractsClient):
             )
             raise
 
+        self.ib.reqMarketDataType(3)
         self.ib.reqMktData(ibcontract, "", False, False)
         ticker = self.ib.ticker(ibcontract)
 
@@ -149,6 +150,7 @@ class ibPriceClient(ibContractsClient):
 
         recent_time = datetime.datetime.now() - datetime.timedelta(seconds=60)
 
+        self.ib.reqMarketDataType(3)
         tick_data = self.ib.reqHistoricalTicks(
             ibcontract, recent_time, "", tick_count, "BID_ASK", useRth=False
         )
