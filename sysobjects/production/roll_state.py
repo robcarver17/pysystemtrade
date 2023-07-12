@@ -33,24 +33,18 @@ roll_explanations = {
 
 
 def is_double_sided_trade_roll_state(roll_state: RollState):
-    if roll_state in [RollState.Force, RollState.Force_Outright]:
-        return True
-    else:
-        return False
+    return roll_state in [RollState.Force, RollState.Force_Outright]
 
 
-def is_forced_roll_state(roll_state: RollState):
-    if roll_state in [RollState.Force, RollState.Force_Outright, RollState.Close]:
-        return True
-    else:
-        return False
+def is_roll_state_requiring_order_generation(roll_state: RollState) -> bool:
+    return roll_state in [RollState.Force, RollState.Force_Outright, RollState.Close]
 
 
 def is_type_of_active_rolling_roll_state(roll_state: RollState):
-    if is_forced_roll_state(roll_state) or roll_state == RollState.Roll_Adjusted:
-        return True
-    else:
-        return False
+    return (
+        is_roll_state_requiring_order_generation(roll_state)
+        or roll_state == RollState.Roll_Adjusted
+    )
 
 
 def explain_roll_state_str(roll_state: RollState):

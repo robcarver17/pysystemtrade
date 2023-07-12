@@ -33,8 +33,9 @@ from sysobjects.production.tradeable_object import (
 )
 from sysobjects.production.roll_state import (
     RollState,
-    is_forced_roll_state,
+    is_roll_state_requiring_order_generation,
     is_type_of_active_rolling_roll_state,
+    is_double_sided_trade_roll_state,
 )
 from sysobjects.contracts import futuresContract
 
@@ -61,9 +62,15 @@ class diagPositions(productionDataLayerGeneric):
     def db_strategy_position_data(self) -> strategyPositionData:
         return self.data.db_strategy_position
 
-    def is_forced_roll_required(self, instrument_code: str) -> bool:
+    def is_double_sided_trade_roll_state(self, instrument_code: str) -> bool:
         roll_state = self.get_roll_state(instrument_code)
-        is_forced_roll_required = is_forced_roll_state(roll_state)
+        is_forced_roll_required = is_double_sided_trade_roll_state(roll_state)
+
+        return is_forced_roll_required
+
+    def is_roll_state_requiring_order_generation(self, instrument_code: str) -> bool:
+        roll_state = self.get_roll_state(instrument_code)
+        is_forced_roll_required = is_roll_state_requiring_order_generation(roll_state)
 
         return is_forced_roll_required
 

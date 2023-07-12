@@ -126,7 +126,9 @@ class stackHandlerForRolls(stackHandlerCore):
 
     def check_if_forced_roll_required(self, instrument_code: str) -> bool:
         diag_positions = diagPositions(self.data)
-        forced_roll_required = diag_positions.is_forced_roll_required(instrument_code)
+        forced_roll_required = diag_positions.is_double_sided_trade_roll_state(
+            instrument_code
+        )
 
         return forced_roll_required
 
