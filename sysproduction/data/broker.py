@@ -164,13 +164,16 @@ class dataBroker(productionDataLayerGeneric):
         self, contract: futuresContract
     ) -> dataFrameOfRecentTicks:
 
-        ticker = self.broker_futures_contract_price_data.get_ticker_object_for_contract(
-            contract
-        )
+        ticker = self.get_ticker_object_for_contract(contract)
         ticker_df = get_df_of_ticks_from_ticker_object(ticker)
         self.cancel_market_data_for_contract(contract)
 
         return ticker_df
+
+    def get_ticker_object_for_contract(self, contract: futuresContract) -> tickerObject:
+        return self.broker_futures_contract_price_data.get_ticker_object_for_contract(
+            contract
+        )
 
     def get_actual_expiry_date_for_single_contract(
         self, contract_object: futuresContract
