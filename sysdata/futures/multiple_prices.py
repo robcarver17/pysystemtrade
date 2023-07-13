@@ -82,7 +82,7 @@ class futuresMultiplePricesData(baseData):
         instrument_code: str,
         multiple_price_data: futuresMultiplePrices,
         ignore_duplication=False,
-    ) -> status:
+    ):
         log = self.log.setup(instrument_code=instrument_code)
         if self.is_code_in_data(instrument_code):
             if ignore_duplication:
@@ -99,8 +99,6 @@ class futuresMultiplePricesData(baseData):
         )
 
         log.info("Added data for instrument %s" % instrument_code)
-
-        return success
 
     def _add_multiple_prices_without_checking_for_existing_entry(
         self, instrument_code: str, multiple_price_data: futuresMultiplePrices
