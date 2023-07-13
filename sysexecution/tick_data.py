@@ -9,6 +9,7 @@ from syscore.exceptions import missingData
 from syscore.constants import arg_not_supplied
 
 TICK_REQUIRED_COLUMNS = ["bid_price", "ask_price", "bid_size", "ask_size"]
+TICK_REQUIRED_COLUMNS.sort()
 
 
 class dataFrameOfRecentTicks(pd.DataFrame):
