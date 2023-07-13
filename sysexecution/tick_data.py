@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from copy import copy
 import numpy as np
 import pandas as pd
@@ -269,7 +269,7 @@ class tickerObject(object):
         return analysis
 
     def wait_for_valid_bid_and_ask_and_return_current_tick(
-        self, wait_time_seconds: int = 10
+        self, wait_time_seconds: Union[int, float] = 10
     ) -> oneTick:
         waiting = True
         timer = quickTimer(wait_time_seconds)
@@ -380,12 +380,17 @@ def get_df_of_ticks_from_ticker_object(
 
 
 def get_next_n_ticks_from_ticker_object(
-    ticker_object: tickerObject, n_ticks: int, time_out_seconds=10
+    ticker_object: tickerObject, n_ticks: int, time_out_seconds: int = 10
 ) -> List[oneTick]:
+    ## happy to wait twice as long as average for individual tick
+
+    wait_time_seconds = 2.0 * time_out_seconds / n_ticks
     timer = quickTimer(time_out_seconds)
     list_of_ticks = []
     while len(list_of_ticks) < n_ticks:
-        tick = ticker_object.wait_for_valid_bid_and_ask_and_return_current_tick()
+        tick = ticker_object.wait_for_valid_bid_and_ask_and_return_current_tick(
+            wait_time_seconds=wait_time_seconds
+        )
         list_of_ticks.append(tick)
         if timer.finished:  ## life is too short
             break
