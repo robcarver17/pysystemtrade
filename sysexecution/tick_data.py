@@ -385,7 +385,7 @@ def get_next_n_ticks_from_ticker_object(
     timer = quickTimer(time_out_seconds)
     list_of_ticks = []
     while len(list_of_ticks) < n_ticks:
-        tick = ticker_object.current_tick(require_refresh=True)
+        tick = ticker_object.wait_for_valid_bid_and_ask_and_return_current_tick()
         list_of_ticks.append(tick)
         if timer.finished:  ## life is too short
             break
