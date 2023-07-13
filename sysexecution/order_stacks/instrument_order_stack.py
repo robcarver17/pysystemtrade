@@ -14,6 +14,16 @@ class instrumentOrderStackData(orderStackData):
     def _name(self):
         return "Instrument order stack"
 
+    def list_of_orders_with_instrument_code(self, instrument_code: str) -> list:
+        list_of_orders = self.get_list_of_orders()
+        list_of_orders = [
+            order
+            for order in list_of_orders
+            if order.instrument_code is instrument_code
+        ]
+
+        return list_of_orders
+
     def does_strategy_and_instrument_already_have_order_on_stack(
         self, strategy_name: str, instrument_code: str
     ) -> bool:

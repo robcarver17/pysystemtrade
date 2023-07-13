@@ -75,3 +75,19 @@ class contractOrderStackData(orderStackData):
         order = self.stack.get(order_id, missing_order)
 
         return order
+
+    def does_stack_have_orders_for_instrument_code(self, instrument_code: str) -> bool:
+        orders_with_instrument_code = self.list_of_orders_with_instrument_code(
+            instrument_code
+        )
+        return len(orders_with_instrument_code) > 0
+
+    def list_of_orders_with_instrument_code(self, instrument_code: str) -> list:
+        list_of_orders = self.get_list_of_orders()
+        list_of_orders = [
+            order
+            for order in list_of_orders
+            if order.instrument_code is instrument_code
+        ]
+
+        return list_of_orders
