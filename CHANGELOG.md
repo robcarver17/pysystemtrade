@@ -1,5 +1,7 @@
 # Release notes
 
+- Simplify get recent data frame of ticks code and now also works with delayed data
+
 ## Version 1.70 (big jump lot's done)
 
 Stale:
