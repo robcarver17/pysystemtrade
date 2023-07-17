@@ -27,7 +27,7 @@ class arcticData(object):
 
         # Arctic doesn't accept a port
 
-        store = Arctic(hostname)
+        store = Arctic(client)
 
         self.database_name = database_name
         self.collection_name = collection_name
