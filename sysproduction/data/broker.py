@@ -23,7 +23,10 @@ from sysdata.tools.cleaner import apply_price_cleaning
 
 from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.orders.list_of_orders import listOfOrders
-from sysexecution.tick_data import dataFrameOfRecentTicks
+from sysexecution.tick_data import (
+    dataFrameOfRecentTicks,
+    get_df_of_ticks_from_ticker_object,
+)
 from sysexecution.tick_data import analyse_tick_data_frame, tickerObject, analysisTick
 from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.trade_qty import tradeQuantity
@@ -160,7 +163,15 @@ class dataBroker(productionDataLayerGeneric):
     def get_recent_bid_ask_tick_data_for_contract_object(
         self, contract: futuresContract
     ) -> dataFrameOfRecentTicks:
-        return self.broker_futures_contract_price_data.get_recent_bid_ask_tick_data_for_contract_object(
+
+        ticker = self.get_ticker_object_for_contract(contract)
+        ticker_df = get_df_of_ticks_from_ticker_object(ticker)
+        self.cancel_market_data_for_contract(contract)
+
+        return ticker_df
+
+    def get_ticker_object_for_contract(self, contract: futuresContract) -> tickerObject:
+        return self.broker_futures_contract_price_data.get_ticker_object_for_contract(
             contract
         )
 
@@ -249,6 +260,11 @@ class dataBroker(productionDataLayerGeneric):
 
     def cancel_market_data_for_order(self, order: brokerOrder):
         self.broker_futures_contract_price_data.cancel_market_data_for_order(order)
+
+    def cancel_market_data_for_contract(self, contract: futuresContract):
+        self.broker_futures_contract_price_data.cancel_market_data_for_contract(
+            contract
+        )
 
     def get_broker_account(self) -> str:
         return self.broker_static_data.get_broker_account()

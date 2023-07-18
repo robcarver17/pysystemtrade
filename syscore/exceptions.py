@@ -23,6 +23,10 @@ class marketClosed(Exception):
     pass
 
 
+class fillExceedsTrade(Exception):
+    pass
+
+
 class existingData(Exception):
     pass
 

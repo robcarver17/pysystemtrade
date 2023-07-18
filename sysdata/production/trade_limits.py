@@ -175,7 +175,7 @@ class tradeLimitData(baseData):
             self._get_trade_limit_object_from_isd_key(key) for key in all_keys
         ]
 
-        return all_limits
+        return listOfTradeLimits(all_limits)
 
     def _get_trade_limit_object_from_isd_key(
         self, isd_key: instrumentStrategyKeyAndDays

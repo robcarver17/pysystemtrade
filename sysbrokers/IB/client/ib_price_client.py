@@ -22,6 +22,7 @@ from syslogging.logger import *
 
 from sysobjects.contracts import futuresContract
 from sysexecution.trade_qty import tradeQuantity
+from sysexecution.tick_data import get_next_n_ticks_from_ticker_object
 
 TIMEOUT_SECONDS_ON_HISTORICAL_DATA = 20
 
@@ -68,11 +69,29 @@ class ibPriceClient(ibContractsClient):
 
         return price_data
 
-    def get_ticker_object(
+    def get_ticker_object_with_BS(
         self,
         contract_object_with_ib_data: futuresContract,
         trade_list_for_multiple_legs: tradeQuantity = None,
     ) -> tickerWithBS:
+
+        ib_ticker = self.get_ib_ticker_object(
+            contract_object_with_ib_data, trade_list_for_multiple_legs
+        )
+        if trade_list_for_multiple_legs is None:
+            ib_BS_str = ""
+        else:
+            ib_BS_str, __ = resolveBS_for_list(trade_list_for_multiple_legs)
+
+        ticker_with_bs = tickerWithBS(ib_ticker, ib_BS_str)
+
+        return ticker_with_bs
+
+    def get_ib_ticker_object(
+        self,
+        contract_object_with_ib_data: futuresContract,
+        trade_list_for_multiple_legs: tradeQuantity = None,
+    ) -> "ib.ticker":
 
         specific_log = contract_object_with_ib_data.specific_log(self.log)
 
@@ -88,16 +107,18 @@ class ibPriceClient(ibContractsClient):
             )
             raise
 
+        self.ib.reqMarketDataType(3)
         self.ib.reqMktData(ibcontract, "", False, False)
         ticker = self.ib.ticker(ibcontract)
 
-        ib_BS_str, ib_qty = resolveBS_for_list(trade_list_for_multiple_legs)
+        return ticker
 
-        ticker_with_bs = tickerWithBS(ticker, ib_BS_str)
+    def cancel_market_data_for_contract(
+        self, contract_object_with_ib_data: futuresContract
+    ):
+        self.cancel_market_data_for_contract_and_trade_qty(contract_object_with_ib_data)
 
-        return ticker_with_bs
-
-    def cancel_market_data_for_contract_object(
+    def cancel_market_data_for_contract_and_trade_qty(
         self,
         contract_object_with_ib_data: futuresContract,
         trade_list_for_multiple_legs: tradeQuantity = None,
@@ -119,11 +140,12 @@ class ibPriceClient(ibContractsClient):
 
         self.ib.cancelMktData(ibcontract)
 
-    def ib_get_recent_bid_ask_tick_data(
+    def _ib_get_recent_bid_ask_tick_data_using_reqHistoricalTicks(
         self,
         contract_object_with_ib_data: futuresContract,
         tick_count=200,
     ) -> list:
+        ## FIXME DEPRECATE AS DOESN'T WORK WITH DELAYED DATA
         """
 
         :param contract_object_with_ib_data:
@@ -149,6 +171,7 @@ class ibPriceClient(ibContractsClient):
 
         recent_time = datetime.datetime.now() - datetime.timedelta(seconds=60)
 
+        self.ib.reqMarketDataType(3)
         tick_data = self.ib.reqHistoricalTicks(
             ibcontract, recent_time, "", tick_count, "BID_ASK", useRth=False
         )

@@ -1,3 +1,4 @@
+from typing import List
 import datetime
 
 from syscore.genutils import sign
@@ -76,6 +77,14 @@ class tradeLimit(object):
         return self._instrument_strategy
 
     @property
+    def instrument_code(self) -> str:
+        return self.instrument_strategy.instrument_code
+
+    @property
+    def strategy_name(self) -> str:
+        return self.instrument_strategy.strategy_name
+
+    @property
     def trade_capacity_remaining(self) -> int:
         trades_since_last_reset = self.trades_since_last_reset
         limit = self.trade_limit
@@ -137,6 +146,29 @@ class tradeLimit(object):
 
 
 class listOfTradeLimits(list):
+    def __init__(self, list_of_trade_limits: List[tradeLimit]):
+        super().__init__(list_of_trade_limits)
+
+    def filter_to_remove_list_of_instruments(
+        self, list_of_instruments_to_remove: list
+    ) -> "listOfTradeLimits":
+        new_list = [
+            trade_limit
+            for trade_limit in self
+            if trade_limit.instrument_code not in list_of_instruments_to_remove
+        ]
+        return listOfTradeLimits(new_list)
+
+    def filter_to_remove_list_of_strategy_names(
+        self, list_of_strategy_names_to_remove: list
+    ) -> "listOfTradeLimits":
+        new_list = [
+            trade_limit
+            for trade_limit in self
+            if trade_limit.strategy_name not in list_of_strategy_names_to_remove
+        ]
+        return listOfTradeLimits(new_list)
+
     def what_trade_is_possible(self, proposed_trade: int):
         abs_proposed_trade = abs(proposed_trade)
         possible_abs_trade = self.what_abs_trade_is_possible(abs_proposed_trade)

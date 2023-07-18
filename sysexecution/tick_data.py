@@ -1,3 +1,4 @@
+from typing import List, Union
 from copy import copy
 import numpy as np
 import pandas as pd
@@ -7,7 +8,8 @@ from syscore.genutils import quickTimer
 from syscore.exceptions import missingData
 from syscore.constants import arg_not_supplied
 
-TICK_REQUIRED_COLUMNS = ["priceAsk", "priceBid", "sizeAsk", "sizeBid"]
+TICK_REQUIRED_COLUMNS = ["bid_price", "ask_price", "bid_size", "ask_size"]
+TICK_REQUIRED_COLUMNS.sort()
 
 
 class dataFrameOfRecentTicks(pd.DataFrame):
@@ -50,7 +52,7 @@ def analyse_tick_data_frame(
     return results
 
 
-oneTick = namedtuple("oneTick", ["bid_price", "ask_price", "bid_size", "ask_size"])
+oneTick = namedtuple("oneTick", TICK_REQUIRED_COLUMNS)
 analysisTick = namedtuple(
     "analysisTick",
     [
@@ -87,10 +89,10 @@ def extract_nth_row_of_tick_data_frame(
     else:
         filled_data = copy(tick_data)
 
-    bid_price = filled_data.priceBid[row_id]
-    ask_price = filled_data.priceAsk[row_id]
-    bid_size = filled_data.sizeBid[row_id]
-    ask_size = filled_data.sizeAsk[row_id]
+    bid_price = filled_data.bid_price.values[row_id]
+    ask_price = filled_data.ask_price.values[row_id]
+    bid_size = filled_data.bid_size.values[row_id]
+    ask_size = filled_data.ask_size.values[row_id]
 
     return oneTick(bid_price, ask_price, bid_size, ask_size)
 
@@ -100,7 +102,7 @@ def average_bid_offer_spread(
 ) -> float:
     if tick_data.is_empty():
         raise missingData("Tick data is empty")
-    all_spreads = tick_data.priceAsk - tick_data.priceBid
+    all_spreads = tick_data.ask_price - tick_data.bid_price
     if remove_negative:
         all_spreads[all_spreads < 0] = np.nan
     average_spread = all_spreads.mean(skipna=True)
@@ -190,7 +192,7 @@ class tickerObject(object):
         return qty
 
     @property
-    def ticks(self) -> list:
+    def ticks(self) -> List[oneTick]:
         return self._ticks
 
     @property
@@ -267,7 +269,7 @@ class tickerObject(object):
         return analysis
 
     def wait_for_valid_bid_and_ask_and_return_current_tick(
-        self, wait_time_seconds: int = 10
+        self, wait_time_seconds: Union[int, float] = 10
     ) -> oneTick:
         waiting = True
         timer = quickTimer(wait_time_seconds)
@@ -364,3 +366,49 @@ def adverse_price_movement(qty: int, price_old: float, price_new: float) -> bool
             return True
         else:
             return False
+
+
+def get_df_of_ticks_from_ticker_object(
+    ticker_object: tickerObject, n_ticks: int = 200, time_out_seconds=10
+) -> dataFrameOfRecentTicks:
+    list_of_ticks = get_next_n_ticks_from_ticker_object(
+        ticker_object=ticker_object, n_ticks=n_ticks, time_out_seconds=time_out_seconds
+    )
+    df_of_recent_ticks = from_list_of_ticks_to_dataframe(list_of_ticks)
+
+    return df_of_recent_ticks
+
+
+def get_next_n_ticks_from_ticker_object(
+    ticker_object: tickerObject, n_ticks: int, time_out_seconds: int = 10
+) -> List[oneTick]:
+    ## happy to wait twice as long as average for individual tick
+
+    wait_time_seconds = 2.0 * time_out_seconds / n_ticks
+    timer = quickTimer(time_out_seconds)
+    list_of_ticks = []
+    while len(list_of_ticks) < n_ticks:
+        tick = ticker_object.wait_for_valid_bid_and_ask_and_return_current_tick(
+            wait_time_seconds=wait_time_seconds
+        )
+        list_of_ticks.append(tick)
+        if timer.finished:  ## life is too short
+            break
+
+    return ticker_object.ticks
+
+
+def from_list_of_ticks_to_dataframe(
+    list_of_ticks: List[oneTick],
+) -> dataFrameOfRecentTicks:
+
+    fields = TICK_REQUIRED_COLUMNS
+
+    value_dict = {}
+    for field_name in fields:
+        field_values = [getattr(tick_item, field_name) for tick_item in list_of_ticks]
+        value_dict[field_name] = field_values
+
+    output = dataFrameOfRecentTicks(value_dict)
+
+    return output
