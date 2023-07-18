@@ -75,7 +75,9 @@ class ibPriceClient(ibContractsClient):
         trade_list_for_multiple_legs: tradeQuantity = None,
     ) -> tickerWithBS:
 
-        ib_ticker = self.get_ib_ticker_object(contract_object_with_ib_data)
+        ib_ticker = self.get_ib_ticker_object(
+            contract_object_with_ib_data, trade_list_for_multiple_legs
+        )
         if trade_list_for_multiple_legs is None:
             ib_BS_str = ""
         else:
