@@ -12,7 +12,6 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
     # TODO data_blob.update_log
     # TODO data.update_log(contract_object.specific_log(data.log))
     # TODO data_blob._get_specific_logger
-    # TODO self.log.close_log_file()
     # TODO log_with_attributes
     # TODO log_level = "on"
     # TODO system.set_logging_level(log_level)
@@ -115,13 +114,6 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
             self.logger.setLevel(logging.NOTSET)
         else:
             self.logger.setLevel(new_log_level)
-
-    def close_log_file(self):
-        warnings.warn(
-            "The 'close_log_file' function is deprecated, and does nothing anyway",
-            DeprecationWarning,
-            2,
-        )
 
     def _check_attributes(self, attributes: dict):
         if attributes:
