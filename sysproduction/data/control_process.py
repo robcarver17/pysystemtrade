@@ -69,14 +69,13 @@ class dataControlProcess(productionDataLayerGeneric):
 
         return result
 
-    def finish_process(self, process_name: str) -> named_object:
+    def finish_process(self, process_name: str):
         """
 
         :param process_name: str
-        :return: sucess or failure if can't finish process (maybe already running?)
         """
 
-        return self.db_control_process_data.finish_process(process_name)
+        self.db_control_process_data.finish_process(process_name)
 
     def finish_all_processes(self) -> list:
         list_of_status = self.db_control_process_data.finish_all_processes()

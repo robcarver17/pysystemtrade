@@ -57,6 +57,10 @@ SPIKE_IN_DATA = named_object("Spike in data")
 NO_MERGE_DATE = named_object("No data")
 
 
+class mergeError(Exception):
+    pass
+
+
 class mergingDataWithStatus(object):
     def __init__(
         self,

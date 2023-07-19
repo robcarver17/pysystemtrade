@@ -10,7 +10,7 @@ from typing import List, Tuple
 
 from syscore.constants import arg_not_supplied, success, failure
 from syscore.exceptions import missingData
-from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
+from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA, mergeError
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
 from syscore.pandas.frequency import merge_data_with_different_freq
 
@@ -432,20 +432,20 @@ def price_updating_or_errors(
 
     price_updater = updatePrices(data)
 
-    error_or_rows_added = price_updater.update_prices_at_frequency_for_contract(
-        contract_object=contract_object,
-        new_prices=new_prices_checked,
-        frequency=frequency,
-        check_for_spike=check_for_spike,
-        max_price_spike=cleaning_config.max_price_spike,
-    )
+    try:
+        error_or_rows_added = price_updater.update_prices_at_frequency_for_contract(
+            contract_object=contract_object,
+            new_prices=new_prices_checked,
+            frequency=frequency,
+            check_for_spike=check_for_spike,
+            max_price_spike=cleaning_config.max_price_spike,
+        )
+    except mergeError:
+        data.log.warning("Something went wrong when adding rows")
+        return failure
 
     if error_or_rows_added is SPIKE_IN_DATA:
         report_price_spike(data, contract_object)
-        return failure
-
-    if error_or_rows_added is failure:
-        data.log.warning("Something went wrong when adding rows")
         return failure
 
     return error_or_rows_added

@@ -8,6 +8,7 @@ from sysdata.data_blob import dataBlob
 from sysexecution.tick_data import tickerObject, dataFrameOfRecentTicks
 from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.orders.broker_orders import brokerOrder
+from sysexecution.trade_qty import tradeQuantity
 
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
@@ -35,15 +36,16 @@ class brokerFuturesContractPriceData(futuresContractPriceData):
     ) -> futuresContractPrices:
         raise NotImplementedError
 
+    def get_ticker_object_for_contract(self, contract: futuresContract) -> tickerObject:
+        raise NotImplementedError
+
     def get_ticker_object_for_order(self, order: contractOrder) -> tickerObject:
         raise NotImplementedError
 
     def cancel_market_data_for_order(self, order: brokerOrder):
         raise NotImplementedError
 
-    def get_recent_bid_ask_tick_data_for_contract_object(
-        self, contract_object: futuresContract
-    ) -> dataFrameOfRecentTicks:
+    def cancel_market_data_for_contract(self, contract: futuresContract):
         raise NotImplementedError
 
     def _write_merged_prices_for_contract_object_no_checking(self, *args, **kwargs):

@@ -1,5 +1,6 @@
 import datetime
 
+from syscore.exceptions import fillExceedsTrade
 from sysexecution.orders.named_order_objects import (
     missing_order,
     no_order_id,
@@ -26,7 +27,7 @@ from syscore.genutils import (
     if_empty_string_return_object,
     if_object_matches_return_empty_string,
 )
-from syscore.constants import fill_exceeds_trade, success
+from syscore.constants import success
 
 
 class brokerOrderType(orderType):
@@ -355,7 +356,7 @@ class brokerOrder(Order):
             matched_broker_order.fill
         )
         if not fill_qty_okay:
-            return fill_exceeds_trade
+            raise fillExceedsTrade
         self.fill_order(
             matched_broker_order.fill,
             filled_price=matched_broker_order.filled_price,

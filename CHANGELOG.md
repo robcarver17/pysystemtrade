@@ -1,5 +1,34 @@
 # Release notes
 
+- Simplify get recent data frame of ticks code and now also works with delayed data
+
+## Version 1.70 (big jump lot's done)
+
+Stale:
+- Stale instruments now removed from all reports except slippage #1211
+- Ignore stale strategies #1074
+
+Rolls:
+- improved auto rolling facility, with configurable rules #1198
+- Clear up roll states, adding new don't open state and redefining close state #931
+- change the way roll states are handled to prioritise strategy trades that help us roll #1993
+- warn if rolls can't be done because of trade limits #932  
+
+No market data:
+- Collect data without market data subscriptions #1165
+- Allow trading of non subscribed instruments by implementing SNAP order types; replacing MARKET orders #1016
+- Allow specific instruments to use specific algos (will be useful when start trading instruments without streaming data) #969
+
+Costs:
+- Now cost objects produce SR estimates for you #1026
+- SR cost was calculated wrong (multiplied by two) due to confusion about turnover definition #1009
+
+Other:
+- Push sent and unsent emails to a file #1132
+- Easier access to instrument return correlations from portfolio subsystem #1018
+- Added backfilled GBP FX data #1014
+- Added warning when priced contract is expiring #1006
+
 ## Version 1.62
 
 - Added order simulator as an optimal replacement for vectorised p&l calculation; prequisite for limit order simulation

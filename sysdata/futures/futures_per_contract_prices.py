@@ -1,7 +1,6 @@
 from syscore.exceptions import missingData
-from syscore.constants import failure
 from syscore.dateutils import Frequency, MIXED_FREQ
-from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
+from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA, mergeError
 
 from sysdata.base_data import baseData
 
@@ -383,7 +382,7 @@ class futuresContractPriceData(baseData):
 
         if rows_added < 0:
             new_log.critical("Can't remove prices something gone wrong!")
-            return failure
+            raise mergeError("Merged prices have fewer rows than old prices!")
 
         elif rows_added == 0:
             if len(old_prices) == 0:

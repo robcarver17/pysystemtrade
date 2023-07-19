@@ -61,6 +61,22 @@ class listOfInstrumentStrategies(list):
 
         return list_of_instrument_strategies
 
+    def filter_to_remove_list_of_instruments(self, list_of_instruments_to_remove: list):
+        filtered_list = [
+            instrument_strategy
+            for instrument_strategy in self
+            if instrument_strategy.instrument_code not in list_of_instruments_to_remove
+        ]
+        return listOfInstrumentStrategies(filtered_list)
+
+    def filter_to_remove_list_of_strategies(self, list_of_strategies_to_remove: list):
+        filtered_list = [
+            instrument_strategy
+            for instrument_strategy in self
+            if instrument_strategy.strategy_name not in list_of_strategies_to_remove
+        ]
+        return listOfInstrumentStrategies(filtered_list)
+
 
 STRATEGY_NAME_KEY = "strategy_name"
 INSTRUMENT_CODE_KEY = "instrument_code"

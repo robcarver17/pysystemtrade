@@ -31,6 +31,8 @@ from sysobjects.production.process_control import (
     process_no_run,
     process_running,
     process_stop,
+    processNotRunning,
+    processNotStarted,
 )
 
 from sysproduction.data.control_process import dataControlProcess, diagControlProcess
@@ -95,8 +97,9 @@ class processToRun(object):
         return self._wait_reporter
 
     def run_process(self):
-        result_of_starting = _start_or_wait(self)
-        if result_of_starting is failure:
+        try:
+            _start_or_wait(self)
+        except processNotStarted:
             return None
 
         self._run_on_start()
@@ -145,30 +148,30 @@ class processToRun(object):
         )
 
     def _finish_control_process(self):
-        result_of_finish = self.data_control.finish_process(self.process_name)
-
-        if result_of_finish is failure:
+        try:
+            self.data_control.finish_process(self.process_name)
+        except processNotRunning:
             self.log.warning(
                 "Process %s won't finish in process control as already close: weird!"
                 % self.process_name
             )
-        elif result_of_finish is success:
+        else:
             self.log.debug("Process control %s marked close" % self.process_name)
 
 
 ### STARTUP CODE
 
 
-def _start_or_wait(process_to_run: processToRun) -> status:
+def _start_or_wait(process_to_run: processToRun):
     waiting = True
     while waiting:
         okay_to_start = _is_okay_to_start(process_to_run)
         if okay_to_start:
-            return success
+            return
 
         okay_to_wait = _is_okay_to_wait_before_starting(process_to_run)
         if not okay_to_wait:
-            return failure
+            raise processNotStarted
 
         time.sleep(60)
 

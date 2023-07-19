@@ -133,7 +133,8 @@ ib_orders_data.ibconnection
 
 ```
 from sysbrokers.IB.ib_Fx_prices_data import ibFxPricesData
-ibfxpricedata = ibFxPricesData(conn)
+from sysdata.data_blob import dataBlob
+ibfxpricedata = ibFxPricesData(conn, dataBlob())
 
 ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFX.csv
 ibfxpricedata.get_fx_prices("GBPUSD") # returns fxPrices object
@@ -147,9 +148,10 @@ ibfxpricedata.get_fx_prices("GBPUSD") # returns fxPrices object
 ```
 from sysobjects.contracts import futuresContract
 from sysbrokers.IB.ib_futures_contract_price_data import ibFuturesContractPriceData
-ibfuturesdata = ibFuturesContractPriceData(conn)
+from sysdata.data_blob import dataBlob
+ibfuturesdata = ibFuturesContractPriceData(conn, dataBlob())
 
-ibfuturesdata.get_list_of_instrument_codes_with_price_data() # returns list of instruments defined in [futures config file](/sysbrokers/IB/ibConfigFutures.csv)
+ibfuturesdata.get_list_of_instrument_codes_with_merged_price_data() # returns list of instruments defined in [futures config file](/sysbrokers/IB/ibConfigFutures.csv)
 ibfuturesdata.contract_dates_with_price_data_for_instrument_code("EDOLLAR") # returns list of contract dates
 ibfuturesdata.get_prices_for_contract_object(futuresContract("EDOLLAR", "201203")) # returns OHLC price and volume data
 ```

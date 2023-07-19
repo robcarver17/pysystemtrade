@@ -40,7 +40,7 @@ from sysdata.data_blob import dataBlob
 from sysobjects.multiple_prices import price_name
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 from sysproduction.data.currency_data import dataCurrency
-from sysproduction.data.instruments import get_stale_instruments
+from sysproduction.data.config import get_list_of_stale_instruments
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
@@ -227,7 +227,7 @@ class diagPrices(productionDataLayerGeneric):
         return list_of_instruments
 
     def get_stale_instruments(self) -> list:
-        return get_stale_instruments(self.data)
+        return get_list_of_stale_instruments()
 
     @property
     def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:

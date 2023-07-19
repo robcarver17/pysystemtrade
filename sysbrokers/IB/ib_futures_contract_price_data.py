@@ -1,6 +1,7 @@
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ, MIXED_FREQ
 from syscore.exceptions import missingContract, missingData
 from sysdata.data_blob import dataBlob
+
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_translate_broker_order_objects import sign_from_BS, ibBrokerOrder
@@ -8,10 +9,9 @@ from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.client.ib_price_client import tickerWithBS, ibPriceClient
 from sysbrokers.broker_futures_contract_price_data import brokerFuturesContractPriceData
 
-
 from sysexecution.tick_data import tickerObject, dataFrameOfRecentTicks
 from sysexecution.orders.contract_orders import contractOrder
-
+from sysexecution.trade_qty import tradeQuantity
 
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
@@ -43,25 +43,6 @@ class ibTickerObject(tickerObject):
 
     def ask_size(self):
         return self.ticker.askSize
-
-
-def from_ib_bid_ask_tick_data_to_dataframe(tick_data) -> dataFrameOfRecentTicks:
-    """
-
-    :param tick_data: list of HistoricalTickBidAsk()
-    :return: pd.DataFrame,['priceBid', 'priceAsk', 'sizeAsk', 'sizeBid']
-    """
-    time_index = [tick_item.time for tick_item in tick_data]
-    fields = ["priceBid", "priceAsk", "sizeAsk", "sizeBid"]
-
-    value_dict = {}
-    for field_name in fields:
-        field_values = [getattr(tick_item, field_name) for tick_item in tick_data]
-        value_dict[field_name] = field_values
-
-    output = dataFrameOfRecentTicks(value_dict, time_index)
-
-    return output
 
 
 class ibFuturesContractPriceData(brokerFuturesContractPriceData):
@@ -272,22 +253,41 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         return futuresContractPrices(price_data)
 
     def get_ticker_object_for_order(self, order: contractOrder) -> tickerObject:
-        contract_object = order.futures_contract
+        futures_contract = order.futures_contract
         trade_list_for_multiple_legs = order.trade
 
-        new_log = order.log_with_attributes(self.log)
+        ticker = self.get_ticker_object_for_contract_and_trade_qty(
+            futures_contract=futures_contract,
+            trade_list_for_multiple_legs=trade_list_for_multiple_legs,
+        )
+
+        return ticker
+
+    def get_ticker_object_for_contract(
+        self, futures_contract: futuresContract
+    ) -> tickerObject:
+        return self.get_ticker_object_for_contract_and_trade_qty(
+            futures_contract=futures_contract
+        )
+
+    def get_ticker_object_for_contract_and_trade_qty(
+        self,
+        futures_contract: futuresContract,
+        trade_list_for_multiple_legs: tradeQuantity = None,
+    ) -> tickerObject:
+        new_log = futures_contract.specific_log(self.log)
 
         try:
             contract_object_with_ib_data = (
                 self.futures_contract_data.get_contract_object_with_IB_data(
-                    contract_object
+                    futures_contract
                 )
             )
         except missingContract:
-            new_log.warning("Can't get data for %s" % str(contract_object))
+            new_log.warning("Can't get data for %s" % str(futures_contract))
             return futuresContractPrices.create_empty()
 
-        ticker_with_bs = self.ib_client.get_ticker_object(
+        ticker_with_bs = self.ib_client.get_ticker_object_with_BS(
             contract_object_with_ib_data,
             trade_list_for_multiple_legs=trade_list_for_multiple_legs,
         )
@@ -295,6 +295,18 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         ticker_object = ibTickerObject(ticker_with_bs, self.ib_client)
 
         return ticker_object
+
+    def cancel_market_data_for_contract(self, contract: futuresContract):
+        new_log = contract.specific_log(self.log)
+        try:
+            contract_object_with_ib_data = (
+                self.futures_contract_data.get_contract_object_with_IB_data(contract)
+            )
+        except missingContract:
+            new_log.warning("Can't get data for %s" % str(contract))
+            return futuresContractPrices.create_empty()
+
+        self.ib_client.cancel_market_data_for_contract(contract_object_with_ib_data)
 
     def cancel_market_data_for_order(self, order: ibBrokerOrder):
         contract_object = order.futures_contract
@@ -312,39 +324,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
             new_log.warning("Can't get data for %s" % str(contract_object))
             return futuresContractPrices.create_empty()
 
-        self.ib_client.cancel_market_data_for_contract_object(
+        self.ib_client.cancel_market_data_for_contract_and_trade_qty(
             contract_object_with_ib_data,
             trade_list_for_multiple_legs=trade_list_for_multiple_legs,
         )
-
-    def get_recent_bid_ask_tick_data_for_contract_object(
-        self, contract_object: futuresContract
-    ) -> dataFrameOfRecentTicks:
-        """
-        Get last few price ticks
-
-        :param contract_object: futuresContract
-        :return:
-        """
-        new_log = contract_object.log(self.log)
-
-        try:
-            contract_object_with_ib_data = (
-                self.futures_contract_data.get_contract_object_with_IB_data(
-                    contract_object
-                )
-            )
-        except missingContract:
-            new_log.warning("Can't get data for %s" % str(contract_object))
-            return dataFrameOfRecentTicks.create_empty()
-
-        try:
-            tick_data = self.ib_client.ib_get_recent_bid_ask_tick_data(
-                contract_object_with_ib_data
-            )
-        except missingContract:
-            raise missingData
-
-        tick_data_as_df = from_ib_bid_ask_tick_data_to_dataframe(tick_data)
-
-        return tick_data_as_df
