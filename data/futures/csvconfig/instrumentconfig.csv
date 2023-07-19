@@ -241,7 +241,7 @@ GOLD-mini,Gold mini,50,USD,Metals,0.85,0,0,US
 HANG,Hong Kong equity index Hang Seng,50,HKD,Equity,0,0,0,ASIA
 HANG_mini,Hong Kong equity index Hang Seng mini,10,HKD,Equity,0,0,0,ASIA
 HANG-DIV,HSI Dividend Point Index,50,HKD,Equity,0,0,0,ASIA
-HANG-TECH,Hang Seng TECH Index,50,HKD,Equity,0,0,0,ASIA
+HANGTECH,Hang Seng TECH Index,50,HKD,Equity,0,0,0,ASIA
 HANGENT,Hang Seng China Enterprise Index,50,HKD,Equity,0,0,0,ASIA
 HANGENT_mini,Hang Seng China Enterprise Index mini,10,HKD,Equity,0,0,0,ASIA
 HANGENT-GTR,Hang Seng China Enterprises Gross Total Return Index,50,HKD,Equity,0,0,0,ASIA

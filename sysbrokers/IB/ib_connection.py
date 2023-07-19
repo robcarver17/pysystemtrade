@@ -28,7 +28,7 @@ class connectionIB(object):
         ib_ipaddress: str = arg_not_supplied,
         ib_port: int = arg_not_supplied,
         account: str = arg_not_supplied,
-        log: pst_logger = logtoscreen("connectionIB"),
+        log: pst_logger = get_logger("connectionIB"),
     ):
         """
         :param client_id: client id

@@ -11,7 +11,7 @@ class genericOptimiser(object):
         self,
         returns_pre_processor: returnsPreProcessor,
         asset_name: str = SINGLE_NAME,
-        log: pst_logger = logtoscreen("optimiser"),
+        log=get_logger("optimiser"),
         **weighting_params,
     ):
 

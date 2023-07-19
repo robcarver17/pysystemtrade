@@ -75,7 +75,9 @@ class Config(object):
         """
 
         # this will normally be overriden by the base system
-        self.log = logtoscreen(**{TYPE_LOG_LABEL: "config", STAGE_LOG_LABEL: "config"})
+        self.log = get_logger(
+            "config", {TYPE_LOG_LABEL: "config", STAGE_LOG_LABEL: "config"}
+        )
 
         self._default_filename = default_filename
         self._private_filename = private_filename

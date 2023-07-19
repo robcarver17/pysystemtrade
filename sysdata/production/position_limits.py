@@ -21,7 +21,7 @@ from sysobjects.production.tradeable_object import (
 
 
 class positionLimitData(baseData):
-    def __init__(self, log=logtoscreen("Overrides")):
+    def __init__(self, log=get_logger("Overrides")):
         super().__init__(log=log)
 
     def get_position_limit_object_for_instrument_strategy(

@@ -9,7 +9,7 @@ SPREAD_COLUMN_NAME = "spread"
 
 
 class arcticSpreadsForInstrumentData(spreadsForInstrumentData):
-    def __init__(self, mongo_db=None, log=logtoscreen("arcticSpreadsForInstrument")):
+    def __init__(self, mongo_db=None, log=get_logger("arcticSpreadsForInstrument")):
 
         super().__init__(log=log)
 

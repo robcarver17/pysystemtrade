@@ -25,7 +25,7 @@ class csvFuturesInstrumentData(futuresInstrumentData):
     def __init__(
         self,
         datapath=arg_not_supplied,
-        log=logtoscreen("csvFuturesInstrumentData"),
+        log=get_logger("csvFuturesInstrumentData"),
     ):
 
         super().__init__(log=log)

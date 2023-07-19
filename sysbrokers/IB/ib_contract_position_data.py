@@ -18,7 +18,7 @@ class ibContractPositionData(brokerContractPositionData):
         self,
         ibconnection: connectionIB,
         data: dataBlob,
-        log=logtoscreen("ibContractPositionData"),
+        log=get_logger("ibContractPositionData"),
     ):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection

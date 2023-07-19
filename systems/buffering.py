@@ -39,7 +39,7 @@ def calculate_buffers(
     vol_scalar: pd.Series,
     instr_weights: pd.DataFrame = arg_not_supplied,
     idm: pd.Series = arg_not_supplied,
-    log: pst_logger = logtoscreen(""),
+    log=get_logger(""),
 ) -> pd.Series:
 
     log.debug(

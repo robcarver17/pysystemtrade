@@ -14,7 +14,7 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
     Class to read / write multiple futures price data to and from arctic
     """
 
-    def __init__(self, mongo_db=None, log=logtoscreen("arcticFuturesAdjustedPrices")):
+    def __init__(self, mongo_db=None, log=get_logger("arcticFuturesAdjustedPrices")):
 
         super().__init__(log=log)
 

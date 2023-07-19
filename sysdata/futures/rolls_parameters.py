@@ -19,7 +19,7 @@ class rollParametersData(baseData):
 
     """
 
-    def __init__(self, log=logtoscreen("futuresInstrumentData")):
+    def __init__(self, log=get_logger("futuresInstrumentData")):
         super().__init__(log=log)
 
     def __repr__(self):

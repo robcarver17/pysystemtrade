@@ -24,7 +24,7 @@ class mongoTradeLimitData(tradeLimitData):
 
     """
 
-    def __init__(self, mongo_db=None, log=logtoscreen("mongoTradeLimitData")):
+    def __init__(self, mongo_db=None, log=get_logger("mongoTradeLimitData")):
         super().__init__(log=log)
         self._mongo_data = mongoDataWithMultipleKeys(
             LIMIT_STATUS_COLLECTION, mongo_db=mongo_db

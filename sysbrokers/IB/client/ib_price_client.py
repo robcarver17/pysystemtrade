@@ -75,7 +75,9 @@ class ibPriceClient(ibContractsClient):
         trade_list_for_multiple_legs: tradeQuantity = None,
     ) -> tickerWithBS:
 
-        ib_ticker = self.get_ib_ticker_object(contract_object_with_ib_data)
+        ib_ticker = self.get_ib_ticker_object(
+            contract_object_with_ib_data, trade_list_for_multiple_legs
+        )
         if trade_list_for_multiple_legs is None:
             ib_BS_str = ""
         else:
@@ -346,7 +348,7 @@ def _get_barsize_and_duration_from_frequency(bar_freq: Frequency) -> (str, str):
 
 
 def _avoid_pacing_violation(
-    last_call_datetime: datetime.datetime, log: pst_logger = logtoscreen("")
+    last_call_datetime: datetime.datetime, log: pst_logger = get_logger("")
 ):
     printed_warning_already = False
     while _pause_for_pacing(last_call_datetime):

@@ -22,7 +22,7 @@ class mongoFuturesContractData(futuresContractData):
     """
 
     def __init__(
-        self, mongo_db=arg_not_supplied, log=logtoscreen("mongoFuturesContractData")
+        self, mongo_db=arg_not_supplied, log=get_logger("mongoFuturesContractData")
     ):
 
         super().__init__(log=log)

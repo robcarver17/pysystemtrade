@@ -31,7 +31,7 @@ from syslogging.logger import *
 
 
 class genericOrdersData(baseData):
-    def __init__(self, log=logtoscreen("")):
+    def __init__(self, log=get_logger("")):
         super().__init__(log=log)
 
     def __repr__(self):

@@ -19,7 +19,7 @@ class mongoMarginData(marginData):
     def __init__(
         self,
         mongo_db=arg_not_supplied,
-        log=logtoscreen("mongoMarginData"),
+        log=get_logger("mongoMarginData"),
     ):
 
         self._mongo_data = mongoDataWithSingleKey(

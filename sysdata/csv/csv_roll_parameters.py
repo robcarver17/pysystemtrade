@@ -64,7 +64,7 @@ class csvRollParametersData(rollParametersData):
     """
 
     def __init__(
-        self, log=logtoscreen("csvRollParametersData"), datapath=arg_not_supplied
+        self, log=get_logger("csvRollParametersData"), datapath=arg_not_supplied
     ):
 
         super().__init__(log=log)

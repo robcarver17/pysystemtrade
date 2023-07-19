@@ -23,7 +23,7 @@ class arcticFuturesMultiplePricesData(futuresMultiplePricesData):
     """
 
     def __init__(
-        self, mongo_db=None, log=logtoscreen("arcticFuturesMultiplePricesData")
+        self, mongo_db=None, log=get_logger("arcticFuturesMultiplePricesData")
     ):
 
         super().__init__(log=log)

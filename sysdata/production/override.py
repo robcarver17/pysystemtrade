@@ -14,7 +14,7 @@ strategy_instruments_overrides = "strategies_instruments"
 
 
 class overrideData(baseData):
-    def __init__(self, log=logtoscreen("Overrides")):
+    def __init__(self, log=get_logger("Overrides")):
         super().__init__(log=log)
 
     def default_override(self):

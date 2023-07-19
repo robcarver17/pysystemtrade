@@ -37,7 +37,7 @@ class csvFxPricesData(fxPricesData):
     def __init__(
         self,
         datapath=arg_not_supplied,
-        log=logtoscreen("csvFxPricesData"),
+        log=get_logger("csvFxPricesData"),
         config: ConfigCsvFXPrices = arg_not_supplied,
     ):
         """
