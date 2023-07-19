@@ -1,5 +1,8 @@
 # Release notes
 
+## Version 1.71
+
+- Further progress in replacing old logging with python logging
 - Simplify get recent data frame of ticks code and now also works with delayed data
 
 ## Version 1.70 (big jump lot's done)
