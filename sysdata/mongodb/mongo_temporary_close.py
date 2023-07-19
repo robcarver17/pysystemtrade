@@ -12,7 +12,7 @@ POSITION_LIMIT_FIELD = "position_limit"
 
 class mongoTemporaryCloseData(temporaryCloseData):
     def __init__(
-        self, mongo_db=arg_not_supplied, log=logtoscreen("mongotemporaryCloseData")
+        self, mongo_db=arg_not_supplied, log=get_logger("mongotemporaryCloseData")
     ):
 
         super().__init__(log=log)

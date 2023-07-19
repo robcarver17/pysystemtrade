@@ -12,7 +12,7 @@ from syslogging.logger import *
 
 
 class brokerExecutionStackData(brokerOrderStackData):
-    def __init__(self, data: dataBlob, log=logtoscreen("brokerExecutionStackData")):
+    def __init__(self, data: dataBlob, log=get_logger("brokerExecutionStackData")):
         super().__init__(log=log)
         self._data = data
 

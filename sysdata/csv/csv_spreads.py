@@ -22,7 +22,7 @@ class csvSpreadsForInstrumentData(spreadsForInstrumentData):
     """
 
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvSpreadsForInstrumentData")
+        self, datapath=arg_not_supplied, log=get_logger("csvSpreadsForInstrumentData")
     ):
 
         super().__init__(log=log)

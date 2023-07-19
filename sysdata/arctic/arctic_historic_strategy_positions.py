@@ -15,7 +15,7 @@ STRATEGY_POSITION_COLLECTION = "strategy_positions"
 
 
 class arcticStrategyPositionData(strategyPositionData):
-    def __init__(self, mongo_db=None, log=logtoscreen("arcticStrategyPositionData")):
+    def __init__(self, mongo_db=None, log=get_logger("arcticStrategyPositionData")):
 
         super().__init__(log=log)
 

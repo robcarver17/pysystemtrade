@@ -30,7 +30,7 @@ class CsvFuturesSimTestData(genericBlobUsingFuturesSimData):
     DEFAULT_END_DATE = datetime.strptime("2021-03-08 20:00:00", DATE_FORMAT)
 
     def __init__(
-        self, start_date=None, end_date=None, log=logtoscreen("csvFuturesSimTestData")
+        self, start_date=None, end_date=None, log=get_logger("csvFuturesSimTestData")
     ):
 
         data = dataBlob(

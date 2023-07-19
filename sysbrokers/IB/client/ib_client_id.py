@@ -14,7 +14,7 @@ class ibBrokerClientIdData(brokerClientIdData):
     def __init__(
         self,
         idoffset=arg_not_supplied,
-        log=logtoscreen("brokerClientIdTracker"),
+        log=get_logger("brokerClientIdTracker"),
     ):
         if idoffset is arg_not_supplied:
             _notused_ipaddress, _notused_port, idoffset = ib_defaults()

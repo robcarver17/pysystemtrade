@@ -1070,7 +1070,7 @@ from sysdata.csv.csv_spot_fx import csvFxPricesData
 
 class dbFuturesSimData2(genericBlobUsingFuturesSimData):
     def __init__(self, data: dataBlob = arg_not_supplied,
-                 log =logtoscreen("dbFuturesSimData")):
+                 log =get_logger("dbFuturesSimData")):
 
         if data is arg_not_supplied:
             data = dataBlob(log = log,

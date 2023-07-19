@@ -29,7 +29,7 @@ class mongoPositionLimitData(positionLimitData):
 
     """
 
-    def __init__(self, mongo_db=None, log=logtoscreen("mongoPositionLimitData")):
+    def __init__(self, mongo_db=None, log=get_logger("mongoPositionLimitData")):
         super().__init__(log=log)
 
         self._mongo_data = mongoDataWithMultipleKeys(

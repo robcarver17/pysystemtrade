@@ -29,7 +29,7 @@ class mongoOrderStackData(orderStackData):
     def _order_class(self):
         return Order
 
-    def __init__(self, mongo_db=None, log=logtoscreen("mongoOrderStackData")):
+    def __init__(self, mongo_db=None, log=get_logger("mongoOrderStackData")):
         # Not needed as we don't store anything in _state attribute used in parent class
         # If we did have _state would risk breaking if we forgot to override methods
         # super().__init__()

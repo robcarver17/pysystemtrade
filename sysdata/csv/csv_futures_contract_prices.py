@@ -33,7 +33,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
     def __init__(
         self,
         datapath=arg_not_supplied,
-        log=logtoscreen("csvFuturesContractPriceData"),
+        log=get_logger("csvFuturesContractPriceData"),
         config: ConfigCsvFuturesPrices = arg_not_supplied,
     ):
 

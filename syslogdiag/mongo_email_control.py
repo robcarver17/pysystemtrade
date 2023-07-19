@@ -4,7 +4,7 @@ from syscore.dateutils import datetime_to_long, long_to_datetime
 from syslogdiag.email_control import emailControlData
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import get_logger
 
 EMAIL_CONTROL_COLLECTION = "EMAIL_CONTROL"
 LAST_EMAIL_SENT = "last_email_sent"
@@ -25,7 +25,7 @@ INDEX_CONFIG = {
 
 
 class mongoEmailControlData(emailControlData):
-    def __init__(self, mongo_db=None, log=logtoscreen("mongoEmailControlData")):
+    def __init__(self, mongo_db=None, log=get_logger("mongoEmailControlData")):
 
         super().__init__(log=log)
         self._mongo_data = mongoDataWithMultipleKeys(

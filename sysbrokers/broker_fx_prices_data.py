@@ -5,7 +5,7 @@ from syslogging.logger import *
 
 
 class brokerFxPricesData(fxPricesData):
-    def __init__(self, data: dataBlob, log=logtoscreen("brokerFxPricesData")):
+    def __init__(self, data: dataBlob, log=get_logger("brokerFxPricesData")):
         super().__init__(log=log)
         self._data = data
 

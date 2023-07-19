@@ -14,7 +14,7 @@ class rollCalendarData(baseData):
     We wouldn't normally use this base class, but inherit from it for a specific data source eg Arctic
     """
 
-    def __init__(self, log=logtoscreen):
+    def __init__(self, log=get_logger("")):
         super().__init__(log=log)
 
     def __repr__(self):

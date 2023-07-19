@@ -15,7 +15,7 @@ class csvOptimalPositionData(optimalPositionData):
     """
 
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvOptimalPositionData")
+        self, datapath=arg_not_supplied, log=get_logger("csvOptimalPositionData")
     ):
 
         super().__init__(log=log)

@@ -10,7 +10,7 @@ DATE_INDEX_NAME = "DATETIME"
 
 
 class csvCapitalData(capitalData):
-    def __init__(self, datapath=arg_not_supplied, log=logtoscreen("csvCapitalData")):
+    def __init__(self, datapath=arg_not_supplied, log=get_logger("csvCapitalData")):
 
         super().__init__(log=log)
 

@@ -13,7 +13,7 @@ class rollStateData(baseData):
     Store and retrieve the roll state of a particular instrument
     """
 
-    def __init__(self, log=logtoscreen("rollStateData")):
+    def __init__(self, log=get_logger("rollStateData")):
         super().__init__(log=log)
 
     def get_name_of_roll_state(self, instrument_code: str) -> str:

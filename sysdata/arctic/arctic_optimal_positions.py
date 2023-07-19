@@ -20,7 +20,7 @@ OPTIMAL_POSITION_COLLECTION = "optimal_positions"
 
 
 class arcticOptimalPositionData(optimalPositionData):
-    def __init__(self, mongo_db=None, log=logtoscreen("arcticOptimalPositionData")):
+    def __init__(self, mongo_db=None, log=get_logger("arcticOptimalPositionData")):
 
         super().__init__(log=log)
 

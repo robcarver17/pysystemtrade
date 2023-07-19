@@ -51,7 +51,7 @@ class orderStackData(object):
 
     """
 
-    def __init__(self, log=logtoscreen("order-stack")):
+    def __init__(self, log=get_logger("order-stack")):
         self.log = log
 
     def __repr__(self):
