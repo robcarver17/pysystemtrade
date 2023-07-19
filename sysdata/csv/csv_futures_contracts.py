@@ -14,7 +14,7 @@ class csvFuturesContractData(futuresContractData):
     """
 
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvFuturesContractData")
+        self, datapath=arg_not_supplied, log=get_logger("csvFuturesContractData")
     ):
 
         super().__init__(log=log)

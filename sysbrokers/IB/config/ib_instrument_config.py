@@ -22,7 +22,7 @@ IB_FUTURES_CONFIG_FILE = resolve_path_and_filename_for_package(
 )
 
 
-def read_ib_config_from_file(log: pst_logger = logtoscreen("")) -> IBconfig:
+def read_ib_config_from_file(log: pst_logger = get_logger("")) -> IBconfig:
     try:
         df = pd.read_csv(IB_FUTURES_CONFIG_FILE)
     except Exception as e:
@@ -33,7 +33,7 @@ def read_ib_config_from_file(log: pst_logger = logtoscreen("")) -> IBconfig:
 
 
 def get_instrument_object_from_config(
-    instrument_code: str, config: IBconfig = None, log: pst_logger = logtoscreen("")
+    instrument_code: str, config: IBconfig = None, log: pst_logger = get_logger("")
 ) -> futuresInstrumentWithIBConfigData:
 
     new_log = log.setup(instrument_code=instrument_code)
@@ -111,7 +111,7 @@ class IBInstrumentIdentity:
 def get_instrument_code_from_broker_instrument_identity(
     config: IBconfig,
     ib_instrument_identity: IBInstrumentIdentity,
-    log: pst_logger = logtoscreen(""),
+    log: pst_logger = get_logger(""),
 ) -> str:
 
     ib_code = ib_instrument_identity.ib_code

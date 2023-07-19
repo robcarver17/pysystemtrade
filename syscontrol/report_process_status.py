@@ -12,7 +12,7 @@ class reportStatus(object):
     ## Report on status when waiting and paused, ensures we don't spam the log
     def __init__(self, log: pst_logger = arg_not_supplied):
         if log is arg_not_supplied:
-            log = logtoscreen("")
+            log = get_logger("")
         self._log = log
 
     @property

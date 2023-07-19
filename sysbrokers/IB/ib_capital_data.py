@@ -14,7 +14,7 @@ class ibCapitalData(brokerCapitalData):
         self,
         ibconnection: connectionIB,
         data: dataBlob,
-        log: pst_logger = logtoscreen("ibCapitalData"),
+        log: pst_logger = get_logger("ibCapitalData"),
     ):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection

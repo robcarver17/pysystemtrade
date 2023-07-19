@@ -24,9 +24,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     Class to read / write futures price data to and from arctic
     """
 
-    def __init__(
-        self, mongo_db=None, log=logtoscreen("arcticFuturesContractPriceData")
-    ):
+    def __init__(self, mongo_db=None, log=get_logger("arcticFuturesContractPriceData")):
 
         super().__init__(log=log)
 

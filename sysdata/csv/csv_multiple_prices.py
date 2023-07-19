@@ -27,7 +27,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
     def __init__(
         self,
         datapath: str = arg_not_supplied,
-        log=logtoscreen("csvFuturesMultiplePricesData"),
+        log=get_logger("csvFuturesMultiplePricesData"),
     ):
 
         super().__init__(log=log)

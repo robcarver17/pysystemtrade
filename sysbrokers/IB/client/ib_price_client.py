@@ -348,7 +348,7 @@ def _get_barsize_and_duration_from_frequency(bar_freq: Frequency) -> (str, str):
 
 
 def _avoid_pacing_violation(
-    last_call_datetime: datetime.datetime, log: pst_logger = logtoscreen("")
+    last_call_datetime: datetime.datetime, log: pst_logger = get_logger("")
 ):
     printed_warning_already = False
     while _pause_for_pacing(last_call_datetime):

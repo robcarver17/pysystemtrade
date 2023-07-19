@@ -15,7 +15,7 @@ from syslogging.logger import *
 
 
 class ibFxPricesData(brokerFxPricesData):
-    def __init__(self, ibconnection, data: dataBlob, log=logtoscreen("ibFxPricesData")):
+    def __init__(self, ibconnection, data: dataBlob, log=get_logger("ibFxPricesData")):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
         self._dataBlob = data

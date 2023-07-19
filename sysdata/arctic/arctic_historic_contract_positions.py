@@ -13,7 +13,7 @@ CONTRACT_POSITION_COLLECTION = "contract_positions"
 
 
 class arcticContractPositionData(contractPositionData):
-    def __init__(self, mongo_db=None, log=logtoscreen("arcticContractPositionData")):
+    def __init__(self, mongo_db=None, log=get_logger("arcticContractPositionData")):
 
         super().__init__(log=log)
 

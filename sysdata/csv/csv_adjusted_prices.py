@@ -21,7 +21,7 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
     """
 
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvFuturesContractPriceData")
+        self, datapath=arg_not_supplied, log=get_logger("csvFuturesContractPriceData")
     ):
 
         super().__init__(log=log)

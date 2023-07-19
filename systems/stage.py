@@ -43,7 +43,7 @@ class SystemStage(object):
 
     @property
     def log(self) -> pst_logger:
-        log = getattr(self, "_log", logtoscreen(""))
+        log = getattr(self, "_log", get_logger(""))
         return log
 
     @property

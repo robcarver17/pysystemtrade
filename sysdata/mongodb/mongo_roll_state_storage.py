@@ -14,7 +14,7 @@ class mongoRollStateData(rollStateData):
 
     """
 
-    def __init__(self, mongo_db=None, log=logtoscreen("mongoRollStateData")):
+    def __init__(self, mongo_db=None, log=get_logger("mongoRollStateData")):
 
         super().__init__(log=log)
 

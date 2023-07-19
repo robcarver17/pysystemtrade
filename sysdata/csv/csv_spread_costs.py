@@ -23,7 +23,7 @@ class csvSpreadCostData(spreadCostData):
     def __init__(
         self,
         datapath=arg_not_supplied,
-        log=logtoscreen("csvSpreadCostData"),
+        log=get_logger("csvSpreadCostData"),
     ):
 
         super().__init__(log=log)

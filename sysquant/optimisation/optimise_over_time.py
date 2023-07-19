@@ -17,7 +17,7 @@ class optimiseWeightsOverTime(object):
         net_returns: returnsForOptimisation,
         date_method="expanding",
         rollyears=20,
-        log: pst_logger = logtoscreen("optimiser"),
+        log=get_logger("optimiser"),
         **kwargs,
     ):
 

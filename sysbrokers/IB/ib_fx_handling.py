@@ -13,7 +13,7 @@ class ibFxHandlingData(brokerFxHandlingData):
         self,
         ibconnection: connectionIB,
         data: dataBlob,
-        log=logtoscreen("ibFXHandlingData"),
+        log=get_logger("ibFXHandlingData"),
     ):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection

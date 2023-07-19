@@ -19,7 +19,7 @@ class futuresContractData(baseData):
     If you want more information about a given instrument you have to read it in using futuresInstrumentData
     """
 
-    def __init__(self, log=logtoscreen("futuresInstrumentData")):
+    def __init__(self, log=get_logger("futuresInstrumentData")):
 
         super().__init__(log=log)
 

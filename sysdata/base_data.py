@@ -22,7 +22,7 @@ class baseData(object):
 
     """
 
-    def __init__(self, log=logtoscreen("baseData")):
+    def __init__(self, log=get_logger("baseData")):
         """
         simData socket base class
 

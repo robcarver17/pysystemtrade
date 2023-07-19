@@ -8,7 +8,7 @@ from syslogging.logger import *
 
 ### generic base class for FX handling
 class brokerFxHandlingData(baseData):
-    def __init__(self, data: dataBlob, log=logtoscreen("brokerFXHandlingData")):
+    def __init__(self, data: dataBlob, log=get_logger("brokerFXHandlingData")):
         super().__init__(log=log)
         self._data = data
 

@@ -9,7 +9,7 @@ from syslogging.logger import *
 
 
 class brokerFuturesContractData(futuresContractData):
-    def __init__(self, data: dataBlob, log=logtoscreen("brokerFuturesContractData")):
+    def __init__(self, data: dataBlob, log=get_logger("brokerFuturesContractData")):
         super().__init__(log=log)
         self._data = data
 

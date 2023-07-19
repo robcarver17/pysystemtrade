@@ -94,15 +94,6 @@ class TestLogging:
         with pytest.raises(Exception):
             logger.label(stage="left", foo="bar")
 
-    def test_logtoscreen(self):
-        screen = logtoscreen("logtoscreen")
-        assert screen.name == "logtoscreen"
-        assert screen.getEffectiveLevel() == logging.DEBUG
-
-        attrs = logtoscreen(**{TYPE_LOG_LABEL: "config", STAGE_LOG_LABEL: "config"})
-        assert attrs.name == "config"
-        assert attrs.getEffectiveLevel() == logging.DEBUG
-
     def test_set_logging_level(self):
         logger = get_logger("Set_Level")
         assert logger.getEffectiveLevel() == logging.DEBUG

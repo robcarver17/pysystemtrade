@@ -65,7 +65,7 @@ class ibClient(object):
     """
 
     def __init__(
-        self, ibconnection: connectionIB, log: pst_logger = logtoscreen("ibClient")
+        self, ibconnection: connectionIB, log: pst_logger = get_logger("ibClient")
     ):
 
         # means our first call won't be throttled for pacing
