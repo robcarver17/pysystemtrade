@@ -11,7 +11,6 @@ They can be stored, or worked out 'on the fly'
 """
 from syscore.exceptions import existingData
 from sysdata.base_data import baseData
-from syscore.constants import status, success, failure
 
 # These are used when inferring prices in an incomplete series
 from sysobjects.multiple_prices import futuresMultiplePrices
@@ -46,9 +45,7 @@ class futuresMultiplePricesData(baseData):
 
         return multiple_prices
 
-    def delete_multiple_prices(
-        self, instrument_code: str, are_you_sure=False
-    ) -> status:
+    def delete_multiple_prices(self, instrument_code: str, are_you_sure=False):
         log = self.log.setup(instrument_code=instrument_code)
 
         if are_you_sure:
@@ -58,18 +55,15 @@ class futuresMultiplePricesData(baseData):
                 )
                 log.info("Deleted multiple price data for %s" % instrument_code)
 
-                return success
-
             else:
                 # doesn't exist anyway
                 log.warning(
                     "Tried to delete non existent multiple prices for %s"
                     % instrument_code
                 )
-                return failure
         else:
             log.error("You need to call delete_multiple_prices with a flag to be sure")
-            return failure
+            raise Exception("You need to be sure!")
 
     def is_code_in_data(self, instrument_code: str) -> bool:
         if instrument_code in self.get_list_of_instruments():

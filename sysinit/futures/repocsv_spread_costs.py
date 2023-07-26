@@ -95,7 +95,8 @@ def process_modified_instruments(
 
         if check_on_modify:
             okay_to_modify = true_if_answer_is_yes(
-                "Okay to replace %f with %f" % (existing_spread, new_spread)
+                "%s: Okay to replace %f with %f"
+                % (instrument_code, existing_spread, new_spread)
             )
             if not okay_to_modify:
                 continue
