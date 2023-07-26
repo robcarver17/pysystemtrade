@@ -6,7 +6,7 @@ from sysdata.production.trade_limits import (
 )
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysdata.mongodb.mongo_generic import mongoDataWithMultipleKeys
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 LIMIT_STATUS_COLLECTION = "limit_status"
 
@@ -24,7 +24,7 @@ class mongoTradeLimitData(tradeLimitData):
 
     """
 
-    def __init__(self, mongo_db=None, log=logtoscreen("mongoTradeLimitData")):
+    def __init__(self, mongo_db=None, log=get_logger("mongoTradeLimitData")):
         super().__init__(log=log)
         self._mongo_data = mongoDataWithMultipleKeys(
             LIMIT_STATUS_COLLECTION, mongo_db=mongo_db

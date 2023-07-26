@@ -1,7 +1,6 @@
 from syscore.exceptions import missingData
-from syscore.constants import failure
 from syscore.dateutils import Frequency, MIXED_FREQ
-from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
+from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA, mergeError
 
 from sysdata.base_data import baseData
 
@@ -10,7 +9,7 @@ from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.dict_of_futures_per_contract_prices import dictFuturesContractPrices
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 BASE_CLASS_ERROR = "You have used a base class for futures price data; you need to use a class that inherits with a specific data source"
 
@@ -31,7 +30,7 @@ class futuresContractPriceData(baseData):
      or object.get_prices_for_contract_object(futuresContract(....))
     """
 
-    def __init__(self, log=logtoscreen("futuresContractPriceData")):
+    def __init__(self, log=get_logger("futuresContractPriceData")):
         super().__init__(log=log)
 
     def __repr__(self):
@@ -301,7 +300,7 @@ class futuresContractPriceData(baseData):
         if not_ignoring_duplication:
             if self.has_merged_price_data_for_contract(futures_contract_object):
                 log = futures_contract_object.log(self.log)
-                log.warn(
+                log.warning(
                     "There is already existing data for %s"
                     % futures_contract_object.key
                 )
@@ -332,7 +331,7 @@ class futuresContractPriceData(baseData):
                 contract_object=futures_contract_object, frequency=frequency
             ):
                 log = futures_contract_object.log(self.log)
-                log.warn(
+                log.warning(
                     "There is already existing data for %s"
                     % futures_contract_object.key
                 )
@@ -356,7 +355,7 @@ class futuresContractPriceData(baseData):
         new_log = contract_object.log(self.log)
 
         if len(new_futures_per_contract_prices) == 0:
-            new_log.msg("No new data")
+            new_log.debug("No new data")
             return 0
 
         if frequency is MIXED_FREQ:
@@ -373,7 +372,7 @@ class futuresContractPriceData(baseData):
         )
 
         if merged_prices is SPIKE_IN_DATA:
-            new_log.msg(
+            new_log.debug(
                 "Price has moved too much - will need to manually check - no price update done"
             )
             return SPIKE_IN_DATA
@@ -383,14 +382,16 @@ class futuresContractPriceData(baseData):
 
         if rows_added < 0:
             new_log.critical("Can't remove prices something gone wrong!")
-            return failure
+            raise mergeError("Merged prices have fewer rows than old prices!")
 
         elif rows_added == 0:
             if len(old_prices) == 0:
-                new_log.msg("No existing or additional data")
+                new_log.debug("No existing or additional data")
                 return 0
             else:
-                new_log.msg("No additional data since %s " % str(old_prices.index[-1]))
+                new_log.debug(
+                    "No additional data since %s " % str(old_prices.index[-1])
+                )
             return 0
 
         # We have guaranteed no duplication
@@ -406,7 +407,7 @@ class futuresContractPriceData(baseData):
                 ignore_duplication=True,
             )
 
-        new_log.msg("Added %d additional rows of data" % rows_added)
+        new_log.debug("Added %d additional rows of data" % rows_added)
 
         return rows_added
 
@@ -428,7 +429,7 @@ class futuresContractPriceData(baseData):
             )
         else:
             log = futures_contract_object.log(self.log)
-            log.warn("Tried to delete non existent contract")
+            log.warning("Tried to delete non existent contract")
 
     def delete_prices_at_frequency_for_contract_object(
         self,
@@ -453,7 +454,7 @@ class futuresContractPriceData(baseData):
             )
         else:
             log = futures_contract_object.log(self.log)
-            log.warn(
+            log.warning(
                 "Tried to delete non existent contract at frequency %s" % frequency
             )
 

@@ -7,7 +7,7 @@ from typing import Union
 from syscore.exceptions import missingData
 from sysdata.arctic.arctic_connection import arcticData
 from sysdata.production.optimal_positions import optimalPositionData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 from sysobjects.production.tradeable_object import (
     instrumentStrategy,
@@ -20,7 +20,7 @@ OPTIMAL_POSITION_COLLECTION = "optimal_positions"
 
 
 class arcticOptimalPositionData(optimalPositionData):
-    def __init__(self, mongo_db=None, log=logtoscreen("arcticOptimalPositionData")):
+    def __init__(self, mongo_db=None, log=get_logger("arcticOptimalPositionData")):
 
         super().__init__(log=log)
 

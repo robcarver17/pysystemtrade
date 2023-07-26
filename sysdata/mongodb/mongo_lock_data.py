@@ -1,7 +1,7 @@
 from syscore.constants import arg_not_supplied
 from sysdata.production.locks import lockData, lock_off, lock_on
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 LOCK_STATUS_COLLECTION = "locks"
 LOCK_DICT_KEY = "lock"
@@ -14,7 +14,7 @@ class mongoLockData(lockData):
 
     """
 
-    def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen("mongoLockData")):
+    def __init__(self, mongo_db=arg_not_supplied, log=get_logger("mongoLockData")):
 
         super().__init__(log=log)
         self._mongo_data = mongoDataWithSingleKey(

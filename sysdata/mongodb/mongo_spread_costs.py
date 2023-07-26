@@ -4,7 +4,7 @@ import numpy as np
 from syscore.exceptions import missingData
 from sysdata.futures.spread_costs import spreadCostData
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 SPREAD_COST_COLLECTION = "spread_costs"
 INSTRUMENT_KEY = "instrument_code"
@@ -17,7 +17,7 @@ class mongoSpreadCostData(spreadCostData):
 
     """
 
-    def __init__(self, mongo_db=None, log=logtoscreen("mongoSpreadCostData")):
+    def __init__(self, mongo_db=None, log=get_logger("mongoSpreadCostData")):
         super().__init__(log=log)
         self._mongo_data = mongoDataWithSingleKey(
             SPREAD_COST_COLLECTION, mongo_db=mongo_db, key_name=INSTRUMENT_KEY
@@ -48,14 +48,14 @@ class mongoSpreadCostData(spreadCostData):
                 instrument_code
             )
         except missingData:
-            self.log.warn(
+            self.log.warning(
                 "No spread cost in database for %s, using 0" % instrument_code
             )
             return 0.0
 
         spread_cost = _cost_value_from_dict(result_dict)
         if np.isnan(spread_cost):
-            self.log.warn("No valid spread cost for %s, using 0" % instrument_code)
+            self.log.warning("No valid spread cost for %s, using 0" % instrument_code)
             return 0.0
 
         return spread_cost

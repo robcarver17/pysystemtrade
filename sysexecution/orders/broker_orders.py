@@ -1,5 +1,6 @@
 import datetime
 
+from syscore.exceptions import fillExceedsTrade
 from sysexecution.orders.named_order_objects import (
     missing_order,
     no_order_id,
@@ -19,29 +20,31 @@ from sysexecution.orders.contract_orders import (
 )
 from sysexecution.orders.instrument_orders import instrumentOrder
 
-from syslogdiag.pst_logger import (
-    STRATEGY_NAME_LOG_LABEL,
-    CONTRACT_ORDER_ID_LOG_LABEL,
-    BROKER_ORDER_ID_LOG_LABEL,
-    INSTRUMENT_CODE_LOG_LABEL,
-)
+from syslogging.logger import *
 from sysobjects.production.tradeable_object import instrumentStrategy, futuresContract
 
 from syscore.genutils import (
     if_empty_string_return_object,
     if_object_matches_return_empty_string,
 )
-from syscore.constants import fill_exceeds_trade, success
+from syscore.constants import success
 
 
 class brokerOrderType(orderType):
     def allowed_types(self):
-        return ["market", "limit", "balance_trade"]
+        return ["market", "limit", "balance_trade", "snap_mkt", "snap_mid", "snap_prim"]
 
 
 market_order_type = brokerOrderType("market")
 limit_order_type = brokerOrderType("limit")
+
+## internal
 balance_order_type = brokerOrderType("balance_trade")
+
+## special order types, may not be implemented by all brokers
+snap_mkt_type = brokerOrderType("snap_mkt")
+snap_mid_type = brokerOrderType("snap_mid")
+snap_prim_type = brokerOrderType("snap_prim")
 
 
 class brokerOrder(Order):
@@ -353,7 +356,7 @@ class brokerOrder(Order):
             matched_broker_order.fill
         )
         if not fill_qty_okay:
-            return fill_exceeds_trade
+            raise fillExceedsTrade
         self.fill_order(
             matched_broker_order.fill,
             filled_price=matched_broker_order.filled_price,

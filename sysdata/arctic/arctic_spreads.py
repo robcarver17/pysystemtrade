@@ -1,7 +1,7 @@
 from sysdata.futures.spreads import spreadsForInstrumentData
 from sysobjects.spreads import spreadsForInstrument
 from sysdata.arctic.arctic_connection import arcticData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 import pandas as pd
 
 SPREAD_COLLECTION = "spreads"
@@ -9,7 +9,7 @@ SPREAD_COLUMN_NAME = "spread"
 
 
 class arcticSpreadsForInstrumentData(spreadsForInstrumentData):
-    def __init__(self, mongo_db=None, log=logtoscreen("arcticSpreadsForInstrument")):
+    def __init__(self, mongo_db=None, log=get_logger("arcticSpreadsForInstrument")):
 
         super().__init__(log=log)
 
@@ -36,7 +36,7 @@ class arcticSpreadsForInstrumentData(spreadsForInstrumentData):
 
     def _delete_spreads_without_any_warning_be_careful(self, instrument_code: str):
         self.arctic.delete(instrument_code)
-        self.log.msg(
+        self.log.debug(
             "Deleted spreads for %s from %s" % (instrument_code, str(self)),
             instrument_code=instrument_code,
         )
@@ -48,7 +48,7 @@ class arcticSpreadsForInstrumentData(spreadsForInstrumentData):
         spreads_as_pd.columns = [SPREAD_COLUMN_NAME]
         spreads_as_pd = spreads_as_pd.astype(float)
         self.arctic.write(instrument_code, spreads_as_pd)
-        self.log.msg(
+        self.log.debug(
             "Wrote %s lines of spreads for %s to %s"
             % (len(spreads_as_pd), instrument_code, str(self)),
             instrument_code=instrument_code,

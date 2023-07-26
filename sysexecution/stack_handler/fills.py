@@ -1,6 +1,6 @@
 import datetime
 import numpy as np
-from syscore.constants import fill_exceeds_trade
+from syscore.exceptions import fillExceedsTrade
 from sysexecution.orders.named_order_objects import (
     missing_order,
     no_order_id,
@@ -59,7 +59,7 @@ class stackHandlerForFills(stackHandlerForCompletions):
 
         if matched_broker_order is missing_order:
             log = db_broker_order.log_with_attributes(self.log)
-            log.warn(
+            log.warning(
                 "Order in database %s does not match any broker orders: can't fill"
                 % db_broker_order
             )
@@ -79,13 +79,13 @@ class stackHandlerForFills(stackHandlerForCompletions):
             data_broker.calculate_total_commission_for_broker_order(broker_order)
         )
 
-        # This will add commissions, fills, etc
-        result = self.broker_stack.add_execution_details_from_matched_broker_order(
-            broker_order_id, broker_order_with_commissions
-        )
-
-        if result is fill_exceeds_trade:
-            self.log.warn(
+        try:
+            # This will add commissions, fills, etc
+            self.broker_stack.add_execution_details_from_matched_broker_order(
+                broker_order_id, broker_order_with_commissions
+            )
+        except fillExceedsTrade:
+            self.log.warning(
                 "Fill for exceeds trade for %s, ignoring fill... (hopefully will go away)"
                 % (broker_order)
             )

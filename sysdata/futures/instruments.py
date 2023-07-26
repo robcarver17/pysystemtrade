@@ -8,7 +8,7 @@ from sysobjects.instruments import (
     futuresInstrumentWithMetaData,
     listOfFuturesInstrumentWithMetaData,
 )
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 USE_CHILD_CLASS_ERROR = "You need to use a child class of futuresInstrumentData"
 
@@ -24,7 +24,7 @@ class futuresInstrumentData(baseData):
     def __repr__(self):
         return "futuresInstrumentData base class - DO NOT USE"
 
-    def __init__(self, log=logtoscreen("futuresInstrumentData")):
+    def __init__(self, log=get_logger("futuresInstrumentData")):
         super().__init__(log=log)
 
     def keys(self) -> list:
@@ -34,11 +34,11 @@ class futuresInstrumentData(baseData):
         return self.get_instrument_data(instrument_code)
 
     def update_slippage_costs(self, instrument_code: str, new_slippage: float):
-        self.upate_meta_data(
+        self.update_meta_data(
             instrument_code, meta_name="Slippage", new_value=new_slippage
         )
 
-    def upate_meta_data(self, instrument_code: str, meta_name: str, new_value):
+    def update_meta_data(self, instrument_code: str, meta_name: str, new_value):
         instrument_object = self.get_instrument_data(instrument_code)
         existing_meta_data = instrument_object.meta_data
         try:
@@ -50,7 +50,7 @@ class futuresInstrumentData(baseData):
             )
         setattr(existing_meta_data, meta_name, new_value)
         self.add_instrument_data(instrument_object, ignore_duplication=True)
-        self.log.msg(
+        self.log.debug(
             "Updated %s for %s from %s to %s"
             % (meta_name, instrument_code, existing_meta_data_value, new_value)
         )
@@ -101,11 +101,11 @@ class futuresInstrumentData(baseData):
                 self._delete_instrument_data_without_any_warning_be_careful(
                     instrument_code
                 )
-                self.log.terse("Deleted instrument object %s" % instrument_code)
+                self.log.info("Deleted instrument object %s" % instrument_code)
 
             else:
                 # doesn't exist anyway
-                self.log.warn("Tried to delete non existent instrument")
+                self.log.warning("Tried to delete non existent instrument")
         else:
             self.log.error(
                 "You need to call delete_instrument_data with a flag to be sure"
@@ -137,7 +137,7 @@ class futuresInstrumentData(baseData):
 
         self._add_instrument_data_without_checking_for_existing_entry(instrument_object)
 
-        self.log.terse("Added instrument object %s" % instrument_object.instrument_code)
+        self.log.info("Added instrument object %s" % instrument_object.instrument_code)
 
     def get_list_of_instruments(self):
         raise NotImplementedError(USE_CHILD_CLASS_ERROR)

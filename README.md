@@ -7,10 +7,10 @@ Rob Carver
 [https://qoppac.blogspot.com/p/pysystemtrade.html](https://qoppac.blogspot.com/p/pysystemtrade.html)
 
 
-Version 1.61
+Version 1.71
  
 
-2023-03-24
+2023-07-19
 
 
 

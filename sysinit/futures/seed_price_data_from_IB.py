@@ -36,12 +36,12 @@ def seed_price_data_for_contract(data: dataBlob, contract_object: futuresContrac
 
     list_of_frequencies = [HOURLY_FREQ, DAILY_PRICE_FREQ]
     for frequency in list_of_frequencies:
-        log.msg("Getting data at frequency %s" % str(frequency))
+        log.debug("Getting data at frequency %s" % str(frequency))
         seed_price_data_for_contract_at_frequency(
             data=data, contract_object=contract_object, frequency=frequency
         )
 
-    log.msg("Writing merged data for %s" % str(contract_object))
+    log.debug("Writing merged data for %s" % str(contract_object))
     write_merged_prices_for_contract(
         data, contract_object=contract_object, list_of_frequencies=list_of_frequencies
     )
@@ -62,13 +62,13 @@ def seed_price_data_for_contract_at_frequency(
             )
         )
     except missingData:
-        log.warn("Error getting data for %s" % str(contract_object))
+        log.warning("Error getting data for %s" % str(contract_object))
         return None
 
-    log.msg("Got %d lines of prices for %s" % (len(prices), str(contract_object)))
+    log.debug("Got %d lines of prices for %s" % (len(prices), str(contract_object)))
 
     if len(prices) == 0:
-        log.warn("No price data for %s" % str(contract_object))
+        log.warning("No price data for %s" % str(contract_object))
     else:
         update_prices.overwrite_prices_at_frequency_for_contract(
             contract_object=contract_object, frequency=frequency, new_prices=prices

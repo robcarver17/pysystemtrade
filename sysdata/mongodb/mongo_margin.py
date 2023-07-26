@@ -5,7 +5,7 @@ from syscore.constants import arg_not_supplied
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 
 from sysdata.production.margin import marginData, seriesOfMargin
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 MARGIN_COLLECTION = "margin"
 STRATEGY_REF = "strategy_name"
@@ -19,7 +19,7 @@ class mongoMarginData(marginData):
     def __init__(
         self,
         mongo_db=arg_not_supplied,
-        log=logtoscreen("mongoMarginData"),
+        log=get_logger("mongoMarginData"),
     ):
 
         self._mongo_data = mongoDataWithSingleKey(

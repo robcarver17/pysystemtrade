@@ -46,6 +46,13 @@ class dataCapital(productionDataLayerGeneric):
     def get_current_accumulated_pandl(self) -> float:
         return self.total_capital_calculator.get_current_accumulated_pandl()
 
+    def check_for_total_capital_data(self) -> bool:
+        total_capital_data_exists = (
+            self.total_capital_calculator.check_for_total_capital_data()
+        )
+
+        return total_capital_data_exists
+
     def update_and_return_total_capital_with_new_broker_account_value(
         self, total_account_value_in_base_currency: float, check_limit: float = 0.1
     ) -> float:

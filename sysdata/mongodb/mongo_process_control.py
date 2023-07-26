@@ -3,7 +3,7 @@ from sysdata.production.process_control_data import controlProcessData
 from syscore.constants import arg_not_supplied
 
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 PROCESS_CONTROL_COLLECTION = "process_control"
 PROCESS_CONTROL_KEY = "process_name"
@@ -17,7 +17,7 @@ class mongoControlProcessData(controlProcessData):
     """
 
     def __init__(
-        self, mongo_db=arg_not_supplied, log=logtoscreen("mongoControlProcessData")
+        self, mongo_db=arg_not_supplied, log=get_logger("mongoControlProcessData")
     ):
 
         super().__init__(log=log)

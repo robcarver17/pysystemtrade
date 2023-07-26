@@ -9,7 +9,7 @@ from sysobjects.instruments import (
     instrumentMetaData,
     META_FIELD_LIST,
 )
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 import pandas as pd
 
 INSTRUMENT_CONFIG_PATH = "data.futures.csvconfig"
@@ -25,7 +25,7 @@ class csvFuturesInstrumentData(futuresInstrumentData):
     def __init__(
         self,
         datapath=arg_not_supplied,
-        log=logtoscreen("csvFuturesInstrumentData"),
+        log=get_logger("csvFuturesInstrumentData"),
     ):
 
         super().__init__(log=log)

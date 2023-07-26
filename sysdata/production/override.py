@@ -2,7 +2,7 @@
 An override is something that affects our normal trading behaviour
 """
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysobjects.production.override import Override, DEFAULT_OVERRIDE
 from sysobjects.production.tradeable_object import instrumentStrategy
 from sysdata.base_data import baseData
@@ -14,7 +14,7 @@ strategy_instruments_overrides = "strategies_instruments"
 
 
 class overrideData(baseData):
-    def __init__(self, log=logtoscreen("Overrides")):
+    def __init__(self, log=get_logger("Overrides")):
         super().__init__(log=log)
 
     def default_override(self):
@@ -26,7 +26,7 @@ class overrideData(baseData):
         strategy_override = self._get_override_for_strategy(
             instrument_strategy.strategy_name
         )
-        instrument_override = self._get_override_for_instrument(
+        instrument_override = self.get_override_for_instrument(
             instrument_strategy.instrument_code
         )
         strategy_instrument_override = self._get_override_for_instrument_strategy(
@@ -50,7 +50,7 @@ class overrideData(baseData):
             strategy_instruments_overrides, key
         )
 
-    def _get_override_for_instrument(self, instrument_code: str) -> Override:
+    def get_override_for_instrument(self, instrument_code: str) -> Override:
         return self._get_override_object_for_type_and_key(
             instrument_overrides, instrument_code
         )

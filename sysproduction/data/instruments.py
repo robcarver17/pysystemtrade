@@ -9,6 +9,7 @@ from sysobjects.instruments import instrumentCosts
 
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
+from sysproduction.data.config import get_list_of_stale_instruments
 
 
 class updateSpreadCosts(productionDataLayerGeneric):
@@ -18,7 +19,7 @@ class updateSpreadCosts(productionDataLayerGeneric):
 
     def update_spread_costs(self, instrument_code: str, spread_cost: float):
         original_cost = self.db_spread_cost_data.get_spread_cost(instrument_code)
-        self.log.msg(
+        self.log.debug(
             "Updating spread for %s from %f to %f"
             % (instrument_code, original_cost, spread_cost)
         )
@@ -106,10 +107,7 @@ class diagInstruments(productionDataLayerGeneric):
         return instrument_codes
 
     def get_stale_instruments(self) -> list:
-        config = self.data.config
-        stale_instruments = config.get_element_or_default("stale_instruments", [])
-
-        return stale_instruments
+        return get_list_of_stale_instruments()
 
     @property
     def db_futures_instrument_data(self) -> futuresInstrumentData:
@@ -123,8 +121,3 @@ class diagInstruments(productionDataLayerGeneric):
 def get_block_size(data, instrument_code):
     diag_instruments = diagInstruments(data)
     return diag_instruments.get_point_size(instrument_code)
-
-
-def get_stale_instruments(data):
-    diag_instruments = diagInstruments(data)
-    return diag_instruments.get_stale_instruments()

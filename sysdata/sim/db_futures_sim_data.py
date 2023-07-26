@@ -14,12 +14,12 @@ from sysdata.mongodb.mongo_spread_costs import mongoSpreadCostData
 from sysdata.data_blob import dataBlob
 from sysdata.sim.futures_sim_data_with_data_blob import genericBlobUsingFuturesSimData
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class dbFuturesSimData(genericBlobUsingFuturesSimData):
     def __init__(
-        self, data: dataBlob = arg_not_supplied, log=logtoscreen("dbFuturesSimData")
+        self, data: dataBlob = arg_not_supplied, log=get_logger("dbFuturesSimData")
     ):
 
         if data is arg_not_supplied:

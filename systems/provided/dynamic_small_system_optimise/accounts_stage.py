@@ -13,7 +13,7 @@ class accountForOptimisedStage(Account):
     @output(not_pickable=True)
     def optimised_portfolio(self, delayfill=True):
 
-        self.log.terse("Calculating pandl for portfolio")
+        self.log.info("Calculating pandl for portfolio")
         capital = self.get_notional_capital()
         instruments = self.get_instrument_list()
         dict_of_pandl_by_instrument = dict(
@@ -41,7 +41,7 @@ class accountForOptimisedStage(Account):
         self, instrument_code: str, delayfill: bool = True
     ) -> accountCurve:
 
-        self.log.msg(
+        self.log.debug(
             "Calculating pandl for instrument for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -71,7 +71,9 @@ class accountForOptimisedStage(Account):
     ) -> float:
 
         ## assumes we use all capital
-        average_position_for_turnover = self.get_volatility_scalar(instrument_code)
+        average_position_for_turnover = self.get_average_position_at_subsystem_level(
+            instrument_code
+        )
 
         ## Using actual capital
         positions = self.get_optimised_position(instrument_code)

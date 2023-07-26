@@ -295,7 +295,7 @@ The objects `csvFuturesContractPriceData` and `arcticFuturesContractPriceData` a
 <a name="roll_calendars"></a>
 ## Roll calendars
 
-We're now ready to set up a *roll calendar*. A roll calendar is the series of dates on which we roll from one futures contract to the next. It might be helpful to read [my blog post](https://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html) on rolling futures contracts (though bear in mind some of the details relate to my original defunct trading system and do no reflect how pysystemtrade works).
+We're now ready to set up a *roll calendar*. A roll calendar is the series of dates on which we roll from one futures contract to the next. It might be helpful to read [my blog post](https://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html) on rolling futures contracts (though bear in mind some of the details relate to my original defunct trading system and do not reflect how pysystemtrade works).
 
 You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). On each date we roll from the current_contract shown to the next_contract. We also see the current carry_contract; we use the differential between this and the current_contract to calculate forecasts for carry trading rules. The key thing is that on each roll date we *MUST* have prices for both the price and forward contract (we don't need carry). Here is a snippet from another roll calendar. This particular contract rolls quarterly on IMM dates (HMUZ), trades the first contract, and uses the second contract for carry. 
 
@@ -331,7 +331,7 @@ This is the method you'd use if you were really starting from scratch, and you'd
 In this script (which you should run for each instrument in turn):
 
 - We get prices for individual futures contract [from Arctic](#arcticFuturesContractPriceData) that we created in the [previous stage](#get_historical_data)
-- We get roll parameters [from Mongo](#mongoRollParametersData), that [we made earlier](#set_up_roll_parameter_config) 
+- We get roll parameters [from the csv file](#csvRollParametersData), that [we made earlier](#set_up_roll_parameter_config) 
 - We calculate the roll calendar: 
 `roll_calendar = rollCalendar.create_from_prices(dict_of_futures_contract_prices, roll_parameters)` based on the `ExpiryOffset` parameter stored in the instrument roll parameters we already setup. 
 - We do some checks on the roll calendar, for monotonicity and validity (these checks will generate warnings if things go wrong)
@@ -571,7 +571,7 @@ That's it. You've got all the price and configuration data you need to start liv
 
 The paradigm for data storage is that we have a bunch of [*data objects*](#generic_objects) for specific types of data used in both backtesting and simulation, i.e. `futuresInstrument` is the generic class for storing static information about instruments. [Another set](#production_data_objects) of data objects is only used in production.
 
-Each of those data objects then has a matching *data storage object* which accesses data for that object, i.e. futuresInstrumentData. Then we have [specific instances of those for different data sources](#specific_data_storage), i.e. `mongoFuturesInstrumentData` for storing instrument data in a mongo DB database. 
+Each of those data objects then has a matching *data storage object* which accesses data for that object, i.e. futuresInstrumentData. Then we have [specific instances of those for different data sources](#specific_data_storage), i.e. `csvFuturesInstrumentData` for storing instrument data in a csv file. 
 
 I use [`dataBlob`s](/sysdata/data_blob.py) to access collections of data storage objects in both simulation and production. This also hides the exact source of the data and ensures that data objects are using a common database, logging method, and brokerage connection (since the broker is also accessed via data storage objects). More [later](#data_blobs).
 
@@ -653,18 +653,12 @@ Production only data storage objects:
         - `brokerOrderStackData`
             - `mongoBrokerOrderStackData`
 
-Used for logging:
-    - `pst_logger`
-        - `logtoscreen`
-        - `logToDb`
-            - `logToMongod`
-
-
+    
 Specific data sources
 
 - Mongo / Arctic
     - `mongoDb`: Connection to a database (arctic or mongo) specifying port, databasename and hostname. Usually created by a `dataBlob`, and the instance is used to create various `mongoConnection`
-    - `mongoConnection`: Creates a connection (combination of database and specific collection) that is created inside object like `mongoRollParametersData`, using a `mongoDb`
+    - `mongoConnection`: Creates a connection (combination of database and specific collection) that is created inside object like `mongoPositionLimitData`, using a `mongoDb`
     - `mongoData`: Provides a common abstract interface to mongo, assuming the data is in dicts. Has different classes for single or multiple keys.
     - `arcticData`: Provides a common abstract interface to arctic, assuming the data is passed as pd.DataFrame
 - Interactive brokers: see [this file](/docs/IB.md)
@@ -684,9 +678,7 @@ Simulation interface layer:
                 - [csvFuturesSimData](/sysdata/sim/csv_futures_sim_data.py): Access to sim data in .csv files
                 - [dbFuturesSimData](/sysdata/sim/db_futures_sim_data.py): Access to sim data in arctic / mongodb files
 
-
-
-
+    
 ## Directory structure (not the whole package! Just related to data objects, storage and interfaces)
 
 - [/sysbrokers/IB/](/sysbrokers/IB/): IB specific data storage / access objects
@@ -700,7 +692,6 @@ Simulation interface layer:
     - [/sysdata/csv/](/sysdata/csv/): Data storage objects, csv specific
     - [/sysdata/sim/](/sysdata/sim/): Backtesting interface layer
 - [/sysexecution/](/sysexecution/): Order and order stack data objects
-- [/syslogdiag/](/syslogdiag): Logging data objects
 - [/sysobjects/](/sysobjects/): Most production and generic (backtesting and production) data objects live here
 - [/sysproduction/data/](/sysproduction/data/): Production interface layer
 
@@ -867,11 +858,11 @@ If your mongoDB is running on your local machine then you can stick with the def
 
 ```python
 # Instead of:
-mfidata=mongoFuturesInstrumentData()
+adj_data=arcticFuturesAdjustedPricesData()
 
 # Do this
 from sysdata.mongodb import mongoDb
-mfidata=mongoFuturesInstrumentData(mongo_db = mongoDb(mongo_database_name='another database')) # could also change host
+adj_data=arcticFuturesAdjustedPricesData(mongo_db = mongoDb(mongo_database_name='another database')) # could also change host
 ```
 
 <a name="arctic"></a>
@@ -1079,12 +1070,12 @@ from sysdata.csv.csv_spot_fx import csvFxPricesData
 
 class dbFuturesSimData2(genericBlobUsingFuturesSimData):
     def __init__(self, data: dataBlob = arg_not_supplied,
-                 log =logtoscreen("dbFuturesSimData")):
+                 log =get_logger("dbFuturesSimData")):
 
         if data is arg_not_supplied:
             data = dataBlob(log = log,
                               class_list=[arcticFuturesAdjustedPricesData, arcticFuturesMultiplePricesData,
-                         csvFxPricesData, mongoFuturesInstrumentData], csv_data_paths = {'csvFxPricesData': 'some_path'})
+                         csvFxPricesData, csvFuturesInstrumentData], csv_data_paths = {'csvFxPricesData': 'some_path'})
 
         super().__init__(data=data)
 
@@ -1111,7 +1102,6 @@ csvFxPricesData accessing data.futures.fx_prices_csv
 In production I use the objects in [this module](/sysproduction/data) to act as interfaces between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
 
 `diag` classes are read only, `update` are write only, `data` are read/write (created because it's not worth creating a separate read and write class):
-
 - `dataBacktest`: read/write pickled backtests from production `run_systems`
 - `dataBroker`: interact with broker
 - `dataCapital`: read/write total and strategy capital
@@ -1122,7 +1112,6 @@ In production I use the objects in [this module](/sysproduction/data) to act as 
 - `dataPositionLimits`: read/write position limits 
 - `dataTradeLimits`: read/write limits on individual trades
 - `diagInstruments`: get configuration for instruments
-- `diagLogs`: read logging information
 - `dataOrders`: read/write historic orders and order 'stacks' (current orders)
 - `diagPositions`, `updatePositions`: Read/Write historic and current positions
 - `dataOptimalPositions`: Read/Write optimal position data

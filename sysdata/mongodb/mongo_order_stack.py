@@ -1,6 +1,6 @@
 from syscore.exceptions import missingData
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 from sysexecution.order_stacks.order_stack import orderStackData
 from sysexecution.orders.named_order_objects import missing_order
@@ -29,7 +29,7 @@ class mongoOrderStackData(orderStackData):
     def _order_class(self):
         return Order
 
-    def __init__(self, mongo_db=None, log=logtoscreen("mongoOrderStackData")):
+    def __init__(self, mongo_db=None, log=get_logger("mongoOrderStackData")):
         # Not needed as we don't store anything in _state attribute used in parent class
         # If we did have _state would risk breaking if we forgot to override methods
         # super().__init__()

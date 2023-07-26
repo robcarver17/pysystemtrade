@@ -1,4 +1,4 @@
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.config.configdata import Config
 from sysdata.config.instruments import (
     get_duplicate_list_of_instruments_to_remove_from_config,
@@ -7,8 +7,14 @@ from sysdata.config.instruments import (
     get_list_of_untradeable_instruments_in_config,
 )
 from sysdata.sim.sim_data import simData
-from syslogdiag.log_to_screen import logtoscreen, pst_logger
+from syslogging.logger import *
 from systems.system_cache import systemCache, base_system_cache
+
+from systems.tools.autogroup import (
+    calculate_autogroup_weights_given_parameters,
+    config_is_auto_group,
+    resolve_config_into_parameters_and_weights_for_autogrouping,
+)
 
 """
 This is used for items which affect an entire system, not just one instrument
@@ -38,7 +44,7 @@ class System(object):
         stage_list: list,
         data: simData,
         config: Config = arg_not_supplied,
-        log: pst_logger = logtoscreen("base_system"),
+        log: pst_logger = get_logger("base_system"),
     ):
         """
         Create a system object for doing simulations or live trading
@@ -219,7 +225,8 @@ class System(object):
         config = self.config
         try:
             # if instrument weights specified in config ...
-            instrument_list = list(config.instrument_weights.keys())
+            instrument_weights = get_instrument_weights_from_config(config)
+            instrument_list = list(instrument_weights.keys())
         except:
             try:
                 # alternative place if no instrument weights
@@ -253,7 +260,7 @@ class System(object):
             days_required=days_required,
         )
 
-        self.log.msg(
+        self.log.debug(
             "Following instruments removed entirely from sim: %s"
             % str(list_of_instruments_to_remove)
         )
@@ -293,7 +300,7 @@ class System(object):
             set(instrument_list).intersection(set(not_trading))
         )
 
-        self.log.msg(
+        self.log.debug(
             "Following instruments marked as not trading %s"
             % str(not_trading_in_instrument_list)
         )
@@ -342,7 +349,7 @@ class System(object):
         )
         duplicate_list.sort()
         if len(duplicate_list) > 0:
-            self.log.msg(
+            self.log.debug(
                 "Following instruments are 'duplicate_markets' %s "
                 % str(duplicate_list)
             )
@@ -353,7 +360,7 @@ class System(object):
         ignore_instruments = get_list_of_ignored_instruments_in_config(self.config)
         ignore_instruments.sort()
         if len(ignore_instruments) > 0:
-            self.log.msg(
+            self.log.debug(
                 "Following instruments are marked as 'ignore_instruments': not included: %s"
                 % str(ignore_instruments)
             )
@@ -367,7 +374,7 @@ class System(object):
         trading_restrictions.sort()
         if len(trading_restrictions) > 0:
             ## will only log once as cached
-            self.log.msg(
+            self.log.debug(
                 "Following instruments have restricted trading:  %s "
                 % str(trading_restrictions)
             )
@@ -378,7 +385,7 @@ class System(object):
         bad_markets.sort()
         if len(bad_markets) > 0:
             ## will only log once as cached
-            self.log.msg(
+            self.log.debug(
                 "Following instruments are marked as 'bad_markets':  %s"
                 % str(bad_markets)
             )
@@ -398,11 +405,43 @@ class System(object):
         too_short.sort()
 
         if len(too_short) > 0:
-            self.log.msg(
+            self.log.debug(
                 "Following instruments have insufficient history: %s" % str(too_short)
             )
 
         return too_short
+
+
+def get_instrument_weights_from_config(config: Config) -> dict:
+
+    instrument_weights_config = getattr(config, "instrument_weights", None)
+    if instrument_weights_config is None:
+        raise Exception("Instrument config not available")
+
+    if config_is_auto_group(instrument_weights_config):
+        instrument_weights_dict = _get_instrument_weights_with_autogrouping(
+            instrument_weights_config
+        )
+    else:
+        instrument_weights_dict = instrument_weights_config
+
+    return instrument_weights_dict
+
+
+def _get_instrument_weights_with_autogrouping(instrument_weights_config: dict) -> dict:
+    (
+        auto_group_parameters,
+        auto_group_weights,
+    ) = resolve_config_into_parameters_and_weights_for_autogrouping(
+        instrument_weights_config
+    )
+
+    group_weights = calculate_autogroup_weights_given_parameters(
+        auto_group_weights=auto_group_weights,
+        auto_group_parameters=auto_group_parameters,
+    )
+
+    return group_weights
 
 
 if __name__ == "__main__":

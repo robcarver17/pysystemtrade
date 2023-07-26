@@ -1,3 +1,4 @@
+from typing import List
 from dataclasses import dataclass
 
 from syscore.exceptions import missingData
@@ -11,15 +12,26 @@ from sysdata.config.instruments import (
 from sysdata.mongodb.mongo_lock_data import mongoLockData
 from sysdata.mongodb.mongo_position_limits import mongoPositionLimitData
 from sysdata.mongodb.mongo_trade_limits import mongoTradeLimitData
-from sysdata.mongodb.mongo_override import mongoOverrideData
+from sysdata.mongodb.mongo_temporary_override import mongoTemporaryOverrideData
 from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 from sysdata.mongodb.mongo_temporary_close import mongoTemporaryCloseData
-
+from sysdata.mongodb.mongo_override import mongoOverrideData
 from sysdata.production.broker_client_id import brokerClientIdData
+from sysproduction.data.config import (
+    remove_stale_instruments_and_strategies_from_list_of_instrument_strategies,
+    remove_stale_instruments_from_list_of_instruments,
+    get_list_of_stale_strategies,
+    get_list_of_stale_instruments,
+)
 from sysdata.production.locks import lockData
-from sysdata.production.trade_limits import tradeLimitData
+from sysdata.production.trade_limits import (
+    tradeLimitData,
+    tradeLimit,
+    listOfTradeLimits,
+)
 from sysdata.production.override import overrideData
 from sysdata.production.temporary_close import temporaryCloseData
+from sysdata.production.temporary_override import temporaryOverrideData
 from sysdata.production.position_limits import (
     positionLimitData,
     positionLimitForInstrument,
@@ -41,10 +53,9 @@ from sysobjects.production.tradeable_object import (
     listOfInstrumentStrategies,
     instrumentStrategy,
 )
-from sysobjects.production.override import Override
+from sysobjects.production.override import Override, override_no_trading
 from sysobjects.production.position_limits import (
     positionLimitAndPosition,
-    NO_LIMIT,
 )
 from sysobjects.production.override import (
     NO_TRADE_OVERRIDE,
@@ -55,7 +66,6 @@ from sysobjects.production.override import (
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
-OVERRIDE_FOR_BAD = REDUCE_ONLY_OVERRIDE
 OVERRIDE_FOR_BAD = REDUCE_ONLY_OVERRIDE
 OVERRIDE_FOR_BAD = REDUCE_ONLY_OVERRIDE
 OVERRIDE_FOR_UNTRADEABLE = NO_TRADE_OVERRIDE
@@ -123,9 +133,32 @@ class dataTradeLimits(productionDataLayerGeneric):
         self, instrument_strategy: instrumentStrategy, proposed_trade: tradeQuantity
     ) -> int:
 
-        proposed_trade_as_int = proposed_trade.total_abs_qty()
-        possible_trade = self.db_trade_limit_data.what_trade_is_possible(
-            instrument_strategy, proposed_trade_as_int
+        proposed_trade_qty = proposed_trade.total_abs_qty()
+        possible_trade = self.what_trade_qty_possible_for_instrument_strategy(
+            instrument_strategy=instrument_strategy,
+            proposed_trade_qty=proposed_trade_qty,
+        )
+
+        return possible_trade
+
+    def what_trade_qty_possible_for_instrument_strategy(
+        self, instrument_strategy: instrumentStrategy, proposed_trade_qty: int
+    ) -> int:
+
+        possible_trade = (
+            self.db_trade_limit_data.what_trade_is_possible_for_instrument_strategy(
+                instrument_strategy, proposed_trade_qty
+            )
+        )
+
+        return possible_trade
+
+    def what_trade_qty_possible_for_instrument_code(
+        self, instrument_code, proposed_trade_qty: int
+    ) -> int:
+
+        possible_trade = self.db_trade_limit_data.what_trade_is_possible_for_instrument(
+            instrument_code=instrument_code, proposed_trade=proposed_trade_qty
         )
 
         return possible_trade
@@ -155,8 +188,11 @@ class dataTradeLimits(productionDataLayerGeneric):
 
         return all_limits_sorted
 
-    def get_all_limits(self) -> list:
+    def get_all_limits(self) -> listOfTradeLimits:
         all_limits = self.db_trade_limit_data.get_all_limits()
+        all_limits = remove_stale_instruments_and_strategies_from_list_of_trade_limits(
+            all_limits
+        )
         return all_limits
 
     def update_instrument_limit_with_new_limit(
@@ -205,6 +241,9 @@ class diagOverrides(productionDataLayerGeneric):
         )
         all_overrides_in_config = self.get_dict_of_all_overrides_in_config()
         all_overrides = {**all_overrides_in_db_with_reason, **all_overrides_in_config}
+        all_overrides = remove_overrides_for_stale_instruments_from_dict_of_overrides(
+            all_overrides
+        )
 
         return all_overrides
 
@@ -215,6 +254,12 @@ class diagOverrides(productionDataLayerGeneric):
                 (key, OverrideWithReason(override, OVERRIDE_REASON_IN_DATABASE))
                 for key, override in all_overrides_in_db.items()
             ]
+        )
+
+        all_overrides_in_db_with_reason = (
+            remove_overrides_for_stale_instruments_from_dict_of_overrides(
+                all_overrides_in_db_with_reason
+            )
         )
 
         return all_overrides_in_db_with_reason
@@ -389,13 +434,17 @@ class diagOverrides(productionDataLayerGeneric):
 
 
 class updateOverrides(productionDataLayerGeneric):
-    def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(mongoOverrideData)
+    def _add_required_classes_to_data(self, data: dataBlob) -> dataBlob:
+        data.add_class_list([mongoOverrideData, mongoTemporaryOverrideData])
         return data
 
     @property
     def db_override_data(self) -> overrideData:
         return self.data.db_override
+
+    @property
+    def db_temporary_override_data(self) -> temporaryOverrideData:
+        return self.data.db_temporary_override
 
     def update_override_for_strategy(self, strategy_name: str, new_override: Override):
         self.db_override_data.update_override_for_strategy(strategy_name, new_override)
@@ -416,6 +465,54 @@ class updateOverrides(productionDataLayerGeneric):
 
     def delete_all_overrides_in_db(self, are_you_sure=False):
         self.db_override_data.delete_all_overrides(are_you_sure)
+
+    def add_temporary_reduce_only_for_instrument(self, instrument_code):
+        try:
+            self.add_temporary_override_to_instrument(
+                instrument_code, REDUCE_ONLY_OVERRIDE
+            )
+        except:
+            msg = "Couldn't add reduce only temporarily for instrument as already has temporary override on"
+            self.log.error(msg)
+            raise Exception(msg)
+
+    def add_temporary_override_to_instrument(
+        self, instrument_code: str, temporary_override: Override
+    ):
+        original_override = self.db_override_data.get_override_for_instrument(
+            instrument_code
+        )
+        self.db_temporary_override_data.add_stored_override(
+            instrument_code=instrument_code, override_for_instrument=original_override
+        )
+        self.db_override_data.update_override_for_instrument(
+            instrument_code, temporary_override
+        )
+
+        self.log.debug(
+            "Temporarily setting override for %s, was %s, now %s"
+            % (instrument_code, str(original_override), str(temporary_override))
+        )
+
+    def remove_temporary_override_for_instrument(self, instrument_code: str):
+        stored_override = (
+            self.db_temporary_override_data.get_stored_override_for_instrument(
+                instrument_code
+            )
+        )
+        temporary_override = self.db_override_data.get_override_for_instrument(
+            instrument_code
+        )
+        self.db_override_data.update_override_for_instrument(
+            instrument_code, stored_override
+        )
+        self.db_temporary_override_data.clear_stored_override_for_instrument(
+            instrument_code
+        )
+        self.log.debug(
+            "Removed temporary override for %s, was %s, now back to %s"
+            % (instrument_code, str(temporary_override), str(stored_override))
+        )
 
 
 class dataPositionLimits(productionDataLayerGeneric):
@@ -600,6 +697,10 @@ class dataPositionLimits(productionDataLayerGeneric):
 
         instrument_list = list(set(instrument_list_held + instrument_list_limits))
 
+        instrument_list = remove_stale_instruments_from_list_of_instruments(
+            instrument_list
+        )
+
         return instrument_list
 
     def _get_instruments_with_current_positions(self) -> list:
@@ -659,10 +760,13 @@ class dataPositionLimits(productionDataLayerGeneric):
         strategy_instrument_list_limits = (
             self.db_position_limit_data.get_all_instrument_strategies_with_limits()
         )
+        strategy_instrument_list_limits_with_stale_removed = (
+            remove_stale_instruments_and_strategies_from_list_of_instrument_strategies(
+                strategy_instrument_list_limits
+            )
+        )
 
-        return strategy_instrument_list_limits
-
-    ## Temporary limits used by roll code
+        return strategy_instrument_list_limits_with_stale_removed
 
     def temporarily_set_position_limit_to_zero_and_store_original_limit(
         self, instrument_code
@@ -671,7 +775,7 @@ class dataPositionLimits(productionDataLayerGeneric):
         self.db_temporary_close_data.add_stored_position_limit(original_limit)
         self.set_abs_position_limit_for_instrument(instrument_code, 0)
 
-        self.log.msg(
+        self.log.debug(
             "Temporarily setting position limit, was %s, now zero"
             % (str(original_limit))
         )
@@ -684,7 +788,7 @@ class dataPositionLimits(productionDataLayerGeneric):
                 )
             )
         except missingData:
-            self.log.warn("No temporary position limit stored")
+            self.log.warning("No temporary position limit stored")
             return None
 
         self.set_abs_position_limit_for_instrument(
@@ -694,7 +798,7 @@ class dataPositionLimits(productionDataLayerGeneric):
         self.db_temporary_close_data.clear_stored_position_limit_for_instrument(
             instrument_code
         )
-        self.log.msg(
+        self.log.debug(
             "Reset position limit from temporary zero limit, now %s"
             % str(original_limit)
         )
@@ -730,3 +834,51 @@ class dataPositionLimits(productionDataLayerGeneric):
         self.db_position_limit_data.delete_position_limit_for_instrument(
             instrument_code
         )
+
+
+def remove_stale_instruments_and_strategies_from_list_of_trade_limits(
+    all_limits: listOfTradeLimits,
+) -> listOfTradeLimits:
+    filtered_list = remove_stale_instruments_from_list_of_trade_limits(all_limits)
+    twice_filtered_list = remove_stale_strategies_from_list_of_trade_limits(
+        filtered_list
+    )
+
+    return twice_filtered_list
+
+
+def remove_stale_instruments_from_list_of_trade_limits(
+    all_limits: listOfTradeLimits,
+) -> listOfTradeLimits:
+    list_of_stale_instruments = get_list_of_stale_instruments()
+    filtered_list = all_limits.filter_to_remove_list_of_instruments(
+        list_of_stale_instruments
+    )
+
+    return filtered_list
+
+
+def remove_stale_strategies_from_list_of_trade_limits(
+    all_limits: listOfTradeLimits,
+) -> listOfTradeLimits:
+    list_of_stale_strategies = get_list_of_stale_strategies()
+    filtered_list = all_limits.filter_to_remove_list_of_strategy_names(
+        list_of_stale_strategies
+    )
+
+    return filtered_list
+
+
+def remove_overrides_for_stale_instruments_from_dict_of_overrides(
+    dict_of_overrides: dict,
+) -> dict:
+    list_of_stale_instruments = get_list_of_stale_instruments()
+    filtered_dict = dict(
+        [
+            (key, value)
+            for key, value in dict_of_overrides.items()
+            if key not in list_of_stale_instruments
+        ]
+    )
+
+    return filtered_dict

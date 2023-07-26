@@ -4,9 +4,8 @@ import pandas as pd
 
 from syscore.exceptions import missingData
 from systems.forecast_mapping import map_forecast_value
-from syscore.genutils import str2Bool
+from syscore.genutils import str2Bool, list_difference
 from syscore.objects import resolve_function
-from syscore.constants import missing_data
 from syscore.pandas.pdutils import (
     dataframe_pad,
     from_dict_of_values_to_df,
@@ -36,6 +35,11 @@ from systems.stage import SystemStage
 from systems.system_cache import diagnostic, dont_cache, input, output
 from systems.forecasting import Rules
 from systems.forecast_scale_cap import ForecastScaleCap
+from systems.tools.autogroup import (
+    calculate_autogroup_weights_given_parameters,
+    config_is_auto_group,
+    resolve_config_into_parameters_and_weights_for_autogrouping,
+)
 
 
 class ForecastCombine(SystemStage):
@@ -81,7 +85,7 @@ class ForecastCombine(SystemStage):
         2015-12-10             21
         2015-12-11             21
         """
-        self.log.msg(
+        self.log.debug(
             "Calculating combined forecast for %s" % (instrument_code),
             instrument_code=instrument_code,
         )
@@ -230,7 +234,7 @@ class ForecastCombine(SystemStage):
         2015-12-10      0.5     0.5
         2015-12-11      0.5     0.5
         """
-        self.log.msg(
+        self.log.debug(
             "Calculating forecast weights for %s" % (instrument_code),
             instrument_code=instrument_code,
         )
@@ -254,29 +258,6 @@ class ForecastCombine(SystemStage):
         )
 
         return daily_forecast_weights_fixed_to_forecasts_unsmoothed
-
-    @dont_cache
-    def _remove_expensive_rules_from_weights(
-        self, instrument_code, monthly_forecast_weights: pd.DataFrame
-    ) -> pd.DataFrame:
-
-        cheap_rules = self.cheap_trading_rules_post_processing(instrument_code)
-        if len(cheap_rules) == 0:
-            ## special case all zeros
-            monthly_forecast_weights_cheap_rules_only = copy(monthly_forecast_weights)
-            monthly_forecast_weights_cheap_rules_only[:] = 0.0
-
-            return monthly_forecast_weights_cheap_rules_only
-
-        original_rules = list(monthly_forecast_weights.columns)
-
-        cheap_rules_in_weights = list(set(original_rules).intersection(cheap_rules))
-
-        monthly_forecast_weights_cheap_rules_only = monthly_forecast_weights[
-            cheap_rules_in_weights
-        ]
-
-        return monthly_forecast_weights_cheap_rules_only
 
     @dont_cache
     def _fix_weights_to_forecasts(
@@ -532,11 +513,35 @@ class ForecastCombine(SystemStage):
             ## will come back as 2*N data frame
             forecast_weights = self.get_raw_fixed_forecast_weights(instrument_code)
 
+        ## FIXME NEED THIS TO APPLY TO GROUPINGS
         forecast_weights_cheap_rules_only = self._remove_expensive_rules_from_weights(
             instrument_code, forecast_weights
         )
 
         return forecast_weights_cheap_rules_only
+
+    @dont_cache
+    def _remove_expensive_rules_from_weights(
+        self, instrument_code, monthly_forecast_weights: pd.DataFrame
+    ) -> pd.DataFrame:
+
+        cheap_rules = self.cheap_trading_rules_post_processing(instrument_code)
+        if len(cheap_rules) == 0:
+            ## special case all zeros
+            monthly_forecast_weights_cheap_rules_only = copy(monthly_forecast_weights)
+            monthly_forecast_weights_cheap_rules_only[:] = 0.0
+
+            return monthly_forecast_weights_cheap_rules_only
+
+        original_rules = list(monthly_forecast_weights.columns)
+
+        cheap_rules_in_weights = list(set(original_rules).intersection(cheap_rules))
+
+        monthly_forecast_weights_cheap_rules_only = monthly_forecast_weights[
+            cheap_rules_in_weights
+        ]
+
+        return monthly_forecast_weights_cheap_rules_only
 
     @dont_cache
     def _use_estimated_weights(self):
@@ -603,7 +608,7 @@ class ForecastCombine(SystemStage):
         :returns: TxK pd.DataFrame containing weights, columns are trading rule variation names, T covers all
         """
 
-        self.log.terse("Calculating raw forecast weights for %s" % instrument_code)
+        self.log.info("Calculating raw forecast weights for %s" % instrument_code)
 
         config = self.config
         # Get some useful stuff from the config
@@ -724,6 +729,14 @@ class ForecastCombine(SystemStage):
 
         return matching_instruments
 
+    def expensive_trading_rules_post_processing(self, instrument_code: str) -> list:
+        all_rule_names = self.get_trading_rule_list(instrument_code)
+        cheap_rule_names = self.cheap_trading_rules_post_processing(instrument_code)
+
+        expensive_rules = list_difference(all_rule_names, cheap_rule_names)
+
+        return expensive_rules
+
     @diagnostic()
     def cheap_trading_rules_post_processing(self, instrument_code: str) -> list:
         """
@@ -803,10 +816,10 @@ class ForecastCombine(SystemStage):
                 "No rules are cheap enough for %s with threshold %.3f SR units! Raise threshold (system.config.forecast_weight_estimate['ceiling_cost_SR']), add rules, or drop instrument."
                 % (instrument_code, ceiling_cost_SR)
             )
-            self.log.warn(error_msg)
+            self.log.warning(error_msg)
 
         else:
-            self.log.msg(
+            self.log.debug(
                 "Only this set of rules %s is cheap enough to trade for %s"
                 % (str(cheap_rule_list), instrument_code),
                 instrument_code=instrument_code,
@@ -832,13 +845,14 @@ class ForecastCombine(SystemStage):
 
         KEY INPUT
         """
-        accounts = self.accounts_stage
-        if accounts is missing_data:
+        try:
+            accounts = self.accounts_stage
+        except missingData:
             warn_msg = (
                 "You need an accounts stage in the system to estimate forecast costs for %s %s. Using costs of zero"
                 % (instrument_code, rule_variation_name)
             )
-            self.log.warn(warn_msg)
+            self.log.warning(warn_msg)
             return 0.0
 
         return accounts.get_SR_cost_for_instrument_forecast(
@@ -849,7 +863,7 @@ class ForecastCombine(SystemStage):
     def accounts_stage(self):
 
         if not hasattr(self.parent, "accounts"):
-            return missing_data
+            raise missingData
 
         # no -> to avoid circular imports
         return self.parent.accounts
@@ -870,9 +884,9 @@ class ForecastCombine(SystemStage):
         :returns: accountCurveGroup object
 
         """
-        accounts = self.accounts_stage
-
-        if accounts is missing_data:
+        try:
+            accounts = self.accounts_stage
+        except missingData:
             error_msg = (
                 "You need an accounts stage in the system to estimate forecast weights"
             )
@@ -961,10 +975,14 @@ class ForecastCombine(SystemStage):
         except missingData:
             fixed_weights = self._get_one_over_n_weights(instrument_code)
         else:
+            expensive_trading_rules_post_processing = (
+                self.expensive_trading_rules_post_processing(instrument_code)
+            )
             fixed_weights = _get_fixed_weights_from_config(
                 forecast_weights_config=forecast_weights_config,
                 instrument_code=instrument_code,
                 log=self.log,
+                expensive_trading_rules_post_processing=expensive_trading_rules_post_processing,
             )
         return fixed_weights
 
@@ -977,7 +995,7 @@ class ForecastCombine(SystemStage):
             % (equal_weight, len(rules))
         )
 
-        self.log.warn(warn_msg, instrument_code=instrument_code)
+        self.log.warning(warn_msg, instrument_code=instrument_code)
 
         fixed_weights = dict([(rule_name, equal_weight) for rule_name in rules])
 
@@ -1047,9 +1065,16 @@ class ForecastCombine(SystemStage):
 
         # Let's try the config
         system = self.parent
-        forecast_div_multiplier_config = system.config.get_element_or_missing_data(
-            "forecast_div_multiplier"
-        )
+        try:
+            forecast_div_multiplier_config = system.config.get_element(
+                "forecast_div_multiplier"
+            )
+        except missingData as e:
+            error_msg = (
+                "Need to specify 'forecast_div_multiplier' in config or system_defaults"
+            )
+            self.log.critical(error_msg, instrument_code=instrument_code)
+            raise missingData(error_msg) from e
 
         fixed_div_mult = _get_fixed_fdm_scalar_value_from_config(
             forecast_div_multiplier_config=forecast_div_multiplier_config,
@@ -1104,7 +1129,7 @@ class ForecastCombine(SystemStage):
         2015-12-10  1.1
         2015-12-11  1.1
         """
-        self.log.terse(
+        self.log.info(
             "Calculating forecast div multiplier for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -1258,7 +1283,7 @@ class ForecastCombine(SystemStage):
         # which function to use for calculation
         corr_func = resolve_function(corr_params.pop("func"))
 
-        self.log.terse(
+        self.log.info(
             "Calculating forecast correlations over %s" % ", ".join(codes_to_use)
         )
 
@@ -1304,7 +1329,7 @@ class ForecastCombine(SystemStage):
                     b_param=configuration["b_param"],
                     capped_value=forecast_cap,
                 )
-                self.log.msg(
+                self.log.debug(
                     "Applying threshold mapping for %s threshold %.2f"
                     % (instrument_code, configuration["threshold"]),
                     instrument_code=instrument_code,
@@ -1314,7 +1339,7 @@ class ForecastCombine(SystemStage):
         # just use the default, applying capping
         post_process_func = _cap_combined_forecast
         kwargs = dict(forecast_cap=forecast_cap, forecast_floor=forecast_floor)
-        self.log.msg(
+        self.log.debug(
             "No mapping applied for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -1359,24 +1384,85 @@ def _cap_combined_forecast(
 
 
 def _get_fixed_weights_from_config(
-    forecast_weights_config: dict, instrument_code: str, log
+    forecast_weights_config: dict,
+    instrument_code: str,
+    expensive_trading_rules_post_processing: list,
+    log,
 ) -> dict:
     if instrument_code in forecast_weights_config:
         # nested dict
         fixed_weights = forecast_weights_config[instrument_code]
-        log.msg(
+        log.debug(
             "Nested dict of forecast weights for %s %s: weights different by instrument"
             % (instrument_code, str(fixed_weights))
         )
+    elif config_is_auto_group(forecast_weights_config):
+        ## autogrouping
+        log.debug("Auto grouping of weights for %s" % instrument_code)
+        fixed_weights = _get_forecast_weights_for_instrument_with_autogrouping(
+            forecast_weights_config=forecast_weights_config,
+            expensive_trading_rules_post_processing=expensive_trading_rules_post_processing,
+        )
     else:
-        # assume it's a non nested dict
         fixed_weights = forecast_weights_config
-        log.msg(
+        log.debug(
             "Non-nested dict of forecast weights for %s %s: weights the same for all instruments"
             % (instrument_code, str(fixed_weights))
         )
 
     return fixed_weights
+
+
+## AUTO GROUPING
+## EG
+##  forecast_weights:
+##     auto_weight_from_grouping:
+##         parameters:
+##             use_approx_DM: True
+##             apply_forecast_post_ceiling_cost_SR_before_weighting: True
+##         groups:
+##             trendy:
+##                 weight: 0.7
+##                 accel:
+##                     weight: 0.3
+##
+
+
+AUTO_WEIGHTING_APPLY_POSTCOST_SR = (
+    "apply_forecast_post_ceiling_cost_SR_before_weighting"
+)
+
+
+def _get_forecast_weights_for_instrument_with_autogrouping(
+    forecast_weights_config: dict, expensive_trading_rules_post_processing: list
+) -> dict:
+    (
+        auto_group_parameters,
+        auto_group_weights,
+    ) = resolve_config_into_parameters_and_weights_for_autogrouping(
+        forecast_weights_config
+    )
+    auto_group_parameters_copy = copy(auto_group_parameters)
+    apply_costs = auto_group_parameters_copy.pop(
+        AUTO_WEIGHTING_APPLY_POSTCOST_SR, False
+    )
+    if apply_costs:
+        ## only include rules cheap enough to trade
+        keys_to_exclude = expensive_trading_rules_post_processing
+    else:
+        # include everything
+        keys_to_exclude = []
+
+    group_weights = calculate_autogroup_weights_given_parameters(
+        auto_group_weights=auto_group_weights,
+        auto_group_parameters=auto_group_parameters_copy,
+        keys_to_exclude=keys_to_exclude,
+    )
+
+    return group_weights
+
+
+### FDM
 
 
 def _get_fixed_fdm_scalar_value_from_config(
@@ -1385,11 +1471,6 @@ def _get_fixed_fdm_scalar_value_from_config(
 
     error_msg = ""
     fixed_div_mult = None
-
-    if forecast_div_multiplier_config is missing_data:
-        error_msg = (
-            "Need to specify 'forecast_div_multiplier' in config or system_defaults"
-        )
 
     if isinstance(forecast_div_multiplier_config, float) or isinstance(
         forecast_div_multiplier_config, int
@@ -1410,7 +1491,7 @@ def _get_fixed_fdm_scalar_value_from_config(
         )
 
     if error_msg == "":
-        log.msg(
+        log.debug(
             "Using fixed FDM multiplier of %.3f for %s"
             % (fixed_div_mult, instrument_code),
             instrument_code=instrument_code,
@@ -1426,14 +1507,21 @@ def _get_list_of_rules_from_config_for_instrument(
     config: Config, instrument_code: str, forecast_combine_stage: ForecastCombine
 ) -> list:
     if hasattr(config, "forecast_weights"):
+        forecast_weights_config = config.forecast_weights
         # a dict of weights, nested or un nested
-        if instrument_code in config.forecast_weights:
+        if instrument_code in forecast_weights_config:
             # nested dict
-            rules = config.forecast_weights[instrument_code].keys()
+            rules = forecast_weights_config[instrument_code].keys()
+        elif config_is_auto_group(forecast_weights_config):
+            ## Will still include expensive rules but they get weeded out on second pass
+            forecast_weights = _get_forecast_weights_for_instrument_with_autogrouping(
+                forecast_weights_config, expensive_trading_rules_post_processing=[]
+            )
+            return list(forecast_weights.keys())
         else:
             # seems it's a non nested dict (weights same across instruments), but let's check
             # that just in case it IS nested dict but instrument weight is missing
-            for val in config.forecast_weights.values():
+            for val in forecast_weights_config:
                 if isinstance(val, dict):
                     # so it is a nested dict..
                     raise Exception(

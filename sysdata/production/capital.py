@@ -270,9 +270,6 @@ class totalCapitalCalculationData(object):
     def __repr__(self):
         return "capitalCalculationData for %s" % self._capital_data
 
-    def get_returns_as_account_curve(self) -> pd.DataFrame:
-        raise NotImplementedError()
-
     def get_percentage_returns_as_pd(self) -> pd.DataFrame:
         total_capital = self.get_total_capital()
         daily_returns = self.get_daily_returns()
@@ -292,6 +289,15 @@ class totalCapitalCalculationData(object):
         daily_pandl = pandl.resample("1B").last()
 
         return daily_pandl
+
+    def check_for_total_capital_data(self) -> bool:
+        try:
+            all_global_capital = self.get_df_of_all_global_capital()
+            if len(all_global_capital) == 0:
+                raise Exception
+            return True
+        except:
+            return False
 
     def get_current_total_capital(self):
         return self.capital_data.get_current_total_capital()
@@ -412,7 +418,7 @@ class totalCapitalCalculationData(object):
                 self.capital_data.get_current_broker_account_value()
             )
         except missingData:
-            self._capital_data.log.warn(
+            self._capital_data.log.warning(
                 "Can't apply a delta to broker account value, since no value in data"
             )
             raise
@@ -441,7 +447,7 @@ class totalCapitalCalculationData(object):
         :return: None
         """
         if not are_you_sure:
-            self.capital_data.log.warn("You need to be sure to modify capital!")
+            self.capital_data.log.warning("You need to be sure to modify capital!")
         if date is arg_not_supplied:
             date = datetime.datetime.now()
 
@@ -506,7 +512,7 @@ class totalCapitalCalculationData(object):
         :return:
         """
         if not are_you_sure:
-            self._capital_data.log.warn("You have to be sure to delete capital")
+            self._capital_data.log.warning("You have to be sure to delete capital")
             return failure
 
         self.capital_data.delete_recent_capital(last_date=last_date)

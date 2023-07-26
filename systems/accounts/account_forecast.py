@@ -178,7 +178,7 @@ class accountForecast(accountCosts):
 
         """
 
-        self.log.msg(
+        self.log.debug(
             "Calculating pandl for instrument forecast for %s %s"
             % (instrument_code, rule_variation_name),
             instrument_code=instrument_code,
@@ -186,7 +186,9 @@ class accountForecast(accountCosts):
 
         forecast = self.get_capped_forecast(instrument_code, rule_variation_name)
 
-        price = self.get_raw_price(instrument_code)
+        price = self.get_instrument_prices_for_position_or_forecast(
+            instrument_code=instrument_code, position_or_forecast=forecast
+        )
 
         daily_returns_volatility = self.get_daily_returns_volatility(instrument_code)
 

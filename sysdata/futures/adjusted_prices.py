@@ -45,14 +45,14 @@ class futuresAdjustedPricesData(baseData):
                 self._delete_adjusted_prices_without_any_warning_be_careful(
                     instrument_code
                 )
-                self.log.terse(
+                self.log.info(
                     "Deleted adjusted price data for %s" % instrument_code,
                     instrument_code=instrument_code,
                 )
 
             else:
                 # doesn't exist anyway
-                self.log.warn(
+                self.log.warning(
                     "Tried to delete non existent adjusted prices for %s"
                     % instrument_code,
                     instrument_code=instrument_code,
@@ -89,7 +89,7 @@ class futuresAdjustedPricesData(baseData):
             instrument_code, adjusted_price_data
         )
 
-        self.log.terse(
+        self.log.info(
             "Added data for instrument %s" % instrument_code,
             instrument_code=instrument_code,
         )

@@ -44,39 +44,74 @@ class totalCapitalUpdate(object):
         log = data.log
 
         margin_in_base_currency = broker_data.get_margin_used_in_base_currency()
-        log.msg("Broker margin value is %f" % margin_in_base_currency)
+        log.debug("Broker margin value is %f" % margin_in_base_currency)
 
         # Update total capital
         margin_data.add_total_margin_entry(margin_in_base_currency)
         margin_series = margin_data.get_series_of_total_margin()
 
-        log.msg("Recent margin\n %s" % str(margin_series.tail(10)))
+        log.debug("Recent margin\n %s" % str(margin_series.tail(10)))
 
     def update_capital(self):
         data = self.data
-        capital_data = dataCapital(data)
         broker_data = dataBroker(data)
-
-        log = data.log
 
         # This assumes that each account only reports either in one currency or
         # for each currency, i.e. no double counting
         total_account_value_in_base_currency = (
             broker_data.get_total_capital_value_in_base_currency()
         )
-        log.msg("Broker account value is %f" % total_account_value_in_base_currency)
+        data.log.debug(
+            "Broker account value is %f" % total_account_value_in_base_currency
+        )
 
-        # Update total capital
-        try:
-            new_capital = capital_data.update_and_return_total_capital_with_new_broker_account_value(
+        _update_capital_with_broker_account_value(
+            data=data,
+            total_account_value_in_base_currency=total_account_value_in_base_currency,
+        )
+
+
+def _update_capital_with_broker_account_value(
+    data: dataBlob, total_account_value_in_base_currency: float
+):
+    log = data.log
+
+    capital_data = dataCapital(data)
+
+    total_capital_data_exists = capital_data.check_for_total_capital_data()
+    if total_capital_data_exists:
+        _update_capital_with_broker_account_value_if_capital_data_exists(
+            data=data,
+            total_account_value_in_base_currency=total_account_value_in_base_currency,
+        )
+    else:
+        log.critical("No total capital - setting up with current broker account value")
+        capital_data.create_initial_capital(
+            broker_account_value=total_account_value_in_base_currency,
+            are_you_really_sure=True,
+        )
+
+
+def _update_capital_with_broker_account_value_if_capital_data_exists(
+    data: dataBlob, total_account_value_in_base_currency: float
+):
+    log = data.log
+
+    capital_data = dataCapital(data)
+
+    # Update total capital
+    try:
+        new_capital = (
+            capital_data.update_and_return_total_capital_with_new_broker_account_value(
                 total_account_value_in_base_currency
             )
-        except Exception as e:
-            # Problem, most likely spike OR
-            log.critical("Error %s whilst updating total capital" % e)
-            return failure
+        )
+    except Exception as e:
+        # Problem, most likely spike
+        log.critical("Error %s whilst updating total capital" % e)
+        return failure
 
-        log.msg("New capital is %f" % new_capital)
+    log.debug("New capital is %f" % new_capital)
 
 
 if __name__ == "__main__":

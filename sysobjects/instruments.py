@@ -314,6 +314,23 @@ class instrumentCosts(object):
     def value_of_pertrade_commission(self):
         return self._value_of_pertrade_commission
 
+    def calculate_sr_cost(
+        self,
+        block_price_multiplier: float,
+        price: float,
+        ann_stdev_price_units: float,
+        blocks_traded: float = 1.0,
+    ) -> float:
+        cost_instrument_currency = self.calculate_cost_instrument_currency(
+            blocks_traded=blocks_traded,
+            block_price_multiplier=block_price_multiplier,
+            price=price,
+        )
+
+        ann_stdev_instrument_currency = ann_stdev_price_units * block_price_multiplier
+
+        return cost_instrument_currency / ann_stdev_instrument_currency
+
     def calculate_cost_percentage_terms(
         self, blocks_traded: float, block_price_multiplier: float, price: float
     ) -> float:
@@ -328,13 +345,20 @@ class instrumentCosts(object):
         return cost_in_percentage_terms
 
     def calculate_cost_instrument_currency(
-        self, blocks_traded: float, block_price_multiplier: float, price: float
+        self,
+        blocks_traded: float,
+        block_price_multiplier: float,
+        price: float,
+        include_slippage: bool = True,
     ) -> float:
 
         value_per_block = price * block_price_multiplier
-        slippage = self.calculate_slippage_instrument_currency(
-            blocks_traded, block_price_multiplier=block_price_multiplier
-        )
+        if include_slippage:
+            slippage = self.calculate_slippage_instrument_currency(
+                blocks_traded, block_price_multiplier=block_price_multiplier
+            )
+        else:
+            slippage = 0
 
         commission = self.calculate_total_commission(
             blocks_traded, value_per_block=value_per_block

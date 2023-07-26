@@ -1,3 +1,6 @@
+from syscore.dateutils import BUSINESS_DAY_FREQ, HOURLY_FREQ
+from syscore.pandas.frequency import infer_frequency
+from syscore.constants import arg_not_supplied
 from sysobjects.instruments import instrumentCosts
 
 from syscore.pandas.pdutils import from_scalar_values_to_ts
@@ -11,8 +14,47 @@ class accountInputs(SystemStage):
     def get_raw_price(self, instrument_code: str) -> pd.Series:
         return self.parent.data.get_raw_price(instrument_code)
 
-    def get_daily_price(self, instrument_code: str) -> pd.Series:
+    def get_instrument_prices_for_position_or_forecast(
+        self, instrument_code: str, position_or_forecast: pd.Series = arg_not_supplied
+    ) -> pd.Series:
+
+        if position_or_forecast is arg_not_supplied:
+            return self.get_daily_prices(instrument_code)
+
+        instrument_prices = (
+            self.instrument_prices_for_position_or_forecast_infer_frequency(
+                instrument_code=instrument_code,
+                position_or_forecast=position_or_forecast,
+            )
+        )
+        instrument_prices_reindexed = instrument_prices.reindex(
+            position_or_forecast.index, method="ffill"
+        )
+
+        return instrument_prices_reindexed
+
+    def instrument_prices_for_position_or_forecast_infer_frequency(
+        self, instrument_code: str, position_or_forecast: pd.Series = arg_not_supplied
+    ) -> pd.Series:
+
+        frequency = infer_frequency(position_or_forecast)
+        if frequency is BUSINESS_DAY_FREQ:
+            instrument_prices = self.get_daily_prices(instrument_code)
+        elif frequency is HOURLY_FREQ:
+            instrument_prices = self.get_hourly_prices(instrument_code)
+        else:
+            raise Exception(
+                "Frequency %s does not have prices for %s should be hourly or daily"
+                % (str(frequency), instrument_code)
+            )
+
+        return instrument_prices
+
+    def get_daily_prices(self, instrument_code: str) -> pd.Series:
         return self.parent.data.daily_prices(instrument_code)
+
+    def get_hourly_prices(self, instrument_code: str) -> pd.Series:
+        return self.parent.data.hourly_prices(instrument_code)
 
     def get_capped_forecast(
         self, instrument_code: str, rule_variation_name: str
@@ -55,6 +97,9 @@ class accountInputs(SystemStage):
 
     def average_forecast(self) -> float:
         return self.config.average_absolute_forecast
+
+    def forecast_cap(self) -> float:
+        return self.config.forecast_cap
 
     def get_raw_cost_data(self, instrument_code: str) -> instrumentCosts:
         return self.parent.data.get_raw_cost_data(instrument_code)
@@ -109,7 +154,9 @@ class accountInputs(SystemStage):
     def get_average_position_for_instrument_at_portfolio_level(
         self, instrument_code: str
     ) -> pd.Series:
-        average_position_for_subsystem = self.get_volatility_scalar(instrument_code)
+        average_position_for_subsystem = self.get_average_position_at_subsystem_level(
+            instrument_code
+        )
         scaling_factor = self.get_instrument_scaling_factor(instrument_code)
         scaling_factor_aligned = scaling_factor.reindex(
             average_position_for_subsystem.index, method="ffill"
@@ -118,7 +165,9 @@ class accountInputs(SystemStage):
 
         return average_position
 
-    def get_volatility_scalar(self, instrument_code: str) -> pd.Series:
+    def get_average_position_at_subsystem_level(
+        self, instrument_code: str
+    ) -> pd.Series:
         """
         Get the volatility scalar (position with forecast of +10 using all capital)
 
@@ -131,7 +180,9 @@ class accountInputs(SystemStage):
 
         """
 
-        return self.parent.positionSize.get_volatility_scalar(instrument_code)
+        return self.parent.positionSize.get_average_position_at_subsystem_level(
+            instrument_code
+        )
 
     def get_notional_position(self, instrument_code: str) -> pd.Series:
         """

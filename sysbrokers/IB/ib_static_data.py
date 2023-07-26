@@ -1,4 +1,4 @@
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysbrokers.IB.client.ib_client import ibClient
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_static_data import brokerStaticData
@@ -10,7 +10,7 @@ class ibStaticData(brokerStaticData):
         self,
         ibconnection: connectionIB,
         data: dataBlob,
-        log=logtoscreen("ibStaticData"),
+        log=get_logger("ibStaticData"),
     ):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection

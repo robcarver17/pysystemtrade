@@ -10,7 +10,7 @@ from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.orders.broker_orders import brokerOrder
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysdata.production.historic_orders import (
     genericOrdersData,
     strategyHistoricOrdersData,
@@ -42,9 +42,7 @@ class mongoGenericHistoricOrdersData(genericOrdersData):
     def _name(self):
         return "Historic orders"
 
-    def __init__(
-        self, mongo_db=None, log=logtoscreen("mongoGenericHistoricOrdersData")
-    ):
+    def __init__(self, mongo_db=None, log=get_logger("mongoGenericHistoricOrdersData")):
         # Not needed as we don't store anything in _state attribute used in parent class
         # If we did have _state would risk breaking if we forgot to override methods
         # super().__init__()

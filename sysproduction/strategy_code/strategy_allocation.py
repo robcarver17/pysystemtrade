@@ -29,7 +29,7 @@ cancelPnLSingle
 
 from sysproduction.data.capital import dataCapital
 from sysdata.data_blob import dataBlob
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysproduction.data.strategies import get_list_of_strategies_from_config
 
 
@@ -64,7 +64,7 @@ def strategy_weights_if_none_passed(data: dataBlob) -> dict:
     list_of_strategies = get_list_of_strategies_from_config(data)
     count_of_strateges = len(list_of_strategies)
     weight = 100.0 / count_of_strateges
-    data.log.warn(
+    data.log.warning(
         "No configuration for strategy weight defined in private config; equally weighting across %s each gets %f percent"
         % (str(list_of_strategies), weight)
     )

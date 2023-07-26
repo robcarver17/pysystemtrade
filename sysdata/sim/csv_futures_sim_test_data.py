@@ -13,7 +13,7 @@ from sysobjects.adjusted_prices import futuresAdjustedPrices
 from sysobjects.multiple_prices import futuresMultiplePrices
 
 from sysdata.sim.futures_sim_data_with_data_blob import genericBlobUsingFuturesSimData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from syscore.dateutils import ARBITRARY_START
 
 
@@ -30,7 +30,7 @@ class CsvFuturesSimTestData(genericBlobUsingFuturesSimData):
     DEFAULT_END_DATE = datetime.strptime("2021-03-08 20:00:00", DATE_FORMAT)
 
     def __init__(
-        self, start_date=None, end_date=None, log=logtoscreen("csvFuturesSimTestData")
+        self, start_date=None, end_date=None, log=get_logger("csvFuturesSimTestData")
     ):
 
         data = dataBlob(

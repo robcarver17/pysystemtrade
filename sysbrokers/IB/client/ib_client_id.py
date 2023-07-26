@@ -1,6 +1,6 @@
 from syscore.constants import arg_not_supplied
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 from sysbrokers.IB.ib_connection_defaults import ib_defaults
 from sysdata.production.broker_client_id import brokerClientIdData
@@ -14,7 +14,7 @@ class ibBrokerClientIdData(brokerClientIdData):
     def __init__(
         self,
         idoffset=arg_not_supplied,
-        log=logtoscreen("brokerClientIdTracker"),
+        log=get_logger("brokerClientIdTracker"),
     ):
         if idoffset is arg_not_supplied:
             _notused_ipaddress, _notused_port, idoffset = ib_defaults()

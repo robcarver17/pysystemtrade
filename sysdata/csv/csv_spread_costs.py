@@ -5,7 +5,7 @@ from sysdata.futures.spread_costs import spreadCostData
 from sysdata.csv.csv_instrument_data import INSTRUMENT_CONFIG_PATH
 from syscore.constants import arg_not_supplied
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 import pandas as pd
 
 
@@ -23,7 +23,7 @@ class csvSpreadCostData(spreadCostData):
     def __init__(
         self,
         datapath=arg_not_supplied,
-        log=logtoscreen("csvSpreadCostData"),
+        log=get_logger("csvSpreadCostData"),
     ):
 
         super().__init__(log=log)
@@ -68,7 +68,7 @@ class csvSpreadCostData(spreadCostData):
     def write_all_instrument_spreads(self, spread_cost_as_series: pd.Series):
         spread_cost_as_df = pd.DataFrame(spread_cost_as_series)
         spread_cost_as_df.columns = [SPREAD_COST_COLUMN_NAME]
-        spread_cost_as_series.to_csv(self._config_file, index_label="Instrument")
+        spread_cost_as_df.to_csv(self._config_file, index_label="Instrument")
 
     def get_list_of_instruments(self) -> list:
         all_data_as_series = self.get_spread_costs_as_series()

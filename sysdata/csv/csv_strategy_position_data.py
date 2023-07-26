@@ -2,7 +2,7 @@ import pandas as pd
 from sysdata.production.historic_strategy_positions import strategyPositionData
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysobjects.production.tradeable_object import instrumentStrategy
 
 DATE_INDEX_NAME = "DATETIME"
@@ -15,7 +15,7 @@ class csvStrategyPositionData(strategyPositionData):
     """
 
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvStrategyPositionData")
+        self, datapath=arg_not_supplied, log=get_logger("csvStrategyPositionData")
     ):
 
         super().__init__(log=log)

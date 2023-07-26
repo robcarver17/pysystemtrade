@@ -64,6 +64,29 @@ production_capital_method: 'full'
 #
 stale_instruments: ['an_instrument_i_no_longer_trade_or_sample']
 #
+stale_strategies: ['a strat we no longer run']
+#
+# Roll status auto-update
+roll_status_auto_update:
+  auto_roll_if_relative_volume_higher_than: 1.0
+  min_relative_volume: 0.01
+  min_absolute_volume: 100
+  near_expiry_days: 10
+  ## following has to be one of enum roll states in sysobjects/production/roll_state.py
+  ## eg Close, Force_Outright, Force
+  ## or Ask to request from user
+  default_roll_state_if_undecided: Ask
+#
+# Force certain instruments to use a specific execution algo
+# Algos must be classes eg sysexecution.algos.algo_market.algoMarket
+# Copy and paste this into private_config to modify
+execution_algos:
+  default_algo: sysexecution.algos.algo_original_best.algoOriginalBest
+  market_algo: sysexecution.algos.algo_snaps.algoSnapMkt
+  limit_order_algo: sysexecution.algos.algo_limit_orders.algoLimit
+  best_algo: sysexecution.algos.algo_original_best.algoOriginalBest
+  algo_overrides:
+    some_market_name_eg_IRON: sysexecution.algos.algo_market.algoMarket
 #
 #           BACKTESTING STUFF
 #
@@ -71,6 +94,8 @@ stale_instruments: ['an_instrument_i_no_longer_trade_or_sample']
 #
 volatility_calculation:
   func: "sysquant.estimators.vol.mixed_vol_calc"
+  name_returns_attr_in_rawdata: "daily_returns"
+  multiplier_to_get_daily_vol: 1.0
   days: 35
   min_periods: 10
   slow_vol_years: 10

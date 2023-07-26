@@ -9,7 +9,7 @@ from sysobjects.contracts import (
     key_contains_instrument_code,
     listOfFuturesContracts,
 )
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
 
 
@@ -19,11 +19,10 @@ class mongoFuturesContractData(futuresContractData):
 
     We store instrument code, and contract date data (date, expiry, roll cycle)
 
-    If you want more information about a given instrument you have to read it in using mongoFuturesInstrumentData
     """
 
     def __init__(
-        self, mongo_db=arg_not_supplied, log=logtoscreen("mongoFuturesContractData")
+        self, mongo_db=arg_not_supplied, log=get_logger("mongoFuturesContractData")
     ):
 
         super().__init__(log=log)
@@ -33,7 +32,7 @@ class mongoFuturesContractData(futuresContractData):
         self._mongo_data = mongo_data
 
     def __repr__(self):
-        return "mongoFuturesInstrumentData %s" % str(self.mongo_data)
+        return "mongoFuturesContractData %s" % str(self.mongo_data)
 
     @property
     def mongo_data(self):

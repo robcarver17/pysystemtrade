@@ -1,8 +1,7 @@
 import datetime
 
 from syscore.constants import arg_not_supplied
-from syslogdiag.pst_logger import pst_logger
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 LOG_CLEARED = object()
 NO_LOG_ENTRY = object()
@@ -13,7 +12,7 @@ class reportStatus(object):
     ## Report on status when waiting and paused, ensures we don't spam the log
     def __init__(self, log: pst_logger = arg_not_supplied):
         if log is arg_not_supplied:
-            log = logtoscreen("")
+            log = get_logger("")
         self._log = log
 
     @property
@@ -69,7 +68,7 @@ class reportStatus(object):
         return elapsed_minutes
 
     def _log_and_mark_timing(self, status: str):
-        self.log.msg(status)
+        self.log.debug(status)
         self._mark_timing_of_log(status)
 
     def _mark_timing_of_log(self, status):
@@ -92,7 +91,7 @@ class reportStatus(object):
         return all_keys
 
     def _log_clear_and_mark(self, status: str):
-        self.log.msg("No longer- %s" % status)
+        self.log.debug("No longer- %s" % status)
         self._mark_log_of_clear(status)
 
     def _mark_log_of_clear(self, status):

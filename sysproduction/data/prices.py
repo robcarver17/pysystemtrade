@@ -40,7 +40,7 @@ from sysdata.data_blob import dataBlob
 from sysobjects.multiple_prices import price_name
 from sysobjects.contract_dates_and_expiries import listOfContractDateStr
 from sysproduction.data.currency_data import dataCurrency
-from sysproduction.data.instruments import get_stale_instruments
+from sysproduction.data.config import get_list_of_stale_instruments
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 
@@ -66,9 +66,7 @@ class diagPrices(productionDataLayerGeneric):
 
     def get_intraday_frequency_for_historical_download(self) -> Frequency:
         config = self.data.config
-        intraday_frequency_as_str = config.get_element_or_missing_data(
-            "intraday_frequency"
-        )
+        intraday_frequency_as_str = config.get_element("intraday_frequency")
         try:
             intraday_frequency = from_config_frequency_to_frequency(
                 intraday_frequency_as_str
@@ -76,10 +74,10 @@ class diagPrices(productionDataLayerGeneric):
         except missingData:
             error_msg = (
                 "Intraday frequency of %s is not recognised as a valid frequency"
-                % str(intraday_frequency)
+                % str(intraday_frequency_as_str)
             )
             self.log.critical(error_msg)
-            raise Exception(error_msg)
+            raise
 
         return intraday_frequency
 
@@ -229,7 +227,7 @@ class diagPrices(productionDataLayerGeneric):
         return list_of_instruments
 
     def get_stale_instruments(self) -> list:
-        return get_stale_instruments(self.data)
+        return get_list_of_stale_instruments()
 
     @property
     def db_futures_adjusted_prices_data(self) -> futuresAdjustedPricesData:

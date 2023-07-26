@@ -1,10 +1,10 @@
 from sysdata.base_data import baseData
 from sysdata.data_blob import dataBlob
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class brokerStaticData(baseData):
-    def __init__(self, data: dataBlob, log=logtoscreen("brokerStaticData")):
+    def __init__(self, data: dataBlob, log=get_logger("brokerStaticData")):
         super().__init__(log=log)
         self._data = data
 

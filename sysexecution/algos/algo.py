@@ -114,13 +114,8 @@ class Algo(object):
                 limit_price_from=limit_price_from,
                 input_limit_price=input_limit_price,
             )
-        elif order_type == market_order_type:
-            limit_price = None
         else:
-            error_msg = "Order type %s not valid for broker orders" % str(order_type)
-            log.critical(error_msg)
-
-            return missing_order
+            limit_price = None
 
         broker_order = create_new_broker_order_from_contract_order(
             contract_order,
@@ -134,7 +129,7 @@ class Algo(object):
             limit_price=limit_price,
         )
 
-        log.msg(
+        log.debug(
             "Created a broker order %s (not yet submitted or written to local DB)"
             % str(broker_order)
         )
@@ -144,11 +139,11 @@ class Algo(object):
         )
 
         if placed_broker_order_with_controls is missing_order:
-            log.warn("Order could not be submitted")
+            log.warning("Order could not be submitted")
             return missing_order
 
         log = placed_broker_order_with_controls.order.log_with_attributes(log)
-        log.msg(
+        log.debug(
             "Submitted order to IB %s" % str(placed_broker_order_with_controls.order)
         )
 
@@ -173,7 +168,7 @@ class Algo(object):
                 )
             )
         except missingData:
-            log.warn(
+            log.warning(
                 "Can't get market data for %s so not trading with limit order %s"
                 % (contract_order.instrument_code, str(contract_order))
             )
@@ -231,7 +226,7 @@ class Algo(object):
             min_tick = self.data_broker.get_min_tick_size_for_contract(contract)
         except missingContract:
             log = contract_order.log_with_attributes(self.data.log)
-            log.warn(
+            log.warning(
                 "Couldn't find min tick size for %s, not rounding limit price %f"
                 % (str(contract), limit_price)
             )

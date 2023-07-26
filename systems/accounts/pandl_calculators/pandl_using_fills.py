@@ -1,21 +1,22 @@
 import numpy as np
 import pandas as pd
 
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from systems.accounts.pandl_calculators.pandl_calculation import (
     pandlCalculation,
     apply_weighting,
 )
 
-from sysobjects.fills import listOfFills, Fill
+from sysobjects.fills import ListOfFills, Fill
 
 
 class pandlCalculationWithFills(pandlCalculation):
-    def __init__(self, *args, fills: listOfFills = arg_not_supplied, **kwargs):
+    def __init__(self, *args, fills: ListOfFills = arg_not_supplied, **kwargs):
         # if fills aren't supplied, can be inferred from positions
         super().__init__(*args, **kwargs)
         self._fills = fills
-        self._calculated_price = missing_data
+        # This attribute is not used
+        self._calculated_price = None
 
     def weight(self, weight: pd.Series):
         ## we don't weight fills, instead will be inferred from positions
@@ -37,7 +38,7 @@ class pandlCalculationWithFills(pandlCalculation):
         pandlCalculation,
         price: pd.Series,
         positions: pd.Series,
-        fills: listOfFills,
+        fills: ListOfFills,
         **kwargs,
     ):
 
@@ -46,7 +47,7 @@ class pandlCalculationWithFills(pandlCalculation):
         return pandlCalculation(price=merged_prices, positions=positions, **kwargs)
 
     @property
-    def fills(self) -> listOfFills:
+    def fills(self) -> ListOfFills:
         fills = self._fills
         if fills is arg_not_supplied:
             # Infer from positions
@@ -58,14 +59,14 @@ class pandlCalculationWithFills(pandlCalculation):
 
         return fills
 
-    def _infer_fills_from_position(self) -> listOfFills:
+    def _infer_fills_from_position(self) -> ListOfFills:
 
         # positions will have delayfill and round applied to them already
         positions = self.positions
         if positions is arg_not_supplied:
             raise Exception("Need to pass fills or positions")
 
-        fills = listOfFills.from_position_series_and_prices(
+        fills = ListOfFills.from_position_series_and_prices(
             positions=positions, price=self.price
         )
         return fills
@@ -91,18 +92,9 @@ class pandlCalculationWithFills(pandlCalculation):
 
         return positions
 
-    def _calculate_and_set_prices_from_fills_and_input_prices(self) -> pd.Series:
-
-        ## this will be set in the parent __init__
-        passed_prices = self._price
-        merged_price = merge_fill_prices_with_prices(passed_prices, self.fills)
-        self._calculated_price = merged_price
-
-        return merged_price
-
 
 def merge_fill_prices_with_prices(
-    prices: pd.Series, list_of_fills: listOfFills
+    prices: pd.Series, list_of_fills: ListOfFills
 ) -> pd.Series:
     list_of_trades_as_pd_df = list_of_fills.as_pd_df()
     unique_trades_as_pd_df = unique_trades_df(list_of_trades_as_pd_df)
@@ -135,7 +127,7 @@ def unique_trades_df(trade_df: pd.DataFrame) -> pd.DataFrame:
     return new_df
 
 
-def infer_positions_from_fills(fills: listOfFills) -> pd.Series:
+def infer_positions_from_fills(fills: ListOfFills) -> pd.Series:
     date_index = [fill.date for fill in fills]
     qty_trade = [fill.qty for fill in fills]
     trade_series = pd.Series(qty_trade, index=date_index)
@@ -151,7 +143,7 @@ Can have other class methods in future that allow you to just pass fills, trades
 
     @classmethod
     def using_fills(pandlCalculation, price: pd.Series,
-                                             fills: listOfFills,
+                                             fills: ListOfFills,
                                              **kwargs):
 
         positions = from_fills_to_positions(fills)

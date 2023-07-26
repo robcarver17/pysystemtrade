@@ -9,7 +9,7 @@ from syscore.fileutils import (
 )
 from syscore.pandas.pdutils import pd_readcsv
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 DATE_INDEX_NAME = "DATETIME"
 SPREAD_COLUMN_NAME = "spread"
@@ -22,7 +22,7 @@ class csvSpreadsForInstrumentData(spreadsForInstrumentData):
     """
 
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvSpreadsForInstrumentData")
+        self, datapath=arg_not_supplied, log=get_logger("csvSpreadsForInstrumentData")
     ):
 
         super().__init__(log=log)
@@ -50,7 +50,7 @@ class csvSpreadsForInstrumentData(spreadsForInstrumentData):
         try:
             spreads_from_pd = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
         except OSError:
-            self.log.warn("Can't find spread file %s" % filename)
+            self.log.warning("Can't find spread file %s" % filename)
             return spreadsForInstrument()
 
         spreads_as_series = pd.Series(spreads_from_pd[SPREAD_COLUMN_NAME])

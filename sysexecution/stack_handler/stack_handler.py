@@ -25,19 +25,19 @@ class stackHandler(
         # We do this at the end of every day as we don't like state hanging
         # around
 
-        self.log.msg("Running safe stack removal")
+        self.log.debug("Running safe stack removal")
         # First, cancel any partially or unfilled broker orders
-        self.log.msg("Trying to cancel all broker orders")
+        self.log.debug("Trying to cancel all broker orders")
         self.cancel_and_confirm_all_broker_orders(log_critical_on_timeout=True)
 
         # Next, process fills
-        self.log.msg("Processing fills")
+        self.log.debug("Processing fills")
         self.process_fills_stack()
 
         # and then completions
         # need special flag for completions, since we also need to 'complete' partially filled orders
         # and allow empty broker orders to be marked as completed
-        self.log.msg("Processing completions")
+        self.log.debug("Processing completions")
         self.handle_completed_orders(
             allow_partial_completions=True, allow_zero_completions=True
         )

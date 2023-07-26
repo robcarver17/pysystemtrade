@@ -17,6 +17,7 @@ from sysproduction.data.orders import dataOrders
 from sysproduction.data.prices import diagPrices, updatePrices
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.broker import dataBroker
+from sysproduction.data.positions import updatePositions
 
 
 class stackHandlerCore(object):
@@ -106,7 +107,7 @@ def put_children_on_stack(
             list_of_child_orders
         )
     except failureWithRollback as e:
-        parent_log.warn(
+        parent_log.warning(
             "Tried to add child orders but %s; rolled back so can try again (parent %s)"
             % (str(e), str(parent_order))
         )
@@ -136,7 +137,7 @@ def add_children_to_parent_or_rollback_children(
     except Exception as e:
         try:
             child_stack.rollback_list_of_orders_on_stack(list_of_child_ids)
-            parent_log.warn(
+            parent_log.warning(
                 "Tried to add child orders to parent but %s; rolled back so can try again (parent %s)"
                 % (str(e), str(parent_order))
             )
@@ -160,7 +161,7 @@ def log_successful_adding(
 
     for child_order, child_id in zip(list_of_child_orders, list_of_child_ids):
         child_log = child_order.log_with_attributes(parent_log)
-        child_log.msg(
+        child_log.debug(
             "Put child order %s on stack with ID %d from parent order %s"
             % (str(child_order), child_id, str(parent_order))
         )
@@ -183,7 +184,7 @@ def rollback_parents_and_children_and_handle_exceptions(
             list_of_child_order_ids=list_of_child_order_ids,
             parent_order_id=parent_order_id,
         )
-        parent_log.warn(
+        parent_log.warning(
             "Error %s when adding a set of parents and children but managed to rollback"
             % str(error_from_adding_child_orders)
         )

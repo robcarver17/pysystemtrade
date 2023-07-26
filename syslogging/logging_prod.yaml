@@ -1,0 +1,35 @@
+version: 1
+disable_existing_loggers: true
+formatters:
+  simple:
+    format: '%(asctime)s %(levelname)s %(name)s %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    stream: ext://sys.stdout
+    formatter: simple
+  email:
+    class: syslogging.handlers.PstSMTPHandler
+    level: CRITICAL
+    formatter: simple
+  socket:
+    class: logging.handlers.SocketHandler
+    host: localhost
+    port: 9020
+    level: DEBUG
+    formatter: simple
+loggers:
+  ib_insync:
+    level: WARNING
+  arctic:
+    level: INFO
+  matplotlib:
+    level: INFO
+root:
+  level: DEBUG
+  handlers:
+    - console
+    - email
+    - socket

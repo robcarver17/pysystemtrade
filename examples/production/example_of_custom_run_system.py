@@ -7,7 +7,7 @@ from sysproduction.strategy_code.run_dynamic_optimised_system import (
     runSystemCarryTrendDynamic,
 )
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 from systems.basesystem import System
 
@@ -36,7 +36,7 @@ class runMySystemCarryTrendDynamic(runSystemCarryTrendDynamic):
 def production_carry_trend_dynamic_system(
     data: dataBlob,
     config_filename: str,
-    log=logtoscreen("futures_system"),
+    log=get_logger("futures_system"),
     notional_trading_capital: float = arg_not_supplied,
     base_currency: str = arg_not_supplied,
 ) -> System:
@@ -66,8 +66,8 @@ from sysdata.config.configdata import Config
 from systems.forecasting import Rules
 from systems.basesystem import System
 from systems.forecast_combine import ForecastCombine
-from private.systems.carrytrend.forecastScaleCap import volAttenForecastScaleCap
-from private.systems.carrytrend.rawdata import myFuturesRawData
+from private.systems.arch.carrytrend.forecastScaleCap import volAttenForecastScaleCap
+from private.systems.arch.carrytrend import myFuturesRawData
 from systems.positionsizing import PositionSizing
 from systems.portfolio import Portfolios
 from systems.provided.dynamic_small_system_optimise.optimised_positions_stage import (

@@ -6,8 +6,7 @@ from syscore.constants import arg_not_supplied
 
 from sysobjects.spot_fx_prices import listOfCurrencyValues
 
-from syslogdiag.pst_logger import pst_logger
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class ibCapitalData(brokerCapitalData):
@@ -15,7 +14,7 @@ class ibCapitalData(brokerCapitalData):
         self,
         ibconnection: connectionIB,
         data: dataBlob,
-        log: pst_logger = logtoscreen("ibCapitalData"),
+        log: pst_logger = get_logger("ibCapitalData"),
     ):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection

@@ -117,8 +117,7 @@ There are three types of objects in the [sysbrokers/IB](/sysbrokers/IB/) area of
 We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). However we can't delete or write to IB.  Normally these functions would be called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface); it's discouraged to call them directly as the interface abstracts away exactly which broker you are talking to.
 
 The data source objects all inherit from the classes in the `sysbrokers/` directory, eg `broker*data.py`. This serves a few purposes: it means we can add additional non specific IB methods that only make sense when talking to a broker rather than to a database, and it illustrates the interface you'd need to implement to connect to a different broker.
-
-Data source objects are instanced with and contain a *connection object* (and optionally a pst_logger). They contain, and make calls to, *client objects*. They are in this [module](/sysbrokers/IB/)
+Data source objects are instanced with and contain a *connection object* (and optionally a logger). They contain, and make calls to, *client objects*. They are in this [module](/sysbrokers/IB/)
 
 You can access the client object and connection used by a particular data source, for example:
 
@@ -134,7 +133,8 @@ ib_orders_data.ibconnection
 
 ```
 from sysbrokers.IB.ib_Fx_prices_data import ibFxPricesData
-ibfxpricedata = ibFxPricesData(conn)
+from sysdata.data_blob import dataBlob
+ibfxpricedata = ibFxPricesData(conn, dataBlob())
 
 ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFX.csv
 ibfxpricedata.get_fx_prices("GBPUSD") # returns fxPrices object
@@ -148,9 +148,10 @@ ibfxpricedata.get_fx_prices("GBPUSD") # returns fxPrices object
 ```
 from sysobjects.contracts import futuresContract
 from sysbrokers.IB.ib_futures_contract_price_data import ibFuturesContractPriceData
-ibfuturesdata = ibFuturesContractPriceData(conn)
+from sysdata.data_blob import dataBlob
+ibfuturesdata = ibFuturesContractPriceData(conn, dataBlob())
 
-ibfuturesdata.get_list_of_instrument_codes_with_price_data() # returns list of instruments defined in [futures config file](/sysbrokers/IB/ibConfigFutures.csv)
+ibfuturesdata.get_list_of_instrument_codes_with_merged_price_data() # returns list of instruments defined in [futures config file](/sysbrokers/IB/ibConfigFutures.csv)
 ibfuturesdata.contract_dates_with_price_data_for_instrument_code("EDOLLAR") # returns list of contract dates
 ibfuturesdata.get_prices_for_contract_object(futuresContract("EDOLLAR", "201203")) # returns OHLC price and volume data
 ```

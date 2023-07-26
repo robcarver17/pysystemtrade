@@ -32,17 +32,18 @@ class diagStrategiesConfig(productionDataLayerGeneric):
 
     def get_strategy_allocation_config_dict(self) -> dict:
         config = self.data.config
-        strategy_allocation_dict = config.get_element_or_missing_data(
-            "strategy_capital_allocation"
-        )
+        strategy_allocation_dict = config.get_element("strategy_capital_allocation")
 
         return strategy_allocation_dict
 
     def get_all_strategy_dict(self) -> dict:
-        config = self.data.config
-        strategy_dict = config.get_element("strategy_list")
+        strategy_dict = self.config.get_element("strategy_list")
 
         return strategy_dict
+
+    @property
+    def config(self):
+        return self.data.config
 
 
 def get_list_of_strategies(data: dataBlob = arg_not_supplied, source="config") -> list:

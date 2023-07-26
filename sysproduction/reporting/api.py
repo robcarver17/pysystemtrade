@@ -8,7 +8,7 @@ from syscore.dateutils import (
     calculate_start_and_end_dates,
     get_date_from_period_and_end_date,
 )
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysobjects.production.roll_state import ALL_ROLL_INSTRUMENTS
 from syscore.pandas.pdutils import top_and_tail
 from sysdata.data_blob import dataBlob
@@ -115,7 +115,7 @@ class reportingApi(object):
         start_date = self.start_date
         end_date = self.end_date
         std_header = header(
-            "%s report produced on %s from %s to %s"
+            "%s produced on %s from %s to %s"
             % (
                 report_name,
                 datetime.datetime.now().strftime(REPORT_DATETIME_FORMAT),
@@ -128,7 +128,8 @@ class reportingApi(object):
 
     def terse_header(self, report_name: str):
         terse_header = header(
-            "%s report produced on %s" % (report_name, str(datetime.datetime.now()))
+            "%s produced on %s"
+            % (report_name, datetime.datetime.now().strftime(REPORT_DATETIME_FORMAT))
         )
 
         return terse_header
@@ -565,7 +566,7 @@ class reportingApi(object):
         return table_result
 
     def _roll_data_as_pd(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):
-        roll_data_dict = self.roll_data_dict_for_instrument_code(instrument_code)
+        roll_data_dict = self.roll_data_dict(instrument_code)
 
         result_pd = pd.DataFrame.from_dict(roll_data_dict, orient="index")
 
@@ -573,21 +574,14 @@ class reportingApi(object):
 
         return result_pd
 
-    def roll_data_dict_for_instrument_code(
-        self, instrument_code: str = ALL_ROLL_INSTRUMENTS
-    ):
-        roll_data_dict = self.roll_data_dict
+    def roll_data_dict(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):
+        return self.cache.get(self._get_roll_data_dict, instrument_code)
+
+    def _get_roll_data_dict(self, instrument_code: str = ALL_ROLL_INSTRUMENTS):
         if instrument_code is ALL_ROLL_INSTRUMENTS:
-            return roll_data_dict
+            list_of_instruments = self._list_of_all_instruments()
         else:
-            return {instrument_code: roll_data_dict[instrument_code]}
-
-    @property
-    def roll_data_dict(self):
-        return self.cache.get(self._get_roll_data_dict)
-
-    def _get_roll_data_dict(self):
-        list_of_instruments = self._list_of_all_instruments()
+            list_of_instruments = [instrument_code]
         data = self.data
 
         roll_data_dict = {}
@@ -1153,10 +1147,6 @@ def filter_data_for_delays(
 ) -> pd.DataFrame:
 
     max_delay_in_seconds = max_delay_in_days * SECONDS_PER_DAY
-    # ignore missing data
-    data_with_datetime = data_with_datetime[
-        data_with_datetime[datetime_colum] != missing_data
-    ]
     time_delays = datetime.datetime.now() - data_with_datetime[datetime_colum]
     delayed = [
         time_difference.total_seconds() > max_delay_in_seconds

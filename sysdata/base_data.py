@@ -1,4 +1,4 @@
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class baseData(object):
@@ -22,7 +22,7 @@ class baseData(object):
 
     """
 
-    def __init__(self, log=logtoscreen("baseData")):
+    def __init__(self, log=get_logger("baseData")):
         """
         simData socket base class
 

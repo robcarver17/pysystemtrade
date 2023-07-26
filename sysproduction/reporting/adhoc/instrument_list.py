@@ -3,6 +3,7 @@ import pandas as pd
 from syscore.interactive.progress_bar import progressBar
 
 from sysproduction.data.broker import dataBroker
+from sysproduction.data.contracts import dataContracts
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.reporting.reporting_functions import (
     parse_report_results,
@@ -26,13 +27,20 @@ def instrument_list_report():
     data = dataBlob()
 
     diag_instruments = diagInstruments(data)
+
     list_of_instruments = diag_instruments.get_list_of_instruments()
+    data_broker = dataBroker(data)
+    contract_data = dataContracts()
 
     p = progressBar(len(list_of_instruments))
     list_of_results = []
     for instrument_code in list_of_instruments:
+        meta_data = diag_instruments.get_meta_data(instrument_code)
         row_for_instrument = instrument_results_as_pd_df_row(
-            data=data, instrument_code=instrument_code
+            meta_data,
+            instrument_code=instrument_code,
+            data_broker=data_broker,
+            contract_data=contract_data,
         )
         list_of_results.append(row_for_instrument)
         p.iterate()
@@ -52,15 +60,20 @@ def instrument_list_report():
     )
 
 
-def instrument_results_as_pd_df_row(data: dataBlob, instrument_code: str):
-    diag_instruments = diagInstruments(data)
-    meta_data = diag_instruments.get_meta_data(instrument_code)
-    data_broker = dataBroker(data)
+def instrument_results_as_pd_df_row(
+    meta_data,
+    instrument_code: str,
+    data_broker: dataBroker,
+    contract_data: dataContracts,
+):
+
     instrument_broker_data = data_broker.get_brokers_instrument_with_metadata(
         instrument_code
     )
     tick_value = get_tick_value_for_instrument_code(
-        data=data, instrument_code=instrument_code
+        instrument_code=instrument_code,
+        broker_data=data_broker,
+        contract_data=contract_data,
     )
 
     meta_data_as_dict = meta_data.as_dict()

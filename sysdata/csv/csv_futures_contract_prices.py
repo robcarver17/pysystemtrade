@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, listOfFuturesContracts
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from syscore.fileutils import (
     resolve_path_and_filename_for_package,
     files_with_extension_in_pathname,
@@ -33,7 +33,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
     def __init__(
         self,
         datapath=arg_not_supplied,
-        log=logtoscreen("csvFuturesContractPriceData"),
+        log=get_logger("csvFuturesContractPriceData"),
         config: ConfigCsvFuturesPrices = arg_not_supplied,
     ):
 
@@ -92,7 +92,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
             )
         except OSError:
             log = futures_contract_object.log(self.log)
-            log.warn("Can't find adjusted price file %s" % filename)
+            log.warning("Can't find adjusted price file %s" % filename)
             return futuresContractPrices.create_empty()
 
         instrpricedata = instrpricedata.groupby(level=0).last()

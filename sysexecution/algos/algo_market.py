@@ -3,7 +3,6 @@ Simplest possible execution method, one market order
 """
 from copy import copy
 from sysexecution.orders.named_order_objects import missing_order
-from sysproduction.data.broker import dataBroker
 
 from sysexecution.algos.algo import Algo
 from sysexecution.algos.common_functions import (
@@ -12,10 +11,8 @@ from sysexecution.algos.common_functions import (
     cancel_order,
     file_log_report_market_order,
 )
-from sysdata.data_blob import dataBlob
-from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
-from sysexecution.orders.broker_orders import market_order_type
+from sysexecution.orders.broker_orders import market_order_type, brokerOrderType
 
 SIZE_LIMIT = 1
 ORDER_TIME_OUT = 600
@@ -51,7 +48,7 @@ class algoMarket(Algo):
         log = contract_order.log_with_attributes(self.data.log)
 
         if contract_order.panic_order:
-            log.msg("PANIC ORDER! DON'T RESIZE AND DO ENTIRE TRADE")
+            log.debug("PANIC ORDER! DON'T RESIZE AND DO ENTIRE TRADE")
             cut_down_contract_order = copy(contract_order)
         else:
             cut_down_contract_order = contract_order.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
@@ -59,18 +56,23 @@ class algoMarket(Algo):
             )
 
         if cut_down_contract_order.trade != contract_order.trade:
-            log.msg(
+            log.debug(
                 "Cut down order to size %s from %s because of algo size limit"
                 % (str(contract_order.trade), str(cut_down_contract_order.trade))
             )
 
+        order_type = self.order_type_to_use
         broker_order_with_controls = (
             self.get_and_submit_broker_order_for_contract_order(
-                cut_down_contract_order, order_type=market_order_type
+                cut_down_contract_order, order_type=order_type
             )
         )
 
         return broker_order_with_controls
+
+    @property
+    def order_type_to_use(self) -> brokerOrderType:
+        return market_order_type
 
     def manage_live_trade(
         self, broker_order_with_controls: orderWithControls
@@ -79,7 +81,7 @@ class algoMarket(Algo):
         data_broker = self.data_broker
 
         trade_open = True
-        log.msg(
+        log.debug(
             "Managing trade %s with market order"
             % str(broker_order_with_controls.order)
         )
@@ -100,18 +102,20 @@ class algoMarket(Algo):
                 )
             )
             if is_order_completed:
-                log.msg("Trade completed")
+                log.debug("Trade completed")
                 break
 
             if is_order_timeout:
-                log.msg("Run out of time to execute: cancelling")
+                log.debug("Run out of time to execute: cancelling")
                 broker_order_with_controls = cancel_order(
                     self.data, broker_order_with_controls
                 )
                 break
 
             if is_order_cancelled:
-                log.warn("Order has been cancelled apparently by broker: not by algo!")
+                log.warning(
+                    "Order has been cancelled apparently by broker: not by algo!"
+                )
                 break
 
         return broker_order_with_controls

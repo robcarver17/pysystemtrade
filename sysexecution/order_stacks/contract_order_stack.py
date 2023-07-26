@@ -25,7 +25,7 @@ class contractOrderStackData(orderStackData):
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
             error_msg = "Can't add controlling ago as order %d doesn't exist" % order_id
-            self.log.warn(error_msg)
+            self.log.warning(error_msg)
             raise missingOrder(error_msg)
 
         try:
@@ -39,7 +39,7 @@ class contractOrderStackData(orderStackData):
                 control_algo_ref,
                 order_id,
             )
-            log.warn(error_msg)
+            log.warning(error_msg)
             raise Exception(error_msg)
 
     def release_order_from_algo_control(self, order_id: int):
@@ -47,7 +47,7 @@ class contractOrderStackData(orderStackData):
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
             error_msg = "Can't add controlling ago as order %d doesn't exist" % order_id
-            self.log.warn(error_msg)
+            self.log.warning(error_msg)
             raise missingOrder(error_msg)
 
         order_is_not_controlled = not existing_order.is_order_controlled_by_algo()
@@ -65,7 +65,7 @@ class contractOrderStackData(orderStackData):
                 str(e),
                 order_id,
             )
-            log.warn(error_msg)
+            log.warning(error_msg)
             raise Exception(error_msg)
 
     def get_order_with_id_from_stack(self, order_id: int) -> contractOrder:
@@ -75,3 +75,19 @@ class contractOrderStackData(orderStackData):
         order = self.stack.get(order_id, missing_order)
 
         return order
+
+    def does_stack_have_orders_for_instrument_code(self, instrument_code: str) -> bool:
+        orders_with_instrument_code = self.list_of_orders_with_instrument_code(
+            instrument_code
+        )
+        return len(orders_with_instrument_code) > 0
+
+    def list_of_orders_with_instrument_code(self, instrument_code: str) -> list:
+        list_of_orders = self.get_list_of_orders()
+        list_of_orders = [
+            order
+            for order in list_of_orders
+            if order.instrument_code is instrument_code
+        ]
+
+        return list_of_orders

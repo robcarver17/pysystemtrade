@@ -14,6 +14,16 @@ class instrumentOrderStackData(orderStackData):
     def _name(self):
         return "Instrument order stack"
 
+    def list_of_orders_with_instrument_code(self, instrument_code: str) -> list:
+        list_of_orders = self.get_list_of_orders()
+        list_of_orders = [
+            order
+            for order in list_of_orders
+            if order.instrument_code is instrument_code
+        ]
+
+        return list_of_orders
+
     def does_strategy_and_instrument_already_have_order_on_stack(
         self, strategy_name: str, instrument_code: str
     ) -> bool:
@@ -88,10 +98,10 @@ class instrumentOrderStackData(orderStackData):
 
         if new_order.is_zero_trade() and not allow_zero_orders:
             log_msg = "Zero orders not allowed"
-            log.msg(log_msg)
+            log.debug(log_msg)
             raise zeroOrderException(log_msg)
 
-        log.msg("New order %s putting on %s" % (str(new_order), str(self)))
+        log.debug("New order %s putting on %s" % (str(new_order), str(self)))
 
         order_id = self._put_order_on_stack_and_get_order_id(new_order)
 
@@ -127,7 +137,7 @@ class instrumentOrderStackData(orderStackData):
             error_msg = "Adjusted order %s is zero, zero orders not allowed" % str(
                 adjusted_order
             )
-            log.warn(error_msg)
+            log.warning(error_msg)
             raise zeroOrderException(error_msg)
 
         order_id = self._put_order_on_stack_and_get_order_id(adjusted_order)
@@ -154,7 +164,7 @@ def calculate_adjusted_order_given_existing_orders(
         )
     )
 
-    log.msg(
+    log.debug(
         "Already have orders %s wanted %s so putting on order for %s (%s)"
         % (
             str(existing_trades),

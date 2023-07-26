@@ -20,7 +20,7 @@ import yaml
 
 from syscore.exceptions import missingData
 from syscore.fileutils import resolve_path_and_filename_for_package
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from sysdata.config.defaults import get_system_defaults_dict
 from sysdata.config.private_config import (
     get_private_config_as_dict,
@@ -30,8 +30,7 @@ from sysdata.config.private_directory import (
     get_full_path_for_private_config,
     PRIVATE_CONFIG_DIR_ENV_VAR,
 )
-from syslogdiag.log_to_screen import logtoscreen
-from syslogdiag.pst_logger import TYPE_LOG_LABEL, STAGE_LOG_LABEL
+from syslogging.logger import *
 from sysdata.config.fill_config_dict_with_defaults import fill_config_dict_with_defaults
 
 RESERVED_NAMES = [
@@ -76,7 +75,9 @@ class Config(object):
         """
 
         # this will normally be overriden by the base system
-        self.log = logtoscreen(**{TYPE_LOG_LABEL: "config", STAGE_LOG_LABEL: "config"})
+        self.log = get_logger(
+            "config", {TYPE_LOG_LABEL: "config", STAGE_LOG_LABEL: "config"}
+        )
 
         self._default_filename = default_filename
         self._private_filename = private_filename
@@ -117,9 +118,6 @@ class Config(object):
     def get_element_or_default(self, element_name, default):
         result = getattr(self, element_name, default)
         return result
-
-    def get_element_or_missing_data(self, element_name):
-        return self.get_element_or_default(element_name, missing_data)
 
     def get_element_or_arg_not_supplied(self, element_name):
         return self.get_element_or_default(element_name, arg_not_supplied)
@@ -171,7 +169,7 @@ class Config(object):
 
         When we've close self will be an object where the attributes are
 
-        So if config_objec=dict(a=2, b=2)
+        So if config_object=dict(a=2, b=2)
         Then this object will become self.a=2, self.b=2
         """
         base_config = config_object.get("base_config")
@@ -233,7 +231,7 @@ class Config(object):
         """
         Fills with defaults - private stuff first, then defaults
         """
-        self.log.msg("Adding config defaults")
+        self.log.debug("Adding config defaults")
 
         self_as_dict = self.as_dict()
         defaults_dict = self.default_config_dict
@@ -288,17 +286,26 @@ class Config(object):
         with open(filename, "w") as file:
             yaml.dump(config_to_save, file)
 
+    @classmethod
+    def default_config(cls):
+        if hasattr(cls, "evaluated"):
+            return cls.evaluated
 
-def default_config():
-    if os.getenv(PRIVATE_CONFIG_DIR_ENV_VAR):
-        config = Config(
-            private_filename=get_full_path_for_private_config(PRIVATE_CONFIG_FILE)
-        )
-    else:
-        config = Config()
-    config.fill_with_defaults()
+        if os.getenv(PRIVATE_CONFIG_DIR_ENV_VAR):
+            config = Config(
+                private_filename=get_full_path_for_private_config(PRIVATE_CONFIG_FILE)
+            )
+        else:
+            config = Config()
+        config.fill_with_defaults()
 
-    return config
+        cls.evaluated = config
+        return cls.evaluated
+
+    @classmethod
+    def reset(cls):
+        if hasattr(cls, "evaluated"):
+            delattr(cls, "evaluated")
 
 
 if __name__ == "__main__":

@@ -1,16 +1,15 @@
 from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
 from syscore.exceptions import missingContract
-from syscore.constants import market_closed
 from sysdata.futures.contracts import futuresContractData
 from sysdata.data_blob import dataBlob
 from sysobjects.contract_dates_and_expiries import expiryDate
 from sysobjects.contracts import futuresContract
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class brokerFuturesContractData(futuresContractData):
-    def __init__(self, data: dataBlob, log=logtoscreen("brokerFuturesContractData")):
+    def __init__(self, data: dataBlob, log=get_logger("brokerFuturesContractData")):
         super().__init__(log=log)
         self._data = data
 
@@ -46,9 +45,6 @@ class brokerFuturesContractData(futuresContractData):
         less_than_N_hours_of_trading_left_for_contract = (
             trading_hours.less_than_N_hours_left(N_hours=N_hours)
         )
-
-        if less_than_N_hours_of_trading_left_for_contract is market_closed:
-            return market_closed
 
         return less_than_N_hours_of_trading_left_for_contract
 

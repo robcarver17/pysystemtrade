@@ -1,5 +1,5 @@
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 from sysbrokers.IB.client.ib_fx_client import ibFxClient
 from sysbrokers.IB.ib_connection import connectionIB
@@ -13,7 +13,7 @@ class ibFxHandlingData(brokerFxHandlingData):
         self,
         ibconnection: connectionIB,
         data: dataBlob,
-        log=logtoscreen("ibFXHandlingData"),
+        log=get_logger("ibFXHandlingData"),
     ):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection

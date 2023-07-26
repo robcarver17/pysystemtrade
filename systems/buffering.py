@@ -2,8 +2,7 @@
 import pandas as pd
 
 from sysdata.config.configdata import Config
-from syslogdiag.pst_logger import pst_logger
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from syscore.constants import arg_not_supplied
 
 
@@ -40,10 +39,10 @@ def calculate_buffers(
     vol_scalar: pd.Series,
     instr_weights: pd.DataFrame = arg_not_supplied,
     idm: pd.Series = arg_not_supplied,
-    log: pst_logger = logtoscreen(""),
+    log=get_logger(""),
 ) -> pd.Series:
 
-    log.msg(
+    log.debug(
         "Calculating buffers for %s" % instrument_code,
         instrument_code=instrument_code,
     )
@@ -51,7 +50,7 @@ def calculate_buffers(
     buffer_method = config.buffer_method
 
     if buffer_method == "forecast":
-        log.msg(
+        log.debug(
             "Calculating forecast method buffers for %s" % instrument_code,
             instrument_code=instrument_code,
         )
@@ -69,14 +68,14 @@ def calculate_buffers(
         )
 
     elif buffer_method == "position":
-        log.msg(
+        log.debug(
             "Calculating position method buffer for %s" % instrument_code,
             instrument_code=instrument_code,
         )
 
         buffer = get_position_method_buffer(config=config, position=position)
     elif buffer_method == "none":
-        log.msg(
+        log.debug(
             "None method, no buffering for %s" % instrument_code,
             instrument_code=instrument_code,
         )

@@ -1,6 +1,6 @@
 from sysdata.base_data import baseData
 from sysobjects.roll_calendars import rollCalendar
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 USE_CHILD_CLASS_ROLL_CALENDAR_ERROR = (
     "You need to use a child class of rollCalendarData"
@@ -14,7 +14,7 @@ class rollCalendarData(baseData):
     We wouldn't normally use this base class, but inherit from it for a specific data source eg Arctic
     """
 
-    def __init__(self, log=logtoscreen):
+    def __init__(self, log=get_logger("")):
         super().__init__(log=log)
 
     def __repr__(self):
@@ -40,11 +40,11 @@ class rollCalendarData(baseData):
                 self._delete_roll_calendar_data_without_any_warning_be_careful(
                     instrument_code
                 )
-                self.log.terse("Deleted roll calendar for %s" % instrument_code)
+                self.log.info("Deleted roll calendar for %s" % instrument_code)
 
             else:
                 # doesn't exist anyway
-                self.log.warn(
+                self.log.warning(
                     "Tried to delete roll calendar for non existent instrument code %s"
                     % instrument_code
                 )
@@ -75,7 +75,7 @@ class rollCalendarData(baseData):
             instrument_code, roll_calendar
         )
 
-        self.log.msg("Added roll calendar for instrument %s" % instrument_code)
+        self.log.debug("Added roll calendar for instrument %s" % instrument_code)
 
     def is_code_in_data(self, instrument_code: str) -> bool:
         if instrument_code in self.get_list_of_instruments():

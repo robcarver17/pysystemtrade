@@ -23,6 +23,7 @@ from sysinit.futures.safely_modify_roll_parameters import safely_modify_roll_par
 from sysdata.data_blob import dataBlob
 from sysobjects.contracts import futuresContract
 from sysobjects.production.override import override_dict, Override
+from sysobjects.production.process_control import processNotRunning
 from sysobjects.production.tradeable_object import instrumentStrategy
 
 from sysproduction.backup_arctic_to_csv import (
@@ -823,7 +824,10 @@ def finish_process(data):
     print("Will need to use if process aborted without properly closing")
     process_name = get_process_name(data)
     data_control = dataControlProcess(data)
-    data_control.finish_process(process_name)
+    try:
+        data_control.finish_process(process_name)
+    except processNotRunning:
+        pass
 
 
 def finish_all_processes(data):

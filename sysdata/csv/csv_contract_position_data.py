@@ -3,7 +3,7 @@ from sysdata.production.historic_contract_positions import contractPositionData
 from sysobjects.contracts import futuresContract
 from syscore.fileutils import resolve_path_and_filename_for_package
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 DATE_INDEX_NAME = "DATETIME"
 
@@ -15,7 +15,7 @@ class csvContractPositionData(contractPositionData):
     """
 
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvContractPositionData")
+        self, datapath=arg_not_supplied, log=get_logger("csvContractPositionData")
     ):
 
         super().__init__(log=log)

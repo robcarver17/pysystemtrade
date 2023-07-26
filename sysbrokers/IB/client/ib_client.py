@@ -11,12 +11,11 @@ from sysbrokers.IB.config.ib_instrument_config import (
     IBInstrumentIdentity,
 )
 
-from syscore.constants import arg_not_supplied, missing_contract
+from syscore.constants import arg_not_supplied
 from syscore.cache import Cache
 from syscore.exceptions import missingContract
 
-from syslogdiag.pst_logger import pst_logger
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 from sysobjects.contracts import futuresContract
 
@@ -66,7 +65,7 @@ class ibClient(object):
     """
 
     def __init__(
-        self, ibconnection: connectionIB, log: pst_logger = logtoscreen("ibClient")
+        self, ibconnection: connectionIB, log: pst_logger = get_logger("ibClient")
     ):
 
         # means our first call won't be throttled for pacing
@@ -134,10 +133,10 @@ class ibClient(object):
             self.broker_message(msg=msg, log=self.log)
 
     def broker_error(self, msg, log, myerror_type):
-        log.warn(msg)
+        log.warning(msg)
 
     def broker_message(self, log, msg):
-        log.msg(msg)
+        log.debug(msg)
 
     def refresh(self):
         self.ib.sleep(0.00001)

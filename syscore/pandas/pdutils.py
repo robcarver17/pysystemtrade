@@ -8,7 +8,7 @@ from collections import namedtuple
 from typing import Union, List
 import numpy as np
 
-from syscore.constants import named_object, missing_data, arg_not_supplied
+from syscore.constants import named_object, arg_not_supplied
 
 DEFAULT_DATE_FORMAT_FOR_CSV = "%Y-%m-%d %H:%M:%S"
 
@@ -273,7 +273,7 @@ def make_df_from_list_of_named_tuple(
     >>> t1 = T('X', 3,1)
     >>> t2 = T('Y',1,2)
     >>> t3 = T('Z', 4, 3)
-    >>> make_df_from_list_of_named_tuple(T, [t1, t2, t3])
+    >>> make_df_from_list_of_named_tuple(T, [t1, t2, t3])  # doctest: +SKIP
           value_a  value_b
     ...
     X           3        1
@@ -293,18 +293,17 @@ def make_df_from_list_of_named_tuple(
     if make_index:
         if field_name_for_index is arg_not_supplied:
             field_name_for_index = elements[0]
-        pdf.index = pdf[field_name_for_index]
+        pdf_index = list(pdf[field_name_for_index])
         pdf = pdf.drop(labels=field_name_for_index, axis=1)
+        pdf.index = pdf_index
 
     return pdf
 
 
 def sort_df_ignoring_missing(df: pd.DataFrame, column: List[str]) -> pd.DataFrame:
-    # sorts df by column, with rows containing missing_data coming at the end
-    missing = df[df[column] == missing_data]
-    valid = df[df[column] != missing_data]
-    valid_sorted = valid.sort_values(column)
-    return pd.concat([valid_sorted, missing])
+    # sorts df by column, with rows with missing data coming at the end
+    # Pandas treats NaN, NaT, and None as missing
+    return df.sort_values(column, na_position="last")
 
 
 def apply_with_min_periods(

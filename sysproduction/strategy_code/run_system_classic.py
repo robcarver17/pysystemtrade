@@ -9,7 +9,7 @@ this:
 
 """
 import datetime
-from syscore.constants import missing_data, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.exceptions import missingData
 
 from sysdata.config.configdata import Config
@@ -28,7 +28,7 @@ from sysproduction.data.sim_data import get_sim_data_object_for_production
 
 from sysproduction.data.backtest import store_backtest_state
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 from systems.provided.futures_chapter15.basesystem import futures_system
 from systems.basesystem import System
@@ -94,7 +94,7 @@ class runSystemClassic(object):
         currency_data = dataCurrency(data)
         base_currency = currency_data.get_base_currency()
 
-        self.data.log.msg(
+        self.data.log.debug(
             "Using capital of %s %.2f" % (base_currency, notional_trading_capital)
         )
 
@@ -124,7 +124,7 @@ class runSystemClassic(object):
 def production_classic_futures_system(
     data: dataBlob,
     config_filename: str,
-    log=logtoscreen("futures_system"),
+    log=get_logger("futures_system"),
     notional_trading_capital: float = arg_not_supplied,
     base_currency: str = arg_not_supplied,
 ) -> System:
@@ -172,7 +172,7 @@ def updated_buffered_positions(data: dataBlob, strategy_name: str, system: Syste
         data_optimal_positions.update_optimal_position_for_instrument_strategy(
             instrument_strategy=instrument_strategy, position_entry=position_entry
         )
-        log.msg(
+        log.debug(
             "New buffered positions %.3f %.3f"
             % (position_entry.lower_position, position_entry.upper_position),
             instrument_code=instrument_code,

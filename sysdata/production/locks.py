@@ -1,12 +1,12 @@
 from syscore.exceptions import missingData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 lock_on = "ON"
 lock_off = "OFF"
 
 
 class lockData(object):
-    def __init__(self, log=logtoscreen("Locks")):
+    def __init__(self, log=get_logger("Locks")):
         self.log = log
 
     def is_instrument_locked(self, instrument_code: str) -> bool:

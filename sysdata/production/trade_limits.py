@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 from syscore.exceptions import missingData
 from sysdata.base_data import baseData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 from sysobjects.production.trade_limits import tradeLimit, listOfTradeLimits
 
 from sysobjects.production.tradeable_object import instrumentStrategy
@@ -40,7 +40,7 @@ class listOfInstrumentStrategyKeyAndDays(list):
 
 
 class tradeLimitData(baseData):
-    def __init__(self, log=logtoscreen("Overrides")):
+    def __init__(self, log=get_logger("Overrides")):
         super().__init__(log=log)
 
     def no_limit(
@@ -52,7 +52,15 @@ class tradeLimitData(baseData):
             period_days=period_days,
         )
 
-    def what_trade_is_possible(
+    def what_trade_is_possible_for_instrument(
+        self, instrument_code: str, proposed_trade: int
+    ) -> int:
+        combined_list = self.get_trade_limits_for_instrument(instrument_code)
+        possible_trade = combined_list.what_trade_is_possible(proposed_trade)
+
+        return possible_trade
+
+    def what_trade_is_possible_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy, proposed_trade: int
     ) -> int:
         combined_list = self._get_list_of_all_relevant_trade_limits(instrument_strategy)
@@ -73,11 +81,11 @@ class tradeLimitData(baseData):
     def _get_list_of_all_relevant_trade_limits(
         self, instrument_strategy: instrumentStrategy
     ) -> listOfTradeLimits:
-        instrument_trade_limits = self._get_trade_limits_for_instrument(
+        instrument_trade_limits = self.get_trade_limits_for_instrument(
             instrument_strategy.instrument_code
         )
         strategy_instrument_trade_limits = (
-            self._get_trade_limits_for_instrument_strategy(instrument_strategy)
+            self.get_trade_limits_for_instrument_strategy(instrument_strategy)
         )
 
         combined_list = listOfTradeLimits(
@@ -86,14 +94,18 @@ class tradeLimitData(baseData):
 
         return combined_list
 
-    def _get_trade_limits_for_instrument(self, instrument_code: str) -> list:
+    def get_trade_limits_for_instrument(
+        self, instrument_code: str
+    ) -> listOfTradeLimits:
         instrument_strategy = instrument_strategy_for_instrument_only(instrument_code)
 
-        return self._get_trade_limits_for_instrument_strategy(instrument_strategy)
+        return listOfTradeLimits(
+            self.get_trade_limits_for_instrument_strategy(instrument_strategy)
+        )
 
-    def _get_trade_limits_for_instrument_strategy(
+    def get_trade_limits_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
-    ) -> list:
+    ) -> listOfTradeLimits:
         all_keys = self._get_all_limit_keys()
         relevant_keys = all_keys.for_given_instrument_strategy(instrument_strategy)
         trade_limits = [
@@ -101,7 +113,7 @@ class tradeLimitData(baseData):
             for isd_key in relevant_keys
         ]
 
-        return trade_limits
+        return listOfTradeLimits(trade_limits)
 
     def _update_list_of_trade_limits(self, list_of_trade_limits: list):
         result = [
@@ -163,7 +175,7 @@ class tradeLimitData(baseData):
             self._get_trade_limit_object_from_isd_key(key) for key in all_keys
         ]
 
-        return all_limits
+        return listOfTradeLimits(all_limits)
 
     def _get_trade_limit_object_from_isd_key(
         self, isd_key: instrumentStrategyKeyAndDays

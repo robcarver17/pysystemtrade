@@ -1,5 +1,5 @@
 from sysdata.base_data import baseData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 from sysobjects.production.position_limits import positionLimitForInstrument
 
@@ -13,7 +13,7 @@ class temporaryCloseData(baseData):
 
     """
 
-    def __init__(self, log=logtoscreen("temporaryCloseData")):
+    def __init__(self, log=get_logger("temporaryCloseData")):
         super().__init__(log=log)
 
     def add_stored_position_limit(

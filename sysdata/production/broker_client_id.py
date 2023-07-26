@@ -1,6 +1,6 @@
 from syscore.constants import arg_not_supplied
 from sysdata.base_data import baseData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class brokerClientIdData(baseData):
@@ -11,7 +11,7 @@ class brokerClientIdData(baseData):
     def __init__(
         self,
         idoffset: int = 0,
-        log=logtoscreen("brokerClientIdTracker"),
+        log=get_logger("brokerClientIdTracker"),
     ):
 
         super().__init__(log=log)

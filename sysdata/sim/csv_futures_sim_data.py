@@ -14,7 +14,7 @@ from sysdata.csv.csv_spread_costs import csvSpreadCostData
 from sysdata.data_blob import dataBlob
 from sysdata.sim.futures_sim_data_with_data_blob import genericBlobUsingFuturesSimData
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class csvFuturesSimData(genericBlobUsingFuturesSimData):
@@ -23,7 +23,7 @@ class csvFuturesSimData(genericBlobUsingFuturesSimData):
     """
 
     def __init__(
-        self, csv_data_paths=arg_not_supplied, log=logtoscreen("csvFuturesSimData")
+        self, csv_data_paths=arg_not_supplied, log=get_logger("csvFuturesSimData")
     ):
 
         data = dataBlob(

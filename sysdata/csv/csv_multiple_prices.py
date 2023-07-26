@@ -12,7 +12,7 @@ from syscore.fileutils import (
 from syscore.pandas.pdutils import pd_readcsv
 from syscore.genutils import str_of_int
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 CSV_MULTIPLE_PRICE_DIRECTORY = "data.futures.multiple_prices_csv"
 DATE_INDEX_NAME = "DATETIME"
@@ -27,7 +27,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
     def __init__(
         self,
         datapath: str = arg_not_supplied,
-        log=logtoscreen("csvFuturesMultiplePricesData"),
+        log=get_logger("csvFuturesMultiplePricesData"),
     ):
 
         super().__init__(log=log)
@@ -73,7 +73,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
         filename = self._filename_given_instrument_code(instrument_code)
         multiple_price_data.to_csv(filename, index_label=DATE_INDEX_NAME)
 
-        self.log.msg(
+        self.log.debug(
             "Written multiple prices for %s to %s" % (instrument_code, filename),
             instrument_code=instrument_code,
         )
@@ -84,7 +84,7 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
         try:
             instr_all_price_data = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
         except OSError:
-            self.log.warn(
+            self.log.warning(
                 "Can't find multiple price file %s or error reading" % filename,
                 instrument_code=instrument_code,
             )

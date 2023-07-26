@@ -8,11 +8,11 @@ from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.broker_orders import brokerOrder
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class brokerExecutionStackData(brokerOrderStackData):
-    def __init__(self, data: dataBlob, log=logtoscreen("brokerExecutionStackData")):
+    def __init__(self, data: dataBlob, log=get_logger("brokerExecutionStackData")):
         super().__init__(log=log)
         self._data = data
 

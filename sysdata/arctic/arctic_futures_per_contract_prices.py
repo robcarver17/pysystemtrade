@@ -12,7 +12,7 @@ from sysdata.futures.futures_per_contract_prices import (
 )
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, get_code_and_id_from_contract_key
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 import pandas as pd
 
@@ -24,9 +24,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     Class to read / write futures price data to and from arctic
     """
 
-    def __init__(
-        self, mongo_db=None, log=logtoscreen("arcticFuturesContractPriceData")
-    ):
+    def __init__(self, mongo_db=None, log=get_logger("arcticFuturesContractPriceData")):
 
         super().__init__(log=log)
 
@@ -104,7 +102,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         self.arctic_connection.write(ident, futures_price_data_as_pd)
 
-        log.msg(
+        log.debug(
             "Wrote %s lines of prices for %s at %s to %s"
             % (
                 len(futures_price_data),
@@ -198,7 +196,7 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
             contract=futures_contract_object, frequency=frequency
         )
         self.arctic_connection.delete(ident)
-        log.msg(
+        log.debug(
             "Deleted all prices for %s from %s"
             % (futures_contract_object.key, str(self))
         )

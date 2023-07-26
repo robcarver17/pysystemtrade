@@ -9,13 +9,13 @@ from sysdata.arctic.arctic_connection import arcticData
 from sysdata.production.historic_strategy_positions import strategyPositionData
 from syscore.exceptions import missingData
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 STRATEGY_POSITION_COLLECTION = "strategy_positions"
 
 
 class arcticStrategyPositionData(strategyPositionData):
-    def __init__(self, mongo_db=None, log=logtoscreen("arcticStrategyPositionData")):
+    def __init__(self, mongo_db=None, log=get_logger("arcticStrategyPositionData")):
 
         super().__init__(log=log)
 

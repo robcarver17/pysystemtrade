@@ -2,7 +2,7 @@ import pandas as pd
 
 from syscore.interactive.progress_bar import progressBar
 
-from syslogdiag.log_to_screen import logtoscreen, pst_logger
+from syslogging.logger import *
 
 from sysquant.fitting_dates import generate_fitting_dates, listOfFittingDates
 from sysquant.optimisation.portfolio_optimiser import portfolioOptimiser
@@ -17,7 +17,7 @@ class optimiseWeightsOverTime(object):
         net_returns: returnsForOptimisation,
         date_method="expanding",
         rollyears=20,
-        log: pst_logger = logtoscreen("optimiser"),
+        log=get_logger("optimiser"),
         **kwargs,
     ):
 
@@ -35,6 +35,18 @@ class optimiseWeightsOverTime(object):
     @property
     def fit_dates(self) -> listOfFittingDates:
         return self._fit_dates
+
+    @property
+    def correlation_estimator(self):
+        return self.optimiser.correlation_estimator()
+
+    @property
+    def mean_estimator(self):
+        return self.optimiser.mean_estimator()
+
+    @property
+    def stdev_estimator(self):
+        return self.optimiser.stdev_estimator()
 
     @property
     def optimiser(self) -> portfolioOptimiser:

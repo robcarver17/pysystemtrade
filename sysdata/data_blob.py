@@ -6,8 +6,7 @@ from syscore.constants import arg_not_supplied
 from syscore.text import camel_case_split
 from sysdata.config.production_config import get_production_config, Config
 from sysdata.mongodb.mongo_connection import mongoDb
-from syslogdiag.pst_logger import pst_logger, COMPONENT_LOG_LABEL
-from syslogdiag.log_to_file import logToFile
+from syslogging.logger import *
 from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 
 
@@ -193,7 +192,7 @@ class dataBlob(object):
 
         datapath = csv_data_paths.get(class_name, "")
         if datapath == "":
-            self.log.warn(
+            self.log.warning(
                 "No key for %s in csv_data_paths, will use defaults (may break in production, should be fine in sim)"
                 % class_name
             )
@@ -331,7 +330,7 @@ class dataBlob(object):
     def log(self):
         log = getattr(self, "_log", arg_not_supplied)
         if log is arg_not_supplied:
-            log = logToFile(self.log_name, data=self)
+            log = get_logger(self.log_name)
             log.set_logging_level("on")
             self._log = log
 

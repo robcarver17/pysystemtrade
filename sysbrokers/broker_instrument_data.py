@@ -1,7 +1,7 @@
 from sysdata.data_blob import dataBlob
 from sysdata.futures.instruments import futuresInstrumentData
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class brokerFuturesInstrumentData(futuresInstrumentData):
@@ -13,7 +13,7 @@ class brokerFuturesInstrumentData(futuresInstrumentData):
 
     """
 
-    def __init__(self, data: dataBlob, log=logtoscreen("brokerFuturesInstrumentData")):
+    def __init__(self, data: dataBlob, log=get_logger("brokerFuturesInstrumentData")):
         super().__init__(log=log)
         self._data = data
 

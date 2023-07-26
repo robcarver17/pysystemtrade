@@ -9,7 +9,7 @@ We require these to calculate back adjusted prices and also to work out carry
 
 They can be stored, or worked out 'on the fly'
 """
-
+from syscore.exceptions import existingData
 from sysdata.base_data import baseData
 from syscore.constants import status, success, failure
 
@@ -56,13 +56,13 @@ class futuresMultiplePricesData(baseData):
                 self._delete_multiple_prices_without_any_warning_be_careful(
                     instrument_code
                 )
-                log.terse("Deleted multiple price data for %s" % instrument_code)
+                log.info("Deleted multiple price data for %s" % instrument_code)
 
                 return success
 
             else:
                 # doesn't exist anyway
-                log.warn(
+                log.warning(
                     "Tried to delete non existent multiple prices for %s"
                     % instrument_code
                 )
@@ -82,7 +82,7 @@ class futuresMultiplePricesData(baseData):
         instrument_code: str,
         multiple_price_data: futuresMultiplePrices,
         ignore_duplication=False,
-    ) -> status:
+    ):
         log = self.log.setup(instrument_code=instrument_code)
         if self.is_code_in_data(instrument_code):
             if ignore_duplication:
@@ -92,15 +92,13 @@ class futuresMultiplePricesData(baseData):
                     "There is already %s in the data, you have to delete it first"
                     % instrument_code
                 )
-                return failure
+                raise existingData
 
         self._add_multiple_prices_without_checking_for_existing_entry(
             instrument_code, multiple_price_data
         )
 
-        log.terse("Added data for instrument %s" % instrument_code)
-
-        return success
+        log.info("Added data for instrument %s" % instrument_code)
 
     def _add_multiple_prices_without_checking_for_existing_entry(
         self, instrument_code: str, multiple_price_data: futuresMultiplePrices

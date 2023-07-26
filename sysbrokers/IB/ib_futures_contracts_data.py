@@ -6,14 +6,13 @@ from sysbrokers.IB.ib_instruments_data import (
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.broker_futures_contract_data import brokerFuturesContractData
 
-from syscore.constants import missing_instrument
-from syscore.exceptions import missingContract, missingData
+from syscore.exceptions import missingContract, missingData, missingInstrument
 from sysdata.data_blob import dataBlob
 from sysobjects.contract_dates_and_expiries import expiryDate, listOfContractDateStr
 from sysobjects.contracts import futuresContract
 from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class ibFuturesContractData(brokerFuturesContractData):
@@ -29,7 +28,7 @@ class ibFuturesContractData(brokerFuturesContractData):
         self,
         ibconnection: connectionIB,
         data: dataBlob,
-        log=logtoscreen("ibFuturesContractData"),
+        log=get_logger("ibFuturesContractData"),
     ):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
@@ -101,7 +100,7 @@ class ibFuturesContractData(brokerFuturesContractData):
         """
         log = futures_contract.specific_log(self.log)
         if futures_contract.is_spread_contract():
-            log.warn("Can't find expiry for multiple leg contract here")
+            log.warning("Can't find expiry for multiple leg contract here")
             raise missingContract
 
         contract_object_with_ib_data = self.get_contract_object_with_IB_data(
@@ -117,7 +116,7 @@ class ibFuturesContractData(brokerFuturesContractData):
     ) -> expiryDate:
         log = futures_contract_with_ib_data.specific_log(self.log)
         if futures_contract_with_ib_data.is_spread_contract():
-            log.warn("Can't find expiry for multiple leg contract here")
+            log.warning("Can't find expiry for multiple leg contract here")
             raise missingContract
 
         expiry_date = self.ib_client.broker_get_single_contract_expiry_date(
@@ -132,14 +131,14 @@ class ibFuturesContractData(brokerFuturesContractData):
         self, contract_object: futuresContract
     ) -> futuresContract:
 
-        futures_instrument_with_ib_data = (
-            self._get_futures_instrument_object_with_IB_data(
-                contract_object.instrument_code
+        try:
+            futures_instrument_with_ib_data = (
+                self._get_futures_instrument_object_with_IB_data(
+                    contract_object.instrument_code
+                )
             )
-        )
-
-        if futures_instrument_with_ib_data is missing_instrument:
-            raise missingContract
+        except missingInstrument as e:
+            raise missingContract from e
 
         contract_object_with_ib_data = (
             contract_object.new_contract_with_replaced_instrument_object(
@@ -165,7 +164,7 @@ class ibFuturesContractData(brokerFuturesContractData):
                 contract_object
             )
         except missingContract:
-            new_log.msg("Can't resolve contract so can't find tick size")
+            new_log.debug("Can't resolve contract so can't find tick size")
             raise
 
         try:
@@ -173,7 +172,7 @@ class ibFuturesContractData(brokerFuturesContractData):
                 contract_object_with_ib_data
             )
         except missingContract:
-            new_log.msg("No tick size found")
+            new_log.debug("No tick size found")
             raise
 
         return min_tick_size
@@ -187,7 +186,7 @@ class ibFuturesContractData(brokerFuturesContractData):
                 contract_object
             )
         except missingContract:
-            new_log.msg("Can't resolve contract so can't find tick size")
+            new_log.debug("Can't resolve contract so can't find tick size")
             raise
 
         try:
@@ -195,7 +194,7 @@ class ibFuturesContractData(brokerFuturesContractData):
                 contract_object_with_ib_data
             )
         except missingContract:
-            new_log.msg("No contract found")
+            new_log.debug("No contract found")
             raise
 
         return price_magnifier
@@ -215,7 +214,7 @@ class ibFuturesContractData(brokerFuturesContractData):
                 futures_contract
             )
         except missingContract:
-            new_log.msg("Can't resolve contract")
+            new_log.debug("Can't resolve contract")
             raise missingContract
 
         try:
@@ -223,7 +222,7 @@ class ibFuturesContractData(brokerFuturesContractData):
                 contract_object_with_ib_data
             )
         except missingData:
-            new_log.msg("No IB expiry date found")
+            new_log.debug("No trading hours found")
             trading_hours = listOfTradingHours([])
 
         return trading_hours

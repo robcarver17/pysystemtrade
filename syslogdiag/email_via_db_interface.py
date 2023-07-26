@@ -1,3 +1,4 @@
+import os
 import datetime
 
 from syscore.dateutils import SECONDS_PER_DAY
@@ -5,6 +6,9 @@ from syscore.exceptions import missingData
 from syslogdiag.mongo_email_control import mongoEmailControlData
 
 from syslogdiag.emailing import send_mail_msg, send_mail_pdfs
+
+from syscore.fileutils import resolve_path_and_filename_for_package
+from syscore.interactive.display import landing_strip
 
 
 def send_production_mail_msg_attachment(body: str, subject: str, filename: str):
@@ -42,14 +46,14 @@ def send_email_and_record_date_or_store_on_fail(
     try:
         send_mail_msg(body, subject)
         record_date_of_email_send(data, subject)
-        data.log.msg("Sent email subject %s" % subject)
+        data.log.debug("Sent email subject %s" % subject)
     except Exception as e:
         # problem sending emails will store instead
-        data.log.msg(
-            "Problem %s sending email subject %s, will store message instead"
+        data.log.debug(
+            "Problem %s sending email subject %s, but message is stored"
             % (str(e), subject)
         )
-        store_message(data, body, subject, email_is_report=email_is_report)
+    store_message(data, body, subject, email_is_report=email_is_report)
 
 
 def can_we_send_this_email_now(data, subject, email_is_report=False):
@@ -139,20 +143,28 @@ def store_message(data, body, subject, email_is_report=False):
     if email_is_report:
         # can't store reports
         return None
-    email_control = dataEmailControl(data)
-    email_control.store_message(body, subject)
+
+    email_store_file = get_storage_filename(data)
+    with open(email_store_file, "a") as file:
+        email_subject_and_date_line = "Email stored not sent on %s: %s" % (
+            datetime.datetime.now(),
+            subject,
+        )
+        file.write(landing_strip(80))
+        file.write("\n" + email_subject_and_date_line + "\n\n")
+        file.write(body + "\n")
+        file.write(landing_strip(80) + "\n\n")
 
 
-def retrieve_and_delete_stored_messages(data):
-    """
-
-    :param data: data object
-    :param subject: float, or None for everything
-    :return: stored messages for printing, in list
-    """
-    email_control = dataEmailControl(data)
-    stored_messages = email_control.get_stored_messages()
-    email_control.delete_stored_messages()
+def retrieve_and_delete_stored_messages(data) -> str:
+    email_store_file = get_storage_filename(data)
+    try:
+        with open(email_store_file, "r") as file:
+            stored_messages = file.read()
+        os.remove(email_store_file)
+    except FileNotFoundError:
+        ## no stored messages
+        return "\nNo stored emails\n"
 
     return stored_messages
 
@@ -185,12 +197,18 @@ class dataEmailControl:
     def record_date_of_email_warning_send(self, subject):
         self.data.db_email_control.record_date_of_email_warning_send(subject)
 
-    def store_message(self, body, subject):
-        self.data.db_email_control.store_message(body, subject)
 
-    def get_stored_messages(self):
-        stored = self.data.db_email_control.get_stored_messages()
-        return stored
+def get_storage_filename(data: "dataBlob"):
+    config = data.config
+    email_store_filename = config.get_element_or_default("email_store_filename", None)
+    if email_store_filename is None:
+        ## Can't log this but print anyway
+        print(
+            "*** email_store_filename undefined in private_config.yaml, will store in email.log in arbitrary directory"
+        )
+        return "email.log"
 
-    def delete_stored_messages(self):
-        self.data.db_email_control.delete_stored_messages()
+    ## NOTE doesn't create directory
+    email_store_filename = resolve_path_and_filename_for_package(email_store_filename)
+
+    return email_store_filename

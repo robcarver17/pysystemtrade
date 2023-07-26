@@ -3,7 +3,7 @@ from syscore.constants import arg_not_supplied
 from sysdata.production.temporary_close import temporaryCloseData
 from sysobjects.production.position_limits import positionLimitForInstrument
 from sysdata.mongodb.mongo_generic import mongoDataWithSingleKey
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 TEMPORARY_CLOSE_COLLECTION = "temporary_close_collection"
 KEY = "instrument_code"
@@ -12,7 +12,7 @@ POSITION_LIMIT_FIELD = "position_limit"
 
 class mongoTemporaryCloseData(temporaryCloseData):
     def __init__(
-        self, mongo_db=arg_not_supplied, log=logtoscreen("mongotemporaryCloseData")
+        self, mongo_db=arg_not_supplied, log=get_logger("mongotemporaryCloseData")
     ):
 
         super().__init__(log=log)

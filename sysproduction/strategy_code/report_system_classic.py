@@ -304,7 +304,13 @@ get_daily_cash_vol_target = configForMethod(
 )
 
 get_vol_scalar = configForMethod(
-    "positionSize", "get_volatility_scalar", "Vol Scalar", False, True, None, False
+    "positionSize",
+    "get_average_position_at_subsystem_level",
+    "Vol Scalar",
+    False,
+    True,
+    None,
+    False,
 )
 
 get_subsystem_position = configForMethod(

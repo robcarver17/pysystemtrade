@@ -10,9 +10,9 @@ from sysbrokers.broker_capital_data import brokerCapitalData
 from sysbrokers.broker_contract_position_data import brokerContractPositionData
 from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
-from syscore.exceptions import missingContract, missingData
+from syscore.exceptions import missingData
 
-from syscore.constants import market_closed, arg_not_supplied
+from syscore.constants import arg_not_supplied
 from syscore.exceptions import orderCannotBeModified
 from sysexecution.orders.named_order_objects import missing_order
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
@@ -23,7 +23,10 @@ from sysdata.tools.cleaner import apply_price_cleaning
 
 from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.orders.list_of_orders import listOfOrders
-from sysexecution.tick_data import dataFrameOfRecentTicks
+from sysexecution.tick_data import (
+    dataFrameOfRecentTicks,
+    get_df_of_ticks_from_ticker_object,
+)
 from sysexecution.tick_data import analyse_tick_data_frame, tickerObject, analysisTick
 from sysexecution.orders.contract_orders import contractOrder
 from sysexecution.trade_qty import tradeQuantity
@@ -116,7 +119,7 @@ class dataBroker(productionDataLayerGeneric):
             trade, ccy1, ccy2=ccy2, account_id=account_id
         )
         if result is missing_order:
-            self.log.warn(
+            self.log.warning(
                 "%s %s is not recognised by broker - try inverting" % (ccy1, ccy2)
             )
 
@@ -160,7 +163,15 @@ class dataBroker(productionDataLayerGeneric):
     def get_recent_bid_ask_tick_data_for_contract_object(
         self, contract: futuresContract
     ) -> dataFrameOfRecentTicks:
-        return self.broker_futures_contract_price_data.get_recent_bid_ask_tick_data_for_contract_object(
+
+        ticker = self.get_ticker_object_for_contract(contract)
+        ticker_df = get_df_of_ticks_from_ticker_object(ticker)
+        self.cancel_market_data_for_contract(contract)
+
+        return ticker_df
+
+    def get_ticker_object_for_contract(self, contract: futuresContract) -> tickerObject:
+        return self.broker_futures_contract_price_data.get_ticker_object_for_contract(
             contract
         )
 
@@ -192,9 +203,6 @@ class dataBroker(productionDataLayerGeneric):
         less_than_N_hours_of_trading_left = self.broker_futures_contract_data.less_than_N_hours_of_trading_left_for_contract(
             contract, N_hours=N_hours
         )
-
-        if less_than_N_hours_of_trading_left is market_closed:
-            return market_closed
 
         return less_than_N_hours_of_trading_left
 
@@ -253,6 +261,11 @@ class dataBroker(productionDataLayerGeneric):
     def cancel_market_data_for_order(self, order: brokerOrder):
         self.broker_futures_contract_price_data.cancel_market_data_for_order(order)
 
+    def cancel_market_data_for_contract(self, contract: futuresContract):
+        self.broker_futures_contract_price_data.cancel_market_data_for_contract(
+            contract
+        )
+
     def get_broker_account(self) -> str:
         return self.broker_static_data.get_broker_account()
 
@@ -288,7 +301,9 @@ class dataBroker(productionDataLayerGeneric):
                 contract_order
             )
         except missingData:
-            self.log.warn("Can't get market conditions, setting available size to zero")
+            self.log.warning(
+                "Can't get market conditions, setting available size to zero"
+            )
             side_qty = offside_qty = len(contract_order.trade) * [0]
             return side_qty, offside_qty
 

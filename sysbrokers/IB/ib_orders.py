@@ -18,8 +18,9 @@ from sysbrokers.IB.ib_translate_broker_order_objects import (
 from sysbrokers.IB.client.ib_orders_client import ibOrdersClient
 from sysbrokers.broker_execution_stack import brokerExecutionStackData
 from sysdata.data_blob import dataBlob
-from syscore.constants import arg_not_supplied, success, failure
+from syscore.constants import arg_not_supplied, success
 from syscore.exceptions import orderCannotBeModified
+from sysexecution.order_stacks.order_stack import missingOrder
 from sysexecution.orders.named_order_objects import missing_order
 
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
@@ -27,7 +28,7 @@ from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.broker_orders import brokerOrder
 from sysexecution.tick_data import tickerObject
 
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class ibOrderWithControls(orderWithControls):
@@ -96,7 +97,7 @@ class ibExecutionStackData(brokerExecutionStackData):
         self,
         ibconnection: connectionIB,
         data: dataBlob,
-        log=logtoscreen("ibExecutionStackData"),
+        log=get_logger("ibExecutionStackData"),
     ):
         super().__init__(log=log, data=data)
         self._ibconnection = ibconnection
@@ -225,7 +226,7 @@ class ibExecutionStackData(brokerExecutionStackData):
                 instrument_code=instrument_code,
             )
         except ibOrderCouldntCreateException:
-            self.log.warn(
+            self.log.warning(
                 "Couldn't create order from ib returned order %s, usual behaviour for FX and equities trades"
                 % str(trade_with_contract_from_ib)
             )
@@ -297,7 +298,7 @@ class ibExecutionStackData(brokerExecutionStackData):
         """
 
         log = broker_order.log_with_attributes(self.log)
-        log.msg("Going to submit order %s to IB" % str(broker_order))
+        log.debug("Going to submit order %s to IB" % str(broker_order))
 
         trade_list = broker_order.trade
         order_type = broker_order.order_type
@@ -317,10 +318,10 @@ class ibExecutionStackData(brokerExecutionStackData):
             limit_price=limit_price,
         )
         if placed_broker_trade_object is missing_order:
-            log.warn("Couldn't submit order")
+            log.warning("Couldn't submit order")
             return missing_order
 
-        log.msg("Order submitted to IB")
+        log.debug("Order submitted to IB")
 
         return placed_broker_trade_object
 
@@ -381,11 +382,11 @@ class ibExecutionStackData(brokerExecutionStackData):
             self.match_db_broker_order_to_control_order_from_brokers(broker_order)
         )
         if matched_control_order is missing_order:
-            log.warn("Couldn't cancel non existent order")
+            log.warning("Couldn't cancel non existent order")
             return None
 
         self.cancel_order_given_control_object(matched_control_order)
-        log.msg("Sent cancellation for %s" % str(broker_order))
+        log.debug("Sent cancellation for %s" % str(broker_order))
 
     def cancel_order_given_control_object(
         self, broker_orders_with_controls: ibOrderWithControls
@@ -400,7 +401,7 @@ class ibExecutionStackData(brokerExecutionStackData):
             self.match_db_broker_order_to_control_order_from_brokers(broker_order)
         )
         if matched_control_order is missing_order:
-            return failure
+            raise missingOrder
         cancellation_status = self.check_order_is_cancelled_given_control_object(
             matched_control_order
         )

@@ -2,7 +2,7 @@ from syscore.constants import arg_not_supplied
 from syscore.fileutils import resolve_path_and_filename_for_package
 from sysdata.futures.rolls_parameters import rollParametersData
 from sysobjects.rolls import rollParameters
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 import pandas as pd
 
@@ -64,7 +64,7 @@ class csvRollParametersData(rollParametersData):
     """
 
     def __init__(
-        self, log=logtoscreen("csvRollParametersData"), datapath=arg_not_supplied
+        self, log=get_logger("csvRollParametersData"), datapath=arg_not_supplied
     ):
 
         super().__init__(log=log)
@@ -103,7 +103,7 @@ class csvRollParametersData(rollParametersData):
         )
         all_parameters.write_to_file(self.config_file)
 
-        self.log.warn(
+        self.log.warning(
             "*** WRITTEN NEW ROLL PARAMETERS TO %s - copy to /data/futures/csvconfig/rollconfig.csv NOW ***"
             % self.config_file
         )

@@ -5,7 +5,7 @@ from syscontrol.report_process_status import reportStatus
 from syscontrol.timer_parameters import timerClassParameters
 from sysdata.data_blob import dataBlob
 from sysproduction.data.control_process import diagControlProcess, dataControlProcess
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 ## Don't change this without also changing the config
 INFINITE_EXECUTIONS = -1
@@ -20,7 +20,7 @@ class timerClassWithFunction(object):
         function_to_execute,
         data: dataBlob,
         parameters: timerClassParameters,
-        log=logtoscreen(""),
+        log=get_logger(""),
     ):
 
         self._function = function_to_execute  # class.method to run
@@ -39,7 +39,7 @@ class timerClassWithFunction(object):
         log = self.log
         method_name = self.method_name
         if self.run_on_completion_only:
-            log.msg("%s will run once only on process completion" % method_name)
+            log.debug("%s will run once only on process completion" % method_name)
             return None
 
         max_executions = self.max_executions
@@ -49,7 +49,7 @@ class timerClassWithFunction(object):
         else:
             exec_string = "at most %d times" % max_executions
 
-        log.msg(
+        log.debug(
             "%s will run every %d minutes %s with heartbeats every %d minutes"
             % (
                 method_name,
@@ -108,7 +108,7 @@ class timerClassWithFunction(object):
         return self._report_status
 
     def log_msg(self, msg: str):
-        self.log.msg(msg, type=self.process_name)
+        self.log.debug(msg, type=self.process_name)
 
     def check_and_run(self, last_run: bool = False, **kwargs):
         """

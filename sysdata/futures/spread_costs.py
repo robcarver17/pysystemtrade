@@ -2,11 +2,11 @@
 ## Used to be in instrument config, now seperate
 import pandas as pd
 from sysdata.base_data import baseData
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 
 class spreadCostData(baseData):
-    def __init__(self, log=logtoscreen("SpreadCosts")):
+    def __init__(self, log=get_logger("SpreadCosts")):
         super().__init__(log=log)
 
     def delete_spread_cost(self, instrument_code: str):

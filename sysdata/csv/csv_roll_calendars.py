@@ -6,7 +6,7 @@ from syscore.fileutils import (
 )
 from syscore.pandas.pdutils import pd_readcsv
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 CSV_ROLL_CALENDAR_DIRECTORY = "data.futures.roll_calendars_csv"
 DATE_INDEX_NAME = "DATE_TIME"
@@ -22,7 +22,7 @@ class csvRollCalendarData(rollCalendarData):
     """
 
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvRollCalendarData")
+        self, datapath=arg_not_supplied, log=get_logger("csvRollCalendarData")
     ):
 
         super().__init__(log=log)
@@ -48,7 +48,7 @@ class csvRollCalendarData(rollCalendarData):
 
             roll_calendar = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
         except OSError:
-            self.log.warn("Can't find roll calendar file %s" % filename)
+            self.log.warning("Can't find roll calendar file %s" % filename)
             return rollCalendar.create_empty()
 
         roll_calendar = rollCalendar(roll_calendar)
@@ -67,7 +67,7 @@ class csvRollCalendarData(rollCalendarData):
     ):
         filename = self._filename_given_instrument_code(instrument_code)
         roll_calendar.to_csv(filename, index_label=DATE_INDEX_NAME)
-        self.log.msg("Wrote calendar for %s to %s" % (instrument_code, str(filename)))
+        self.log.debug("Wrote calendar for %s to %s" % (instrument_code, str(filename)))
 
     def _filename_given_instrument_code(self, instrument_code: str):
         return resolve_path_and_filename_for_package(

@@ -1,7 +1,7 @@
 """
 Utilities I can't put anywhere else...
 """
-
+from typing import Union
 import datetime
 import functools
 import math
@@ -132,6 +132,10 @@ def str_of_int(x: int) -> str:
         return ""
 
 
+def same_sign(x, y):
+    return sign(x) == sign(y)
+
+
 def sign(x: Union[int, float]) -> float:
     """
     >>> sign(3)
@@ -207,7 +211,7 @@ def are_dicts_equal(d1: dict, d2: dict) -> bool:
 
 
 class quickTimer(object):
-    def __init__(self, seconds: int = 60):
+    def __init__(self, seconds: Union[float, int] = 60):
         self._time_started = datetime.datetime.now()
         self._time_limit = seconds
 

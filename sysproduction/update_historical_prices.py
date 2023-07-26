@@ -10,7 +10,7 @@ from typing import List, Tuple
 
 from syscore.constants import arg_not_supplied, success, failure
 from syscore.exceptions import missingData
-from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA
+from syscore.pandas.merge_data_keeping_past_data import SPIKE_IN_DATA, mergeError
 from syscore.dateutils import DAILY_PRICE_FREQ, Frequency
 from syscore.pandas.frequency import merge_data_with_different_freq
 
@@ -64,7 +64,7 @@ def update_historical_prices_with_data(
 
 
 def download_all_instrument_prices_now(data: dataBlob):
-    data.log.msg("Downloading everything")
+    data.log.debug("Downloading everything")
 
     price_data = diagPrices(data)
 
@@ -80,7 +80,7 @@ def manage_download_over_multiple_time_zones(data: dataBlob, download_by_zone: d
     Example download_by_zone = {'ASIA': '07:00', 'EMEA': '18:00', 'US': '20:00'}
 
     """
-    data.log.msg(
+    data.log.debug(
         "Passed multiple time zones: %s, if started before first time will download at specified times"
         % str(download_by_zone)
     )
@@ -160,7 +160,7 @@ def manage_download_given_dict_of_instrument_codes(
         if download_time_manager.finished_downloading_everything():
             ## NOTE this means we could go beyond the STOP time in the report, since this i
             ##    happening outside of the python process manager
-            data.log.msg("All instruments downloaded today, finished")
+            data.log.debug("All instruments downloaded today, finished")
             break
 
         ## Something to download - this will return the first if more than one
@@ -170,7 +170,7 @@ def manage_download_given_dict_of_instrument_codes(
             region,
         ) = download_time_manager.list_of_instruments_and_region_to_download_now()
 
-        data.log.msg(
+        data.log.debug(
             "Now it's time to download region %s: %s"
             % (region, str(list_of_instruments_to_download_now))
         )
@@ -178,7 +178,7 @@ def manage_download_given_dict_of_instrument_codes(
             data, list_of_instrument_codes=list_of_instruments_to_download_now
         )
         download_time_manager.mark_region_as_download_completed(region)
-        data.log.msg("Finished downloading region %s" % region)
+        data.log.debug("Finished downloading region %s" % region)
 
 
 class downloadTimeManager:
@@ -312,7 +312,7 @@ def update_historical_prices_for_instrument(
     contract_list = all_contracts_list.currently_sampling()
 
     if len(contract_list) == 0:
-        data.log.warn("No contracts marked for sampling for %s" % instrument_code)
+        data.log.warning("No contracts marked for sampling for %s" % instrument_code)
         return failure
 
     for contract_object in contract_list:
@@ -414,7 +414,7 @@ def get_and_add_prices_for_frequency(
     if error_or_rows_added is failure:
         return failure
 
-    data.log.msg(
+    data.log.debug(
         "Added %d rows at frequency %s for %s"
         % (error_or_rows_added, frequency, str(contract_object))
     )
@@ -432,20 +432,20 @@ def price_updating_or_errors(
 
     price_updater = updatePrices(data)
 
-    error_or_rows_added = price_updater.update_prices_at_frequency_for_contract(
-        contract_object=contract_object,
-        new_prices=new_prices_checked,
-        frequency=frequency,
-        check_for_spike=check_for_spike,
-        max_price_spike=cleaning_config.max_price_spike,
-    )
+    try:
+        error_or_rows_added = price_updater.update_prices_at_frequency_for_contract(
+            contract_object=contract_object,
+            new_prices=new_prices_checked,
+            frequency=frequency,
+            check_for_spike=check_for_spike,
+            max_price_spike=cleaning_config.max_price_spike,
+        )
+    except mergeError:
+        data.log.warning("Something went wrong when adding rows")
+        return failure
 
     if error_or_rows_added is SPIKE_IN_DATA:
         report_price_spike(data, contract_object)
-        return failure
-
-    if error_or_rows_added is failure:
-        data.log.warn("Something went wrong when adding rows")
         return failure
 
     return error_or_rows_added
@@ -458,13 +458,13 @@ def report_price_spike(data: dataBlob, contract_object: futuresContract):
         "Spike found in prices for %s: need to manually check by running interactive_manual_check_historical_prices"
         % str(contract_object)
     )
-    data.log.warn(msg)
+    data.log.warning(msg)
     try:
         send_production_mail_msg(
             data, msg, "Price Spike %s" % contract_object.instrument_code
         )
     except BaseException:
-        data.log.warn(
+        data.log.warning(
             "Couldn't send email about price spike for %s" % str(contract_object)
         )
 

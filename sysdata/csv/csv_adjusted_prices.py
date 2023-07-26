@@ -8,7 +8,7 @@ from syscore.fileutils import (
 )
 from syscore.pandas.pdutils import pd_readcsv
 from syscore.constants import arg_not_supplied
-from syslogdiag.log_to_screen import logtoscreen
+from syslogging.logger import *
 
 ADJUSTED_PRICES_DIRECTORY = "data.futures.adjusted_prices_csv"
 DATE_INDEX_NAME = "DATETIME"
@@ -21,7 +21,7 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
     """
 
     def __init__(
-        self, datapath=arg_not_supplied, log=logtoscreen("csvFuturesContractPriceData")
+        self, datapath=arg_not_supplied, log=get_logger("csvFuturesContractPriceData")
     ):
 
         super().__init__(log=log)
@@ -49,7 +49,7 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
         try:
             instrpricedata = pd_readcsv(filename)
         except OSError:
-            self.log.warn("Can't find adjusted price file %s" % filename)
+            self.log.warning("Can't find adjusted price file %s" % filename)
             return futuresAdjustedPrices.create_empty()
 
         instrpricedata.columns = ["price"]

@@ -4,7 +4,6 @@ import pandas as pd
 
 from syscore.exceptions import missingData
 from syscore.genutils import transfer_object_attributes
-from syscore.constants import missing_data
 from syscore.pandas.pdutils import (
     make_df_from_list_of_named_tuple,
     sort_df_ignoring_missing,
@@ -312,12 +311,12 @@ def get_control_data_for_single_ordinary_method(data, method_name_and_process):
     try:
         last_start = data_control.when_method_last_started(process_name, method)
     except missingData:
-        last_start = missing_data
+        last_start = pd.NaT
 
     try:
         last_end = data_control.when_method_last_ended(process_name, method)
     except missingData:
-        last_end = missing_data
+        last_end = pd.NaT
 
     currently_running = data_control.method_currently_running(process_name, method)
 

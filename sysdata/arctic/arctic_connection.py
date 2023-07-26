@@ -22,15 +22,16 @@ class arcticData(object):
             mongo_db = mongoDb()
 
         database_name = mongo_db.database_name
-        host = mongo_db.host
+        hostname = mongo_db.host
+        client = mongo_db.client
 
         # Arctic doesn't accept a port
 
-        store = Arctic(host)
+        store = Arctic(client)
 
         self.database_name = database_name
         self.collection_name = collection_name
-        self.host = host
+        self.host = hostname
 
         self.store = store
         self.library = self._setup_lib(store, database_name, collection_name)
