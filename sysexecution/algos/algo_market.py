@@ -94,7 +94,8 @@ class algoMarket(Algo):
 
             is_order_completed = broker_order_with_controls.completed()
             is_order_timeout = (
-                broker_order_with_controls.seconds_since_submission() > self.ORDER_TIME_OUT
+                broker_order_with_controls.seconds_since_submission()
+                > self.ORDER_TIME_OUT
             )
             is_order_cancelled = (
                 data_broker.check_order_is_cancelled_given_control_object(
