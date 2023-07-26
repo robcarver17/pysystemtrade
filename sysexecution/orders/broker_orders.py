@@ -39,7 +39,7 @@ class brokerOrderType(orderType):
             "snap_mkt",
             "snap_mid",
             "snap_prim",
-            "adaptive",
+            "adaptive_mkt",
         ]
 
 
