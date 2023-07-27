@@ -1,6 +1,5 @@
 import datetime
 from copy import copy
-from syscore.constants import success, failure
 from sysexecution.orders.named_order_objects import (
     missing_order,
     no_order_id,
@@ -88,7 +87,7 @@ class orderStackData(object):
             return []
 
         list_of_order_ids = []
-        status = success
+        error = False
         for order in list_of_orders:
             log = order.log_with_attributes(self.log)
             order.lock_order()
@@ -99,7 +98,7 @@ class orderStackData(object):
                     "Failed to put order %s on stack error %s, rolling back entire transaction"
                     % (str(order), str(e))
                 )
-                status = failure
+                error = True
                 break
             else:
                 list_of_order_ids.append(order_id)
@@ -108,7 +107,7 @@ class orderStackData(object):
         #    or partial failure (list of child_ids is part filled, status failure)
         #    or total success
 
-        if status is failure:
+        if error:
             # rollback the orders we did manage to add
             self.rollback_list_of_orders_on_stack(list_of_order_ids)
             error_msg = (
