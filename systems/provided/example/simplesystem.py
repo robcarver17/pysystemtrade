@@ -11,7 +11,7 @@ from systems.accounts.accounts_stage import Account
 from systems.rawdata import RawData
 
 
-def simplesystem(data=None, config=None, log_level="on"):
+def simplesystem(data=None, config=None):
     """
     Example of how to 'wrap' a complete system
     """
@@ -33,7 +33,5 @@ def simplesystem(data=None, config=None, log_level="on"):
         data,
         config,
     )
-
-    my_system.set_logging_level(log_level)
 
     return my_system
