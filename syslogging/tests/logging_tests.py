@@ -94,12 +94,6 @@ class TestLogging:
         with pytest.raises(Exception):
             logger.label(stage="left", foo="bar")
 
-    def test_set_logging_level(self):
-        logger = get_logger("Set_Level")
-        assert logger.getEffectiveLevel() == logging.DEBUG
-        logger.set_logging_level(logging.INFO)
-        assert logger.getEffectiveLevel() == 20
-
     def test_setup_empty_with(self):
         setup_with = get_logger("Setup_With", {"type": "foo", "stage": "one"})
         assert setup_with.extra["type"] == "foo"

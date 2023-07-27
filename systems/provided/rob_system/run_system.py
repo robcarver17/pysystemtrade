@@ -50,6 +50,5 @@ def futures_system(
         sim_data,
         config,
     )
-    system.set_logging_level("on")
 
     return system

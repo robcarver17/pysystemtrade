@@ -180,9 +180,6 @@ class TestExamples:
             [account, fcs, my_rules, combiner, raw_data, possizer], data, my_config
         )
 
-        # this is a bit slow, better to know what's going on
-        my_system.set_logging_level("on")
-
         print(my_system.combForecast.get_forecast_weights("US10").tail(5))
         print(
             my_system.combForecast.get_forecast_diversification_multiplier("US10").tail(
@@ -249,8 +246,6 @@ class TestExamples:
             data,
             my_config,
         )
-
-        my_system.set_logging_level("on")
 
         print(my_system.portfolio.get_instrument_weights().tail(5))
         print(my_system.portfolio.get_instrument_diversification_multiplier().tail(5))
@@ -422,7 +417,7 @@ class TestExamples:
         """
         This is the simple system from 'examples.introduction.prebakedsimplesystems'
         """
-        my_system = simplesystem(log_level="on")
+        my_system = simplesystem()
         my_system.config.risk_overlay = arg_not_supplied
         print(my_system)
         print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
@@ -444,7 +439,7 @@ class TestExamples:
         This is (mostly) the chapter 15 system from 'examples.introduction.prebakedsimplesystems'
         but without graph plotting
         """
-        system = base_futures_system(log_level="on")
+        system = base_futures_system()
         system.config.risk_overlay = arg_not_supplied
         print(system.accounts.portfolio().sharpe())
 

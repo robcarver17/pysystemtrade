@@ -14,9 +14,6 @@ from sysexecution.algos.common_functions import (
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.orders.broker_orders import market_order_type, brokerOrderType
 
-SIZE_LIMIT = 1
-ORDER_TIME_OUT = 600
-
 
 class algoMarket(Algo):
     """
@@ -24,6 +21,9 @@ class algoMarket(Algo):
     Submits a single market order for the entire quantity
 
     """
+
+    SIZE_LIMIT = 1
+    ORDER_TIME_OUT = 600
 
     def submit_trade(self) -> orderWithControls:
         broker_order_with_controls = self.prepare_and_submit_trade()
@@ -52,7 +52,7 @@ class algoMarket(Algo):
             cut_down_contract_order = copy(contract_order)
         else:
             cut_down_contract_order = contract_order.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
-                SIZE_LIMIT
+                self.SIZE_LIMIT
             )
 
         if cut_down_contract_order.trade != contract_order.trade:
@@ -94,7 +94,8 @@ class algoMarket(Algo):
 
             is_order_completed = broker_order_with_controls.completed()
             is_order_timeout = (
-                broker_order_with_controls.seconds_since_submission() > ORDER_TIME_OUT
+                broker_order_with_controls.seconds_since_submission()
+                > self.ORDER_TIME_OUT
             )
             is_order_cancelled = (
                 data_broker.check_order_is_cancelled_given_control_object(
