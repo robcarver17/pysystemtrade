@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 from syscore.exceptions import missingData
-from syscore.constants import arg_not_supplied, failure
+from syscore.constants import arg_not_supplied
 
 from sysdata.base_data import baseData
 from sysobjects.production.capital import (
@@ -513,7 +513,7 @@ class totalCapitalCalculationData(object):
         """
         if not are_you_sure:
             self._capital_data.log.warning("You have to be sure to delete capital")
-            return failure
+            raise Exception("You have to be sure!")
 
         self.capital_data.delete_recent_capital(last_date=last_date)
 
