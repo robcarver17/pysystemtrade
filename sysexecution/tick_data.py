@@ -18,9 +18,9 @@ class dataFrameOfRecentTicks(pd.DataFrame):
         sorted_columns = sorted(columns)
         expected_columns = sorted(TICK_REQUIRED_COLUMNS)
 
-        assert all([x == y for x, y in zip(sorted_columns, expected_columns)]), (
-            "historical ticks should have columns %s" % str(expected_columns)
-        )
+        assert all(
+            [x == y for x, y in zip(sorted_columns, expected_columns)]
+        ), "historical ticks should have columns %s" % str(expected_columns)
 
     def average_bid_offer_spread(self, remove_negative=True) -> float:
         return average_bid_offer_spread(self, remove_negative=remove_negative)
