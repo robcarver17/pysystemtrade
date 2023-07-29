@@ -88,7 +88,9 @@ def extract_nth_row_of_tick_data_frame(
     bid_size = filled_data.bid_size.values[row_id]
     ask_size = filled_data.ask_size.values[row_id]
 
-    return oneTick(bid_price, ask_price, bid_size, ask_size)
+    return oneTick(
+        bid_price=bid_price, ask_price=ask_price, bid_size=bid_size, ask_size=ask_size
+    )
 
 
 def average_bid_offer_spread(
