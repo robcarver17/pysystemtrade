@@ -112,12 +112,20 @@ Now it's time to start setting up the venv. First check to see what is there
 (3.8.16) $ pip list
 ```
 
-You will probably be prompted to update pip at this time. Do whatever command it suggests
+You will probably be prompted to update pip at this time. Do whatever command it suggests.
 
-Also install *wheel* and *cython*. 
+Now install *wheel*
 
 ```
-(3.8.16) $ pip install wheel cython
+(3.8.16) $ pip install wheel
+```
+
+### Linux, Windows, MacOS (Intel)
+
+Install *cython* 
+
+```
+(3.8.16) $ pip install cython
 ```
 
 And now install the dependencies
@@ -125,6 +133,31 @@ And now install the dependencies
 ```
 (3.8.16) $ pip install -r requirements.txt
 ```
+
+### MacOS (ARM)
+
+If you're running MacOS on one of the new ARM chips, the process is more complex. You'll need Homebrew and the Apple XCode Commandline Development Tools, configured for ARM. Doing that is beyond the scope of this document, type `homebrew apple xcode command line tools` into your favourite search engine. Once installed and configured, install *cython*:
+
+```
+(3.8.16) $ OPENBLAS="$(brew --prefix openblas)" MACOSX_DEPLOYMENT_TARGET=12.6 python -m pip install cython --no-use-pep517
+```
+
+Then the key dependencies
+
+```
+(3.8.16) $ OPENBLAS="$(brew --prefix openblas)" MACOSX_DEPLOYMENT_TARGET=12.6 python -m pip install "numpy>=1.19.4,<1.24.0" --no-use-pep517
+(3.8.16) $ OPENBLAS="$(brew --prefix openblas)" MACOSX_DEPLOYMENT_TARGET=12.6 python -m pip install scipy --no-use-pep517
+(3.8.16) $ OPENBLAS="$(brew --prefix openblas)" MACOSX_DEPLOYMENT_TARGET=12.6 python -m pip install pandas==1.0.5 --no-use-pep517
+(3.8.16) $ OPENBLAS="$(brew --prefix openblas)" MACOSX_DEPLOYMENT_TARGET=12.6 python -m pip install statsmodels==0.12.2 --no-use-pep517
+```
+
+Then the remaining dependencies
+
+```
+(3.8.16) $ pip install -r requirements.txt
+```
+
+### Check dependencies, all OSs
 
 Check what is installed, should look something like
 
