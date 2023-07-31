@@ -24,18 +24,11 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
         log.debug("Putting balancing trades on stacks")
 
         try:
-            (
-                instrument_order_id,
-                contract_order_id,
-                broker_order_id,
-            ) = self.put_balance_trades_on_stack(
+            self.put_balance_trades_on_stack(
                 instrument_order, contract_order, broker_order
             )
         except failureWithRollback:
             return None
-
-        contract_order.order_id = contract_order_id
-        instrument_order.order_id = instrument_order_id
 
         log.debug("Updating positions")
         self.apply_position_change_to_stored_contract_positions(
@@ -47,7 +40,7 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
 
         log.debug("Marking balancing trades as completed and historic order data")
         self.handle_completed_instrument_order(
-            instrument_order_id, treat_inactive_as_complete=True
+            instrument_order.order_id, treat_inactive_as_complete=True
         )
 
     def put_balance_trades_on_stack(
@@ -121,9 +114,10 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
             )
             raise failureWithRollback from e
 
-        log.debug("All balancing trades added to stacks")
+        contract_order.order_id = contract_order_id
+        instrument_order.order_id = instrument_order_id
 
-        return instrument_order_id, contract_order_id, broker_order_id
+        log.debug("All balancing trades added to stacks")
 
     def rollback_balance_trades(
         self, instrument_order_id: int, contract_order_id: int, broker_order_id: int
