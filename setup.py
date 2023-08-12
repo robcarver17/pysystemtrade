@@ -93,11 +93,11 @@ setup(
     install_requires=[
         "pandas==1.0.5",
         "matplotlib>=3.0.0",
-        "ib-insync==0.9.70",
+        "ib-insync==0.9.86",
         "PyYAML>=5.4",
         "numpy>=1.19.4,<1.24.0",
         "scipy>=1.0.0",
-        "pymongo==3.9.0",
+        "pymongo==3.11.3",
         "arctic==1.79.2",
         "psutil==5.6.6",
         "pytest>6.2",
