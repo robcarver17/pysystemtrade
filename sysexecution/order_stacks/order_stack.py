@@ -1,6 +1,5 @@
 import datetime
 from copy import copy
-from syscore.constants import success, failure
 from sysexecution.orders.named_order_objects import (
     missing_order,
     no_order_id,
@@ -88,7 +87,6 @@ class orderStackData(object):
             return []
 
         list_of_order_ids = []
-        status = success
         for order in list_of_orders:
             log = order.log_with_attributes(self.log)
             order.lock_order()
@@ -99,24 +97,18 @@ class orderStackData(object):
                     "Failed to put order %s on stack error %s, rolling back entire transaction"
                     % (str(order), str(e))
                 )
-                status = failure
-                break
+
+                # rollback any orders we did manage to add
+                self.rollback_list_of_orders_on_stack(list_of_order_ids)
+                error_msg = (
+                    "Didn't put list of %d orders on stack but did manage to rollback"
+                    % len(list_of_orders)
+                )
+                self.log.warning(error_msg)
+                raise failureWithRollback(error_msg) from e
+
             else:
                 list_of_order_ids.append(order_id)
-
-        # At this point we either have total failure (list_of_child_ids is empty, status failure),
-        #    or partial failure (list of child_ids is part filled, status failure)
-        #    or total success
-
-        if status is failure:
-            # rollback the orders we did manage to add
-            self.rollback_list_of_orders_on_stack(list_of_order_ids)
-            error_msg = (
-                "Didn't put list of %d orders on stack but did manage to rollback"
-                % len(list_of_orders)
-            )
-            self.log.warning(error_msg)
-            raise failureWithRollback(error_msg)
 
         # success, unlock orders that we've just placed on the stack
         # it's good practice to do this to stop some of the orders we've just placed being altered
