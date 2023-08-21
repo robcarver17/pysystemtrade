@@ -34,6 +34,10 @@ class tradeQuantity(list):
     def equals_zero(self):
         return all([x == 0 for x in self])
 
+    def sign_of_single_trade(self):
+        qty = self.as_single_trade_qty_or_error()
+        return sign(qty)
+
     def sign_equal(self, other):
         return all([sign(x) == sign(y) for x, y in zip(self, other)])
 
