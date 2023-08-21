@@ -149,6 +149,9 @@ class Order(object):
     def trade(self):
         return self._trade
 
+    def sign_of_single_trade(self):
+        return self.trade.sign_of_single_trade()
+
     def as_single_trade_qty_or_error(self) -> int:
         return self.trade.as_single_trade_qty_or_error()
 
