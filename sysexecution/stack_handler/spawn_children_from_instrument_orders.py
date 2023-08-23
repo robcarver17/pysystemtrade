@@ -290,7 +290,8 @@ def get_required_contract_trade_for_instrument(
                 str(instrument_order),
             )
         )
-        return []
+
+    return []
 
 
 def child_order_in_priced_contract_only(
