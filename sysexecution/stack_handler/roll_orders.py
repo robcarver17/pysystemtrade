@@ -92,6 +92,9 @@ class stackHandlerForRolls(stackHandlerCore):
 
         safe_to_roll = self.check_if_safe_to_add_roll_order(instrument_code)
 
+        if not safe_to_roll:
+            return False
+
         return safe_to_roll
 
     def check_if_positions_require_order_generation(self, instrument_code: str) -> bool:
