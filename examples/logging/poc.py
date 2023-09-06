@@ -96,11 +96,5 @@ label.info("stage one")
 label.label(stage="two")
 label.info("stage two")
 
-# alias 'setup_empty_except_keep_type'
-keep_type = get_logger("Keep_Type", {"type": "first", "stage": "one"})
-keep_type.info("type first, stage one")
-keep_type = keep_type.setup_empty_except_keep_type()
-keep_type.info("type first, no stage")
-
 # critical mail
 level.critical("sends mail")

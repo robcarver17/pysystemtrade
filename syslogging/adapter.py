@@ -93,19 +93,6 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
         self._check_attributes(attributes)
         self.extra = attributes
 
-    def setup_empty_except_keep_type(self):
-        warnings.warn(
-            "The 'setup_empty_except_keep_type' function is deprecated; instead, "
-            "update attributes with method=clear/preserve/overwrite",
-            DeprecationWarning,
-            2,
-        )
-        if self.extra and TYPE_LOG_LABEL in self.extra:
-            attributes = {TYPE_LOG_LABEL: self.extra[TYPE_LOG_LABEL]}
-        else:
-            attributes = {}
-        return DynamicAttributeLogger(logging.getLogger(self.name), attributes)
-
     def _check_attributes(self, attributes: dict):
         if attributes:
             bad_attributes = get_list_of_disallowed_attributes(attributes)

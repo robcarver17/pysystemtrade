@@ -28,13 +28,13 @@ class connectionIB(object):
         ib_ipaddress: str = arg_not_supplied,
         ib_port: int = arg_not_supplied,
         account: str = arg_not_supplied,
-        log: pst_logger = get_logger("connectionIB"),
+        log_name: str = "connectionIB",
     ):
         """
         :param client_id: client id
         :param ipaddress: IP address of machine running IB Gateway or TWS. If not passed then will get from private config file, or defaults
         :param port: Port listened to by IB Gateway or TWS
-        :param log: logging object
+        :param log_name: calling log name
         :param mongo_db: mongoDB connection
         """
 
@@ -50,18 +50,20 @@ class connectionIB(object):
         # mongoIBclientIDtracker(database_name="another")
 
         # If you copy for another broker include these lines
-        self._init_log(log, client_id)
+        self._log = get_logger(
+            "connectionIB",
+            **{
+                TYPE_LOG_LABEL: log_name,
+                BROKER_LOG_LABEL: "IB",
+                CLIENTID_LOG_LABEL: client_id,
+            }
+        )
 
         # You can pass a client id yourself, or let IB find one
 
         self._init_connection(
             ipaddress=ipaddress, port=port, client_id=client_id, account=account
         )
-
-    def _init_log(self, log, client_id: int):
-        new_log = log.setup_empty_except_keep_type()
-        new_log.label(**{BROKER_LOG_LABEL: "IB", CLIENTID_LOG_LABEL: client_id})
-        self._log = new_log
 
     def _init_connection(
         self, ipaddress: str, port: int, client_id: int, account=arg_not_supplied
