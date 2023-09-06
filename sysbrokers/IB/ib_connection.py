@@ -52,7 +52,7 @@ class connectionIB(object):
         # If you copy for another broker include these lines
         self._log = get_logger(
             "connectionIB",
-            **{
+            {
                 TYPE_LOG_LABEL: log_name,
                 BROKER_LOG_LABEL: "IB",
                 CLIENTID_LOG_LABEL: client_id,
