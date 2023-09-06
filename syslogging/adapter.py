@@ -78,21 +78,6 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
         self._check_attributes(attributes)
         return DynamicAttributeLogger(logging.getLogger(self.name), attributes)
 
-    def label(self, **kwargs):
-        # permanently add new attributes to me
-        warnings.warn(
-            "The 'label' function is deprecated; instead, "
-            "update attributes with method=clear/preserve/overwrite/temp",
-            DeprecationWarning,
-            2,
-        )
-        if not self.extra:
-            attributes = {**kwargs}
-        else:
-            attributes = {**self.extra, **kwargs}
-        self._check_attributes(attributes)
-        self.extra = attributes
-
     def _check_attributes(self, attributes: dict):
         if attributes:
             bad_attributes = get_list_of_disallowed_attributes(attributes)
