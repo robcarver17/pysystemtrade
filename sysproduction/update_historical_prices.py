@@ -282,7 +282,7 @@ def update_historical_prices_for_list_of_instrument_codes(
     cleaning_config = get_config_for_price_filtering(data)
 
     for instrument_code in list_of_instrument_codes:
-        data.log.label(instrument_code=instrument_code)
+        data.log.debug("Updating log attributes", instrument_code=instrument_code)
         update_historical_prices_for_instrument(
             instrument_code,
             data,

@@ -44,7 +44,7 @@ def update_fx_prices_with_data(data: dataBlob):
     data.log.debug("FX Codes: %s" % str(list_of_codes_all))
 
     for fx_code in list_of_codes_all:
-        data.log.label(**{CURRENCY_CODE_LOG_LABEL: fx_code})
+        data.log.debug("Updating log attributes", **{CURRENCY_CODE_LOG_LABEL: fx_code})
         update_fx_prices_for_code(fx_code, data)
 
 

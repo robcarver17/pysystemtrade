@@ -90,11 +90,13 @@ setup.info("stage one, type first")
 setup = setup.setup(stage="two")
 setup.info("stage two, no type")
 
-# alias 'label'
-label = get_logger("Label", {"stage": "one"})
-label.info("stage one")
-label.label(stage="two")
-label.info("stage two")
+# replacing log.label() - we want to update the log attributes permanently - same as
+# overwrite
+label = get_logger("label", {"stage": "whatever"})
+label.info("Should have 'stage' of 'whatever'")
+label.info("Updating log attributes", instrument_code="GOLD")
+label.info("Should have 'stage' of 'whatever', and 'instrument_code' 'GOLD'")
+
 
 # critical mail
-level.critical("sends mail")
+# level.critical("sends mail")

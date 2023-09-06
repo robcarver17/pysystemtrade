@@ -77,19 +77,3 @@ class TestLogging:
         logger = get_logger("my_type", {"stage": "bar"})
         with pytest.raises(Exception):
             logger.setup(foo="bar")
-
-    def test_label(self):
-        logger = get_logger("my_type", {"stage": "bar"})
-        logger.label(stage="left", instrument_code="ABC")
-        assert logger.name == "my_type"
-        assert logger.extra["stage"] == "left"
-        assert logger.extra["instrument_code"] == "ABC"
-
-        no_attrs = get_logger("no_attrs")
-        no_attrs.label(instrument_code="XYZ")
-        assert no_attrs.extra["instrument_code"] == "XYZ"
-
-    def test_label_bad(self):
-        logger = get_logger("my_type", {"stage": "bar"})
-        with pytest.raises(Exception):
-            logger.label(stage="left", foo="bar")
