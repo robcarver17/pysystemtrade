@@ -56,7 +56,7 @@ class connectionIB(object):
                 TYPE_LOG_LABEL: log_name,
                 BROKER_LOG_LABEL: "IB",
                 CLIENTID_LOG_LABEL: client_id,
-            }
+            },
         )
 
         # You can pass a client id yourself, or let IB find one
