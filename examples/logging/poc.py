@@ -67,17 +67,22 @@ overwrite.info(
     stage="one",
 )
 
+# merging attributes: method 'temp'
+temp = get_logger("temp", {"type": "first"})
+temp.info("type should be 'first'")
+temp.info(
+    "type should be 'second' temporarily",
+    method="temp",
+    type="second",
+)
+temp.info("type should be back to 'first'")
+
 # levels
 level = get_logger("Level")
 level.setLevel(logging.WARNING)
 level.info("does not print")
 level.warning("does print")
 
-# level aliases
-alias = get_logger("Alias")
-alias.msg("msg() is a temporary alias for DEBUG")
-alias.terse("terse() is a temporary alias for INFO")
-alias.warn("warn() is a temporary alias for %s", "WARNING")
 
 # alias 'setup'
 setup = get_logger("Setup", {"stage": "one", "type": "first"})
