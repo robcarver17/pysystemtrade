@@ -185,8 +185,9 @@ class accountCosts(accountInputs):
 
     def get_SR_holding_cost_only(self, instrument_code: str) -> float:
         cost_per_trade = self.get_SR_cost_per_trade_for_instrument(instrument_code)
-        hold_turnovers = self.get_rolls_per_year(instrument_code) / 2.0
+        hold_turnovers = self.get_rolls_per_year(instrument_code) * 2.0
 
+        ## Assumes no benefit from spread trades i.e. do two seperate trades
         SR_cost_holding = hold_turnovers * cost_per_trade
 
         return SR_cost_holding
