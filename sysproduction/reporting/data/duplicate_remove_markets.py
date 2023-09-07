@@ -3,7 +3,7 @@ import pandas as pd
 from dataclasses import dataclass
 
 from syscore.constants import named_object
-from syscore.exceptions import missingData
+from syscore.genutils import list_difference
 from sysdata.config.instruments import (
     generate_matching_duplicate_dict,
     get_list_of_ignored_instruments_in_config,
@@ -21,6 +21,7 @@ from sysproduction.reporting.reporting_functions import table
 from sysproduction.reporting.data.costs import (
     get_table_of_SR_costs,
 )
+from sysproduction.data.config import get_list_of_stale_instruments_given_config
 from sysproduction.reporting.data.volume import get_liquidity_data_df
 from sysproduction.reporting.data.risk import get_instrument_risk_table
 
@@ -50,6 +51,7 @@ class RemoveMarketData:
 
     existing_bad_markets: list
     ignored_instruments: list
+    stale_instruments: list
 
     @property
     def str_existing_markets_to_remove(self) -> str:
@@ -146,15 +148,12 @@ class RemoveMarketData:
         )
         too_safe = self.too_safe_markets(threshold_factor=threshold_factor)
 
-        ignored = self.ignored_instruments
-
         bad_markets = list(
             set(
                 expensive
                 + not_enough_trading_risk
                 + not_enough_trading_contracts
                 + too_safe
-                + ignored
             )
         )
         bad_markets = list(set(bad_markets))
@@ -182,7 +181,7 @@ class RemoveMarketData:
         SR_costs = self.SR_costs
         max_cost = self.max_cost / threshold_factor
         expensive = list(SR_costs[SR_costs.SR_cost > max_cost].index)
-
+        expensive = self.remove_excluded_instruments_from_list(expensive)
         expensive.sort()
 
         return expensive
@@ -209,6 +208,7 @@ class RemoveMarketData:
         not_enough_trading_risk = list(
             liquidity_data[liquidity_data.risk < min_volume_risk].index
         )
+        not_enough_trading_risk = self.remove_excluded_instruments_from_list(not_enough_trading_risk)
         not_enough_trading_risk.sort()
 
         return not_enough_trading_risk
@@ -237,6 +237,7 @@ class RemoveMarketData:
         not_enough_trading_contracts = list(
             liquidity_data[liquidity_data.contracts < min_contracts].index
         )
+        not_enough_trading_contracts = self.remove_excluded_instruments_from_list(not_enough_trading_contracts)
         not_enough_trading_contracts.sort()
 
         return not_enough_trading_contracts
@@ -261,6 +262,7 @@ class RemoveMarketData:
         risk_data = self.risk_data
         min_ann_perc_std = self.min_ann_perc_std * threshold_factor
         too_safe = list(risk_data[risk_data.annual_perc_stdev < min_ann_perc_std].index)
+        too_safe = self.remove_excluded_instruments_from_list(too_safe)
         too_safe.sort()
 
         return too_safe
@@ -290,6 +292,18 @@ class RemoveMarketData:
         )
         return min_ann_perc_std
 
+    def remove_excluded_instruments_from_list(self, initial_list:list) -> list:
+        instruments_to_exclude = self.instruments_to_exclude_from_analysis
+        return list_difference(initial_list, instruments_to_exclude)
+
+    @property
+    def instruments_to_exclude_from_analysis(self) -> list:
+        ### ignored and stale markets are not considered as 'good' or 'bad' markets
+        instruments_to_exclude = self.ignored_instruments + self.stale_instruments
+        instruments_to_exclude = list(set(instruments_to_exclude))
+
+        return instruments_to_exclude
+
 
 def _yaml_bad_market_list(list_of_bad_markets: list) -> str:
     list_of_bad_markets.sort()
@@ -307,6 +321,7 @@ def _yaml_bad_market_list(list_of_bad_markets: list) -> str:
 def get_remove_market_data(data) -> RemoveMarketData:
     existing_bad_markets = get_list_of_bad_markets(data)
     ignored_instruments = get_ignored_instruments(data)
+    stale_instruments = get_stale_instruments(data)
 
     (
         max_cost,
@@ -327,6 +342,7 @@ def get_remove_market_data(data) -> RemoveMarketData:
         existing_bad_markets=existing_bad_markets,
         auto_parameters=auto_parameters,
         ignored_instruments=ignored_instruments,
+        stale_instruments = stale_instruments
     )
 
 
@@ -407,6 +423,18 @@ def get_data_for_markets(data):
 
     return SR_costs, liquidity_data, risk_data
 
+
+def get_ignored_instruments(data) -> list:
+    production_config = data.config
+    ignored_instruments = get_list_of_ignored_instruments_in_config(production_config)
+
+    return ignored_instruments
+
+def get_stale_instruments(data) -> list:
+    production_config = data.config
+    stale_instruments = get_list_of_stale_instruments_given_config(production_config)
+
+    return stale_instruments
 
 def get_ignored_instruments(data) -> list:
     production_config = data.config
