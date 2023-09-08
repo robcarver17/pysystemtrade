@@ -27,7 +27,7 @@ def static_system_adhoc_report(
         title="Static selection of instruments", function="not_used", output="file"
     )
 
-    system = futures_system()
+    system = system_function()
     corr_matrix = get_correlation_matrix(system)  ## capital irrelevant
 
     all_results = []
