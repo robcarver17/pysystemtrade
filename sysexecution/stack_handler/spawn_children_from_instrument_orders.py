@@ -350,7 +350,7 @@ def passive_roll_child_order(
         return [contractIdAndTrade(next_contract, trade)]
 
     # ok a reducing trade
-    new_position = position_current_contract + trade
+    new_position = position_current_contract + trade.as_single_trade_qty_or_error()
     sign_of_position_is_unchanged = sign(position_current_contract) == sign(
         new_position
     )
