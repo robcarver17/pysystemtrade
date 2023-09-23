@@ -261,7 +261,7 @@ def get_required_contract_trade_for_instrument(
         instrument_code
     ) or diag_positions.is_roll_state_adjusted(instrument_code):
         ## do nothing
-        pass
+        return []
 
     elif diag_positions.is_double_sided_trade_roll_state(instrument_code):
         order_reduces_positions = is_order_reducing_order(
@@ -280,7 +280,7 @@ def get_required_contract_trade_for_instrument(
             )
         else:
             ## do nothing
-            pass
+            return []
 
     else:
         log.critical(
