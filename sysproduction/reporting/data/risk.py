@@ -4,6 +4,7 @@ import pandas as pd
 from statsmodels.formula import api as sm
 
 from syscore.dateutils import ROOT_BDAYS_INYEAR, n_days_ago, CALENDAR_DAYS_IN_YEAR
+from syscore.genutils import list_difference
 from syscore.interactive.progress_bar import progressBar
 from syscore.constants import arg_not_supplied
 from syscore.pandas.frequency import resample_prices_to_business_day_index
@@ -149,12 +150,17 @@ def from_risk_table_to_min_capital(
     return min_capital_pd
 
 
-def get_instrument_risk_table(data, only_held_instruments=True):
+def get_instrument_risk_table(
+    data, only_held_instruments=True, exclude_instruments: list = arg_not_supplied
+):
     ## INSTRUMENT RISK (daily %, annual %, return space daily and annual, base currency per contract daily and annual, positions)
     if only_held_instruments:
         instrument_list = get_instruments_with_positions_all_strategies(data)
     else:
         instrument_list = get_list_of_instruments()
+
+    if exclude_instruments is not arg_not_supplied:
+        instrument_list = list_difference(instrument_list, exclude_instruments)
 
     p = progressBar(len(instrument_list))
     risk_data_list = []

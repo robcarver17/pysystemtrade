@@ -31,9 +31,8 @@ def calculate_autogroup_weights_given_parameters(
     tree_of_weights.resolve_weights()
 
     collapsed_weights = _collapse_tree_of_weights(tree_of_weights)
-    weights_as_dict = dict(collapsed_weights)
 
-    return weights_as_dict
+    return collapsed_weights
 
 
 class autoGroupPortfolioWeight(dict):
@@ -53,9 +52,9 @@ class autoGroupPortfolioWeight(dict):
         self._parameters = auto_group_parameters
 
         ## Must call on __init__ or does_not_contain_portfolio will fail
-        self._resolve_tree_below()
+        self._create_tree_below()
 
-    def _resolve_tree_below(self):
+    def _create_tree_below(self):
         ## Always call on __init__
         for key, value in self.items():
             if type(value) is dict:
@@ -72,6 +71,9 @@ class autoGroupPortfolioWeight(dict):
         ## Need to deal with completely empty dicts
 
     def resolve_weights(self, level: int = 1, cumulative_multiplier: float = 1.0):
+        if self.already_weighted:
+            raise Exception("Can't resolve weights more than once")
+
         approx_dm = self._approx_dm_if_required(level)
         group_weight = self.group_weight
         new_multiplier = cumulative_multiplier * approx_dm * group_weight
@@ -84,6 +86,8 @@ class autoGroupPortfolioWeight(dict):
             self._resolve_weights_for_atomic_portfolio(
                 cumulative_multiplier=new_multiplier
             )
+
+        self.flag_as_weighted()
 
     def _remove_excluded_keys_and_reweight_over_subportfolios(
         self, keys_to_exclude: list
@@ -214,6 +218,13 @@ class autoGroupPortfolioWeight(dict):
     def group_weight(self, group_weight):
         self._group_weight = group_weight
 
+    @property
+    def already_weighted(self) -> bool:
+        return getattr(self, "_already_weighted", False)
+
+    def flag_as_weighted(self):
+        self._already_weighted = True
+
     def __repr__(self):
         return "Group weight %f: %s " % (self.group_weight, str(dict(self)))
 
@@ -230,10 +241,7 @@ def _collapse_tree_of_weights(
 
         weights_as_dict.update(weights_this_sub_portfolio)
 
-    collapsed_weights = autoGroupPortfolioWeight(weights_as_dict)
-    collapsed_weights.reweight_atomic_portfolio()
-
-    return collapsed_weights
+    return weights_as_dict
 
 
 AUTO_WEIGHTING_FLAG = "auto_weight_from_grouping"

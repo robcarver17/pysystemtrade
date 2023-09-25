@@ -76,6 +76,8 @@ roll_status_auto_update:
   ## eg Close, Force_Outright, Force
   ## or Ask to request from user
   default_roll_state_if_undecided: Ask
+  ## automatically roll if expired priced contract
+  auto_roll_expired: True
 #
 # Force certain instruments to use a specific execution algo
 # Algos must be classes eg sysexecution.algos.algo_market.algoMarket

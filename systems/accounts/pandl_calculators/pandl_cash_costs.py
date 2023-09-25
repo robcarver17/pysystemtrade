@@ -194,7 +194,9 @@ class pandlCalculationWithCashCostsAndFills(
             return costs_as_pd_series
 
         cost_deflator = self.cost_deflator()
-        reindexed_deflator = cost_deflator.reindex(costs_as_pd_series.index).ffill()
+        reindexed_deflator = cost_deflator.reindex(
+            costs_as_pd_series.index, method="ffill"
+        )
 
         normalised_costs = reindexed_deflator * costs_as_pd_series
 

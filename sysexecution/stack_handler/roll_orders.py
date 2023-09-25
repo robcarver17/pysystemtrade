@@ -393,7 +393,7 @@ def get_position_in_priced(data: dataBlob, instrument_code: str) -> int:
 
     contract = futuresContract(instrument_code, priced_contract_id)
 
-    position_in_priced = diag_positions.get_position_for_contract(contract)
+    position_in_priced = int(diag_positions.get_position_for_contract(contract))
 
     return position_in_priced
 
