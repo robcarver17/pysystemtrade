@@ -13,7 +13,7 @@ class TestLogging:
 
     def test_attributes_good(self, caplog):
         logger = get_logger("my_type", {"stage": "bar"})
-        logger.warn("foo %s", "bar")
+        logger.warning("foo %s", "bar")
         assert caplog.record_tuples == [
             ("my_type", logging.WARNING, "{'stage': 'bar'} foo bar")
         ]
@@ -24,7 +24,7 @@ class TestLogging:
 
     def test_no_name_no_attributes(self, caplog):
         logger = get_logger("")
-        logger.warn("foo")
+        logger.warning("foo")
         assert caplog.record_tuples == [("root", logging.WARNING, "foo")]
 
     def test_attributes_clear(self, caplog):
