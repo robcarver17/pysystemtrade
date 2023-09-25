@@ -124,7 +124,7 @@ class futuresInstrumentData(baseData):
     ):
         instrument_code = instrument_object.instrument_code
 
-        self.log.log(0, "Updating log attributes", instrument_code=instrument_code)
+        self.log.debug("Updating log attributes", instrument_code=instrument_code)
 
         if self.is_code_in_data(instrument_code):
             if ignore_duplication:
