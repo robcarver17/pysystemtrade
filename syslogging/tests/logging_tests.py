@@ -63,6 +63,21 @@ class TestLogging:
             )
         ]
 
+    def test_attributes_temp(self, caplog):
+        temp = get_logger("temp", {"stage": "first"})
+        temp.info("setting temp 'type' attribute", method="temp", type="one")
+        assert caplog.record_tuples[0] == (
+            "temp",
+            logging.INFO,
+            "{'stage': 'first', 'type': 'one'} setting temp 'type' attribute",
+        )
+        temp.info("no type attribute")
+        assert caplog.record_tuples[1] == (
+            "temp",
+            logging.INFO,
+            "{'stage': 'first'} no type attribute",
+        )
+
     def test_setup(self):
         logger = get_logger("my_type", {"stage": "bar"})
         logger = logger.setup(stage="left")
