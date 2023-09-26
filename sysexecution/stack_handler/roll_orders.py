@@ -75,16 +75,33 @@ class stackHandlerForRolls(stackHandlerCore):
         )
 
     def check_roll_required_and_safe(self, instrument_code: str) -> bool:
-        roll_orders_required = self.check_if_roll_state_requires_order_generation(
-            instrument_code
+
+        roll_orders_required_from_positions = (
+            self.check_if_positions_require_order_generation(instrument_code)
         )
-        if not roll_orders_required:
+        if not roll_orders_required_from_positions:
+            ## if we don't exit here will get errors even it we're not rolling
+            return False
+
+        roll_orders_required_from_roll_state = (
+            self.check_if_roll_state_requires_order_generation(instrument_code)
+        )
+        if not roll_orders_required_from_roll_state:
             ## if we don't exit here will get errors even it we're not rolling
             return False
 
         safe_to_roll = self.check_if_safe_to_add_roll_order(instrument_code)
 
+        if not safe_to_roll:
+            return False
+
         return safe_to_roll
+
+    def check_if_positions_require_order_generation(self, instrument_code: str) -> bool:
+        position_in_priced = get_position_in_priced(
+            data=self.data, instrument_code=instrument_code
+        )
+        return position_in_priced != 0
 
     def check_if_roll_state_requires_order_generation(
         self, instrument_code: str
@@ -337,16 +354,15 @@ class rollSpreadInformation:
 def get_roll_spread_information(
     data: dataBlob, instrument_code: str
 ) -> rollSpreadInformation:
-    diag_positions = diagPositions(data)
     diag_contracts = dataContracts(data)
     diag_prices = diagPrices(data)
 
     priced_contract_id = diag_contracts.get_priced_contract_id(instrument_code)
     forward_contract_id = diag_contracts.get_forward_contract_id(instrument_code)
 
-    contract = futuresContract(instrument_code, priced_contract_id)
-
-    position_in_priced = diag_positions.get_position_for_contract(contract)
+    position_in_priced = get_position_in_priced(
+        data=data, instrument_code=instrument_code
+    )
 
     reference_date, last_matched_prices = tuple(
         diag_prices.get_last_matched_date_and_prices_for_contract_list(
@@ -367,6 +383,19 @@ def get_roll_spread_information(
         reference_date=reference_date,
         instrument_code=instrument_code,
     )
+
+
+def get_position_in_priced(data: dataBlob, instrument_code: str) -> int:
+    diag_positions = diagPositions(data)
+    diag_contracts = dataContracts(data)
+
+    priced_contract_id = diag_contracts.get_priced_contract_id(instrument_code)
+
+    contract = futuresContract(instrument_code, priced_contract_id)
+
+    position_in_priced = int(diag_positions.get_position_for_contract(contract))
+
+    return position_in_priced
 
 
 def create_instrument_roll_order(
@@ -418,6 +447,7 @@ def create_instrument_roll_order_closing_priced_contract(
         data=data, instrument_code=instrument_code
     )
     position_priced = roll_spread_info.position_in_priced
+
     trade = -position_priced
     instrument_order = instrumentOrder(
         strategy,

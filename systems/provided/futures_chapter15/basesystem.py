@@ -23,7 +23,6 @@ def futures_system(
     data=arg_not_supplied,
     config=arg_not_supplied,
     trading_rules=arg_not_supplied,
-    log_level="on",
 ):
     """
 
@@ -36,11 +35,8 @@ def futures_system(
     :param trading_rules: Set of trading rules to use (defaults to set specified in config object)
     :type trading_rules: list or dict of TradingRules, or something that can be parsed to that
 
-    :param log_level: How much logging to do
-    :type log_level: str
 
-
-    >>> system=futures_system(log_level="off")
+    >>> system=futures_system()
     >>> system
     System with stages: accounts, portfolio, positionSize, rawdata, combForecast, forecastScaleCap, rules
     >>> system.rules.get_raw_forecast("EDOLLAR", "ewmac2_8").dropna().head(2)
@@ -82,8 +78,6 @@ def futures_system(
         data,
         config,
     )
-
-    system.set_logging_level(log_level)
 
     return system
 

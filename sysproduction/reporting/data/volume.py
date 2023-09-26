@@ -1,18 +1,23 @@
 import numpy as np
 import pandas as pd
 
+from syscore.genutils import list_difference
+from syscore.constants import arg_not_supplied
 from syscore.dateutils import n_days_ago
 from syscore.interactive.progress_bar import progressBar
+
 from sysdata.data_blob import dataBlob
 from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices
 from sysproduction.reporting.data.risk import get_risk_data_for_instrument
 
 
-def get_liquidity_data_df(data: dataBlob):
+def get_liquidity_data_df(data: dataBlob, exclude_instruments: list = arg_not_supplied):
     diag_prices = diagPrices(data)
 
     instrument_list = diag_prices.get_list_of_instruments_with_contract_prices()
+    if exclude_instruments is not arg_not_supplied:
+        instrument_list = list_difference(instrument_list, exclude_instruments)
 
     print("Getting data... patience")
     p = progressBar(len(instrument_list))

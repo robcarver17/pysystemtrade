@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from dataclasses import dataclass
 
-from syscore.constants import named_object
-from syscore.exceptions import missingData
+from syscore.constants import named_object, arg_not_supplied
+from syscore.genutils import list_union
 from sysdata.config.instruments import (
     generate_matching_duplicate_dict,
     get_list_of_ignored_instruments_in_config,
@@ -21,6 +21,7 @@ from sysproduction.reporting.reporting_functions import table
 from sysproduction.reporting.data.costs import (
     get_table_of_SR_costs,
 )
+from sysproduction.data.config import get_list_of_stale_instruments_given_config
 from sysproduction.reporting.data.volume import get_liquidity_data_df
 from sysproduction.reporting.data.risk import get_instrument_risk_table
 
@@ -49,7 +50,6 @@ class RemoveMarketData:
     auto_parameters: parametersForAutoPopulation
 
     existing_bad_markets: list
-    ignored_instruments: list
 
     @property
     def str_existing_markets_to_remove(self) -> str:
@@ -146,15 +146,12 @@ class RemoveMarketData:
         )
         too_safe = self.too_safe_markets(threshold_factor=threshold_factor)
 
-        ignored = self.ignored_instruments
-
         bad_markets = list(
             set(
                 expensive
                 + not_enough_trading_risk
                 + not_enough_trading_contracts
                 + too_safe
-                + ignored
             )
         )
         bad_markets = list(set(bad_markets))
@@ -182,7 +179,6 @@ class RemoveMarketData:
         SR_costs = self.SR_costs
         max_cost = self.max_cost / threshold_factor
         expensive = list(SR_costs[SR_costs.SR_cost > max_cost].index)
-
         expensive.sort()
 
         return expensive
@@ -305,9 +301,6 @@ def _yaml_bad_market_list(list_of_bad_markets: list) -> str:
 
 
 def get_remove_market_data(data) -> RemoveMarketData:
-    existing_bad_markets = get_list_of_bad_markets(data)
-    ignored_instruments = get_ignored_instruments(data)
-
     (
         max_cost,
         min_volume_contracts,
@@ -315,7 +308,16 @@ def get_remove_market_data(data) -> RemoveMarketData:
     ) = get_bad_market_filter_parameters()
 
     auto_parameters = get_auto_population_parameters()
-    SR_costs, liquidity_data, risk_data = get_data_for_markets(data)
+
+    existing_bad_markets = get_list_of_bad_markets(data)
+
+    ignored_instruments = get_ignored_instruments(data)
+    stale_instruments = get_stale_instruments(data)
+    exclude_instruments = list_union(ignored_instruments, stale_instruments)
+
+    SR_costs, liquidity_data, risk_data = get_data_for_markets(
+        data, exclude_instruments=exclude_instruments
+    )
 
     return RemoveMarketData(
         SR_costs=SR_costs,
@@ -326,7 +328,6 @@ def get_remove_market_data(data) -> RemoveMarketData:
         min_volume_contracts=min_volume_contracts,
         existing_bad_markets=existing_bad_markets,
         auto_parameters=auto_parameters,
-        ignored_instruments=ignored_instruments,
     )
 
 
@@ -399,13 +400,31 @@ def from_auto_parameters_to_min_ann_perc_std(
     )
 
 
-def get_data_for_markets(data):
-    SR_costs = get_table_of_SR_costs(data)
+def get_data_for_markets(data, exclude_instruments: list = arg_not_supplied):
+    SR_costs = get_table_of_SR_costs(data, exclude_instruments=exclude_instruments)
     SR_costs = SR_costs.dropna()
-    liquidity_data = get_liquidity_data_df(data)
-    risk_data = get_instrument_risk_table(data, only_held_instruments=False)
+    liquidity_data = get_liquidity_data_df(
+        data, exclude_instruments=exclude_instruments
+    )
+    risk_data = get_instrument_risk_table(
+        data, only_held_instruments=False, exclude_instruments=exclude_instruments
+    )
 
     return SR_costs, liquidity_data, risk_data
+
+
+def get_ignored_instruments(data) -> list:
+    production_config = data.config
+    ignored_instruments = get_list_of_ignored_instruments_in_config(production_config)
+
+    return ignored_instruments
+
+
+def get_stale_instruments(data) -> list:
+    production_config = data.config
+    stale_instruments = get_list_of_stale_instruments_given_config(production_config)
+
+    return stale_instruments
 
 
 def get_ignored_instruments(data) -> list:

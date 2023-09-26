@@ -6,7 +6,8 @@ import pandas as pd
 
 from syscore.exceptions import missingContract, missingData
 from syscore.interactive.progress_bar import progressBar
-
+from syscore.constants import arg_not_supplied
+from syscore.genutils import list_difference
 from sysdata.data_blob import dataBlob
 
 from sysobjects.contracts import futuresContract
@@ -318,10 +319,16 @@ def get_average_half_spread_by_instrument_from_raw_slippage(
 
 
 def get_table_of_SR_costs(
-    data, include_commission: bool = True, include_spread: bool = True
+    data,
+    include_commission: bool = True,
+    include_spread: bool = True,
+    exclude_instruments: list = arg_not_supplied,
 ):
     diag_prices = diagPrices(data)
     list_of_instruments = diag_prices.get_list_of_instruments_in_multiple_prices()
+
+    if exclude_instruments is not arg_not_supplied:
+        list_of_instruments = list_difference(list_of_instruments, exclude_instruments)
 
     print("Getting SR costs")
     p = progressBar(len(list_of_instruments))

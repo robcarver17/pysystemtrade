@@ -18,7 +18,7 @@ from sysproduction.data.controls import dataLocks
 from sysexecution.order_stacks.order_stack import orderStackData
 from sysexecution.orders.base_orders import Order
 from sysexecution.orders.contract_orders import contractOrder, contractOrderType
-
+from sysexecution.trade_qty import tradeQuantity
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.instrument_orders import instrumentOrder, instrumentOrderType
 
@@ -290,7 +290,8 @@ def get_required_contract_trade_for_instrument(
                 str(instrument_order),
             )
         )
-        return []
+
+    return []
 
 
 def child_order_in_priced_contract_only(
@@ -323,7 +324,7 @@ def passive_roll_child_order(
 
     contract = futuresContract(instrument_code, current_contract)
 
-    position_current_contract = diag_positions.get_position_for_contract(contract)
+    position_current_contract = int(diag_positions.get_position_for_contract(contract))
 
     # Break out because so darn complicated
     if position_current_contract == 0:
@@ -349,7 +350,7 @@ def passive_roll_child_order(
         return [contractIdAndTrade(next_contract, trade)]
 
     # ok a reducing trade
-    new_position = position_current_contract + trade
+    new_position = position_current_contract + trade.as_single_trade_qty_or_error()
     sign_of_position_is_unchanged = sign(position_current_contract) == sign(
         new_position
     )
@@ -378,7 +379,7 @@ def passive_roll_child_order(
 
 
 def passive_trade_split_over_two_contracts(
-    trade: int,
+    trade: tradeQuantity,
     position_current_contract: int,
     current_contract: str,
     next_contract: str,
@@ -395,13 +396,13 @@ def passive_trade_split_over_two_contracts(
     :param next_contract: str
     :return: list
     """
-
-    trade_in_current_contract = -position_current_contract
-    trade_in_next_contract = trade - trade_in_current_contract
+    trade_as_int = trade.as_single_trade_qty_or_error()
+    trade_in_current_contract_as_int = -position_current_contract
+    trade_in_next_contract_as_int = trade_as_int - trade_in_current_contract_as_int
 
     return [
-        contractIdAndTrade(current_contract, trade_in_current_contract),
-        contractIdAndTrade(next_contract, trade_in_next_contract),
+        contractIdAndTrade(current_contract, trade_in_current_contract_as_int),
+        contractIdAndTrade(next_contract, trade_in_next_contract_as_int),
     ]
 
 

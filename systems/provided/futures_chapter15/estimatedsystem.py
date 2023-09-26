@@ -20,7 +20,9 @@ from systems.accounts.accounts_stage import Account
 
 
 def futures_system(
-    data=None, config=None, trading_rules=arg_not_supplied, log_level="on"
+    data=None,
+    config=None,
+    trading_rules=arg_not_supplied,
 ):
     """
 
@@ -32,9 +34,6 @@ def futures_system(
 
     :param trading_rules: Set of trading rules to use (defaults to set specified in config object)
     :param trading_rules: list or dict of TradingRules, or something that can be parsed to that
-
-    :param log_level: Set of trading rules to use (defaults to set specified in config object)
-    :type log_level: str
 
     """
 
@@ -59,8 +58,6 @@ def futures_system(
         data,
         config,
     )
-
-    system.set_logging_level(log_level)
 
     return system
 

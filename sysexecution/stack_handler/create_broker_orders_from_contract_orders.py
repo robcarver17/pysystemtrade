@@ -103,14 +103,13 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
             ## Do no further checks or resizing whatsoever!
             return original_contract_order
 
-        data_broker = self.data_broker
-
         # CHECK FOR LOCKS
         data_locks = dataLocks(self.data)
         instrument_locked = data_locks.is_instrument_locked(
             original_contract_order.instrument_code
         )
 
+        data_broker = self.data_broker
         market_closed = not (
             data_broker.is_contract_okay_to_trade(
                 original_contract_order.futures_contract

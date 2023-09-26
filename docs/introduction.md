@@ -466,9 +466,6 @@ my_config.use_forecast_div_mult_estimates = True
 combiner = ForecastCombine()
 my_system = System([my_account, fcs, my_rules, combiner, position_size, raw_data], data, my_config)
 
-## this is a bit slow, better to know what's going on
-my_system.set_logging_level("on")
-
 print(my_system.combForecast.get_forecast_weights("US10").tail(5))
 print(my_system.combForecast.get_forecast_diversification_multiplier("US10").tail(5))
 
@@ -557,8 +554,6 @@ my_config.instrument_weight_estimate=dict(method="shrinkage", date_method="in_sa
 
 my_system = System([my_account, fcs, my_rules, combiner, position_size, raw_data,
                     portfolio], data, my_config)
-
-my_system.set_logging_level("on")
 
 print(my_system.portfolio.get_instrument_weights())
 print(my_system.portfolio.get_instrument_diversification_multiplier())
@@ -733,7 +728,7 @@ You can also get a similar system where forecast scalars are estimated; as well 
 
 ```python
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
-system = futures_system(log_level="on")
+system = futures_system()
 system.portfolio.get_notional_position("EUROSTX").tail(5)
 ```
 
@@ -744,7 +739,7 @@ system.cache.pickle("private.this_system_name.pck") ## use any file extension yo
 
 ## In a new session
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
-system = futures_system(log_level="on")
+system = futures_system()
 system.cache.unpickle("private.this_system_name.pck")
 system.accounts.portfolio().sharpe() ## this will run much faster and reuse previous calculations
 ```
