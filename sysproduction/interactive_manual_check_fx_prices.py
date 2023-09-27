@@ -32,7 +32,11 @@ def interactive_manual_check_fx_prices():
             if fx_code is EXIT_STR:
                 do_another = False  ## belt. Also braces.
             else:
-                data.log.debug("Updating log attributes", currency_code=fx_code)
+                data.log.debug(
+                    "Updating log attributes",
+                    method="clear",
+                    currency_code=fx_code,
+                )
                 check_fx_ok_for_broker(data, fx_code)
                 update_manual_check_fx_prices_for_code(fx_code, data)
 
