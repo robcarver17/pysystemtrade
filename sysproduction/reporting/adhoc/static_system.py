@@ -40,7 +40,7 @@ def static_system_adhoc_report(
         capital,
         est_number_of_instruments,
     ) in list_of_capital_and_estimate_instrument_count_tuples:
-        system = futures_system()
+        system = system_function()
         instrument_list = static_system_results_for_capital(
             system,
             corr_matrix=corr_matrix,
