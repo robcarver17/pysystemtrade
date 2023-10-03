@@ -229,7 +229,7 @@ class dataBroker(productionDataLayerGeneric):
     def get_all_current_contract_positions(self) -> listOfContractPositions:
 
         list_of_positions = (
-            self.broker_contract_position_data.get_all_current_positions_as_list_with_contract_objects()
+            self.broker_contract_position_data.get_all_current_positions_as_list_with_contract_objects(self.get_broker_account())
         )
 
         return list_of_positions
