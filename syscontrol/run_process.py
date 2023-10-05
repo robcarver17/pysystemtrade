@@ -333,7 +333,8 @@ def _check_if_okay_to_wait_before_starting_process(
 def wait_for_next_method_run_time(process_to_run: processToRun):
     list_of_timer_functions = process_to_run.list_of_timer_functions
     seconds_to_next_run = list_of_timer_functions.seconds_until_next_method_runs()
-    if seconds_to_next_run > 10.0:
+    we_should_stop = _check_for_stop(process_to_run)
+    while not we_should_stop and seconds_to_next_run > 0:
         sleep_time = min(seconds_to_next_run, 60)
         msg = (
             "Sleeping for %d seconds as %d seconds until next method ready to run (will react to STOP or PAUSE at that point)"
@@ -341,7 +342,9 @@ def wait_for_next_method_run_time(process_to_run: processToRun):
         )
         process_to_run.log.debug(msg)
         sys.stdout.flush()
-        time.sleep(seconds_to_next_run)
+        time.sleep(sleep_time)
+        seconds_to_next_run = list_of_timer_functions.seconds_until_next_method_runs()
+        we_should_stop = _check_for_stop(process_to_run)
 
 
 ## PAUSE CODE
