@@ -67,17 +67,22 @@ overwrite.info(
     stage="one",
 )
 
+# merging attributes: method 'temp'
+temp = get_logger("temp", {"type": "first"})
+temp.info("type should be 'first'")
+temp.info(
+    "type should be 'second' temporarily",
+    method="temp",
+    type="second",
+)
+temp.info("type should be back to 'first'")
+
 # levels
 level = get_logger("Level")
 level.setLevel(logging.WARNING)
 level.info("does not print")
 level.warning("does print")
 
-# level aliases
-alias = get_logger("Alias")
-alias.msg("msg() is a temporary alias for DEBUG")
-alias.terse("terse() is a temporary alias for INFO")
-alias.warn("warn() is a temporary alias for %s", "WARNING")
 
 # alias 'setup'
 setup = get_logger("Setup", {"stage": "one", "type": "first"})
@@ -85,17 +90,13 @@ setup.info("stage one, type first")
 setup = setup.setup(stage="two")
 setup.info("stage two, no type")
 
-# alias 'label'
-label = get_logger("Label", {"stage": "one"})
-label.info("stage one")
-label.label(stage="two")
-label.info("stage two")
+# replacing log.label() - we want to update the log attributes permanently - same as
+# overwrite
+label = get_logger("label", {"stage": "whatever"})
+label.info("Should have 'stage' of 'whatever'")
+label.info("Updating log attributes", instrument_code="GOLD")
+label.info("Should have 'stage' of 'whatever', and 'instrument_code' 'GOLD'")
 
-# alias 'setup_empty_except_keep_type'
-keep_type = get_logger("Keep_Type", {"type": "first", "stage": "one"})
-keep_type.info("type first, stage one")
-keep_type = keep_type.setup_empty_except_keep_type()
-keep_type.info("type first, no stage")
 
 # critical mail
-level.critical("sends mail")
+# level.critical("sends mail")

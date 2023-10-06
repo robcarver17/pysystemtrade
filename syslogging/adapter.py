@@ -25,7 +25,7 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
         new_kwargs = dict()
 
         method = kwargs.pop("method", "overwrite")
-        if method not in ["clear", "preserve", "overwrite"]:
+        if method not in ["clear", "preserve", "overwrite", "temp"]:
             raise ValueError(f"Invalid value for 'method': {method}")
 
         for k, v in kwargs.items():
@@ -34,22 +34,29 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
             else:
                 new_kwargs[k] = v
 
-        merged = self._merge_attributes(method, attrs)
-        new_kwargs["extra"] = merged
-        self.extra = merged
-
-        if self.extra:
-            return "%s %s" % (self.extra, msg), new_kwargs
+        """
+        Four possible ways to deal with attributes
+        1. temp: passed values overwrite existing for one message, then discarded
+        2. clear:  clear existing, use passed values
+        3. preserve: merge with existing values preserved
+        4. overwrite: merge with existing values overwritten
+        """
+        if method == "temp":
+            if self.extra:
+                return "%s %s" % ({**self.extra, **attrs}, msg), new_kwargs
+            else:
+                return "%s %s" % (attrs, msg), new_kwargs
         else:
-            return "%s" % msg, new_kwargs
+            merged = self._merge_attributes(method, attrs)
+            new_kwargs["extra"] = merged
+            self.extra = merged
+
+            if self.extra:
+                return "%s %s" % (self.extra, msg), new_kwargs
+            else:
+                return "%s" % msg, new_kwargs
 
     def _merge_attributes(self, method, attributes):
-        """
-        Three possible ways to deal with attributes
-        1. clear:  clear existing, use passed values
-        2. preserve: merge with existing values preserved
-        3. overwrite: merge with existing values overwritten
-        """
         if not self.extra or method == "clear":
             merged = attributes
         elif method == "preserve":
@@ -63,40 +70,12 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
         # Create a copy of me with different attributes
         warnings.warn(
             "The 'setup' function is deprecated; instead, "
-            "update attributes with method=clear/preserve/overwrite",
+            "update attributes with method=clear/preserve/overwrite/temp",
             DeprecationWarning,
             2,
         )
         attributes = {**kwargs}
         self._check_attributes(attributes)
-        return DynamicAttributeLogger(logging.getLogger(self.name), attributes)
-
-    def label(self, **kwargs):
-        # permanently add new attributes to me
-        warnings.warn(
-            "The 'label' function is deprecated; instead, "
-            "update attributes with method=clear/preserve/overwrite",
-            DeprecationWarning,
-            2,
-        )
-        if not self.extra:
-            attributes = {**kwargs}
-        else:
-            attributes = {**self.extra, **kwargs}
-        self._check_attributes(attributes)
-        self.extra = attributes
-
-    def setup_empty_except_keep_type(self):
-        warnings.warn(
-            "The 'setup_empty_except_keep_type' function is deprecated; instead, "
-            "update attributes with method=clear/preserve/overwrite",
-            DeprecationWarning,
-            2,
-        )
-        if self.extra and TYPE_LOG_LABEL in self.extra:
-            attributes = {TYPE_LOG_LABEL: self.extra[TYPE_LOG_LABEL]}
-        else:
-            attributes = {}
         return DynamicAttributeLogger(logging.getLogger(self.name), attributes)
 
     def _check_attributes(self, attributes: dict):

@@ -799,7 +799,7 @@ For other methods, like `label()`, `setup()`, each should be taken on a case by 
 
 > Multiple calls to getLogger() with the same name will always return a reference to the same Logger object.
 
-So our outer object handles the context attributes, and the inner `logging.Logger` object does the rest. We cannot copy logger instances as we did with the legacy system. Instead, we can manage the attributes with three ways to merge: *overwrite* (the default), *preserve*, and *clear*.
+So our outer object handles the context attributes, and the inner `logging.Logger` object does the rest. We cannot copy logger instances as we did with the legacy system. Instead, we can manage the attributes with four ways to merge: *overwrite* (the default), *preserve*, *clear*, and *temp*.
 
 ```python
 # merging attributes: method 'overwrite' (default if no method supplied)
@@ -824,6 +824,16 @@ So our outer object handles the context attributes, and the inner `logging.Logge
     clear.info("clear, type 'first', stage 'one'")
     clear.info("clear, type 'second', no stage", method="clear", type="second")
     clear.info("clear, no attributes", method="clear")
+    
+    # merging attributes: method 'temp'
+    temp = get_logger("temp", {"type": "first"})
+    temp.info("type should be 'first'")
+    temp.info(
+        "type should be 'second' temporarily",
+        method="temp",
+        type="second",
+    )
+    temp.info("type should be back to 'first'")
 ```
 
 #### Cleaning old logs

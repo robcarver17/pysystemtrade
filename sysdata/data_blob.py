@@ -279,7 +279,7 @@ class dataBlob(object):
         client_id = self._get_next_client_id_for_ib()
         while True:
             try:
-                ib_conn = connectionIB(client_id, log=self.log)
+                ib_conn = connectionIB(client_id, log_name=self.log_name)
                 for id in failed_ids:
                     self.db_ib_broker_client_id.release_clientid(id)
                 return ib_conn

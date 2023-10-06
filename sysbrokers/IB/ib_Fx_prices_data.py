@@ -41,7 +41,7 @@ class ibFxPricesData(brokerFxPricesData):
         try:
             config_data = self._get_ib_fx_config()
         except missingFile:
-            self.log.warn("Can't get list of fxcodes for IB as config file missing")
+            self.log.warning("Can't get list of fxcodes for IB as config file missing")
             return []
 
         list_of_codes = get_list_of_codes(config_data=config_data)
@@ -104,7 +104,7 @@ class ibFxPricesData(brokerFxPricesData):
             config_data = self._get_ib_fx_config()
         except missingFile as e:
             new_log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
-            new_log.warn(
+            new_log.warning(
                 "Can't get IB FX config for %s as config file missing" % currency_code
             )
             raise missingInstrument from e
