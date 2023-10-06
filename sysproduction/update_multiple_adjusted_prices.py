@@ -110,7 +110,11 @@ def update_multiple_adjusted_prices_for_instrument(
     :return: None
     """
 
-    data.log.label(instrument_code=instrument_code)
+    data.log.debug(
+        "Updating log attributes",
+        method="clear",
+        instrument_code=instrument_code,
+    )
     updated_multiple_prices = calc_updated_multiple_prices(data, instrument_code)
     updated_adjusted_prices = calc_update_adjusted_prices(
         data, instrument_code, updated_multiple_prices

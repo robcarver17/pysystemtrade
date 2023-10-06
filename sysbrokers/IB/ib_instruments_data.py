@@ -68,7 +68,7 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
         try:
             config = self.ib_config
         except missingFile:
-            self.log.warn(
+            self.log.warning(
                 "Can't get list of instruments because IB config file missing"
             )
             return []
