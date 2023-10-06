@@ -389,7 +389,7 @@ class instrumentCosts(object):
 
     def calculate_percentage_commission(self, blocks_traded, price_per_block):
         trade_value = self.calculate_trade_value(blocks_traded, price_per_block)
-        return self._percentage_cost * trade_value
+        return self.percentage_cost * trade_value
 
     def calculate_trade_value(self, blocks_traded, value_per_block):
         return abs(blocks_traded) * value_per_block

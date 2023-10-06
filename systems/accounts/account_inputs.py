@@ -37,16 +37,25 @@ class accountInputs(SystemStage):
         self, instrument_code: str, position_or_forecast: pd.Series = arg_not_supplied
     ) -> pd.Series:
 
-        frequency = infer_frequency(position_or_forecast)
-        if frequency is BUSINESS_DAY_FREQ:
-            instrument_prices = self.get_daily_prices(instrument_code)
-        elif frequency is HOURLY_FREQ:
-            instrument_prices = self.get_hourly_prices(instrument_code)
-        else:
-            raise Exception(
-                "Frequency %s does not have prices for %s should be hourly or daily"
-                % (str(frequency), instrument_code)
+        try:
+            frequency = infer_frequency(position_or_forecast)
+            if frequency is BUSINESS_DAY_FREQ:
+                instrument_prices = self.get_daily_prices(instrument_code)
+            elif frequency is HOURLY_FREQ:
+                instrument_prices = self.get_hourly_prices(instrument_code)
+            else:
+                raise Exception(
+                    "Frequency %s does not have prices for %s should be hourly or daily"
+                    % (str(frequency), instrument_code)
+                )
+        except:
+            self.log.warning(
+                "Going to index hourly prices for %s to position_or_forecast might result in phantoms"
+                % instrument_code
             )
+            hourly_prices = self.get_hourly_prices(instrument_code)
+
+            instrument_prices = hourly_prices.reindex(position_or_forecast.index)
 
         return instrument_prices
 

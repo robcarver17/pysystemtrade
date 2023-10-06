@@ -887,8 +887,9 @@ class Portfolios(SystemStage):
         if instrument_list is arg_not_supplied:
             instrument_list = self.get_instrument_list()
 
+        ## roundpositions=True required to make IDM work with order simulator
         return accounts.pandl_across_subsystems_given_instrument_list(
-            instrument_list, roundpositions=False
+            instrument_list, roundpositions=True
         )
 
     @input
