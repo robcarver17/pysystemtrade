@@ -297,8 +297,10 @@ class ibExecutionStackData(brokerExecutionStackData):
 
         """
 
-        log = broker_order.log_with_attributes(self.log)
-        log.debug("Going to submit order %s to IB" % str(broker_order))
+        log_attrs = {**broker_order.log_attributes(), "method": "temp"}
+        self.log.debug(
+            "Going to submit order %s to IB" % str(broker_order), **log_attrs
+        )
 
         trade_list = broker_order.trade
         order_type = broker_order.order_type
@@ -318,10 +320,10 @@ class ibExecutionStackData(brokerExecutionStackData):
             limit_price=limit_price,
         )
         if placed_broker_trade_object is missing_order:
-            log.warning("Couldn't submit order")
+            self.log.warning("Couldn't submit order", **log_attrs)
             return missing_order
 
-        log.debug("Order submitted to IB")
+        self.log.debug("Order submitted to IB", **log_attrs)
 
         return placed_broker_trade_object
 
@@ -377,16 +379,16 @@ class ibExecutionStackData(brokerExecutionStackData):
 
     def cancel_order_on_stack(self, broker_order: brokerOrder):
 
-        log = broker_order.log_with_attributes(self.log)
+        log_attrs = {**broker_order.log_attributes(), "method": "temp"}
         matched_control_order = (
             self.match_db_broker_order_to_control_order_from_brokers(broker_order)
         )
         if matched_control_order is missing_order:
-            log.warning("Couldn't cancel non existent order")
+            self.log.warning("Couldn't cancel non existent order", **log_attrs)
             return None
 
         self.cancel_order_given_control_object(matched_control_order)
-        log.debug("Sent cancellation for %s" % str(broker_order))
+        self.log.debug("Sent cancellation for %s" % str(broker_order), **log_attrs)
 
     def cancel_order_given_control_object(
         self, broker_orders_with_controls: ibOrderWithControls

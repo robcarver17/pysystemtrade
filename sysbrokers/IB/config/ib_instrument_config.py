@@ -36,15 +36,16 @@ def get_instrument_object_from_config(
     instrument_code: str, config: IBconfig = None, log: pst_logger = get_logger("")
 ) -> futuresInstrumentWithIBConfigData:
 
-    new_log = log.setup(instrument_code=instrument_code)
+    log_attrs = {INSTRUMENT_CODE_LOG_LABEL: instrument_code, "method": "temp"}
 
     if config is None:
         try:
             config = read_ib_config_from_file()
         except missingFile as e:
-            new_log.warning(
+            log.warning(
                 "Can't get config for instrument %s as IB configuration file missing"
-                % instrument_code
+                % instrument_code,
+                **log_attrs,
             )
             raise missingInstrument from e
 
@@ -52,8 +53,9 @@ def get_instrument_object_from_config(
     try:
         assert instrument_code in list_of_instruments
     except:
-        new_log.warning(
-            "Instrument %s is not in IB configuration file" % instrument_code
+        log.warning(
+            "Instrument %s is not in IB configuration file" % instrument_code,
+            **log_attrs,
         )
         raise missingInstrument
 

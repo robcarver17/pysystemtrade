@@ -88,14 +88,15 @@ class orderStackData(object):
 
         list_of_order_ids = []
         for order in list_of_orders:
-            log = order.log_with_attributes(self.log)
             order.lock_order()
             try:
                 order_id = self.put_order_on_stack(order)
             except Exception as e:
-                log.warning(
+                self.log.warning(
                     "Failed to put order %s on stack error %s, rolling back entire transaction"
-                    % (str(order), str(e))
+                    % (str(order), str(e)),
+                    **order.log_attributes(),
+                    method="temp",
                 )
 
                 # rollback any orders we did manage to add
@@ -255,15 +256,17 @@ class orderStackData(object):
             self.log.warning(error_msg)
             raise missingOrder(error_msg)
 
-        log = existing_order.log_with_attributes(self.log)
-
         already_have_children = not existing_order.no_children()
         if already_have_children:
             error_msg = (
                 "Can't add children to order that already has children %s"
                 % str(existing_order.children)
             )
-            log.warning(error_msg)
+            self.log.warning(
+                error_msg,
+                **existing_order.log_attributes(),
+                method="temp",
+            )
             raise Exception(error_msg)
 
         new_order = copy(existing_order)
@@ -319,7 +322,7 @@ class orderStackData(object):
             # nout to do here, fills are cumulative
             return None
 
-        log = existing_order.log_with_attributes(self.log)
+        log_attrs = {**existing_order.log_attributes(), "method": "temp"}
 
         new_order = copy(existing_order)
         try:
@@ -327,14 +330,15 @@ class orderStackData(object):
                 fill_qty, filled_price=filled_price, fill_datetime=fill_datetime
             )
         except overFilledOrder as e:
-            log.warning(str(e))
+            self.log.warning(str(e), **log_attrs)
             raise overFilledOrder(e)
 
         self._change_order_on_stack(order_id, new_order)
 
-        log.debug(
+        self.log.debug(
             "Changed fill qty from %s to %s for order %s"
-            % (str(existing_order.fill), str(fill_qty), str(existing_order))
+            % (str(existing_order.fill), str(fill_qty), str(existing_order)),
+            **log_attrs,
         )
 
     def zero_out(self, order_id: int):
@@ -346,11 +350,13 @@ class orderStackData(object):
             self.log.warning(error_msg)
             raise missingOrder(error_msg)
 
-        log = existing_order.log_with_attributes(existing_order)
-
         if not existing_order.active:
             # already inactive
-            log.warning("Can't zero out order which is already inactive")
+            self.log.warning(
+                "Can't zero out order which is already inactive",
+                **existing_order.log_attributes(),
+                method="temp",
+            )
             return None
 
         new_order = copy(existing_order)
@@ -367,8 +373,6 @@ class orderStackData(object):
             error_msg = "Can't deactivate non existent order" % order_id
             self.log.warning(error_msg)
             raise missingOrder(error_msg)
-
-        log = existing_order.log_with_attributes(self.log)
 
         if not existing_order.active:
             # already inactive
@@ -424,20 +428,20 @@ class orderStackData(object):
             self.log.warning(error_msg)
             raise missingOrder(error_msg)
 
-        log = existing_order.log_with_attributes(self.log)
+        log_attrs = {**existing_order.log_attributes(), "method": "temp"}
 
         lock_status = existing_order.is_order_locked()
         if lock_status is True:
             # already locked can't change
             error_msg = "Can't change locked order %s" % str(existing_order)
-            log.warning(error_msg)
+            self.log.warning(error_msg, **log_attrs)
             raise Exception(error_msg)
 
         if check_if_inactive:
             existing_order_is_inactive = not existing_order.active
             if existing_order_is_inactive:
                 error_msg = "Can't change order %s as inactive" % str(existing_order)
-                log.warning(error_msg)
+                self.log.warning(error_msg, **log_attrs)
 
         self._change_order_on_stack_no_checking(order_id, new_order)
 
@@ -466,10 +470,11 @@ class orderStackData(object):
     def _put_order_on_stack_and_get_order_id(self, order: Order) -> int:
         order_has_existing_id = not order.order_id is no_order_id
         if order_has_existing_id:
-            log = order.log_with_attributes(self.log)
-            log.warning(
+            self.log.warning(
                 "Order %s already has order ID will be ignored and allocated a new ID!"
-                % str(order)
+                % str(order),
+                **order.log_attributes(),
+                method="temp",
             )
 
         order_to_add = copy(order)

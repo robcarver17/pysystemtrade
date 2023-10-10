@@ -32,16 +32,16 @@ def seed_price_data_from_IB(instrument_code):
 
 
 def seed_price_data_for_contract(data: dataBlob, contract_object: futuresContract):
-    log = contract_object.specific_log(data.log)
+    log_attrs = {**contract_object.log_attributes(), "method": "temp"}
 
     list_of_frequencies = [HOURLY_FREQ, DAILY_PRICE_FREQ]
     for frequency in list_of_frequencies:
-        log.debug("Getting data at frequency %s" % str(frequency))
+        data.log.debug("Getting data at frequency %s" % str(frequency), **log_attrs)
         seed_price_data_for_contract_at_frequency(
             data=data, contract_object=contract_object, frequency=frequency
         )
 
-    log.debug("Writing merged data for %s" % str(contract_object))
+    data.log.debug("Writing merged data for %s" % str(contract_object), **log_attrs)
     write_merged_prices_for_contract(
         data, contract_object=contract_object, list_of_frequencies=list_of_frequencies
     )
@@ -53,7 +53,7 @@ def seed_price_data_for_contract_at_frequency(
 
     data_broker = dataBroker(data)
     update_prices = updatePrices(data)
-    log = contract_object.specific_log(data.log)
+    log_attrs = {**contract_object.log_attributes(), "method": "temp"}
 
     try:
         prices = (
@@ -62,13 +62,22 @@ def seed_price_data_for_contract_at_frequency(
             )
         )
     except missingData:
-        log.warning("Error getting data for %s" % str(contract_object))
+        data.log.warning(
+            "Error getting data for %s" % str(contract_object),
+            **log_attrs,
+        )
         return None
 
-    log.debug("Got %d lines of prices for %s" % (len(prices), str(contract_object)))
+    data.log.debug(
+        "Got %d lines of prices for %s" % (len(prices), str(contract_object)),
+        **log_attrs,
+    )
 
     if len(prices) == 0:
-        log.warning("No price data for %s" % str(contract_object))
+        data.log.warning(
+            "No price data for %s" % str(contract_object),
+            **log_attrs,
+        )
     else:
         update_prices.overwrite_prices_at_frequency_for_contract(
             contract_object=contract_object, frequency=frequency, new_prices=prices

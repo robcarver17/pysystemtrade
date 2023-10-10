@@ -70,6 +70,7 @@ class processToRun(object):
         return self._list_of_timer_functions
 
     def _setup(self):
+        # TODO log.setup
         self.data.log.setup(type=self.process_name)
         self._log = self.data.log
         data_control = dataControlProcess(self.data)

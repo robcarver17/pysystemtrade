@@ -49,7 +49,7 @@ class ibPriceClient(ibContractsClient):
         :param freq: str; one of D, H, 5M, M, 10S, S
         :return: futuresContractPriceData
         """
-
+        # TODO specific_log
         specific_log = contract_object_with_ib_broker_config.specific_log(self.log)
 
         try:
@@ -93,17 +93,17 @@ class ibPriceClient(ibContractsClient):
         trade_list_for_multiple_legs: tradeQuantity = None,
     ) -> "ib.ticker":
 
-        specific_log = contract_object_with_ib_data.specific_log(self.log)
-
         try:
             ibcontract = self.ib_futures_contract(
                 contract_object_with_ib_data,
                 trade_list_for_multiple_legs=trade_list_for_multiple_legs,
             )
         except missingContract:
-            specific_log.warning(
+            self.log.warning(
                 "Can't find matching IB contract for %s"
-                % str(contract_object_with_ib_data)
+                % str(contract_object_with_ib_data),
+                **contract_object_with_ib_data.log_attributes(),
+                method="temp",
             )
             raise
 
@@ -124,17 +124,17 @@ class ibPriceClient(ibContractsClient):
         trade_list_for_multiple_legs: tradeQuantity = None,
     ):
 
-        specific_log = contract_object_with_ib_data.specific_log(self.log)
-
         try:
             ibcontract = self.ib_futures_contract(
                 contract_object_with_ib_data,
                 trade_list_for_multiple_legs=trade_list_for_multiple_legs,
             )
         except missingContract:
-            specific_log.warning(
+            self.log.warning(
                 "Can't find matching IB contract for %s"
-                % str(contract_object_with_ib_data)
+                % str(contract_object_with_ib_data),
+                **contract_object_with_ib_data.log_attributes(),
+                method="temp",
             )
             raise
 
@@ -151,21 +151,19 @@ class ibPriceClient(ibContractsClient):
         :param contract_object_with_ib_data:
         :return:
         """
-        specific_log = self.log.setup(
-            instrument_code=contract_object_with_ib_data.instrument_code,
-            contract_date=contract_object_with_ib_data.date_str,
-        )
+        log_attrs = {**contract_object_with_ib_data.log_attributes(), "method": "temp"}
         if contract_object_with_ib_data.is_spread_contract():
             error_msg = "Can't get historical data for combo"
-            specific_log.critical(error_msg)
+            self.log.critical(error_msg, **log_attrs)
             raise Exception(error_msg)
 
         try:
             ibcontract = self.ib_futures_contract(contract_object_with_ib_data)
         except missingContract:
-            specific_log.warning(
+            self.log.warning(
                 "Can't find matching IB contract for %s"
-                % str(contract_object_with_ib_data)
+                % str(contract_object_with_ib_data),
+                **log_attrs,
             )
             raise
 
@@ -178,7 +176,7 @@ class ibPriceClient(ibContractsClient):
 
         return tick_data
 
-    def _get_generic_data_for_contract(
+    def _get_generic_data_for_contract(  # TODO passed logger instance
         self,
         ibcontract: ibContract,
         log: pst_logger = None,

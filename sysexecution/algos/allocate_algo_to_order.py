@@ -82,7 +82,7 @@ def check_and_if_required_allocate_algo_to_single_contract_order(
 ) -> contractOrder:
 
     config = get_algo_allocation_config(data)
-    log = contract_order.log_with_attributes(data.log)
+    log_attrs = {**contract_order.log_attributes(), "method": "temp"}
 
     if already_has_algo_allocated(contract_order):
         # Already done
@@ -100,7 +100,10 @@ def check_and_if_required_allocate_algo_to_single_contract_order(
             contract_order=contract_order, config=config
         )
     elif instrument_order_type == market_order_type:
-        log.debug("Market order type, so allocating to algo_market")
+        data.log.debug(
+            "Market order type, so allocating to algo_market",
+            **log_attrs,
+        )
         contract_order = allocate_market_algo(
             contract_order=contract_order, config=config
         )
@@ -119,12 +122,16 @@ def check_and_if_required_allocate_algo_to_single_contract_order(
         )
 
     elif instrument_order_type == balance_order_type:
-        log.critical("Balance orders aren't executed, shouldn't even be here!")
+        data.log.critical(
+            "Balance orders aren't executed, shouldn't even be here!",
+            **log_attrs,
+        )
         return missing_order
     else:
-        log.warning(
+        data.log.warning(
             "Don't recognise order type %s so allocating to default %s"
-            % (instrument_order_type, config.default_algo)
+            % (instrument_order_type, config.default_algo),
+            **log_attrs,
         )
         contract_order = allocate_default_algo(
             contract_order=contract_order, config=config
@@ -170,9 +177,11 @@ def allocate_for_best_execution_no_limit(
     data: dataBlob, config: AlgoConfig, contract_order: contractOrder
 ) -> contractOrder:
     # in the future could be randomized...
-    log = contract_order.log_with_attributes(data.log)
-
-    log.debug("'Best' order so allocating to original_best")
+    data.log.debug(
+        "'Best' order so allocating to original_best",
+        **contract_order.log_attributes(),
+        method="temp",
+    )
     contract_order.algo_to_use = config.best_algo
 
     return contract_order
@@ -182,8 +191,11 @@ def allocate_for_limit_order(
     data: dataBlob, config: AlgoConfig, contract_order: contractOrder
 ) -> contractOrder:
     # in the future could be randomized...
-    log = contract_order.log_with_attributes(data.log)
-    log.debug("Allocating to limit order")
+    data.log.debug(
+        "Allocating to limit order",
+        **contract_order.log_attributes(),
+        method="temp",
+    )
     contract_order.algo_to_use = config.limit_order_algo
 
     return contract_order

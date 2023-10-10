@@ -71,6 +71,7 @@ class simData(baseData):
         """
 
         # inherit the log
+        # TODO log.setup
         self._log = base_system.log.setup(stage="data")
         self._parent = base_system
 

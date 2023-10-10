@@ -453,6 +453,14 @@ class Order(object):
 
         return log
 
+    def log_attributes(self):
+        """
+        Returns a dict of order log attributes
+        :return: dict
+        """
+
+        return {}
+
 
 def resolve_inputs_to_order(trade, fill) -> (tradeQuantity, tradeQuantity):
     resolved_trade = tradeQuantity(trade)

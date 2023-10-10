@@ -33,13 +33,16 @@ class contractOrderStackData(orderStackData):
             modified_order.add_controlling_algo_ref(control_algo_ref)
             self._change_order_on_stack(order_id, modified_order)
         except Exception as e:
-            log = existing_order.log_with_attributes(self.log)
             error_msg = "%s couldn't add controlling algo %s to order %d" % (
                 str(e),
                 control_algo_ref,
                 order_id,
             )
-            log.warning(error_msg)
+            self.log.warning(
+                error_msg,
+                **existing_order.log_attributes(),
+                method="temp",
+            )
             raise Exception(error_msg)
 
     def release_order_from_algo_control(self, order_id: int):
@@ -60,12 +63,15 @@ class contractOrderStackData(orderStackData):
             modified_order.release_order_from_algo_control()
             self._change_order_on_stack(order_id, modified_order)
         except Exception as e:
-            log = existing_order.log_with_attributes(self.log)
             error_msg = "%s couldn't remove controlling algo from order %d" % (
                 str(e),
                 order_id,
             )
-            log.warning(error_msg)
+            self.log.warning(
+                error_msg,
+                **existing_order.log_attributes(),
+                method="temp",
+            )
             raise Exception(error_msg)
 
     def get_order_with_id_from_stack(self, order_id: int) -> contractOrder:

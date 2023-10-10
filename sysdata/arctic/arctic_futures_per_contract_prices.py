@@ -94,7 +94,6 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         frequency: Frequency,
     ):
 
-        log = futures_contract_object.log(self.log)
         ident = from_contract_and_freq_to_key(
             futures_contract_object, frequency=frequency
         )
@@ -102,14 +101,16 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
 
         self.arctic_connection.write(ident, futures_price_data_as_pd)
 
-        log.debug(
+        self.log.debug(
             "Wrote %s lines of prices for %s at %s to %s"
             % (
                 len(futures_price_data),
                 str(futures_contract_object.key),
                 str(frequency),
                 str(self),
-            )
+            ),
+            **futures_contract_object.log_attributes(),
+            method="temp",
         )
 
     def get_contracts_with_merged_price_data(self) -> listOfFuturesContracts:
@@ -190,15 +191,15 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     def _delete_prices_at_frequency_for_contract_object_with_no_checks_be_careful(
         self, futures_contract_object: futuresContract, frequency: Frequency
     ):
-        log = futures_contract_object.log(self.log)
-
         ident = from_contract_and_freq_to_key(
             contract=futures_contract_object, frequency=frequency
         )
         self.arctic_connection.delete(ident)
-        log.debug(
+        self.log.debug(
             "Deleted all prices for %s from %s"
-            % (futures_contract_object.key, str(self))
+            % (futures_contract_object.key, str(self)),
+            **futures_contract_object.log_attributes(),
+            method="temp",
         )
 
 

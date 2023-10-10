@@ -22,13 +22,15 @@ class brokerFuturesContractData(futuresContractData):
         raise NotImplementedError
 
     def is_contract_okay_to_trade(self, futures_contract: futuresContract) -> bool:
-        new_log = futures_contract.log(self.log)
 
         try:
             trading_hours = self.get_trading_hours_for_contract(futures_contract)
         except missingContract:
-            new_log.critical(
-                "Error! Cannot find active contract! Expired? interactive_update_roll_status.py not executed?"
+            self.log.critical(
+                "Error! Cannot find active contract! Expired? "
+                "interactive_update_roll_status.py not executed?",
+                **futures_contract.log_attributes(),
+                method="temp",
             )
             return False
 

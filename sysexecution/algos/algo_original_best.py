@@ -84,6 +84,7 @@ class algoOriginalBest(Algo):
 
         data = self.data
         contract_order = self.contract_order
+        # TODO log_with_attributes
         log = contract_order.log_with_attributes(data.log)
 
         ## check order type is 'best' not 'limit' or 'market'
@@ -148,6 +149,7 @@ class algoOriginalBest(Algo):
     ) -> orderWithControls:
 
         data = self.data
+        # TODO log_with_attributes
         log = broker_order_with_controls_and_order_id.order.log_with_attributes(
             data.log
         )
@@ -220,7 +222,7 @@ class algoOriginalBest(Algo):
         return broker_order_with_controls_and_order_id
 
 
-def limit_trade_viable(
+def limit_trade_viable(  # TODO passed logger instance
     data: dataBlob, order: contractOrder, ticker_object: tickerObject, log: pst_logger
 ) -> bool:
 
@@ -248,7 +250,7 @@ def limit_trade_viable(
 no_need_to_switch = "_NO_NEED_TO_SWITCH"
 
 
-def file_log_report(
+def file_log_report(  # TODO passed logger instance
     log, is_aggressive: bool, broker_order_with_controls: orderWithControls
 ):
     limit_trade = broker_order_with_controls.order.order_type == limit_order_type

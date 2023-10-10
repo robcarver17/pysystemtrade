@@ -83,10 +83,11 @@ class fxPricesData(baseData):
 
         raw_fx_data = self._get_fx_prices_vs_default(currency2)
         if raw_fx_data.empty:
-            log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: fx_code})
-            log.warning(
+            self.log.warning(
                 "Data for %s is missing, needed to calculate %s"
-                % (currency2 + DEFAULT_CURRENCY, DEFAULT_CURRENCY + currency2)
+                % (currency2 + DEFAULT_CURRENCY, DEFAULT_CURRENCY + currency2),
+                CURRENCY_CODE_LOG_LABEL=fx_code,
+                method="temp",
             )
             return raw_fx_data
 
@@ -129,8 +130,11 @@ class fxPricesData(baseData):
 
     def _get_fx_prices(self, code: str) -> fxPrices:
         if not self.is_code_in_data(code):
-            log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: code})
-            log.warning("Currency %s is missing from list of FX data" % code)
+            self.log.warning(
+                "Currency %s is missing from list of FX data" % code,
+                CURRENCY_CODE_LOG_LABEL=code,
+                method="temp",
+            )
 
             return fxPrices.create_empty()
 
@@ -139,18 +143,27 @@ class fxPricesData(baseData):
         return data
 
     def delete_fx_prices(self, code: str, are_you_sure=False):
-        log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: code})
+        log_attrs = {CURRENCY_CODE_LOG_LABEL: code, "method": "temp"}
 
         if are_you_sure:
             if self.is_code_in_data(code):
                 self._delete_fx_prices_without_any_warning_be_careful(code)
-                log.info("Deleted fx price data for %s" % code)
+                self.log.info(
+                    "Deleted fx price data for %s" % code,
+                    **log_attrs,
+                )
 
             else:
                 # doesn't exist anyway
-                log.warning("Tried to delete non existent fx prices for %s" % code)
+                self.log.warning(
+                    "Tried to delete non existent fx prices for %s" % code,
+                    **log_attrs,
+                )
         else:
-            log.warning("You need to call delete_fx_prices with a flag to be sure")
+            self.log.warning(
+                "You need to call delete_fx_prices with a flag to be sure",
+                **log_attrs,
+            )
 
     def is_code_in_data(self, code: str) -> bool:
         if code in self.get_list_of_fxcodes():
@@ -161,19 +174,20 @@ class fxPricesData(baseData):
     def add_fx_prices(
         self, code: str, fx_price_data: fxPrices, ignore_duplication: bool = False
     ):
-        log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: code})
+        log_attrs = {CURRENCY_CODE_LOG_LABEL: code, "method": "temp"}
         if self.is_code_in_data(code):
             if ignore_duplication:
                 pass
             else:
-                log.warning(
-                    "There is already %s in the data, you have to delete it first, or set ignore_duplication=True, or use update_fx_prices"
-                    % code
+                self.log.warning(
+                    "There is already %s in the data, you have to delete it first, or "
+                    "set ignore_duplication=True, or use update_fx_prices" % code,
+                    **log_attrs,
                 )
                 return None
 
         self._add_fx_prices_without_checking_for_existing_entry(code, fx_price_data)
-        log.info("Added fx data for code %s" % code)
+        self.log.info("Added fx data for code %s" % code, **log_attrs)
 
     def update_fx_prices(
         self, code: str, new_fx_prices: fxPrices, check_for_spike=True
@@ -185,7 +199,7 @@ class fxPricesData(baseData):
         :param new_fx_prices: fxPrices object
         :return: int, number of rows added
         """
-        log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: code})
+        log_attrs = {CURRENCY_CODE_LOG_LABEL: code, "method": "temp"}
 
         old_fx_prices = self.get_fx_prices(code)
         merged_fx_prices = old_fx_prices.add_rows_to_existing_data(
@@ -199,18 +213,22 @@ class fxPricesData(baseData):
 
         if rows_added == 0:
             if len(old_fx_prices) == 0:
-                log.debug("No new or old prices for %s" % code)
+                self.log.debug("No new or old prices for %s" % code, **log_attrs)
 
             else:
-                log.debug(
+                self.log.debug(
                     "No additional data since %s for %s"
-                    % (str(old_fx_prices.index[-1]), code)
+                    % (str(old_fx_prices.index[-1]), code),
+                    **log_attrs,
                 )
             return 0
 
         self.add_fx_prices(code, merged_fx_prices, ignore_duplication=True)
 
-        log.debug("Added %d additional rows for %s" % (rows_added, code))
+        self.log.debug(
+            "Added %d additional rows for %s" % (rows_added, code),
+            **log_attrs,
+        )
 
         return rows_added
 

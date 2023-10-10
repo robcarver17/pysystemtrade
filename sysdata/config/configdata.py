@@ -190,6 +190,7 @@ class Config(object):
         """
 
         # inherit the log
+        # TODO log.setup
         setattr(self, "log", base_system.log.setup(stage="config"))
 
         # fill with defaults

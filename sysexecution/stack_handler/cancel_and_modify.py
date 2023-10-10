@@ -65,8 +65,11 @@ class stackHandlerCancelAndModify(stackHandlerCore):
             # no need to cancel
             return missing_order
 
-        log = broker_order.log_with_attributes(self.log)
-        log.debug("Cancelling order on stack with broker %s" % str(broker_order))
+        self.log.debug(
+            "Cancelling order on stack with broker %s" % str(broker_order),
+            **broker_order.log_attributes(),
+            method="temp",
+        )
 
         data_broker = self.data_broker
         data_broker.cancel_order_on_stack(broker_order)
@@ -101,9 +104,12 @@ class stackHandlerCancelAndModify(stackHandlerCore):
                 order_is_cancelled = True
 
             if order_is_cancelled:
-                log = broker_order.log_with_attributes(self.log)
                 new_list_of_orders.remove(broker_order)
-                log.debug("Order %s succesfully cancelled" % broker_order)
+                self.log.debug(
+                    "Order %s succesfully cancelled" % broker_order,
+                    **broker_order.log_attributes(),
+                    method="temp",
+                )
 
         new_list_of_orders = listOfOrders(new_list_of_orders)
 
@@ -118,8 +124,9 @@ class stackHandlerCancelAndModify(stackHandlerCore):
 
     def critical_cancel_log(self, list_of_broker_orders: listOfOrders):
         for broker_order in list_of_broker_orders:
-            log = broker_order.log_with_attributes(self.log)
-            log.critical(
-                "Broker order %s could not be cancelled within time limit; might be a position break"
-                % broker_order
+            self.log.critical(
+                "Broker order %s could not be cancelled within time limit; might be a "
+                "position break" % broker_order,
+                **broker_order.log_attributes(),
+                method="temp",
             )

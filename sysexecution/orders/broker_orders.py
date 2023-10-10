@@ -360,6 +360,24 @@ class brokerOrder(Order):
 
         return new_log
 
+    def log_attributes(self):
+        """
+        Returns a dict of broker_order log attributes
+
+        :return: dict
+        """
+        broker_order = self
+        return {
+            STRATEGY_NAME_LOG_LABEL: broker_order.strategy_name,
+            INSTRUMENT_CODE_LOG_LABEL: broker_order.instrument_code,
+            CONTRACT_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
+                broker_order.parent, no_parent
+            ),
+            BROKER_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
+                broker_order.order_id, no_order_id
+            ),
+        }
+
     def add_execution_details_from_matched_broker_order(self, matched_broker_order):
         fill_qty_okay = self.trade.fill_less_than_or_equal_to_desired_trade(
             matched_broker_order.fill

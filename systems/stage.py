@@ -38,6 +38,7 @@ class SystemStage(object):
         self._parent = system
 
         # and a log
+        # TODO log.setup
         log = system.log.setup(stage=self.name)
         self._log = log
 

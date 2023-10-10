@@ -302,6 +302,23 @@ class contractOrder(Order):
 
         return new_log
 
+    def log_attributes(self):
+        """
+        Returns a dict of contract_order log attributes
+
+        :return: dict
+        """
+        return {
+            STRATEGY_NAME_LOG_LABEL: self.strategy_name,
+            INSTRUMENT_CODE_LOG_LABEL: self.instrument_code,
+            CONTRACT_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
+                self.order_id, no_order_id
+            ),
+            INSTRUMENT_ORDER_ID_LABEL: if_object_matches_return_empty_string(
+                self.parent, no_parent
+            ),
+        }
+
 
 @dataclass
 class contractOrderKeyArguments:

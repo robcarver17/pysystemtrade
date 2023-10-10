@@ -132,15 +132,16 @@ class orderGeneratorForStrategy(object):
         revised_order = override.apply_override(original_position, proposed_order)
 
         if revised_order.trade != proposed_order.trade:
-            log = proposed_order.log_with_attributes(self.log)
-            log.debug(
+            self.log.debug(
                 "%s trade change from %s to %s because of override %s"
                 % (
                     instrument_strategy.key,
                     str(revised_order.trade),
                     str(proposed_order.trade),
                     str(override),
-                )
+                ),
+                **proposed_order.log_attributes(),
+                method="temp",
             )
 
         return revised_order
@@ -149,7 +150,7 @@ class orderGeneratorForStrategy(object):
         self, order: instrumentOrder
     ) -> instrumentOrder:
 
-        log = order.log_with_attributes(self.log)
+        log_attrs = {**order.log_attributes(), "method": "temp"}
 
         data_position_limits = dataPositionLimits(self.data)
         new_order = data_position_limits.apply_position_limit_to_order(order)
@@ -157,13 +158,15 @@ class orderGeneratorForStrategy(object):
         if new_order.trade != order.trade:
             if new_order.is_zero_trade():
                 ## at position limit, can't do anything
-                log.warning(
-                    "Can't trade at all because of position limits %s" % str(order)
+                self.log.warning(
+                    "Can't trade at all because of position limits %s" % str(order),
+                    **log_attrs,
                 )
             else:
-                log.warning(
+                self.log.warning(
                     "Can't do trade of %s because of position limits,instead will do %s"
-                    % (str(order), str(new_order.trade))
+                    % (str(order), str(new_order.trade)),
+                    **log_attrs,
                 )
 
         return new_order
@@ -173,30 +176,32 @@ class orderGeneratorForStrategy(object):
         for order in order_list:
             # try:
             # we allow existing orders to be modified
-            log = order.log_with_attributes(self.log)
-            log.debug("Required order %s" % str(order))
+            log_attrs = {**order.log_attributes(), "method": "temp"}
+            self.log.debug("Required order %s" % str(order), **log_attrs)
 
             instrument_locked = data_lock.is_instrument_locked(order.instrument_code)
             if instrument_locked:
-                log.debug("Instrument locked, not submitting")
+                self.log.debug("Instrument locked, not submitting", **log_attrs)
                 continue
             self.submit_order(order)
 
     def submit_order(self, order: instrumentOrder):
-        log = order.log_with_attributes(self.log)
+        log_attrs = {**order.log_attributes(), "method": "temp"}
 
         try:
             order_id = self.order_stack.put_order_on_stack(order)
         except zeroOrderException:
             # we checked for zero already, which means that there is an existing order on the stack
             # An existing order of the same size
-            log.warning(
-                "Ignoring new order as either zero size or it replicates an existing order on the stack"
+            self.log.warning(
+                "Ignoring new order as either zero size or it replicates an existing order on the stack",
+                **log_attrs,
             )
 
         else:
-            log.debug(
+            self.log.debug(
                 "Added order %s to instrument order stack with order id %d"
                 % (str(order), order_id),
                 instrument_order_id=order_id,
+                **log_attrs,
             )

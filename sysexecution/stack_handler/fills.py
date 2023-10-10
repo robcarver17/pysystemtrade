@@ -58,10 +58,11 @@ class stackHandlerForFills(stackHandlerForCompletions):
         )
 
         if matched_broker_order is missing_order:
-            log = db_broker_order.log_with_attributes(self.log)
-            log.warning(
+            self.log.warning(
                 "Order in database %s does not match any broker orders: can't fill"
-                % db_broker_order
+                % db_broker_order,
+                **db_broker_order.log_attributes(),
+                method="temp",
             )
             return None
 
@@ -214,10 +215,11 @@ class stackHandlerForFills(stackHandlerForCompletions):
 
         instrument_order_id = contract_order.parent
         if instrument_order_id is no_parent:
-            log = contract_order.log_with_attributes(self.log)
-            log.error(
+            self.log.error(
                 "No parent for contract order %s %d"
-                % (str(contract_order), contract_order_id)
+                % (str(contract_order), contract_order_id),
+                **contract_order.log_attributes(),
+                method="temp",
             )
             return None
 
@@ -254,7 +256,6 @@ class stackHandlerForFills(stackHandlerForCompletions):
         contract_order = self.contract_stack.get_order_with_id_from_stack(
             contract_order_id
         )
-        log = contract_order.log_with_attributes(self.log)
 
         fill_for_contract = contract_order.fill
         filled_price = contract_order.filled_price
@@ -274,9 +275,11 @@ class stackHandlerForFills(stackHandlerForCompletions):
                 pass
             else:
                 # A spread order that isn't flat
-                log.critical(
+                self.log.critical(
                     "Can't handle non-flat intra-market spread orders! Instrument order %s %s"
-                    % (str(instrument_order), str(instrument_order.order_id))
+                    % (str(instrument_order), str(instrument_order.order_id)),
+                    **contract_order.log_attributes(),
+                    method="temp",
                 )
 
     def apply_contract_fill_to_parent_order_multiple_children(
@@ -286,8 +289,6 @@ class stackHandlerForFills(stackHandlerForCompletions):
         # - Inter market spread: we can't handle these yet and we'll break
         # - Leg by leg flat spread eg forced roll order: do nothing since doesn't change instrument positions
         # Distributed roll order eg if we are short -2 front, want to buy 3, will do +2 front +1 next
-
-        log = instrument_order.log_with_attributes(self.log)
 
         distributed_order = self.check_to_see_if_distributed_instrument_order(
             list_of_contract_order_ids, instrument_order
@@ -309,9 +310,11 @@ class stackHandlerForFills(stackHandlerForCompletions):
 
         else:
             # A proper spread trade across markets can't do this
-            log.critical(
+            self.log.critical(
                 "Can't handle inter-market spread orders! Instrument order %s %s"
-                % (str(instrument_order), str(instrument_order.order_id))
+                % (str(instrument_order), str(instrument_order.order_id)),
+                **instrument_order.log_attributes(),
+                method="temp",
             )
 
     def check_to_see_if_distributed_instrument_order(

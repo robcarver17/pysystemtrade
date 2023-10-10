@@ -306,10 +306,11 @@ class diagPositions(productionDataLayerGeneric):
                 original_contract.instrument_code, original_contract.contract_date
             )
         except ContractNotFound:
-            log = original_contract.specific_log(self.data.log)
-            log.warning(
+            self.data.log.warning(
                 "Contract %s is missing from database - expiry not found and will mismatch"
-                % str(original_contract)
+                % str(original_contract),
+                **original_contract.log_attributes(),
+                method="temp",
             )
             new_contract = copy(original_contract)
         else:
@@ -465,8 +466,7 @@ class updatePositions(productionDataLayerGeneric):
             instrument_strategy, new_position_as_int
         )
 
-        log = original_instrument_order.log_with_attributes(self.log)
-        log.debug(
+        self.log.debug(
             "Updated position of %s from %d to %d because of trade %s %d fill %s"
             % (
                 str(instrument_strategy),
@@ -475,7 +475,9 @@ class updatePositions(productionDataLayerGeneric):
                 str(original_instrument_order),
                 original_instrument_order.order_id,
                 str(new_fill),
-            )
+            ),
+            **original_instrument_order.log_attributes(),
+            method="temp",
         )
 
         return success
@@ -496,20 +498,20 @@ class updatePositions(productionDataLayerGeneric):
 
         time_date = datetime.datetime.now()
 
-        log = contract_order_before_fills.log_with_attributes(self.log)
-
         for contract, trade_done in zip(list_of_individual_contracts, fill_list):
             self._update_positions_for_individual_contract_leg(
                 contract=contract, trade_done=trade_done, time_date=time_date
             )
-            log.debug(
+            self.log.debug(
                 "Updated position of %s because of trade %s ID:%d with fills %d"
                 % (
                     str(contract),
                     str(contract_order_before_fills),
                     contract_order_before_fills.order_id,
                     trade_done,
-                )
+                ),
+                **contract_order_before_fills.log_attributes(),
+                method="temp",
             )
 
     def _update_positions_for_individual_contract_leg(
@@ -526,15 +528,16 @@ class updatePositions(productionDataLayerGeneric):
         # check
         new_position_db = self.diag_positions.get_position_for_contract(contract)
 
-        log = contract.specific_log(self.log)
-        log.debug(
+        self.log.debug(
             "Updated position of %s from %d to %d; new position in db is %d"
             % (
                 str(contract),
                 current_position,
                 new_position,
                 new_position_db,
-            )
+            ),
+            **contract.log_attributes(),
+            method="temp",
         )
 
 
