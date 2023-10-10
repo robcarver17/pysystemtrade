@@ -38,14 +38,11 @@ class SystemStage(object):
         self._parent = system
 
         # and a log
-        # TODO log.setup
-        log = system.log.setup(stage=self.name)
-        self._log = log
+        self._log = get_logger("base_system", {STAGE_LOG_LABEL: self.name})
 
     @property
-    def log(self) -> pst_logger:
-        log = getattr(self, "_log", get_logger(""))
-        return log
+    def log(self):
+        return self._log
 
     @property
     def parent(self) -> System:
