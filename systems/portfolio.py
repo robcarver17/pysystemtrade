@@ -212,16 +212,18 @@ class Portfolios(SystemStage):
             self.get_notional_position_before_risk_scaling(instrument_code)
         )
 
-        risk_scalar = self.get_risk_scalar()
-        if type(risk_scalar) is pd.Series:
+        try:
+            risk_scalar = self.get_risk_scalar()
+        except missingData:
+            self.log.debug("No risk overlay in config: won't apply risk scaling")
+            notional_position = notional_position_without_risk_scalar
+        else:
             risk_scalar_reindex = risk_scalar.reindex(
                 notional_position_without_risk_scalar.index
             )
             notional_position = (
                 notional_position_without_risk_scalar * risk_scalar_reindex.ffill()
             )
-        else:
-            notional_position = notional_position_without_risk_scalar
 
         return notional_position
 
@@ -960,12 +962,7 @@ class Portfolios(SystemStage):
     @diagnostic()
     def get_risk_scalar(self) -> pd.Series:
 
-        risk_overlay_config = self.config.get_element_or_arg_not_supplied(
-            "risk_overlay"
-        )
-        if risk_overlay_config is arg_not_supplied:
-            self.log.debug("No risk overlay in config: won't apply risk scaling")
-            return 1.0
+        risk_overlay_config = self.config.get_element("risk_overlay")
 
         normal_risk = self.get_portfolio_risk_for_original_positions()
         shocked_vol_risk = (
