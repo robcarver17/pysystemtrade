@@ -19,6 +19,7 @@ from sysdata.tools.manual_price_checker import manual_price_checker
 from sysdata.tools.cleaner import priceFilterConfig, get_config_for_price_filtering
 
 from syslogdiag.email_via_db_interface import send_production_mail_msg
+from syslogging.logger import *
 
 from sysobjects.contracts import futuresContract
 from sysobjects.futures_per_contract_prices import futuresContractPrices
@@ -320,8 +321,7 @@ def update_historical_prices_for_instrument(
         return failure
 
     for contract_object in contract_list:
-        # TODO specific_log
-        data.update_log(contract_object.specific_log(data.log))
+        data.update_log(get_logger(data.log.name, **contract_object.log_attributes()))
         update_historical_prices_for_instrument_and_contract(
             contract_object,
             data,
