@@ -208,8 +208,7 @@ class dataBlob(object):
 
     def _get_specific_logger(self, class_object):
         class_name = get_class_name(class_object)
-        # TODO log.setup
-        log = self.log.setup(**{COMPONENT_LOG_LABEL: class_name})
+        log = get_logger(self.log.name, {COMPONENT_LOG_LABEL: class_name})
 
         return log
 
@@ -244,7 +243,7 @@ class dataBlob(object):
     def _add_attr_to_list(self, new_attr: str):
         self._attr_list.append(new_attr)
 
-    def update_log(self, new_log: pst_logger):
+    def update_log(self, new_log):
         self._log = new_log
 
     """
