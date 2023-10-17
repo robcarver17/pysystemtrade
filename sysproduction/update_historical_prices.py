@@ -321,7 +321,7 @@ def update_historical_prices_for_instrument(
         return failure
 
     for contract_object in contract_list:
-        data.update_log(get_logger(data.log.name, **contract_object.log_attributes()))
+        data.update_log(get_logger(data.log.name, contract_object.log_attributes()))
         update_historical_prices_for_instrument_and_contract(
             contract_object,
             data,
