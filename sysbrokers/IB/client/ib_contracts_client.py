@@ -543,7 +543,7 @@ class ibContractsClient(ibClient):
 
         return resolved_contract
 
-    def ib_resolve_unique_contract(self, ibcontract_pattern, log: pst_logger = None):
+    def ib_resolve_unique_contract(self, ibcontract_pattern, log=None):
         """
         Returns the 'resolved' IB contract based on a pattern. We expect a unique contract.
 

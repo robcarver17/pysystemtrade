@@ -82,7 +82,3 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
                 raise Exception(
                     "Attributes %s not allowed in log" % str(bad_attributes)
                 )
-
-
-class pst_logger(DynamicAttributeLogger):
-    pass

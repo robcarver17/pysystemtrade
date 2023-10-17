@@ -28,7 +28,7 @@ class genericOptimiser(object):
         return self._net_returns
 
     @property
-    def log(self) -> pst_logger:
+    def log(self):
         return self._log
 
     @property

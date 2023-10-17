@@ -232,7 +232,7 @@ class instrumentOrder(Order):
         """
         Returns a new log object with instrument_order attributes added
 
-        :param log: pst_logger
+        :param log: logger
         :return: log
         """
         new_log = log.setup(

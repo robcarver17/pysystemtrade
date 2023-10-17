@@ -284,7 +284,7 @@ class contractOrder(Order):
         """
         Returns a new log object with contract_order attributes added
 
-        :param log: pst_logger
+        :param log: logger
         :return: log
         """
         new_log = log.setup(

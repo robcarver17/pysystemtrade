@@ -64,9 +64,7 @@ class ibClient(object):
 
     """
 
-    def __init__(
-        self, ibconnection: connectionIB, log: pst_logger = get_logger("ibClient")
-    ):
+    def __init__(self, ibconnection: connectionIB, log=get_logger("ibClient")):
 
         # means our first call won't be throttled for pacing
         self.last_historic_price_calltime = (

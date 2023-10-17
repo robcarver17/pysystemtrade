@@ -179,7 +179,7 @@ class ibPriceClient(ibContractsClient):
     def _get_generic_data_for_contract(  # TODO passed logger instance
         self,
         ibcontract: ibContract,
-        log: pst_logger = None,
+        log=None,
         bar_freq: Frequency = DAILY_PRICE_FREQ,
         whatToShow: str = "TRADES",
     ) -> pd.DataFrame:
@@ -215,9 +215,7 @@ class ibPriceClient(ibContractsClient):
 
         return price_data_as_df
 
-    def _raw_ib_data_to_df(
-        self, price_data_raw: pd.DataFrame, log: pst_logger
-    ) -> pd.DataFrame:
+    def _raw_ib_data_to_df(self, price_data_raw: pd.DataFrame, log) -> pd.DataFrame:
 
         if price_data_raw is None:
             log.warning("No price data from IB")
@@ -272,7 +270,7 @@ class ibPriceClient(ibContractsClient):
         durationStr: str = "1 Y",
         barSizeSetting: str = "1 day",
         whatToShow="TRADES",
-        log: pst_logger = None,
+        log=None,
     ) -> pd.DataFrame:
         """
         Returns historical prices for a contract, up to today
@@ -345,9 +343,7 @@ def _get_barsize_and_duration_from_frequency(bar_freq: Frequency) -> (str, str):
     return ib_barsize, ib_duration
 
 
-def _avoid_pacing_violation(
-    last_call_datetime: datetime.datetime, log: pst_logger = get_logger("")
-):
+def _avoid_pacing_violation(last_call_datetime: datetime.datetime, log=get_logger("")):
     printed_warning_already = False
     while _pause_for_pacing(last_call_datetime):
         if not printed_warning_already:

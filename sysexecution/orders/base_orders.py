@@ -447,7 +447,7 @@ class Order(object):
         """
         Returns a new log object with order attributes added
 
-        :param log: pst_logger
+        :param log: logger
         :return: log
         """
 

@@ -341,7 +341,7 @@ class brokerOrder(Order):
         """
         Returns a new log object with broker_order attributes added
 
-        :param log: pst_logger
+        :param log: logger
         :return: log
         """
         broker_order = self

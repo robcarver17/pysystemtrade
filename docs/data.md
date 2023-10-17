@@ -980,7 +980,7 @@ Here's a quick whistle-stop tour of dataBlob's other features:
 
 
 - you can create it with a starting class list by passing the `parameter class_list=...`
-- it includes a `log` attribute that is passed to create data storage instances (you can override this by passing in a pst_logger via the `log=` parameter when dataBlob is created), the log will have top level type attribute as defined by the log_name parameter
+- it includes a `log` attribute that is passed to create data storage instances (you can override this by passing in a logger via the `log=` parameter when dataBlob is created), the log will have top level type attribute as defined by the log_name parameter
 - when required it creates a `mongoDb` instance that is passed to create data storage instances (you can override this by passing in a `mongoDb` instance via the `mongo_db=` parameter when dataBlob is created)
 - when required it creates a `connectionIB` instance that is passed to create data storage instances (you can override this by passing in a connection instance via the `ib_conn=` parameter when dataBlob is created)
 - The parameter `csv_data_paths` will allow you to use different .csv data paths, not the defaults. The dict should have the keys of the class names, and values will be the paths to use.

@@ -44,7 +44,7 @@ class System(object):
         stage_list: list,
         data: simData,
         config: Config = arg_not_supplied,
-        log: pst_logger = get_logger("base_system"),
+        log=get_logger("base_system"),
     ):
         """
         Create a system object for doing simulations or live trading
