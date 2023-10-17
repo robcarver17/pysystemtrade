@@ -11,7 +11,7 @@ from sysdata.data_blob import dataBlob
 from sysexecution.orders.list_of_orders import listOfOrders
 from sysexecution.orders.instrument_orders import instrumentOrder
 from sysexecution.order_stacks.instrument_order_stack import zeroOrderException
-
+from syslogging.logger import *
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.orders import dataOrders
 from sysproduction.data.controls import diagOverrides, dataLocks, dataPositionLimits
@@ -190,11 +190,14 @@ class orderGeneratorForStrategy(object):
 
         try:
             order_id = self.order_stack.put_order_on_stack(order)
+            log_attrs[INSTRUMENT_ORDER_ID_LABEL] = order_id
         except zeroOrderException:
-            # we checked for zero already, which means that there is an existing order on the stack
+            # we checked for zero already, which means that there is an existing order
+            # on the stack
             # An existing order of the same size
             self.log.warning(
-                "Ignoring new order as either zero size or it replicates an existing order on the stack",
+                "Ignoring new order as either zero size or it replicates an existing "
+                "order on the stack",
                 **log_attrs,
             )
 
@@ -202,6 +205,5 @@ class orderGeneratorForStrategy(object):
             self.log.debug(
                 "Added order %s to instrument order stack with order id %d"
                 % (str(order), order_id),
-                instrument_order_id=order_id,
                 **log_attrs,
             )
