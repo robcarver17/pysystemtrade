@@ -42,7 +42,10 @@ class SystemStage(object):
 
     @property
     def log(self):
-        return self._log
+        log = getattr(
+            self, "_log", get_logger("base_system", {STAGE_LOG_LABEL: self.name})
+        )
+        return log
 
     @property
     def parent(self) -> System:
