@@ -86,8 +86,7 @@ class fxPricesData(baseData):
             self.log.warning(
                 "Data for %s is missing, needed to calculate %s"
                 % (currency2 + DEFAULT_CURRENCY, DEFAULT_CURRENCY + currency2),
-                CURRENCY_CODE_LOG_LABEL=fx_code,
-                method="temp",
+                **{CURRENCY_CODE_LOG_LABEL: fx_code, "method": "temp"},
             )
             return raw_fx_data
 
@@ -132,8 +131,7 @@ class fxPricesData(baseData):
         if not self.is_code_in_data(code):
             self.log.warning(
                 "Currency %s is missing from list of FX data" % code,
-                CURRENCY_CODE_LOG_LABEL=code,
-                method="temp",
+                **{CURRENCY_CODE_LOG_LABEL: code, "method": "temp"},
             )
 
             return fxPrices.create_empty()

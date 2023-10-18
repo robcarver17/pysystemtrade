@@ -39,8 +39,7 @@ class arcticFxPricesData(fxPricesData):
         self.arctic.delete(currency_code)
         self.log.debug(
             "Deleted fX prices for %s from %s" % (currency_code, str(self)),
-            CURRENCY_CODE_LOG_LABEL=currency_code,
-            method="temp",
+            **{CURRENCY_CODE_LOG_LABEL: currency_code, "method": "temp"},
         )
 
     def _add_fx_prices_without_checking_for_existing_entry(
@@ -54,6 +53,5 @@ class arcticFxPricesData(fxPricesData):
         self.log.debug(
             "Wrote %s lines of prices for %s to %s"
             % (len(fx_price_data), currency_code, str(self)),
-            CURRENCY_CODE_LOG_LABEL=currency_code,
-            method="temp",
+            **{CURRENCY_CODE_LOG_LABEL: currency_code, "method": "temp"},
         )

@@ -54,8 +54,7 @@ class ibFxPricesData(brokerFxPricesData):
         except missingInstrument:
             self.log.warning(
                 "Can't get prices as missing IB config for %s" % currency_code,
-                CURRENCY_CODE_LOG_LABEL=currency_code,
-                method="temp",
+                **{CURRENCY_CODE_LOG_LABEL: currency_code, "method": "temp"},
             )
             return fxPrices.create_empty()
 
@@ -115,8 +114,7 @@ class ibFxPricesData(brokerFxPricesData):
         except missingFile as e:
             self.log.warning(
                 "Can't get IB FX config for %s as config file missing" % currency_code,
-                CURRENCY_CODE_LOG_LABEL=currency_code,
-                method="temp",
+                **{CURRENCY_CODE_LOG_LABEL: currency_code, "method": "temp"},
             )
             raise missingInstrument from e
 
