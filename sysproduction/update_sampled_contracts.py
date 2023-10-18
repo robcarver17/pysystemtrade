@@ -386,7 +386,6 @@ def update_expiry_and_sampling_status_for_contract(
         data.log.debug(
             "Contract %s %s so now stopped sampling"
             % (str(contract_object), unsample_reason),
-            contract_date=contract_object.date_str,
             **log_attrs,
         )
 
