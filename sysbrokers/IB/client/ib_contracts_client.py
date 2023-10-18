@@ -337,7 +337,7 @@ class ibContractsClient(ibClient):
         except missingContract:
             self.log.warning(
                 "Can't get trading hours as contract is missing",
-                contract_object_with_ib_data.log_attributes(),
+                **contract_object_with_ib_data.log_attributes(),
                 method="temp",
             )
             raise
