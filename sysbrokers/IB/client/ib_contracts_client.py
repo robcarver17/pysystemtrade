@@ -295,7 +295,7 @@ class ibContractsClient(ibClient):
             self.log.warning(
                 "%s when getting min tick size from %s!"
                 % (str(e), str(ib_contract_details)),
-                log_attrs,
+                **log_attrs,
             )
             raise missingContract
 
