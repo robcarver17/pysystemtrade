@@ -51,7 +51,6 @@ def my_config(ewmac_8, ewmac_32):
     my_config.trading_rules = dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
     my_config.instruments = ["US10", "EDOLLAR", "CORN", "SP500"]
     my_config.notional_trading_capital = 1000000
-    my_config.risk_overlay = arg_not_supplied
     my_config.exclude_instrument_lists = dict(
         ignore_instruments=["MILK"],
         trading_restrictions=["BUTTER"],
@@ -309,7 +308,6 @@ class TestExamples:
                 percentage_vol_target=25.00,
                 notional_trading_capital=500000,
                 base_currency="GBP",
-                risk_overlay=arg_not_supplied,
                 exclude_instrument_lists=dict(
                     ignore_instruments=["MILK"],
                     trading_restrictions=["BUTTER"],
@@ -379,7 +377,6 @@ class TestExamples:
     def test_simple_system_config_import(self, data):
 
         my_config = Config("systems.provided.example.simplesystemconfig.yaml")
-        my_config.risk_overlay = arg_not_supplied
         my_config.exclude_instrument_lists = dict(
             ignore_instruments=["MILK"],
             trading_restrictions=["BUTTER"],
@@ -418,7 +415,6 @@ class TestExamples:
         This is the simple system from 'examples.introduction.prebakedsimplesystems'
         """
         my_system = simplesystem()
-        my_system.config.risk_overlay = arg_not_supplied
         print(my_system)
         print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 
@@ -428,7 +424,6 @@ class TestExamples:
         This is the config system from 'examples.introduction.prebakedsimplesystems'
         """
         my_config = Config("systems.provided.example.simplesystemconfig.yaml")
-        my_config.risk_overlay = arg_not_supplied
         my_data = csvFuturesSimData()
         my_system = simplesystem(config=my_config, data=my_data)
         print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
@@ -440,7 +435,6 @@ class TestExamples:
         but without graph plotting
         """
         system = base_futures_system()
-        system.config.risk_overlay = arg_not_supplied
         print(system.accounts.portfolio().sharpe())
 
     @staticmethod
