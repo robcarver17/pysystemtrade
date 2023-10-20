@@ -231,7 +231,10 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         allow_expired: bool = False,
     ) -> futuresContractPrices:
 
-        new_log = contract_object_with_ib_broker_config.log(self.log)
+        log_attrs = {
+            **contract_object_with_ib_broker_config.log_attributes(),
+            "method": "temp",
+        }
 
         try:
             price_data = self.ib_client.broker_get_historical_futures_data_for_contract(
@@ -240,16 +243,18 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 allow_expired=allow_expired,
             )
         except missingData:
-            new_log.warning(
+            self.log.warning(
                 "Something went wrong getting IB price data for %s"
-                % str(contract_object_with_ib_broker_config)
+                % str(contract_object_with_ib_broker_config),
+                **log_attrs,
             )
             raise
 
         if len(price_data) == 0:
-            new_log.warning(
+            self.log.warning(
                 "No IB price data found for %s"
-                % str(contract_object_with_ib_broker_config)
+                % str(contract_object_with_ib_broker_config),
+                **log_attrs,
             )
             return futuresContractPrices.create_empty()
 
