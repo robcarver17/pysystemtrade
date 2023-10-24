@@ -49,10 +49,10 @@ class expiryDate(datetime.datetime):
             as_date = datetime.datetime.strptime(date_as_str, EXPIRY_DATE_FORMAT)
         except:
             raise Exception(
-                "Expiry date %s not in format %s" % date_as_str, EXPIRY_DATE_FORMAT
+                "Expiry date %s not in format %s" % (date_as_str, EXPIRY_DATE_FORMAT)
             )
 
-        return expiryDate(as_date.year, as_date.month, as_date.day)
+        return expiryDate(year=as_date.year, month=as_date.month, day=as_date.day)
 
     def as_str(self) -> str:
         return self.strftime(EXPIRY_DATE_FORMAT)
