@@ -235,8 +235,7 @@ class ibContractsClient(ibClient):
                 "Check ib_config_trading_hours in sysbrokers/IB or private directory, hours for timezone %s not found!"
                 % time_zone_id
             )
-            # TODO check this double log
-            self.log.log.critical(error_msg, **log_attrs)
+            self.log.critical(error_msg, **log_attrs)
             raise missingData
 
         return weekly_hours_for_timezone
