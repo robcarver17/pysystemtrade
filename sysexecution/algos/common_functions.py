@@ -1,5 +1,5 @@
 # functions used by multiple algos
-
+import time
 from syscore.exceptions import orderCannotBeModified
 from sysdata.data_blob import dataBlob
 from sysproduction.data.broker import dataBroker
@@ -43,6 +43,7 @@ def cancel_order(
     timer = quickTimer(seconds=CANCEL_WAIT_TIME)
     not_cancelled = True
     while not_cancelled:
+        time.sleep(0.001)
         is_cancelled = data_broker.check_order_is_cancelled_given_control_object(
             broker_order_with_controls
         )
