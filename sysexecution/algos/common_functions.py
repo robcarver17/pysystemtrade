@@ -58,13 +58,12 @@ def cancel_order(
 
 
 def set_limit_price(
-    data: dataBlob,
+    data_broker: dataBroker,
     broker_order_with_controls: orderWithControls,
     new_limit_price: float,
 ):
 
-    log = broker_order_with_controls.order.log_with_attributes(data.log)
-    data_broker = dataBroker(data)
+    log = broker_order_with_controls.order.log_with_attributes(data_broker.data.log)
 
     try:
         broker_order_with_controls = (

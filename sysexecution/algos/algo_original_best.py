@@ -176,7 +176,8 @@ class algoOriginalBest(Algo):
                 if is_aggressive:
                     ## aggressive keep limit price in line
                     set_aggressive_limit_price(
-                        data, broker_order_with_controls_and_order_id
+                        data_broker=self.data_broker,
+                        broker_order_with_controls=broker_order_with_controls_and_order_id,
                     )
                 else:
                     # passive limit trade
@@ -423,7 +424,7 @@ def _is_insufficient_size_on_our_preferred_side(
 
 
 def set_aggressive_limit_price(
-    data: dataBlob, broker_order_with_controls: orderWithControls
+    data_broker: dataBroker, broker_order_with_controls: orderWithControls
 ) -> orderWithControls:
     limit_trade = broker_order_with_controls.order.order_type == limit_order_type
     if not limit_trade:
@@ -437,7 +438,7 @@ def set_aggressive_limit_price(
         pass
     else:
         broker_order_with_controls = set_limit_price(
-            data, broker_order_with_controls, new_limit_price
+            data_broker, broker_order_with_controls, new_limit_price
         )
 
     return broker_order_with_controls
