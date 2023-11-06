@@ -72,7 +72,7 @@ def get_data_and_calculate_for_code(
         no_trade = False
     else:
         no_trade = instrument_code in input_data.no_trade_keys
-    if input_data.long_only is arg_not_supplied:
+    if input_data.long_only_keys is arg_not_supplied:
         long_only = False
     else:
         long_only = instrument_code in input_data.long_only_keys
