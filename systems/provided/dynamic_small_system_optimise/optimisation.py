@@ -54,7 +54,6 @@ class objectiveFunctionForGreedy:
 
         self.weights_optimal = weights_optimal
         self.contracts_optimal = contracts_optimal
-        self.long_only = long_only
 
         if previous_positions is arg_not_supplied:
             weights_prior = arg_not_supplied
