@@ -15,17 +15,18 @@ class dataForOptimisation(object):
         self.weights_optimal = obj_instance.weights_optimal
         self.per_contract_value = obj_instance.per_contract_value
         self.costs = obj_instance.costs
-        self.long_only = obj_instance.long_only
 
         if obj_instance.constraints is arg_not_supplied:
-            reduce_only_keys = no_trade_keys = arg_not_supplied
+            long_only_keys = reduce_only_keys = no_trade_keys = arg_not_supplied
 
         else:
             no_trade_keys = obj_instance.constraints.no_trade_keys
             reduce_only_keys = obj_instance.constraints.reduce_only_keys
+            long_only_keys = obj_instance.constraints.long_only_keys
 
         self.no_trade_keys = no_trade_keys
         self.reduce_only_keys = reduce_only_keys
+        self.long_only_keys = long_only_keys
 
         self.weights_prior = obj_instance.weights_prior
         self.maximum_position_weights = obj_instance.maximum_position_weights

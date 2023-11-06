@@ -75,7 +75,7 @@ def get_data_and_calculate_for_code(
     if input_data.long_only is arg_not_supplied:
         long_only = False
     else:
-        long_only = instrument_code in input_data.long_only
+        long_only = instrument_code in input_data.long_only_keys
 
     max_position = input_data.maximum_position_weight_for_code(instrument_code)
     weight_prior = input_data.prior_weight_for_code(instrument_code)
