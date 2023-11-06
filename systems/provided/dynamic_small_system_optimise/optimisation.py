@@ -39,6 +39,7 @@ class objectiveFunctionForGreedy:
         previous_positions: portfolioWeights = arg_not_supplied,
         constraints: constraintsForDynamicOpt = arg_not_supplied,
         maximum_positions: portfolioWeights = arg_not_supplied,
+        long_only: list = arg_not_supplied,
         log: pst_logger = get_logger("objectiveFunctionForGreedy"),
     ):
 
@@ -53,6 +54,7 @@ class objectiveFunctionForGreedy:
 
         self.weights_optimal = weights_optimal
         self.contracts_optimal = contracts_optimal
+        self.long_only = long_only
 
         if previous_positions is arg_not_supplied:
             weights_prior = arg_not_supplied
