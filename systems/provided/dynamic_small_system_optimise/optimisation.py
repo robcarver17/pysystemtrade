@@ -26,6 +26,7 @@ from systems.provided.dynamic_small_system_optimise.greedy_algo import (
 class constraintsForDynamicOpt:
     reduce_only_keys: list = arg_not_supplied
     no_trade_keys: list = arg_not_supplied
+    long_only_keys: list = arg_not_supplied
 
 
 class objectiveFunctionForGreedy:
