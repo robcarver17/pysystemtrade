@@ -137,14 +137,25 @@ class optimisedPositions(SystemStage):
         ## 'reduce only' is as good as do not trade in backtesting
         ## but we use this rather than 'don't trade' for consistency with production
         reduce_only_keys = self.get_reduce_only_instruments()
+        long_only_keys = self.get_long_only_instruments()
 
-        return constraintsForDynamicOpt(reduce_only_keys=reduce_only_keys)
+        return constraintsForDynamicOpt(
+            reduce_only_keys=reduce_only_keys, long_only_keys=long_only_keys
+        )
 
-    @diagnostic()
+    @input
     def get_reduce_only_instruments(self) -> list:
         reduce_only_keys = self.parent.get_list_of_markets_not_trading_but_with_data()
 
         return reduce_only_keys
+
+    @input
+    def get_long_only_instruments(self) -> list:
+        long_only_keys = (
+            self.config.get_element_or_default("long_only_instruments_DO_ONLY", []),
+        )
+
+        return long_only_keys
 
     def get_speed_control(self):
         small_config = self.config.small_system
