@@ -143,13 +143,11 @@ class optimisedPositions(SystemStage):
             reduce_only_keys=reduce_only_keys, long_only_keys=long_only_keys
         )
 
-    @input
     def get_reduce_only_instruments(self) -> list:
         reduce_only_keys = self.parent.get_list_of_markets_not_trading_but_with_data()
 
         return reduce_only_keys
 
-    @input
     def get_long_only_instruments(self) -> list:
         long_only_keys = (
             self.config.get_element_or_default("long_only_instruments_DO_ONLY", []),
