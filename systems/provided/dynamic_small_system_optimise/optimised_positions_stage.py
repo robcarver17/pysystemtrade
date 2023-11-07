@@ -151,7 +151,9 @@ class optimisedPositions(SystemStage):
     def get_long_only_instruments(self) -> list:
         long_only_keys = (
             self.config.get_element_or_default("long_only_instruments_DO_ONLY", []),
-        )[0] ## can't stop black wrapping in brackets producing a tuple
+        )[
+            0
+        ]  ## can't stop black wrapping in brackets producing a tuple
 
         return long_only_keys
 
