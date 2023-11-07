@@ -149,11 +149,7 @@ class optimisedPositions(SystemStage):
         return reduce_only_keys
 
     def get_long_only_instruments(self) -> list:
-        long_only_keys = (
-            self.config.get_element_or_default("long_only_instruments_DO_ONLY", []),
-        )[
-            0
-        ]  ## can't stop black wrapping in brackets producing a tuple
+        long_only_keys = self.config.get_element_or_default("long_only_instruments_DO_ONLY", [])  # fmt: skip
 
         return long_only_keys
 
