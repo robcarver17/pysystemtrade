@@ -137,26 +137,26 @@ def calculate_minima_and_maxima(
     maximum = A_VERY_LARGE_NUMBER
 
     if long_only:
-        minimum = -A_VERY_SMALL_NUMBER
+        minimum = 0.0
 
     if no_trade:
         if weight_prior is not arg_not_supplied:
             return weight_prior, weight_prior
         else:
-            return -A_VERY_SMALL_NUMBER, +A_VERY_SMALL_NUMBER
+            return 0.0, 0.0
 
     if reduce_only:
         if weight_prior is not arg_not_supplied:
             if weight_prior > 0:
-                minimum = -A_VERY_SMALL_NUMBER
+                minimum = 0.0
                 maximum = weight_prior
             elif weight_prior < 0:
                 minimum = max(minimum, weight_prior)
-                maximum = A_VERY_SMALL_NUMBER
+                maximum = 0.0
 
             else:
                 ## prior weight equals zero, so no trade
-                return (-A_VERY_SMALL_NUMBER, +A_VERY_SMALL_NUMBER)
+                return 0.0, 0.0
 
     if max_position is not arg_not_supplied:
         max_position = abs(max_position)
@@ -173,10 +173,12 @@ def calculate_direction(
     minimum: float = -A_VERY_LARGE_NUMBER,
     maximum: float = A_VERY_LARGE_NUMBER,
 ) -> float:
-    if minimum >= 0:
+
+    ## always start at zero, so if minima/maxima already bind we can only go up or down
+    if minimum >= 0.0:
         return 1
 
-    if maximum <= 0:
+    if maximum <= 0.0:
         return -1
 
     if np.isnan(optimum_weight):
