@@ -1,3 +1,4 @@
+from typing import Callable
 from dataclasses import dataclass
 
 import numpy as np
@@ -41,6 +42,7 @@ class objectiveFunctionForGreedy:
         constraints: constraintsForDynamicOpt = arg_not_supplied,
         maximum_positions: portfolioWeights = arg_not_supplied,
         log: pst_logger = get_logger("objectiveFunctionForGreedy"),
+        constraint_function: Callable = arg_not_supplied,
     ):
 
         self.covariance_matrix = covariance_matrix
@@ -72,7 +74,7 @@ class objectiveFunctionForGreedy:
         self.maximum_position_weights = maximum_position_weights
 
         self.maximum_positions = maximum_positions
-
+        self.constraint_function = constraint_function
         self.log = log
 
     def optimise_positions(self) -> portfolioWeights:
@@ -218,8 +220,9 @@ class objectiveFunctionForGreedy:
     def evaluate(self, weights: np.array) -> float:
         track_error = self.tracking_error_against_optimal(weights)
         trade_costs = self.calculate_costs(weights)
+        constraint_function_value = self.constraint_function_value(weights)
 
-        return track_error + trade_costs
+        return track_error + trade_costs + constraint_function_value
 
     def tracking_error_against_optimal(self, weights: np.array) -> float:
         track_error = self.tracking_error_against_passed_weights(
@@ -265,6 +268,18 @@ class objectiveFunctionForGreedy:
     @property
     def trade_shadow_cost(self):
         return self.speed_control.trade_shadow_cost
+
+    def constraint_function_value(self, weights: np.array):
+        if self.constraint_function == arg_not_supplied:
+            return 0.0
+
+        portfolio_weights = portfolioWeights.from_weights_and_keys(
+            list_of_weights=weights, list_of_keys=self.keys_with_valid_data
+        )
+        constraint_function = self.constraint_function
+        value = constraint_function(portfolio_weights)
+
+        return value
 
     @property
     def starting_weights_as_np(self) -> np.array:
