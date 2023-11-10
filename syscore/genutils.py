@@ -86,6 +86,9 @@ def round_significant_figures(x: float, figures: int = 3) -> float:
     >>> round_significant_figures(0.0234, 2)
     0.023
     """
+    if x == 0:
+        return 0.0
+
     return round(x, figures - int(math.floor(math.log10(abs(x)))) - 1)
 
 

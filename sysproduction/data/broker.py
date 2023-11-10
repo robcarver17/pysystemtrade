@@ -45,6 +45,10 @@ from sysproduction.data.generic_production_data import productionDataLayerGeneri
 
 
 class dataBroker(productionDataLayerGeneric):
+    def __init__(self, data: dataBlob = arg_not_supplied):
+        super().__init__(data)
+        self._diag_controls = diagControlProcess()
+
     def _add_required_classes_to_data(self, data) -> dataBlob:
 
         # Add a list of broker specific classes that will be aliased as self.data.broker_fx_prices,
@@ -89,6 +93,10 @@ class dataBroker(productionDataLayerGeneric):
     @property
     def broker_static_data(self) -> brokerStaticData:
         return self.data.broker_static
+
+    @property
+    def diag_controls(self) -> diagControlProcess:
+        return self._diag_controls
 
     ## Methods
 
@@ -191,9 +199,8 @@ class dataBroker(productionDataLayerGeneric):
         self, contract: futuresContract, N_hours: float = 1.0
     ) -> bool:
 
-        diag_controls = diagControlProcess()
         hours_left_before_process_finishes = (
-            diag_controls.how_long_in_hours_before_trading_process_finishes()
+            self.diag_controls.how_long_in_hours_before_trading_process_finishes()
         )
 
         if hours_left_before_process_finishes < N_hours:

@@ -19,7 +19,7 @@ class instrumentOrderStackData(orderStackData):
         list_of_orders = [
             order
             for order in list_of_orders
-            if order.instrument_code is instrument_code
+            if order.instrument_code == instrument_code
         ]
 
         return list_of_orders

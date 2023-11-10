@@ -1,5 +1,5 @@
 # functions used by multiple algos
-
+import time
 from syscore.exceptions import orderCannotBeModified
 from sysdata.data_blob import dataBlob
 from sysproduction.data.broker import dataBroker
@@ -43,6 +43,7 @@ def cancel_order(
     timer = quickTimer(seconds=CANCEL_WAIT_TIME)
     not_cancelled = True
     while not_cancelled:
+        time.sleep(0.001)
         is_cancelled = data_broker.check_order_is_cancelled_given_control_object(
             broker_order_with_controls
         )
@@ -60,13 +61,12 @@ def cancel_order(
 
 
 def set_limit_price(
-    data: dataBlob,
+    data_broker: dataBroker,
     broker_order_with_controls: orderWithControls,
     new_limit_price: float,
 ):
 
     log_attrs = {**broker_order_with_controls.order.log_attributes(), "method": "temp"}
-    data_broker = dataBroker(data)
 
     try:
         broker_order_with_controls = (
@@ -74,12 +74,12 @@ def set_limit_price(
                 broker_order_with_controls, new_limit_price
             )
         )
-        data.log.debug(
+        data_broker.data.log.debug(
             "Tried to change limit price to %f" % new_limit_price,
             **log_attrs,
         )
     except orderCannotBeModified as error:
-        data.log.debug(
+        data_broker.data.log.debug(
             "Can't modify limit price for order, error %s" % str(error),
             **log_attrs,
         )

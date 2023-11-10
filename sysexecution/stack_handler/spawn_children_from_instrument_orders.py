@@ -64,18 +64,19 @@ class stackHandlerForSpawning(stackHandlerCore):
             self.data, instrument_order
         )
 
-        self.log.debug(
-            "List of contract orders spawned %s" % str(list_of_contract_orders),
-            **instrument_order.log_attributes(),
-            method="temp",
-        )
+        if len(list_of_contract_orders) > 0:
+            self.log.debug(
+                "List of contract orders spawned %s" % str(list_of_contract_orders),
+                **instrument_order.log_attributes(),
+                method="temp",
+            )
 
-        self.add_children_to_stack_and_child_id_to_parent(
-            self.instrument_stack,
-            self.contract_stack,
-            instrument_order,
-            list_of_contract_orders,
-        )
+            self.add_children_to_stack_and_child_id_to_parent(
+                self.instrument_stack,
+                self.contract_stack,
+                instrument_order,
+                list_of_contract_orders,
+            )
 
     def add_children_to_stack_and_child_id_to_parent(
         self,

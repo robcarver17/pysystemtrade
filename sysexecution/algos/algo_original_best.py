@@ -2,7 +2,7 @@
 This is the original 'best execution' algo I used in my legacy system
 """
 from typing import Union
-
+import time
 from syscore.exceptions import missingData, marketClosed
 from sysexecution.orders.named_order_objects import missing_order
 
@@ -112,7 +112,7 @@ class algoOriginalBest(Algo):
         try:
             okay_to_do_limit_trade = limit_trade_viable(
                 ticker_object=ticker_object,
-                data=data,
+                data_broker=self.data_broker,
                 order=cut_down_contract_order,
                 log=log,
             )
@@ -153,7 +153,6 @@ class algoOriginalBest(Algo):
         log = broker_order_with_controls_and_order_id.order.log_with_attributes(
             data.log
         )
-        data_broker = dataBroker(data)
 
         trade_open = True
         is_aggressive = False
@@ -167,6 +166,7 @@ class algoOriginalBest(Algo):
         )
 
         while trade_open:
+            time.sleep(0.001)
             if broker_order_with_controls_and_order_id.message_required(
                 messaging_frequency_seconds=MESSAGING_FREQUENCY
             ):
@@ -178,12 +178,13 @@ class algoOriginalBest(Algo):
                 if is_aggressive:
                     ## aggressive keep limit price in line
                     set_aggressive_limit_price(
-                        data, broker_order_with_controls_and_order_id
+                        data_broker=self.data_broker,
+                        broker_order_with_controls=broker_order_with_controls_and_order_id,
                     )
                 else:
                     # passive limit trade
                     reason_to_switch = reason_to_switch_to_aggressive(
-                        data=data,
+                        data_broker=self.data_broker,
                         broker_order_with_controls=broker_order_with_controls_and_order_id,
                         log=log,
                     )
@@ -212,8 +213,10 @@ class algoOriginalBest(Algo):
                 )
                 break
 
-            order_cancelled = data_broker.check_order_is_cancelled_given_control_object(
-                broker_order_with_controls_and_order_id
+            order_cancelled = (
+                self.data_broker.check_order_is_cancelled_given_control_object(
+                    broker_order_with_controls_and_order_id
+                )
             )
             if order_cancelled:
                 log.warning("Order has been cancelled: not by algo")
@@ -223,7 +226,10 @@ class algoOriginalBest(Algo):
 
 
 def limit_trade_viable(  # TODO passed logger instance
-    data: dataBlob, order: contractOrder, ticker_object: tickerObject, log
+    data_broker: dataBroker,
+    order: contractOrder,
+    ticker_object: tickerObject,
+    log,
 ) -> bool:
 
     # no point doing limit order if we've got imbalanced size issues, as we'd
@@ -237,7 +243,7 @@ def limit_trade_viable(  # TODO passed logger instance
         return False
 
     # or if not enough time left
-    if is_market_about_to_close(data, order=order, log=log):
+    if is_market_about_to_close(data_broker=data_broker, order=order, log=log):
 
         log.debug(
             "Market about to close or stack handler nearly close - doing market order"
@@ -286,7 +292,9 @@ def file_log_report_limit_order(
 
 
 def reason_to_switch_to_aggressive(
-    data: dataBlob, broker_order_with_controls: orderWithControls, log
+    data_broker: dataBroker,
+    broker_order_with_controls: orderWithControls,
+    log,
 ) -> str:
     ticker_object = broker_order_with_controls.ticker
 
@@ -300,7 +308,7 @@ def reason_to_switch_to_aggressive(
         )
 
     market_about_to_close = is_market_about_to_close(
-        data=data, order=broker_order_with_controls, log=log
+        data_broker=data_broker, order=broker_order_with_controls, log=log
     )
     if market_about_to_close:
         return "Market is closing soon or stack handler will end soon"
@@ -327,11 +335,10 @@ def reason_to_switch_to_aggressive(
 
 
 def is_market_about_to_close(
-    data: dataBlob,
+    data_broker: dataBroker,
     order: Union[brokerOrder, contractOrder, orderWithControls],
     log,
 ) -> bool:
-    data_broker = dataBroker(data)
 
     try:
         short_of_time = data_broker.less_than_N_hours_of_trading_left_for_contract(
@@ -417,7 +424,7 @@ def _is_insufficient_size_on_our_preferred_side(
 
 
 def set_aggressive_limit_price(
-    data: dataBlob, broker_order_with_controls: orderWithControls
+    data_broker: dataBroker, broker_order_with_controls: orderWithControls
 ) -> orderWithControls:
     limit_trade = broker_order_with_controls.order.order_type == limit_order_type
     if not limit_trade:
@@ -431,7 +438,7 @@ def set_aggressive_limit_price(
         pass
     else:
         broker_order_with_controls = set_limit_price(
-            data, broker_order_with_controls, new_limit_price
+            data_broker, broker_order_with_controls, new_limit_price
         )
 
     return broker_order_with_controls
