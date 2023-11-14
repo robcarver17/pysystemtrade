@@ -93,8 +93,15 @@ class stackHandlerForFills(stackHandlerForCompletions):
 
         contract_order_id = broker_order.parent
 
-        # pass broker fills upwards
-        self.apply_broker_fills_to_contract_order(contract_order_id)
+        if contract_order_id is no_parent:
+            log = broker_order.log_with_attributes(self.log)
+            log.error(
+                "No parent for broker order %s %d"
+                % (str(broker_order), broker_order_id)
+            )
+        else:
+            # pass broker fills upwards
+            self.apply_broker_fills_to_contract_order(contract_order_id)
 
     def pass_fills_from_broker_up_to_contract(self):
         list_of_contract_order_ids = self.contract_stack.get_list_of_order_ids()
