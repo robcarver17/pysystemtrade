@@ -587,7 +587,7 @@ def generate_generic_manual_fill(data):
     stack_handler = stackHandler()
     if type(order) is brokerOrder:
         ## pass up and change positions
-        stack_handler.apply_broker_order_fills_to_database(order)
+        stack_handler.apply_broker_order_fills_to_database(order_id, order)
     else:
         stack_handler.apply_contract_order_fill_to_database(order)
 
