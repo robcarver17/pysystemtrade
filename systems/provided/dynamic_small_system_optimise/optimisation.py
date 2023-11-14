@@ -270,6 +270,7 @@ class objectiveFunctionForGreedy:
         return self.speed_control.trade_shadow_cost
 
     def constraint_function_value(self, weights: np.array):
+        ## Function that will return a big number if constraints aren't satisfied
         if self.constraint_function == arg_not_supplied:
             return 0.0
 
