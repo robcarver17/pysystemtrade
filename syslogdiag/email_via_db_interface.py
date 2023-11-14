@@ -50,7 +50,7 @@ def send_email_and_record_date_or_store_on_fail(
     except Exception as e:
         # problem sending emails will store instead
         data.log.debug(
-            "Problem %s sending email subject %s, but message is stored"
+            "Problem %s sending email subject %s, but message will be stored"
             % (str(e), subject)
         )
     store_message(data, body, subject, email_is_report=email_is_report)
@@ -141,7 +141,7 @@ def record_date_of_email_warning_send(data, subject):
 
 def store_message(data, body, subject, email_is_report=False):
     if email_is_report:
-        # can't store reports
+        data.log.debug("Message not stored: can't store reports")
         return None
 
     email_store_file = get_storage_filename(data)
