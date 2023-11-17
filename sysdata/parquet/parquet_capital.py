@@ -45,5 +45,8 @@ class parquetCapitalData(capitalData):
     def update_capital_pd_df_for_strategy(
         self, strategy_name: str, updated_capital_df: pd.DataFrame
     ):
-        updated_capital_df.columns = ['capital']
+        if len(updated_capital_df.columns)==1:
+            ## single strategy, need columns labelling
+            updated_capital_df.columns = ['capital']
+
         self.parquet.write_data_given_data_type_and_identifier(data_to_write=updated_capital_df, identifier=strategy_name, data_type=CAPITAL_COLLECTION)
