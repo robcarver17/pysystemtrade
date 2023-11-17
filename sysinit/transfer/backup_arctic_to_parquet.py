@@ -7,6 +7,7 @@ from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
 from sysdata.data_blob import dataBlob
 
 from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
+from sysdata.parquet.parquet_capital import parquetCapitalData
 
 from sysdata.csv.csv_futures_contracts import csvFuturesContractData
 from sysdata.csv.csv_futures_contract_prices import csvFuturesContractPriceData
@@ -19,7 +20,6 @@ from sysdata.csv.csv_historic_orders import (
     csvContractHistoricOrdersData,
     csvBrokerHistoricOrdersData,
 )
-from sysdata.csv.csv_capital_data import csvCapitalData
 from sysdata.csv.csv_optimal_position import csvOptimalPositionData
 from sysdata.csv.csv_spread_costs import csvSpreadCostData
 from sysdata.csv.csv_roll_state_storage import csvRollStateData
@@ -67,7 +67,7 @@ def backup_arctic_to_parquet():
         #backup_strategy_position_data(backup_data)
         #backup_contract_position_data(backup_data)
         #backup_historical_orders(backup_data)
-        #backup_capital(backup_data)
+        backup_capital(backup_data)
         #backup_contract_data(backup_data)
         #backup_spread_cost_data(backup_data)
         #backup_optimal_positions(backup_data)
@@ -83,7 +83,7 @@ def get_data_blob(logname):
     data.add_class_list(
         [
             #csvBrokerHistoricOrdersData,
-            #csvCapitalData,
+            parquetCapitalData,
             #csvContractHistoricOrdersData,
             #csvContractPositionData,
             parquetFuturesAdjustedPricesData,
@@ -373,22 +373,12 @@ def backup_historical_orders(data):
 
 
 def backup_capital(data):
-    strategy_capital_dict = get_dict_of_strategy_capital(data)
-    capital_data_df = add_total_capital_to_strategy_capital_dict_return_df(
-        data, strategy_capital_dict
-    )
-    capital_data_df = capital_data_df.ffill()
-
-    data.csv_capital.write_backup_df_of_all_capital(capital_data_df)
-
-
-def get_dict_of_strategy_capital(data: dataBlob) -> dict:
-    strategy_list = get_list_of_strategies(data)
-    strategy_capital_data = dict()
+    strategy_list = data.arctic_capital._get_list_of_strategies_with_capital_including_total()
     for strategy_name in strategy_list:
-        strategy_capital_data[
-            strategy_name
-        ] = data.arctic_capital.get_capital_pd_df_for_strategy(strategy_name)
+        strategy_capital_data=data.arctic_capital.get_capital_pd_df_for_strategy(strategy_name)
+        data.parquet_capital.update_capital_pd_df_for_strategy(strategy_name=strategy_name, updated_capital_df=strategy_capital_data)
+        written_data = data.parquet_capital.get_capital_pd_df_for_strategy(strategy_name)
+        print("Wrote capital data for strategy %s, %s" % (strategy_name, str(written_data)))
 
     return strategy_capital_data
 
