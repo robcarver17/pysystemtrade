@@ -4,13 +4,15 @@ import pandas as pd
 from syscore.exceptions import missingData
 from syscore.pandas.pdutils import check_df_equals, check_ts_equals
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
+from syscore.dateutils import DAILY_PRICE_FREQ, HOURLY_FREQ
+
 from sysdata.data_blob import dataBlob
 
 from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
 from sysdata.parquet.parquet_capital import parquetCapitalData
+from sysdata.parquet.parquet_futures_per_contract_prices import parquetFuturesContractPriceData
 
 from sysdata.csv.csv_futures_contracts import csvFuturesContractData
-from sysdata.csv.csv_futures_contract_prices import csvFuturesContractPriceData
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
 from sysdata.csv.csv_contract_position_data import csvContractPositionData
@@ -59,7 +61,7 @@ def backup_arctic_to_parquet():
         log = backup_data.log
 
         log.debug("Dumping from arctic, mongo to parquet files")
-        #backup_futures_contract_prices_to_csv(backup_data)
+        backup_futures_contract_prices_to_parquet(backup_data)
         #backup_spreads_to_csv(backup_data)
         #backup_fx_to_csv(backup_data)
         #backup_multiple_to_csv(backup_data)
@@ -77,7 +79,7 @@ def backup_arctic_to_parquet():
 def get_data_blob(logname):
 
     data = dataBlob(
-         keep_original_prefix=True, log_name=logname, parquet_store_path=get_parquet_root_directory()
+         keep_original_prefix=True, log_name=logname
     )
 
     data.add_class_list(
@@ -88,7 +90,7 @@ def get_data_blob(logname):
             #csvContractPositionData,
             parquetFuturesAdjustedPricesData,
             #csvFuturesContractData,
-            #csvFuturesContractPriceData,
+            parquetFuturesContractPriceData,
             #csvFuturesMultiplePricesData,
             #csvFxPricesData,
             #csvOptimalPositionData,
@@ -151,42 +153,34 @@ def backup_adj_to_parquet_for_instrument(data: dataBlob, instrument_code: str):
 
 
 # Futures contract data
-def backup_futures_contract_prices_to_csv(data, ignore_long_expired: bool = True):
+def backup_futures_contract_prices_to_parquet(data):
     instrument_list = (
         data.arctic_futures_contract_price.get_list_of_instrument_codes_with_merged_price_data()
     )
     for instrument_code in instrument_list:
-        backup_futures_contract_prices_for_instrument_to_csv(
+        backup_futures_contract_prices_for_instrument_to_parquet(
             data=data,
-            instrument_code=instrument_code,
-            ignore_long_expired=ignore_long_expired,
+            instrument_code=instrument_code
         )
 
 
-def backup_futures_contract_prices_for_instrument_to_csv(
-    data: dataBlob, instrument_code: str, ignore_long_expired: bool = True
+def backup_futures_contract_prices_for_instrument_to_parquet(
+    data: dataBlob, instrument_code: str
 ):
     list_of_contracts = data.arctic_futures_contract_price.contracts_with_merged_price_data_for_instrument_code(
         instrument_code
     )
 
     for futures_contract in list_of_contracts:
-        backup_futures_contract_prices_for_contract_to_csv(
+        backup_futures_contract_prices_for_contract_to_parquet(
             data=data,
             futures_contract=futures_contract,
-            ignore_long_expired=ignore_long_expired,
         )
 
 
-def backup_futures_contract_prices_for_contract_to_csv(
-    data: dataBlob, futures_contract: futuresContract, ignore_long_expired: bool = True
+def backup_futures_contract_prices_for_contract_to_parquet(
+    data: dataBlob, futures_contract: futuresContract
 ):
-    if ignore_long_expired:
-        if futures_contract.days_since_expiry() > CALENDAR_DAYS_IN_YEAR:
-            ## Almost certainly expired, skip
-            data.log.debug("Skipping expired contract %s" % str(futures_contract))
-
-            return None
 
     arctic_data = (
         data.arctic_futures_contract_price.get_merged_prices_for_contract_object(
@@ -194,28 +188,43 @@ def backup_futures_contract_prices_for_contract_to_csv(
         )
     )
 
-    csv_data = data.csv_futures_contract_price.get_merged_prices_for_contract_object(
-        futures_contract
+    data.parquet_futures_contract_price.write_merged_prices_for_contract_object(
+        futures_contract,
+        arctic_data,
+        ignore_duplication=True,
+    )
+    parquet_data = (
+        data.parquet_futures_contract_price.get_merged_prices_for_contract_object(
+            futures_contract
+        )
+    )
+    data.log.debug(
+        "Written backup .csv of prices for %s was %s now %s" % (str(futures_contract), arctic_data, parquet_data)
     )
 
-    if check_df_equals(arctic_data, csv_data):
-        # No update needed, move on
-        data.log.debug("No prices backup needed for %s" % str(futures_contract))
-    else:
-        # Write backup
-        try:
-            data.csv_futures_contract_price.write_merged_prices_for_contract_object(
+    for frequency in [DAILY_PRICE_FREQ, HOURLY_FREQ]:
+        arctic_data = (
+            data.arctic_futures_contract_price.get_prices_at_frequency_for_contract_object(
                 futures_contract,
-                arctic_data,
-                ignore_duplication=True,
+                frequency=frequency
             )
-            data.log.debug(
-                "Written backup .csv of prices for %s" % str(futures_contract)
+        )
+
+        data.parquet_futures_contract_price.write_prices_at_frequency_for_contract_object(
+            futures_contract_object=futures_contract,
+            futures_price_data=arctic_data,
+            frequency=frequency,
+            ignore_duplication=True
+        )
+        parquet_data = (
+            data.parquet_futures_contract_price.get_prices_at_frequency_for_contract_object(
+                futures_contract,
+                frequency=frequency
             )
-        except BaseException:
-            data.log.warning(
-                "Problem writing .csv of prices for %s" % str(futures_contract)
-            )
+        )
+        data.log.debug(
+            "Written backup .csv of prices at frequency %s for %s was %s now %s" % (str(frequency), str(futures_contract), arctic_data, parquet_data)
+        )
 
 
 # fx
