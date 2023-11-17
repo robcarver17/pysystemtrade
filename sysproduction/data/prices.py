@@ -13,10 +13,8 @@ from sysobjects.dict_of_futures_per_contract_prices import (
 )
 from sysobjects.spreads import spreadsForInstrument
 
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-    futuresContractPrices,
-)
+from sysdata.pointers import parquetFuturesContractPriceData
+from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysdata.arctic.arctic_multiple_prices import (
     arcticFuturesMultiplePricesData,
     futuresMultiplePrices,
@@ -54,7 +52,7 @@ class diagPrices(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
             [
-                arcticFuturesContractPriceData,
+                parquetFuturesContractPriceData,
                 parquetFuturesAdjustedPricesData,
                 arcticFuturesMultiplePricesData,
                 mongoFuturesContractData,
@@ -249,7 +247,7 @@ class updatePrices(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
             [
-                arcticFuturesContractPriceData,
+                parquetFuturesContractPriceData,
                 arcticFuturesMultiplePricesData,
                 mongoFuturesContractData,
                 parquetFuturesAdjustedPricesData,

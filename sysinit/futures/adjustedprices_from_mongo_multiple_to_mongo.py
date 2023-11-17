@@ -6,7 +6,7 @@ We then store those adjusted prices in arctic and/or csv
 """
 from syscore.constants import arg_not_supplied
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
-from sysdata.pointers import parquetFuturesAdjustedPricesData
+from sysdata.pointers import parquet_futures_adjusted_price_data
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 
 from sysobjects.adjusted_prices import futuresAdjustedPrices
@@ -14,7 +14,7 @@ from sysobjects.adjusted_prices import futuresAdjustedPrices
 
 def _get_data_inputs(csv_adj_data_path):
     arctic_multiple_prices = arcticFuturesMultiplePricesData()
-    parquet_adjusted_prices = parquetFuturesAdjustedPricesData()
+    parquet_adjusted_prices = parquet_futures_adjusted_price_data
     csv_adjusted_prices = csvFuturesAdjustedPricesData(csv_adj_data_path)
 
     return arctic_multiple_prices, parquet_adjusted_prices, csv_adjusted_prices

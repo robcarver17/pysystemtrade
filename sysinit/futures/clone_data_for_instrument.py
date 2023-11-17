@@ -1,8 +1,6 @@
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
+from sysdata.pointers import parquet_futures_contract_price_data
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
-from sysdata.pointers import parquetFuturesAdjustedPricesData
+from sysdata.pointers import parquet_futures_adjusted_price_data
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
@@ -13,9 +11,9 @@ from sysobjects.multiple_prices import futuresMultiplePrices
 from sysobjects.adjusted_prices import futuresAdjustedPrices
 
 
-db_data_individual_prices = arcticFuturesContractPriceData()
+db_data_individual_prices = parquet_futures_contract_price_data
 db_data_multiple_prices = arcticFuturesMultiplePricesData()
-db_data_adjusted_prices = parquetFuturesAdjustedPricesData()
+db_data_adjusted_prices = parquet_futures_adjusted_price_data
 
 csv_roll_calendar = csvRollCalendarData()
 csv_multiple = csvFuturesMultiplePricesData()

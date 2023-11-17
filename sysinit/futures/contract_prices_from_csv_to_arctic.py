@@ -1,9 +1,7 @@
 from syscore.constants import arg_not_supplied
 
 from sysdata.csv.csv_futures_contract_prices import csvFuturesContractPriceData
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
+from sysdata.pointers import parquet_futures_contract_price_data
 from sysobjects.contracts import futuresContract
 
 
@@ -29,7 +27,7 @@ def init_arctic_with_csv_futures_contract_prices_for_code(
 ):
     print(instrument_code)
     csv_prices = csvFuturesContractPriceData(datapath, config=csv_config)
-    arctic_prices = arcticFuturesContractPriceData()
+    arctic_prices = parquet_futures_contract_price_data
 
     print("Getting .csv prices may take some time")
     csv_price_dict = csv_prices.get_merged_prices_for_instrument(instrument_code)

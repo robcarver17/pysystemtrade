@@ -1,9 +1,7 @@
 import datetime as datetime
 import pandas as pd
 from syscore.exceptions import missingData
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
+from sysdata.pointers import parquetFuturesContractPriceData
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData
 from sysobjects.contracts import futuresContract
 from sysdata.data_blob import dataBlob
@@ -18,7 +16,7 @@ NOTIONALLY_ZERO_VOLUME = 0.0001
 
 class diagVolumes(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(arcticFuturesContractPriceData)
+        data.add_class_object(parquetFuturesContractPriceData)
         return data
 
     @property

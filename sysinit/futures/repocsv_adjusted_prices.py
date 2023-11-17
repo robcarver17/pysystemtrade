@@ -2,12 +2,12 @@
 Copy from csv repo files to arctic for adjusted prices
 """
 from syscore.constants import arg_not_supplied
-from sysdata.pointers import parquetFuturesAdjustedPricesData
+from sysdata.pointers import parquet_futures_adjusted_price_data
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 
 if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")
-    parquet_adjusted_prices = parquetFuturesAdjustedPricesData()
+    parquet_adjusted_prices = parquet_futures_adjusted_price_data
 
     ## MODIFY PATH TO USE SOMETHING OTHER THAN DEFAULT
     csv_adj_datapath = arg_not_supplied

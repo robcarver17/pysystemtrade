@@ -2,9 +2,7 @@ import datetime
 
 from syscore.exceptions import missingData, ContractNotFound
 
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
+from sysdata.pointers import parquetFuturesContractPriceData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.csv.csv_roll_parameters import csvRollParametersData
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
@@ -33,7 +31,7 @@ class dataContracts(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
             [
-                arcticFuturesContractPriceData,
+                parquetFuturesContractPriceData,
                 csvRollParametersData,
                 arcticFuturesMultiplePricesData,
                 mongoFuturesContractData,

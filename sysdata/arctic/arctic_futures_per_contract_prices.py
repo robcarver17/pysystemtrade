@@ -6,9 +6,9 @@ Read and write data from mongodb for individual futures contracts
 from syscore.dateutils import Frequency, MIXED_FREQ
 
 from sysdata.arctic.arctic_connection import arcticData
+from sysobjects.contracts import listOfFuturesContracts
 from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
-    listOfFuturesContracts,
 )
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, get_code_and_id_from_contract_key

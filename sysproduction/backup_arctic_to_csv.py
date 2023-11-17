@@ -24,13 +24,11 @@ from sysdata.csv.csv_spread_costs import csvSpreadCostData
 from sysdata.csv.csv_roll_state_storage import csvRollStateData
 from sysdata.csv.csv_spreads import csvSpreadsForInstrumentData
 
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
-from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.pointers import parquetFuturesAdjustedPricesData
 from sysdata.pointers import parquetCapitalData
+from sysdata.pointers import parquetFuturesContractPriceData
 
+from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.arctic.arctic_spreads import arcticSpreadsForInstrumentData
 from sysdata.arctic.arctic_historic_strategy_positions import arcticStrategyPositionData
@@ -150,7 +148,7 @@ def get_data_and_create_csv_directories(logname):
         [
             parquetCapitalData,
             parquetFuturesAdjustedPricesData,
-            arcticFuturesContractPriceData,
+            parquetFuturesContractPriceData,
             arcticFuturesMultiplePricesData,
             arcticFxPricesData,
             arcticSpreadsForInstrumentData,
@@ -189,7 +187,7 @@ def backup_futures_contract_prices_to_csv(data, ignore_long_expired: bool = True
 def backup_futures_contract_prices_for_instrument_to_csv(
     data: dataBlob, instrument_code: str, ignore_long_expired: bool = True
 ):
-    list_of_contracts = data.arctic_futures_contract_price.contracts_with_merged_price_data_for_instrument_code(
+    list_of_contracts = data.parquet_futures_contract_price.contracts_with_merged_price_data_for_instrument_code(
         instrument_code
     )
 
@@ -211,8 +209,8 @@ def backup_futures_contract_prices_for_contract_to_csv(
 
             return None
 
-    arctic_data = (
-        data.arctic_futures_contract_price.get_merged_prices_for_contract_object(
+    parquet_data = (
+        data.parquet_futures_contract_price.get_merged_prices_for_contract_object(
             futures_contract
         )
     )
@@ -221,7 +219,7 @@ def backup_futures_contract_prices_for_contract_to_csv(
         futures_contract
     )
 
-    if check_df_equals(arctic_data, csv_data):
+    if check_df_equals(parquet_data, csv_data):
         # No update needed, move on
         data.log.debug("No prices backup needed for %s" % str(futures_contract))
     else:
@@ -229,7 +227,7 @@ def backup_futures_contract_prices_for_contract_to_csv(
         try:
             data.csv_futures_contract_price.write_merged_prices_for_contract_object(
                 futures_contract,
-                arctic_data,
+                parquet_data,
                 ignore_duplication=True,
             )
             data.log.debug(

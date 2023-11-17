@@ -3,13 +3,10 @@ from syscore.pandas.frequency import (
     closing_date_rows_in_pd_object,
     get_intraday_pdf_at_frequency,
 )
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
-
+from sysdata.pointers import parquet_futures_contract_price_data
 
 def write_split_data_for_instrument(instrument_code):
-    a = arcticFuturesContractPriceData()
+    a = parquet_futures_contract_price_data
     list_of_contracts = a.contracts_with_merged_price_data_for_instrument_code(
         instrument_code
     )
@@ -38,10 +35,10 @@ def write_split_data_for_instrument(instrument_code):
 
 if __name__ == "__main__":
     input(
-        "This script will delete any existing hourly and daily data in arctic, and replace with hourly and data inferred from 'merged' (legacy) data. CTL-C to abort"
+        "This script will delete any existing hourly and daily data in parquet, and replace with hourly and data inferred from 'merged' (legacy) data. CTL-C to abort"
     )
 
-    a = arcticFuturesContractPriceData()
+    a = parquet_futures_contract_price_data
     instrument_list = a.get_list_of_instrument_codes_with_merged_price_data()
     for instrument_code in instrument_list:
         print(instrument_code)

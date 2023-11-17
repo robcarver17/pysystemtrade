@@ -16,9 +16,7 @@ from sysobjects.dict_of_futures_per_contract_prices import (
 
 import datetime
 import pandas as pd
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
+from sysdata.pointers import parquet_futures_contract_price_data
 from sysobjects.rolls import rollParameters, contractDateWithRollParameters
 from sysobjects.contract_dates_and_expiries import contractDate
 
@@ -26,16 +24,13 @@ from sysdata.csv.csv_roll_calendars import csvRollCalendarData
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_roll_parameters import csvRollParametersData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
 from sysinit.futures.build_roll_calendars import adjust_to_price_series
 from sysobjects.multiple_prices import futuresMultiplePrices
 
 
 def _get_data_inputs(csv_roll_data_path, csv_multiple_data_path):
     csv_roll_calendars = csvRollCalendarData(csv_roll_data_path)
-    arctic_individual_futures_prices = arcticFuturesContractPriceData()
+    arctic_individual_futures_prices = parquet_futures_contract_price_data
     arctic_multiple_prices = arcticFuturesMultiplePricesData()
     csv_multiple_prices = csvFuturesMultiplePricesData(csv_multiple_data_path)
 
@@ -144,7 +139,7 @@ def process_multiple_prices_single_instrument(
 
 
 def adjust_roll_calendar(instrument_code, roll_calendar):
-    arctic_prices_per_contract = arcticFuturesContractPriceData()
+    arctic_prices_per_contract = parquet_futures_contract_price_data
     print("Getting prices to adjust roll calendar")
     dict_of_prices = arctic_prices_per_contract.get_merged_prices_for_instrument(
         instrument_code

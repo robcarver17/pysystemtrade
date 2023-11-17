@@ -1,9 +1,7 @@
 from syscore.interactive.input import true_if_answer_is_yes
 from syscore.constants import arg_not_supplied
 
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
+from sysdata.pointers import parquet_futures_contract_price_data
 from sysobjects.rolls import rollParameters
 from sysobjects.roll_calendars import rollCalendar
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
@@ -35,7 +33,7 @@ def build_and_write_roll_calendar(
         print("Writing to %s" % output_datapath)
 
     if input_prices is arg_not_supplied:
-        prices = arcticFuturesContractPriceData()
+        prices = parquet_futures_contract_price_data
     else:
         prices = input_prices
 
@@ -99,7 +97,7 @@ def check_saved_roll_calendar(
     roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
 
     if input_prices is arg_not_supplied:
-        prices = arcticFuturesContractPriceData()
+        prices = parquet_futures_contract_price_data
     else:
         prices = input_prices
 
