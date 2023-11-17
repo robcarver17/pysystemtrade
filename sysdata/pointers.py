@@ -6,4 +6,4 @@ from sysdata.arctic.arctic_capital import arcticCapitalData
 
 ## TO USE ARCTIC RATHER THAN PARQUET, REPLACE THE og_ with the relevant arctic class
 parquetFuturesAdjustedPricesData = og_parquetFuturesAdjustedPricesData ## change to arctic if desired
-parquetCapitalData = og_parquetCapitalData ## change to arctic
+parquetCapitalData = arcticCapitalData
