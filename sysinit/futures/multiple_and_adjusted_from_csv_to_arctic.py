@@ -2,8 +2,7 @@ from syscore.constants import arg_not_supplied
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
-from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
-
+from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
 
 def init_arctic_with_csv_futures_contract_prices(
     multiple_price_datapath=arg_not_supplied, adj_price_datapath=arg_not_supplied
@@ -39,10 +38,10 @@ def init_arctic_with_csv_prices_for_code(
     )
 
     csv_adj_data = csvFuturesAdjustedPricesData(adj_price_datapath)
-    arctic_adj_data = arcticFuturesAdjustedPricesData()
+    parquet_adj_data = parquetFuturesAdjustedPricesData()
 
     adj_prices = csv_adj_data.get_adjusted_prices(instrument_code)
-    arctic_adj_data.add_adjusted_prices(
+    parquet_adj_data.add_adjusted_prices(
         instrument_code, adj_prices, ignore_duplication=True
     )
 

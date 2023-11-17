@@ -2,7 +2,7 @@ from syscore.constants import arg_not_supplied
 
 from sysdata.sim.db_futures_sim_data import dbFuturesSimData
 from sysdata.data_blob import dataBlob
-from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
+from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
@@ -17,7 +17,7 @@ def get_sim_data_object_for_production(data=arg_not_supplied) -> dbFuturesSimDat
 
     data.add_class_list(
         [
-            arcticFuturesAdjustedPricesData,
+            parquetFuturesAdjustedPricesData,
             arcticFuturesMultiplePricesData,
             arcticFxPricesData,
             mongoSpreadCostData,

@@ -28,7 +28,7 @@ from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
 )
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
-from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
+from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.arctic.arctic_spreads import arcticSpreadsForInstrumentData
 from sysdata.arctic.arctic_capital import arcticCapitalData
@@ -148,7 +148,7 @@ def get_data_and_create_csv_directories(logname):
     data.add_class_list(
         [
             arcticCapitalData,
-            arcticFuturesAdjustedPricesData,
+            parquetFuturesAdjustedPricesData,
             arcticFuturesContractPriceData,
             arcticFuturesMultiplePricesData,
             arcticFxPricesData,
@@ -289,13 +289,13 @@ def backup_multiple_to_csv_for_instrument(data, instrument_code: str):
 
 
 def backup_adj_to_csv(data):
-    instrument_list = data.arctic_futures_adjusted_prices.get_list_of_instruments()
+    instrument_list = data.parquet_futures_adjusted_prices.get_list_of_instruments()
     for instrument_code in instrument_list:
         backup_adj_to_csv_for_instrument(data, instrument_code)
 
 
 def backup_adj_to_csv_for_instrument(data: dataBlob, instrument_code: str):
-    arctic_data = data.arctic_futures_adjusted_prices.get_adjusted_prices(
+    arctic_data = data.parquet_futures_adjusted_prices.get_adjusted_prices(
         instrument_code
     )
     csv_data = data.csv_futures_adjusted_prices.get_adjusted_prices(instrument_code)

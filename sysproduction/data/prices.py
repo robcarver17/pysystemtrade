@@ -21,8 +21,8 @@ from sysdata.arctic.arctic_multiple_prices import (
     arcticFuturesMultiplePricesData,
     futuresMultiplePrices,
 )
-from sysdata.arctic.arctic_adjusted_prices import (
-    arcticFuturesAdjustedPricesData,
+from sysdata.parquet.parquet_adjusted_prices import (
+    parquetFuturesAdjustedPricesData,
     futuresAdjustedPrices,
 )
 from sysdata.arctic.arctic_spreads import (
@@ -56,7 +56,7 @@ class diagPrices(productionDataLayerGeneric):
         data.add_class_list(
             [
                 arcticFuturesContractPriceData,
-                arcticFuturesAdjustedPricesData,
+                parquetFuturesAdjustedPricesData,
                 arcticFuturesMultiplePricesData,
                 mongoFuturesContractData,
                 arcticSpreadsForInstrumentData,
@@ -253,7 +253,7 @@ class updatePrices(productionDataLayerGeneric):
                 arcticFuturesContractPriceData,
                 arcticFuturesMultiplePricesData,
                 mongoFuturesContractData,
-                arcticFuturesAdjustedPricesData,
+                parquetFuturesAdjustedPricesData,
                 arcticSpreadsForInstrumentData,
             ]
         )
