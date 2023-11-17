@@ -12,3 +12,4 @@ Flask>=2.0.1
 Werkzeug>=2.0.1
 statsmodels==0.13.0
 PyPDF2>=2.5.0
+pyarrow>=14.0.1

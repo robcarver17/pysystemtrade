@@ -10,7 +10,7 @@ class ParquetAccess(object):
 
     def get_all_identifiers_with_data_type(self, data_type: str):
         path= self._get_pathname_given_data_type(data_type)
-        return files_with_extension_in_pathname(path)
+        return files_with_extension_in_pathname(path, extension=EXTENSION)
 
     def does_idenitifier_with_data_type_exist(self, data_type: str, identifier: str) -> bool:
         filename = self._get_filename_given_data_type_and_identifier(data_type=data_type, identifier=identifier)
