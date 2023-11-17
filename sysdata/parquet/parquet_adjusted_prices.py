@@ -20,6 +20,9 @@ class parquetFuturesAdjustedPricesData(futuresAdjustedPricesData):
         super().__init__(log=log)
         self._parquet = parquet_access
 
+    def __repr__(self):
+        return "parquetFuturesAdjustedPrices"
+
     @property
     def parquet(self) -> ParquetAccess:
         return self._parquet
@@ -30,7 +33,7 @@ class parquetFuturesAdjustedPricesData(futuresAdjustedPricesData):
     def _get_adjusted_prices_without_checking(
         self, instrument_code: str
     ) -> futuresAdjustedPrices:
-        return self.parquet.read_data_given_data_type_and_identifier(data_type=ADJPRICE_COLLECTION, identifier=instrument_code)
+        return futuresAdjustedPrices(self.parquet.read_data_given_data_type_and_identifier(data_type=ADJPRICE_COLLECTION, identifier=instrument_code))
 
     def _delete_adjusted_prices_without_any_warning_be_careful(
         self, instrument_code: str
