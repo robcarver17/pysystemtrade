@@ -28,9 +28,6 @@ class ParquetAccess(object):
         filename = self._get_filename_given_data_type_and_identifier(data_type=data_type, identifier=identifier)
         return pd.read_parquet(filename)
 
-    def _confirm_or_create_path(self, data_type:str):
-        path = Path(self._get_pathname_given_data_type(data_type))
-        path.mkdir(parents=True, exist_ok=True)
 
     def _get_filename_given_data_type_and_identifier(self, data_type: str, identifier: str):
         path = self._get_pathname_given_data_type(data_type)
@@ -38,5 +35,8 @@ class ParquetAccess(object):
 
     def _get_pathname_given_data_type(self, data_type: str):
         root = self.parquet_store
-        return os.path.join(root, data_type)
+        path = os.path.join(root, data_type)
+        path.mkdir(parents=True, exist_ok=True)
+
+        return path
 
