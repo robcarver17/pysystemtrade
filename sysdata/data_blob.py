@@ -3,6 +3,7 @@ from copy import copy
 from sysbrokers.IB.ib_connection import connectionIB
 from syscore.objects import get_class_name
 from syscore.constants import arg_not_supplied
+from syscore.fileutils import get_resolved_pathname
 from syscore.text import camel_case_split
 from sysdata.config.production_config import get_production_config, Config
 from sysdata.mongodb.mongo_connection import mongoDb
@@ -329,9 +330,18 @@ class dataBlob(object):
 
     @property
     def parquet_access(self) -> ParquetAccess:
-        if self._parquet_store_path is arg_not_supplied:
-            raise Exception("Need to define parquet_store in config to use parquet")
-        return ParquetAccess(self._parquet_store_path)
+        return ParquetAccess(self.parquet_root_directory)
+
+    @property
+    def parquet_root_directory(self) -> str:
+        path = self._parquet_store_path
+        if path is arg_not_supplied:
+            try:
+                path = get_parquet_root_directory(self.config)
+            except:
+                raise Exception("Need to define parquet_store in config to use parquet")
+
+        return path
 
     def _get_new_mongo_db(self) -> mongoDb:
         mongo_db = mongoDb()
@@ -366,6 +376,10 @@ class dataBlob(object):
 
 
 source_dict = dict(arctic="db", mongo="db", csv="db", parquet="db",ib="broker")
+
+def get_parquet_root_directory(config):
+    path = config.get_element("parquet_store")
+    return get_resolved_pathname(path)
 
 
 def identifying_name(split_up_name: list, keep_original_prefix=False) -> str:

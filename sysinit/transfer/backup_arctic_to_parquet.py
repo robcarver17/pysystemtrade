@@ -49,7 +49,7 @@ from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
 from sysobjects.contracts import futuresContract
 from sysobjects.production.tradeable_object import instrumentStrategy
 
-from sysproduction.data.directories import get_csv_backup_directory, get_csv_dump_dir,get_parquet_root_directory
+from sysproduction.data.directories import get_csv_backup_directory, get_csv_dump_dir
 from sysproduction.data.strategies import get_list_of_strategies
 
 
