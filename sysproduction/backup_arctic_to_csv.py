@@ -29,9 +29,10 @@ from sysdata.arctic.arctic_futures_per_contract_prices import (
 )
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.pointers import parquetFuturesAdjustedPricesData
+from sysdata.pointers import parquetCapitalData
+
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.arctic.arctic_spreads import arcticSpreadsForInstrumentData
-from sysdata.arctic.arctic_capital import arcticCapitalData
 from sysdata.arctic.arctic_historic_strategy_positions import arcticStrategyPositionData
 from sysdata.arctic.arctic_historic_contract_positions import arcticContractPositionData
 from sysdata.arctic.arctic_optimal_positions import arcticOptimalPositionData
@@ -147,7 +148,7 @@ def get_data_and_create_csv_directories(logname):
 
     data.add_class_list(
         [
-            arcticCapitalData,
+            parquetCapitalData,
             parquetFuturesAdjustedPricesData,
             arcticFuturesContractPriceData,
             arcticFuturesMultiplePricesData,
@@ -435,7 +436,7 @@ def get_dict_of_strategy_capital(data: dataBlob) -> dict:
     for strategy_name in strategy_list:
         strategy_capital_data[
             strategy_name
-        ] = data.arctic_capital.get_capital_pd_df_for_strategy(strategy_name)
+        ] = data.parquet_capital.get_capital_pd_df_for_strategy(strategy_name)
 
     return strategy_capital_data
 

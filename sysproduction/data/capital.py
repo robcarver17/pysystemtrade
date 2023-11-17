@@ -7,7 +7,7 @@ from syscore.exceptions import missingData
 from sysdata.production.capital import capitalData, totalCapitalCalculationData
 from sysdata.production.margin import marginData, seriesOfMargin
 
-from sysdata.arctic.arctic_capital import arcticCapitalData
+from sysdata.pointers import parquetCapitalData
 from sysdata.mongodb.mongo_margin import mongoMarginData
 from sysdata.data_blob import dataBlob
 
@@ -18,7 +18,7 @@ from systems.accounts.from_returns import account_curve_from_returns
 
 class dataCapital(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(arcticCapitalData)
+        data.add_class_object(parquetCapitalData)
 
         return data
 
