@@ -471,11 +471,17 @@ def get_strategy_name_with_largest_position_for_instrument(
         diag_positions.get_all_current_strategy_instrument_positions()
     )
 
-    return (
-        all_instrument_positions.strategy_name_with_largest_abs_position_for_instrument(
-            instrument_code
-        )
-    )
+    try:
+        strategy_name =         all_instrument_positions.strategy_name_with_largest_abs_position_for_instrument(
+                instrument_code
+            )
+    except:
+        ## corner case where nets out to 0
+        strategies = diag_positions.get_list_of_strategies_with_positions()
+        strategy_name = strategies[0]
+        data.log.debug("No strategies have net positions in %s, using arbitrary strategy %s" % (instrument_code, strategy_name))
+
+    return strategy_name
 
 
 def create_contract_roll_orders(
