@@ -176,6 +176,7 @@ class capitalData(baseData):
         new_capital_item = pd.Series([new_capital_value], [date])
         updated_capital_series = pd.concat([capital_series, new_capital_item], axis=0)
         updated_capital_df = updated_capital_series.to_frame()
+        updated_capital_df.columns = ['capital']
 
         self.update_capital_pd_df_for_strategy(strategy_name, updated_capital_df)
 
