@@ -6,6 +6,9 @@ from sysproduction.data.backtest import get_directory_store_backtests
 
 production_config = get_production_config()
 
+def get_parquet_root_directory():
+    path = production_config.get_element("parquet_store")
+    return get_resolved_pathname(path)
 
 def get_main_backup_directory():
     ans = production_config.get_element("offsystem_backup_directory")
