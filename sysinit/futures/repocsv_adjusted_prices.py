@@ -2,7 +2,7 @@
 Copy from csv repo files to arctic for adjusted prices
 """
 from syscore.constants import arg_not_supplied
-from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
+from sysdata.pointers import parquetFuturesAdjustedPricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 
 if __name__ == "__main__":

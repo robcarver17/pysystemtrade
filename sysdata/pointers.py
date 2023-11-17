@@ -1,0 +1,4 @@
+from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
+from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
+
+parquetFuturesAdjustedPricesData = parquetFuturesAdjustedPricesData ## change to arctic if desired

@@ -21,10 +21,9 @@ from sysdata.arctic.arctic_multiple_prices import (
     arcticFuturesMultiplePricesData,
     futuresMultiplePrices,
 )
-from sysdata.parquet.parquet_adjusted_prices import (
-    parquetFuturesAdjustedPricesData,
-    futuresAdjustedPrices,
-)
+from sysdata.pointers import parquetFuturesAdjustedPricesData
+from sysobjects.adjusted_prices import futuresAdjustedPrices
+
 from sysdata.arctic.arctic_spreads import (
     arcticSpreadsForInstrumentData,
     spreadsForInstrumentData,
