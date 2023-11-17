@@ -33,7 +33,8 @@ class parquetFuturesAdjustedPricesData(futuresAdjustedPricesData):
     def _get_adjusted_prices_without_checking(
         self, instrument_code: str
     ) -> futuresAdjustedPrices:
-        return futuresAdjustedPrices(self.parquet.read_data_given_data_type_and_identifier(data_type=ADJPRICE_COLLECTION, identifier=instrument_code))
+        raw_price_df = self.parquet.read_data_given_data_type_and_identifier(data_type=ADJPRICE_COLLECTION, identifier=instrument_code)
+        return futuresAdjustedPrices(raw_price_df.squeeze())
 
     def _delete_adjusted_prices_without_any_warning_be_careful(
         self, instrument_code: str
