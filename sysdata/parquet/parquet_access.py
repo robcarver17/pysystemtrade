@@ -22,7 +22,7 @@ class ParquetAccess(object):
 
     def write_data_given_data_type_and_identifier(self, data_to_write: pd.DataFrame, data_type: str, identifier: str):
         filename = self._get_filename_given_data_type_and_identifier(data_type=data_type, identifier=identifier)
-        data_to_write.to_parquet(filename)
+        data_to_write.to_parquet(filename, coerce_timestamps='us',allow_truncated_timestamps=True)
 
     def read_data_given_data_type_and_identifier(self, data_type: str, identifier: str) -> pd.DataFrame:
         filename = self._get_filename_given_data_type_and_identifier(data_type=data_type, identifier=identifier)

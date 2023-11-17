@@ -378,7 +378,7 @@ def backup_capital(data):
         strategy_capital_data=data.arctic_capital.get_capital_pd_df_for_strategy(strategy_name)
         data.parquet_capital.update_capital_pd_df_for_strategy(strategy_name=strategy_name, updated_capital_df=strategy_capital_data)
         written_data = data.parquet_capital.get_capital_pd_df_for_strategy(strategy_name)
-        print("Wrote capital data for strategy %s, %s" % (strategy_name, str(written_data)))
+        print("Wrote capital data for strategy %s, was %s now %s" % (strategy_name, str(strategy_capital_data), str(written_data)))
 
     return strategy_capital_data
 
