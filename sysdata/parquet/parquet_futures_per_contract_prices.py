@@ -191,7 +191,7 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
 
 
 def from_key_to_freq_and_contract(keyname) -> Tuple[Frequency, futuresContract]:
-    first_split = keyname.split("/")
+    first_split = keyname.split("@")
     if len(first_split) == 1:
         frequency = MIXED_FREQ
         contract_str = keyname
@@ -199,7 +199,7 @@ def from_key_to_freq_and_contract(keyname) -> Tuple[Frequency, futuresContract]:
         frequency = Frequency[first_split[0]]
         contract_str = first_split[1]
 
-    contract_str_split = contract_str.split(".")
+    contract_str_split = contract_str.split("#")
     futures_contract = futuresContract(contract_str_split[0], contract_str_split[1])
 
     return frequency, futures_contract
@@ -209,7 +209,7 @@ def from_contract_and_freq_to_key(contract: futuresContract, frequency: Frequenc
     if frequency is MIXED_FREQ:
         frequency_str = ""
     else:
-        frequency_str = frequency.name + "/"
+        frequency_str = frequency.name + "@"
 
     return from_tuple_to_key(
         [frequency_str, contract.instrument_code, contract.date_str]
@@ -217,4 +217,4 @@ def from_contract_and_freq_to_key(contract: futuresContract, frequency: Frequenc
 
 
 def from_tuple_to_key(keytuple) -> str:
-    return keytuple[0] + keytuple[1] + "." + keytuple[2]
+    return keytuple[0] + keytuple[1] + "#" + keytuple[2]
