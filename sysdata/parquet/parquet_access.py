@@ -36,7 +36,7 @@ class ParquetAccess(object):
     def _get_pathname_given_data_type(self, data_type: str):
         root = self.parquet_store
         path = os.path.join(root, data_type)
-        path.mkdir(parents=True, exist_ok=True)
+        Path(path).mkdir(parents=True, exist_ok=True)
 
         return path
 
