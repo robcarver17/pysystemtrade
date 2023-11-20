@@ -16,7 +16,8 @@ from sysobjects.dict_of_futures_per_contract_prices import (
 
 import datetime
 import pandas as pd
-from sysdata.pointers import parquet_futures_contract_price_data
+
+from sysproduction.data.prices import diagPrices
 from sysobjects.rolls import rollParameters, contractDateWithRollParameters
 from sysobjects.contract_dates_and_expiries import contractDate
 
@@ -27,6 +28,10 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 from sysinit.futures.build_roll_calendars import adjust_to_price_series
 from sysobjects.multiple_prices import futuresMultiplePrices
 
+from sysdata.data_blob import dataBlob
+
+diag_prices = diagPrices()
+parquet_futures_contract_price_data = diag_prices.db_futures_contract_price_data
 
 def _get_data_inputs(csv_roll_data_path, csv_multiple_data_path):
     csv_roll_calendars = csvRollCalendarData(csv_roll_data_path)
