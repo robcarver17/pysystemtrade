@@ -35,7 +35,7 @@ from sysproduction.data.production_data_objects import *
 
 def backup_db_to_csv():
     data = dataBlob(log_name="backup_db_to_csv")
-    backup_object = backupArcticToCsv(data)
+    backup_object = backupDbToCsv(data)
     backup_object.backup_db_to_csv()
 
     return None
@@ -48,7 +48,7 @@ def quick_backup_of_all_price_data_including_expired():
     backup_futures_contract_prices_to_csv(backup_data, ignore_long_expired=False)
 
 
-class backupArcticToCsv:
+class backupDbToCsv:
     def __init__(self, data):
         self.data = data
 
