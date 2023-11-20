@@ -113,7 +113,7 @@ def get_data_blob(logname):
             #csvBrokerHistoricOrdersData,
             parquetCapitalData,
             #csvContractHistoricOrdersData,
-            #csvContractPositionData,
+            parquetContractPositionData,
             parquetFuturesAdjustedPricesData,
             #csvFuturesContractData,
             parquetFxPricesData,
@@ -122,7 +122,7 @@ def get_data_blob(logname):
             #csvSpreadCostData,
             parquetSpreadsForInstrumentData,
             #csvStrategyHistoricOrdersData,
-            #csvStrategyPositionData,
+            parquetStrategyPositionData,
             parquetFuturesContractPriceData,
         ],
 
