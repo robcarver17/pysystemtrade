@@ -16,6 +16,8 @@ from sysdata.parquet.parquet_multiple_prices import parquetFuturesMultiplePrices
 from sysdata.parquet.parquet_spotfx_prices import parquetFxPricesData
 from sysdata.parquet.parquet_spreads import parquetSpreadsForInstrumentData
 from sysdata.parquet.parquet_optimal_positions import parquetOptimalPositionData
+from sysdata.parquet.parquet_historic_contract_positions import parquetContractPositionData
+from sysdata.parquet.parquet_historic_strategy_positions import parquetStrategyPositionData
 
 from sysdata.csv.csv_futures_contracts import csvFuturesContractData
 from sysdata.csv.csv_contract_position_data import csvContractPositionData
@@ -76,19 +78,25 @@ def backup_arctic_to_parquet():
         do = true_if_answer_is_yes("Adjusted prices?")
         if do:
             backup_adj_to_parquet(backup_data)
-        #backup_strategy_position_data(backup_data)
-        #backup_contract_position_data(backup_data)
-        #backup_historical_orders(backup_data)
+        do = true_if_answer_is_yes("Strategy positions?")
+        if do:
+            backup_strategy_position_data(backup_data)
+        do = true_if_answer_is_yes("Contract positions?")
+        if do:
+            backup_contract_position_data(backup_data)
+
         do = true_if_answer_is_yes("Capital?")
         if do:
             backup_capital(backup_data)
-        #backup_contract_data(backup_data)
         do = true_if_answer_is_yes("Time series of spread costs?")
         if do:
             backup_spreads_to_parquet(backup_data)
         do = true_if_answer_is_yes("optimal positions?")
         if do:
             backup_optimal_positions(backup_data)
+
+        # backup_contract_data(backup_data)
+        # backup_historical_orders(backup_data)
         #backup_roll_state_data(backup_data)
 
 
@@ -343,12 +351,28 @@ def backup_contract_position_data(data):
                 )
             except missingData:
                 print("No data to write to .csv")
-            else:
-                data.csv_contract_position.overwrite_position_series_for_contract_object_without_checking(
-                    contract, arctic_data
+                continue
+
+            try:
+                parquet_data = data.parquet_contract_position.get_position_as_series_for_contract_object(
+                    contract
                 )
+            except missingData:
+                parquet_data = []
+
+            if len(parquet_data)>=len(arctic_data):
+                data.log.debug("Skipping")
+                continue
+
+            data.parquet_contract_position.overwrite_position_series_for_contract_object_without_checking(
+                contract, arctic_data
+            )
+            parquet_data = data.parquet_contract_position.get_position_as_series_for_contract_object(
+                contract
+            )
+
             data.log.debug(
-                "Backed up %s %s contract position data" % (instrument_code, contract)
+                "Backed up %s %s contract position data was %s now %s" % (instrument_code, contract, str(arctic_data), str(parquet_data))
             )
 
 
@@ -368,12 +392,28 @@ def backup_strategy_position_data(data):
                 )
             except missingData:
                 continue
-            data.csv_strategy_position.overwrite_position_series_for_instrument_strategy_without_checking(
+
+            try:
+                parquet_data = data.parquet_strategy_position.get_position_as_series_for_instrument_strategy_object(
+                    instrument_strategy
+                )
+            except missingData:
+                parquet_data = []
+            if len(parquet_data)>=len(arctic_data):
+                data.log.debug("Skipping")
+                continue
+
+            data.parquet_strategy_position.overwrite_position_series_for_instrument_strategy_without_checking(
                 instrument_strategy, arctic_data
             )
+
+            parquet_data = data.parquet_strategy_position.get_position_as_series_for_instrument_strategy_object(
+                instrument_strategy
+            )
+
             data.log.debug(
-                "Backed up %s %s strategy position data"
-                % (instrument_code, strategy_name)
+                "Backed up %s %s strategy position data was %s now %s"
+                % (instrument_code, strategy_name, str(arctic_data), str(parquet_data))
             )
 
 
