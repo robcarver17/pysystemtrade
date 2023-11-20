@@ -6,7 +6,7 @@ Get data from mongo and arctic used for futures trading
 from syscore.constants import arg_not_supplied
 
 from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
-from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
+from sysdata.parquet.parquet_multiple_prices import parquetFuturesMultiplePricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 from sysdata.csv.csv_roll_parameters import csvRollParametersData
@@ -60,7 +60,7 @@ use_sim_classes = {
     ROLL_PARAMETERS_DATA: csvRollParametersData,
     FUTURES_INSTRUMENT_DATA: csvFuturesInstrumentData,
 
-    FUTURES_MULTIPLE_PRICE_DATA: arcticFuturesMultiplePricesData,
+    FUTURES_MULTIPLE_PRICE_DATA: parquetFuturesMultiplePricesData,
     FUTURES_ADJUSTED_PRICE_DATA: parquetFuturesAdjustedPricesData,
     SPREAD_DATA: mongoSpreadCostData
 }
