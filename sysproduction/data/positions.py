@@ -390,8 +390,11 @@ class diagPositions(productionDataLayerGeneric):
 
 class updatePositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_list(
-            [mongoRollStateData, arcticStrategyPositionData, arcticContractPositionData]
+        data.add_class_list([
+            get_class_for_data_type(ROLL_STATE_DATA),
+            get_class_for_data_type(STRATEGY_POSITION_DATA),
+            get_class_for_data_type(CONTRACT_POSITION_DATA)
+            ]
         )
         return data
 
