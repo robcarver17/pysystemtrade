@@ -5,7 +5,7 @@ Get data from mongo and arctic used for futures trading
 
 from syscore.constants import arg_not_supplied
 
-from sysdata.pointers import parquetFuturesAdjustedPricesData
+from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
@@ -26,12 +26,12 @@ class dbFuturesSimData(genericBlobUsingFuturesSimData):
             data = dataBlob(
                 log=log,
                 class_list=[
-                    parquetFuturesAdjustedPricesData,
-                    arcticFuturesMultiplePricesData,
-                    arcticFxPricesData,
-                    csvFuturesInstrumentData,
-                    csvRollParametersData,
-                    mongoSpreadCostData,
+                    get_class_for_data_type(FUTURES_ADJUSTED_PRICE_DATA),
+                    get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
+                    get_class_for_data_type(FX_DATA),
+                    get_class_for_data_type(FUTURES_INSTRUMENT_DATA),
+                    get_class_for_data_type(ROLL_PARAMETERS_DATA),
+                    get_class_for_data_type(SPREAD_DATA)
                 ],
             )
 
@@ -41,6 +41,31 @@ class dbFuturesSimData(genericBlobUsingFuturesSimData):
         return "dbFuturesSimData object with %d instruments" % len(
             self.get_instrument_list()
         )
+
+
+FUTURES_MULTIPLE_PRICE_DATA = "futures_multiple_price_data"
+FUTURES_ADJUSTED_PRICE_DATA = "futures_adjusted_price_data"
+CAPITAL_DATA = "capital_data"
+FX_DATA = "fx_data"
+ROLL_PARAMETERS_DATA = "roll_parameters_data"
+FUTURES_INSTRUMENT_DATA = "futures_instrument_data"
+SPREAD_DATA = "spread_data"
+
+def get_class_for_data_type(data_type:str):
+
+    return use_sim_classes[data_type]
+
+use_sim_classes = {
+    FX_DATA: arcticFxPricesData,
+    ROLL_PARAMETERS_DATA: csvRollParametersData,
+    FUTURES_INSTRUMENT_DATA: csvFuturesInstrumentData,
+
+    FUTURES_MULTIPLE_PRICE_DATA: arcticFuturesMultiplePricesData,
+    FUTURES_ADJUSTED_PRICE_DATA: parquetFuturesAdjustedPricesData,
+    SPREAD_DATA: mongoSpreadCostData
+}
+
+
 
 
 if __name__ == "__main__":

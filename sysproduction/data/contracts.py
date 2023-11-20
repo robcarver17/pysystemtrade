@@ -1,11 +1,6 @@
 import datetime
 
-from syscore.exceptions import missingData, ContractNotFound
-
-from sysdata.pointers import parquetFuturesContractPriceData
-from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
-from sysdata.csv.csv_roll_parameters import csvRollParametersData
-from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
+from syscore.exceptions import missingData
 
 from sysdata.futures.contracts import futuresContractData
 from sysdata.futures.multiple_prices import futuresMultiplePricesData
@@ -22,6 +17,7 @@ from sysobjects.contracts import futuresContract, listOfFuturesContracts
 
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
+from sysproduction.data.production_data_objects import get_class_for_data_type, FUTURES_CONTRACT_PRICE_DATA, ROLL_PARAMETERS_DATA, FUTURES_MULTIPLE_PRICE_DATA, FUTURES_CONTRACT_DATA
 from sysdata.data_blob import dataBlob
 
 missing_expiry = datetime.datetime(1900, 1, 1)
@@ -31,10 +27,10 @@ class dataContracts(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
             [
-                parquetFuturesContractPriceData,
-                csvRollParametersData,
-                arcticFuturesMultiplePricesData,
-                mongoFuturesContractData,
+                get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA),
+                get_class_for_data_type(ROLL_PARAMETERS_DATA),
+                get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
+                get_class_for_data_type(FUTURES_CONTRACT_DATA)
             ]
         )
 

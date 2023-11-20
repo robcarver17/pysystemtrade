@@ -9,12 +9,11 @@ from syscontrol.timer_parameters import timerClassParameters
 
 from sysdata.config.control_config import get_control_config
 from sysdata.data_blob import dataBlob
-from sysdata.mongodb.mongo_process_control import mongoControlProcessData
 from sysdata.production.process_control_data import controlProcessData
 
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
-
+from sysproduction.data.production_data_objects import get_class_for_data_type, PROCESS_CONTROL_DATA
 DEFAULT_METHOD_FREQUENCY = 60
 DEFAULT_MAX_EXECUTIONS = 1
 DEFAULT_START_TIME_STRING = "00:01"
@@ -25,7 +24,7 @@ LABEL_FOR_ARGS_METHOD_ON_COMPLETION = "_methods_on_completion"
 
 class dataControlProcess(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(mongoControlProcessData)
+        data.add_class_object(get_class_for_data_type(PROCESS_CONTROL_DATA))
 
         return data
 

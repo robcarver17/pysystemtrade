@@ -3,7 +3,6 @@ from copy import copy
 import pandas as pd
 
 from sysdata.data_blob import dataBlob
-from sysdata.arctic.arctic_optimal_positions import arcticOptimalPositionData
 from sysdata.production.optimal_positions import optimalPositionData
 from sysobjects.production.optimal_positions import (
     listOfOptimalPositionsAcrossInstrumentStrategies,
@@ -18,11 +17,11 @@ from sysproduction.data.config import (
     get_list_of_stale_instruments,
     get_list_of_stale_strategies,
 )
-
+from sysproduction.data.production_data_objects import get_class_for_data_type, OPTIMAL_POSITION_DATA
 
 class dataOptimalPositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(arcticOptimalPositionData)
+        data.add_class_object(get_class_for_data_type(OPTIMAL_POSITION_DATA))
 
         return data
 

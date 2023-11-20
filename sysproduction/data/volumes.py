@@ -1,12 +1,12 @@
 import datetime as datetime
 import pandas as pd
 from syscore.exceptions import missingData
-from sysdata.pointers import parquetFuturesContractPriceData
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData
 from sysobjects.contracts import futuresContract
 from sysdata.data_blob import dataBlob
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
+from sysproduction.data.production_data_objects import FUTURES_CONTRACT_PRICE_DATA, get_class_for_data_type
 
 # Get volume data for the contract we're currently trading, plus what we might roll into, plus the previous one
 # This is handy for working out whether to roll
@@ -16,7 +16,7 @@ NOTIONALLY_ZERO_VOLUME = 0.0001
 
 class diagVolumes(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(parquetFuturesContractPriceData)
+        data.add_class_object(get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA))
         return data
 
     @property

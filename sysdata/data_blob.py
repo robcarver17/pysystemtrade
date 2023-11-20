@@ -80,13 +80,13 @@ class dataBlob(object):
     def __repr__(self):
         return "dataBlob with elements: %s" % ",".join(self._attr_list)
 
-    def add_class_list(self, class_list: list):
+    def add_class_list(self, class_list: list, use_prefix: str = arg_not_supplied):
         for class_object in class_list:
-            self.add_class_object(class_object)
+            self.add_class_object(class_object, use_prefix=use_prefix)
 
-    def add_class_object(self, class_object):
+    def add_class_object(self, class_object, use_prefix: str = arg_not_supplied):
         class_name = get_class_name(class_object)
-        attr_name = self._get_new_name(class_name)
+        attr_name = self._get_new_name(class_name, use_prefix=use_prefix)
         if not self._already_existing_class_name(attr_name):
             resolved_instance = self._get_resolved_instance_of_class(class_object)
             self._resolve_names_and_add(resolved_instance, class_name)
@@ -236,10 +236,11 @@ class dataBlob(object):
         attr_name = self._get_new_name(class_name)
         self._add_new_class_with_new_name(resolved_instance, attr_name)
 
-    def _get_new_name(self, class_name: str) -> str:
+    def _get_new_name(self, class_name: str, use_prefix: str = arg_not_supplied) -> str:
         split_up_name = camel_case_split(class_name)
         attr_name = identifying_name(
-            split_up_name, keep_original_prefix=self._keep_original_prefix
+            split_up_name, keep_original_prefix=self._keep_original_prefix,
+            use_prefix=use_prefix
         )
 
         return attr_name
@@ -382,7 +383,7 @@ def get_parquet_root_directory(config):
     return get_resolved_pathname(path)
 
 
-def identifying_name(split_up_name: list, keep_original_prefix=False) -> str:
+def identifying_name(split_up_name: list, keep_original_prefix: bool=False, use_prefix: str = arg_not_supplied) -> str:
     """
     Turns sourceClassNameData into broker_class_name or db_class_name
 
@@ -400,7 +401,9 @@ def identifying_name(split_up_name: list, keep_original_prefix=False) -> str:
     except BaseException:
         raise Exception("Get_data strings only work if class name ends in ...Data")
 
-    if keep_original_prefix:
+    if use_prefix is not arg_not_supplied:
+        source_label = use_prefix
+    elif keep_original_prefix:
         source_label = original_source_label
     else:
         try:

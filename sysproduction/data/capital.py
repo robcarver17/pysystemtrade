@@ -7,18 +7,19 @@ from syscore.exceptions import missingData
 from sysdata.production.capital import capitalData, totalCapitalCalculationData
 from sysdata.production.margin import marginData, seriesOfMargin
 
-from sysdata.pointers import parquetCapitalData
 from sysdata.mongodb.mongo_margin import mongoMarginData
 from sysdata.data_blob import dataBlob
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
+from sysproduction.data.production_data_objects import get_class_for_data_type, CAPITAL_DATA
 
 from systems.accounts.from_returns import account_curve_from_returns
 
 
 class dataCapital(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(parquetCapitalData)
+        capital_data_class = get_class_for_data_type(CAPITAL_DATA)
+        data.add_class_object(capital_data_class)
 
         return data
 

@@ -7,10 +7,6 @@ from syscore.constants import arg_not_supplied, success, failure
 from syscore.exceptions import ContractNotFound
 from sysexecution.orders.named_order_objects import missing_order
 
-from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
-from sysdata.arctic.arctic_historic_contract_positions import arcticContractPositionData
-from sysdata.arctic.arctic_historic_strategy_positions import arcticStrategyPositionData
-
 
 from sysdata.production.roll_state import rollStateData
 from sysdata.production.historic_contract_positions import contractPositionData
@@ -18,8 +14,6 @@ from sysdata.production.historic_strategy_positions import (
     strategyPositionData,
     listOfInstrumentStrategyPositions,
 )
-from sysproduction.data.contracts import dataContracts
-
 
 from sysdata.data_blob import dataBlob
 
@@ -43,12 +37,16 @@ from sysobjects.contracts import futuresContract
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 from sysproduction.data.contracts import dataContracts
-
+from sysproduction.data.production_data_objects import get_class_for_data_type, ROLL_STATE_DATA, STRATEGY_POSITION_DATA, CONTRACT_POSITION_DATA
 
 class diagPositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
-            [mongoRollStateData, arcticStrategyPositionData, arcticContractPositionData]
+            [
+                get_class_for_data_type(ROLL_STATE_DATA),
+                get_class_for_data_type(STRATEGY_POSITION_DATA),
+                get_class_for_data_type(CONTRACT_POSITION_DATA)
+                ]
         )
         return data
 
