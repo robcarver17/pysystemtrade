@@ -12,9 +12,9 @@ except:
     pass
 
 ## TO USE ARCTIC RATHER THAN PARQUET, REPLACE THE og_ with the relevant arctic class
-parquet_futures_adjusted_price_data = parquetFuturesAdjustedPricesData(parquet_root) ## replace with arcticFuturesContractPriceData() if desired
+#parquet_futures_adjusted_price_data = parquetFuturesAdjustedPricesData(parquet_root) ## replace with arcticFuturesContractPriceData() if desired
 
-parquetCapitalData = og_parquetCapitalData
+#parquetCapitalData = og_parquetCapitalData
 
-parquetFuturesContractPriceData = og_parquetFuturesContractPriceData
-parquet_futures_contract_price_data = parquetFuturesContractPriceData(parquet_root)
+#parquetFuturesContractPriceData = og_parquetFuturesContractPriceData
+#parquet_futures_contract_price_data = parquetFuturesContractPriceData(parquet_root)
