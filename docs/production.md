@@ -2401,8 +2401,10 @@ Every day we generate echo files with extension .txt; this process renames ones 
 ### Backup Arctic data to .csv files
 
 Python:
+
 ```python
-from sysproduction.backup_arctic_to_csv import backup_arctic_to_csv
+from sysproduction.backup_db_to_csv import backup_arctic_to_csv
+
 backup_arctic_to_csv()
 ```
 

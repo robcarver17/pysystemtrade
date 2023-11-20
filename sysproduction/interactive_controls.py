@@ -26,7 +26,7 @@ from sysobjects.production.override import override_dict, Override
 from sysobjects.production.process_control import processNotRunning
 from sysobjects.production.tradeable_object import instrumentStrategy
 
-from sysproduction.backup_arctic_to_csv import (
+from sysproduction.backup_db_to_csv import (
     backup_spread_cost_data,
     get_data_and_create_csv_directories,
 )
