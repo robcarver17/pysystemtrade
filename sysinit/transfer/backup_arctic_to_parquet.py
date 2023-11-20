@@ -11,9 +11,9 @@ from sysdata.data_blob import dataBlob
 from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
 from sysdata.parquet.parquet_capital import parquetCapitalData
 from sysdata.parquet.parquet_futures_per_contract_prices import parquetFuturesContractPriceData
+from sysdata.parquet.parquet_multiple_prices import parquetFuturesMultiplePricesData
 
 from sysdata.csv.csv_futures_contracts import csvFuturesContractData
-from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
 from sysdata.csv.csv_contract_position_data import csvContractPositionData
 from sysdata.csv.csv_strategy_position_data import csvStrategyPositionData
@@ -64,7 +64,7 @@ def backup_arctic_to_parquet():
         backup_futures_contract_prices_to_parquet(backup_data)
         #backup_spreads_to_csv(backup_data)
         #backup_fx_to_csv(backup_data)
-        #backup_multiple_to_csv(backup_data)
+        backup_multiple_to_parquet(backup_data)
         backup_adj_to_parquet(backup_data)
         #backup_strategy_position_data(backup_data)
         #backup_contract_position_data(backup_data)
@@ -79,7 +79,7 @@ def backup_arctic_to_parquet():
 def get_data_blob(logname):
 
     data = dataBlob(
-         keep_original_prefix=True, log_name=logname
+          log_name=logname
     )
 
     data.add_class_list(
@@ -91,7 +91,7 @@ def get_data_blob(logname):
             parquetFuturesAdjustedPricesData,
             #csvFuturesContractData,
             parquetFuturesContractPriceData,
-            #csvFuturesMultiplePricesData,
+            parquetFuturesMultiplePricesData,
             #csvFxPricesData,
             #csvOptimalPositionData,
             #csvRollStateData,
@@ -99,7 +99,8 @@ def get_data_blob(logname):
             #csvSpreadsForInstrumentData,
             #csvStrategyHistoricOrdersData,
             #csvStrategyPositionData,
-        ]
+        ],
+        use_prefix='parquet'
     )
 
     data.add_class_list(
@@ -119,7 +120,7 @@ def get_data_blob(logname):
             mongoSpreadCostData,
             mongoStrategyHistoricOrdersData,
             arcticStrategyPositionData,
-        ]
+        ],
     )
 
     return data
@@ -227,6 +228,29 @@ def backup_futures_contract_prices_for_contract_to_parquet(
         )
 
 
+def backup_multiple_to_parquet(data):
+    instrument_list = data.arctic_futures_multiple_prices.get_list_of_instruments()
+    for instrument_code in instrument_list:
+        backup_multiple_to_parquet_for_instrument(data, instrument_code)
+
+
+def backup_multiple_to_parquet_for_instrument(data, instrument_code: str):
+    arctic_data = data.arctic_futures_multiple_prices.get_multiple_prices(
+        instrument_code
+    )
+    data.parquet_futures_multiple_prices.add_multiple_prices(
+        instrument_code, arctic_data, ignore_duplication=True
+    )
+    new_data = data.parquet_futures_multiple_prices.get_multiple_prices(
+        instrument_code)
+    data.log.debug(
+        "Written .csv backup multiple prices for %s was %s now %s" % (instrument_code,
+                                                                      arctic_data,
+                                                                      new_data)
+    )
+
+
+
 # fx
 def backup_fx_to_csv(data):
     fx_codes = data.db_fx_prices.get_list_of_fxcodes()
@@ -244,37 +268,6 @@ def backup_fx_to_csv(data):
                 data.log.debug("Written .csv backup for %s" % fx_code)
             except BaseException:
                 data.log.warning("Problem writing .csv backup for %s" % fx_code)
-
-
-def backup_multiple_to_csv(data):
-    instrument_list = data.arctic_futures_multiple_prices.get_list_of_instruments()
-    for instrument_code in instrument_list:
-        backup_multiple_to_csv_for_instrument(data, instrument_code)
-
-
-def backup_multiple_to_csv_for_instrument(data, instrument_code: str):
-    arctic_data = data.arctic_futures_multiple_prices.get_multiple_prices(
-        instrument_code
-    )
-    csv_data = data.csv_futures_multiple_prices.get_multiple_prices(instrument_code)
-
-    if check_df_equals(arctic_data, csv_data):
-        data.log.debug("No multiple prices backup needed for %s" % instrument_code)
-        pass
-    else:
-        try:
-            data.csv_futures_multiple_prices.add_multiple_prices(
-                instrument_code, arctic_data, ignore_duplication=True
-            )
-            data.log.debug(
-                "Written .csv backup multiple prices for %s" % instrument_code
-            )
-        except BaseException:
-            data.log.warning(
-                "Problem writing .csv backup multiple prices for %s" % instrument_code
-            )
-
-
 
 
 
