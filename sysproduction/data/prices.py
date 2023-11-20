@@ -239,11 +239,11 @@ class updatePrices(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
             [
-                parquetFuturesContractPriceData,
-                arcticFuturesMultiplePricesData,
-                mongoFuturesContractData,
-                parquetFuturesAdjustedPricesData,
-                arcticSpreadsForInstrumentData,
+                get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA),
+                get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
+                get_class_for_data_type(FUTURES_CONTRACT_DATA),
+                get_class_for_data_type(FUTURES_ADJUSTED_PRICE_DATA),
+                get_class_for_data_type(SPREAD_DATA)
             ]
         )
 
