@@ -86,10 +86,10 @@ class dataBlob(object):
 
     def add_class_object(self, class_object, use_prefix: str = arg_not_supplied):
         class_name = get_class_name(class_object)
-        attr_name = self._get_new_name(class_name, use_prefix=use_prefix)
-        if not self._already_existing_class_name(attr_name):
+        new_name = self._get_new_name(class_name, use_prefix=use_prefix)
+        if not self._already_existing_class_name(new_name):
             resolved_instance = self._get_resolved_instance_of_class(class_object)
-            self._resolve_names_and_add(resolved_instance, class_name)
+            self._add_new_class_with_new_name(resolved_instance=resolved_instance, attr_name=new_name)
 
     def _get_resolved_instance_of_class(self, class_object):
         class_adding_method = self._get_class_adding_method(class_object)
@@ -232,7 +232,7 @@ class dataBlob(object):
 
         return log
 
-    def _resolve_names_and_add(self, resolved_instance, class_name: str):
+    def _resolve_names_and_add(self, resolved_instance, new_name: str):
         attr_name = self._get_new_name(class_name)
         self._add_new_class_with_new_name(resolved_instance, attr_name)
 

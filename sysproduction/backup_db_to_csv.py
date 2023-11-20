@@ -76,56 +76,56 @@ class backupDbToCsv:
 
 def get_data_and_create_csv_directories(logname):
 
-    csv_dump_dir = get_csv_dump_dir()
+csv_dump_dir = get_csv_dump_dir()
 
-    class_paths = dict(
-        csvBrokerHistoricOrdersData="broker_orders",
-        csvCapitalData="capital",
-        csvContractHistoricOrdersData="contract_orders",
-        csvContractPositionData="contract_positions",
-        csvFuturesAdjustedPricesData="adjusted_prices",
-        csvFuturesContractData="contracts_data",
-        csvFuturesContractPriceData="contract_prices",
-        csvFuturesMultiplePricesData="multiple_prices",
-        csvFxPricesData="fx_prices",
-        csvOptimalPositionData="optimal_positions",
-        csvRollStateData="roll_state",
-        csvSpreadCostData="spread_costs",
-        csvSpreadsForInstrumentData="spreads",
-        csvStrategyHistoricOrdersData="strategy_orders",
-        csvStrategyPositionData="strategy_positions",
-    )
+class_paths = dict(
+    csvBrokerHistoricOrdersData="broker_orders",
+    csvCapitalData="capital",
+    csvContractHistoricOrdersData="contract_orders",
+    csvContractPositionData="contract_positions",
+    csvFuturesAdjustedPricesData="adjusted_prices",
+    csvFuturesContractData="contracts_data",
+    csvFuturesContractPriceData="contract_prices",
+    csvFuturesMultiplePricesData="multiple_prices",
+    csvFxPricesData="fx_prices",
+    csvOptimalPositionData="optimal_positions",
+    csvRollStateData="roll_state",
+    csvSpreadCostData="spread_costs",
+    csvSpreadsForInstrumentData="spreads",
+    csvStrategyHistoricOrdersData="strategy_orders",
+    csvStrategyPositionData="strategy_positions",
+)
 
-    for class_name, path in class_paths.items():
-        dir_name = os.path.join(csv_dump_dir, path)
-        class_paths[class_name] = dir_name
-        if not os.path.exists(dir_name):
-            os.makedirs(dir_name)
+for class_name, path in class_paths.items():
+    dir_name = os.path.join(csv_dump_dir, path)
+    class_paths[class_name] = dir_name
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
 
-    data = dataBlob(
-        csv_data_paths=class_paths, log_name=logname
-    )
+data = dataBlob(
+    csv_data_paths=class_paths, log_name=logname
+)
 
-    data.add_class_list(
-        [
-            csvBrokerHistoricOrdersData,
-            csvCapitalData,
-            csvContractHistoricOrdersData,
-            csvContractPositionData,
-            csvFuturesAdjustedPricesData,
-            csvFuturesContractData,
-            csvFuturesContractPriceData,
-            csvFuturesMultiplePricesData,
-            csvFxPricesData,
-            csvOptimalPositionData,
-            csvRollStateData,
-            csvSpreadCostData,
-            csvSpreadsForInstrumentData,
-            csvStrategyHistoricOrdersData,
-            csvStrategyPositionData,
-        ]
-        , use_prefix="csv"
-    )
+data.add_class_list(
+    [
+        csvBrokerHistoricOrdersData,
+        csvCapitalData,
+        csvContractHistoricOrdersData,
+        csvContractPositionData,
+        csvFuturesAdjustedPricesData,
+        csvFuturesContractData,
+        csvFuturesContractPriceData,
+        csvFuturesMultiplePricesData,
+        csvFxPricesData,
+        csvOptimalPositionData,
+        csvRollStateData,
+        csvSpreadCostData,
+        csvSpreadsForInstrumentData,
+        csvStrategyHistoricOrdersData,
+        csvStrategyPositionData,
+    ]
+    , use_prefix="csv"
+)
 
     data.add_class_list(
         [
