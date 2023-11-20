@@ -106,50 +106,50 @@ def get_data_and_create_csv_directories(logname):
             csv_data_paths=class_paths, log_name=logname
         )
 
-        data.add_class_list(
-            [
-                csvBrokerHistoricOrdersData,
-                csvCapitalData,
-                csvContractHistoricOrdersData,
-                csvContractPositionData,
-                csvFuturesAdjustedPricesData,
-                csvFuturesContractData,
-                csvFuturesContractPriceData,
-                csvFuturesMultiplePricesData,
-                csvFxPricesData,
-                csvOptimalPositionData,
-                csvRollStateData,
-                csvSpreadCostData,
-                csvSpreadsForInstrumentData,
-                csvStrategyHistoricOrdersData,
-                csvStrategyPositionData,
-            ]
-            , use_prefix="csv"
-        )
+    data.add_class_list(
+        [
+            csvBrokerHistoricOrdersData,
+            csvCapitalData,
+            csvContractHistoricOrdersData,
+            csvContractPositionData,
+            csvFuturesAdjustedPricesData,
+            csvFuturesContractData,
+            csvFuturesContractPriceData,
+            csvFuturesMultiplePricesData,
+            csvFxPricesData,
+            csvOptimalPositionData,
+            csvRollStateData,
+            csvSpreadCostData,
+            csvSpreadsForInstrumentData,
+            csvStrategyHistoricOrdersData,
+            csvStrategyPositionData,
+        ]
+        , use_prefix="csv"
+    )
 
-        data.add_class_list(
-            [
-                get_class_for_data_type(CAPITAL_DATA),
-                get_class_for_data_type(FUTURES_ADJUSTED_PRICE_DATA),
-                get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA),
-                get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
-                get_class_for_data_type(FX_DATA),
-                get_class_for_data_type(SPREAD_DATA),
-                get_class_for_data_type(BROKER_HISTORIC_ORDERS_DATA),
-                get_class_for_data_type(CONTRACT_HISTORIC_ORDERS_DATA),
-                get_class_for_data_type(STRATEGY_HISTORIC_ORDERS_DATA),
-                get_class_for_data_type(CONTRACT_POSITION_DATA),
-                get_class_for_data_type(STRATEGY_POSITION_DATA),
-                get_class_for_data_type(FUTURES_CONTRACT_DATA),
-                get_class_for_data_type(OPTIMAL_POSITION_DATA),
-                get_class_for_data_type(ROLL_STATE_DATA),
-                get_class_for_data_type(SPREAD_DATA)
+    data.add_class_list(
+        [
+            get_class_for_data_type(CAPITAL_DATA),
+            get_class_for_data_type(FUTURES_ADJUSTED_PRICE_DATA),
+            get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA),
+            get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
+            get_class_for_data_type(FX_DATA),
+            get_class_for_data_type(SPREAD_DATA),
+            get_class_for_data_type(BROKER_HISTORIC_ORDERS_DATA),
+            get_class_for_data_type(CONTRACT_HISTORIC_ORDERS_DATA),
+            get_class_for_data_type(STRATEGY_HISTORIC_ORDERS_DATA),
+            get_class_for_data_type(CONTRACT_POSITION_DATA),
+            get_class_for_data_type(STRATEGY_POSITION_DATA),
+            get_class_for_data_type(FUTURES_CONTRACT_DATA),
+            get_class_for_data_type(OPTIMAL_POSITION_DATA),
+            get_class_for_data_type(ROLL_STATE_DATA),
+            get_class_for_data_type(SPREAD_DATA)
 
-            ],
-            use_prefix="db"
-        )
+        ],
+        use_prefix="db"
+    )
 
-        return data
+    return data
 
 
 # Write function for each thing we want to backup
