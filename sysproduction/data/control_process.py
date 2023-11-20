@@ -125,7 +125,7 @@ class dataControlProcess(productionDataLayerGeneric):
 
 class diagControlProcess(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(mongoControlProcessData)
+        data.add_class_object(get_class_for_data_type(PROCESS_CONTROL_DATA))
 
         return data
 
