@@ -5,6 +5,7 @@ from syscore.exceptions import missingData
 from syscore.pandas.pdutils import check_df_equals, check_ts_equals
 from syscore.dateutils import CALENDAR_DAYS_IN_YEAR
 from syscore.dateutils import DAILY_PRICE_FREQ, HOURLY_FREQ
+from syscore.interactive.input import true_if_answer_is_yes
 
 from sysdata.data_blob import dataBlob
 
@@ -61,15 +62,23 @@ def backup_arctic_to_parquet():
         log = backup_data.log
 
         log.debug("Dumping from arctic, mongo to parquet files")
-        backup_futures_contract_prices_to_parquet(backup_data)
+        do = true_if_answer_is_yes("Do futures contract prices?")
+        if do:
+            backup_futures_contract_prices_to_parquet(backup_data)
         #backup_spreads_to_csv(backup_data)
         #backup_fx_to_csv(backup_data)
-        backup_multiple_to_parquet(backup_data)
-        backup_adj_to_parquet(backup_data)
+        do = true_if_answer_is_yes("Multiple prices?")
+        if do:
+            backup_multiple_to_parquet(backup_data)
+        do = true_if_answer_is_yes("Adjusted prices?")
+        if do:
+            backup_adj_to_parquet(backup_data)
         #backup_strategy_position_data(backup_data)
         #backup_contract_position_data(backup_data)
         #backup_historical_orders(backup_data)
-        backup_capital(backup_data)
+        do = true_if_answer_is_yes("Capital?")
+        if do:
+            backup_capital(backup_data)
         #backup_contract_data(backup_data)
         #backup_spread_cost_data(backup_data)
         #backup_optimal_positions(backup_data)
