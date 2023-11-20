@@ -31,7 +31,7 @@ class parquetContractPositionData(contractPositionData):
         self, contract_object: futuresContract, updated_series: pd.Series
     ):
         ## overwrites what is there without checking
-        ident = contract_object.key
+        ident = from_contract_to_key(contract_object)
         updated_data_as_df = pd.DataFrame(updated_series)
         updated_data_as_df.columns = ["position"]
 
@@ -40,13 +40,13 @@ class parquetContractPositionData(contractPositionData):
     def _delete_position_series_for_contract_object_without_checking(
         self, contract_object: futuresContract
     ):
-        ident = contract_object.key
+        ident = from_contract_to_key(contract_object)
         self.parquet.delete_data_given_data_type_and_identifier(data_type=CONTRACT_POSITION_COLLECTION, identifier=ident)
 
     def get_position_as_series_for_contract_object(
         self, contract_object: futuresContract
     ) -> pd.Series:
-        keyname = contract_object.key
+        keyname = from_contract_to_key(contract_object)
         try:
             pd_df = self.parquet.read_data_given_data_type_and_identifier(data_type=CONTRACT_POSITION_COLLECTION, identifier=keyname)
         except:
@@ -58,7 +58,14 @@ class parquetContractPositionData(contractPositionData):
         ## doesn't remove zero positions
         list_of_keys = self.parquet.get_all_identifiers_with_data_type(data_type=CONTRACT_POSITION_COLLECTION)
         list_of_futures_contract = [
-            futuresContract.from_key(key) for key in list_of_keys
+            from_key_to_contract(key) for key in list_of_keys
         ]
 
         return listOfFuturesContracts(list_of_futures_contract)
+
+def from_contract_to_key(contract: futuresContract) -> str:
+    return contract.instrument_code+"#"+contract.contract_date
+
+def from_key_to_contract(key: str) -> futuresContract:
+    [instrument_code, contract_date] = key.split("#")
+    return futuresContract(instrument_code, contract_date)
