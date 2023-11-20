@@ -75,7 +75,6 @@ def can_we_send_this_email_now(data, subject, email_is_report=False):
 
 
 def store_and_warn_email(data, body, subject, email_is_report=False):
-
     warning_sent = have_we_sent_warning_email_for_this_subject(data, subject)
     if not warning_sent:
         send_warning_email(data, subject)

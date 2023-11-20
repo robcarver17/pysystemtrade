@@ -56,7 +56,6 @@ def correlation_estimator_for_subperiod(
     shrinkage: float = 0.0,
     **_ignored_kwargs,
 ):
-
     subperiod_data = data_for_correlation[fit_period.fit_start : fit_period.fit_end]
 
     corr_matrix_values = subperiod_data.corr()

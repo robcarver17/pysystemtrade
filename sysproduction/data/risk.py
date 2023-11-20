@@ -28,7 +28,6 @@ def get_covariance_matrix_for_instrument_returns(
     list_of_instruments: list,
     passed_correlation_estimation_parameters: dict = arg_not_supplied,
 ) -> covarianceEstimate:
-
     corr_matrix = get_correlation_matrix_for_instrument_returns(
         data,
         list_of_instruments,
@@ -50,7 +49,6 @@ def get_correlation_matrix_for_instrument_returns(
     list_of_instruments: list,
     passed_correlation_estimation_parameters: dict = arg_not_supplied,
 ) -> correlationEstimate:
-
     list_of_correlations = _replicate_creation_of_correlation_list_in_sim(
         data,
         list_of_instruments,
@@ -67,7 +65,6 @@ def _replicate_creation_of_correlation_list_in_sim(
     list_of_instruments: list,
     passed_correlation_estimation_parameters: dict = arg_not_supplied,
 ):
-
     ## double coding but too complex to do differently
 
     returns_as_pd = get_perc_returns_across_instruments(data, list_of_instruments)

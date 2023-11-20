@@ -20,7 +20,6 @@ def get_must_have_dict_from_data(data: pd.DataFrame) -> dict:
 def clean_weights(
     weights: portfolioWeights, must_haves: dict, fraction: float = 0.5
 ) -> portfolioWeights:
-
     (
         asset_names,
         list_of_weights,
@@ -114,7 +113,6 @@ def clean_list_of_weights(
     def _good_weight(
         value, idx, needs_replacing, keep_empty, each_missing_weight, adjustment_on_rest
     ):
-
         if needs_replacing[idx]:
             return each_missing_weight
         if keep_empty[idx]:

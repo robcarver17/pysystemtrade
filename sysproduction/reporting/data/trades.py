@@ -334,7 +334,6 @@ def vol_slippage_row(slippage_row, data):
 
 
 def vol_calculations_for_slippage_row(slippage_row, data):
-
     last_annual_vol = get_last_annual_vol_for_slippage_row(slippage_row, data)
 
     input_items = [
@@ -362,7 +361,6 @@ def get_last_annual_vol_for_slippage_row(slippage_row, data):
 def get_stats_for_slippage_groups(df_to_process, item_list):
     results = {}
     for item_name in item_list:
-
         sum_data = df_to_process.groupby(["strategy_name", "instrument_code"]).agg(
             {item_name: "sum"}
         )
@@ -414,7 +412,6 @@ def delay_row(order_row):
 
 
 def delay_calculations_for_order_row(order_row):
-
     submit_minus_generated = delay_calc(
         order_row.parent_reference_datetime, order_row.submit_datetime
     )

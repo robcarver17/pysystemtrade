@@ -17,7 +17,6 @@ class accountInputs(SystemStage):
     def get_instrument_prices_for_position_or_forecast(
         self, instrument_code: str, position_or_forecast: pd.Series = arg_not_supplied
     ) -> pd.Series:
-
         if position_or_forecast is arg_not_supplied:
             return self.get_daily_prices(instrument_code)
 
@@ -36,7 +35,6 @@ class accountInputs(SystemStage):
     def instrument_prices_for_position_or_forecast_infer_frequency(
         self, instrument_code: str, position_or_forecast: pd.Series = arg_not_supplied
     ) -> pd.Series:
-
         try:
             frequency = infer_frequency(position_or_forecast)
             if frequency is BUSINESS_DAY_FREQ:
@@ -74,7 +72,6 @@ class accountInputs(SystemStage):
 
     @diagnostic()
     def get_daily_returns_volatility(self, instrument_code: str) -> pd.Series:
-
         system = self.parent
         returns_vol = system.rawdata.daily_returns_volatility(instrument_code)
 

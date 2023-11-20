@@ -11,6 +11,7 @@ from syslogging.logger import *
 from sysdata.mongodb.mongo_IB_client_id import mongoIbBrokerClientIdData
 from sysdata.parquet.parquet_access import ParquetAccess
 
+
 class dataBlob(object):
     def __init__(
         self,
@@ -89,7 +90,9 @@ class dataBlob(object):
         new_name = self._get_new_name(class_name, use_prefix=use_prefix)
         if not self._already_existing_class_name(new_name):
             resolved_instance = self._get_resolved_instance_of_class(class_object)
-            self._add_new_class_with_new_name(resolved_instance=resolved_instance, attr_name=new_name)
+            self._add_new_class_with_new_name(
+                resolved_instance=resolved_instance, attr_name=new_name
+            )
 
     def _get_resolved_instance_of_class(self, class_object):
         class_adding_method = self._get_class_adding_method(class_object)
@@ -104,7 +107,7 @@ class dataBlob(object):
             csv=self._add_csv_class,
             arctic=self._add_arctic_class,
             mongo=self._add_mongo_class,
-            parquet = self._add_parquet_class
+            parquet=self._add_parquet_class,
         )
 
         method_to_add_with = class_dict.get(prefix, None)
@@ -173,7 +176,9 @@ class dataBlob(object):
     def _add_parquet_class(self, class_object):
         log = self._get_specific_logger(class_object)
         try:
-            resolved_instance = class_object(parquet_access = self.parquet_access, log=log)
+            resolved_instance = class_object(
+                parquet_access=self.parquet_access, log=log
+            )
         except Exception as e:
             class_name = get_class_name(class_object)
             msg = (
@@ -239,8 +244,9 @@ class dataBlob(object):
     def _get_new_name(self, class_name: str, use_prefix: str = arg_not_supplied) -> str:
         split_up_name = camel_case_split(class_name)
         attr_name = identifying_name(
-            split_up_name, keep_original_prefix=self._keep_original_prefix,
-            use_prefix=use_prefix
+            split_up_name,
+            keep_original_prefix=self._keep_original_prefix,
+            use_prefix=use_prefix,
         )
 
         return attr_name
@@ -376,14 +382,19 @@ class dataBlob(object):
         return log_name
 
 
-source_dict = dict(arctic="db", mongo="db", csv="db", parquet="db",ib="broker")
+source_dict = dict(arctic="db", mongo="db", csv="db", parquet="db", ib="broker")
+
 
 def get_parquet_root_directory(config):
     path = config.get_element("parquet_store")
     return get_resolved_pathname(path)
 
 
-def identifying_name(split_up_name: list, keep_original_prefix: bool=False, use_prefix: str = arg_not_supplied) -> str:
+def identifying_name(
+    split_up_name: list,
+    keep_original_prefix: bool = False,
+    use_prefix: str = arg_not_supplied,
+) -> str:
     """
     Turns sourceClassNameData into broker_class_name or db_class_name
 

@@ -12,7 +12,6 @@ from sysquant.optimisation.shared import (
 def adjust_dataframe_of_weights_for_SR_costs(
     weights: pd.DataFrame, costs_dict: dict
 ) -> pd.DataFrame:
-
     asset_names = list(weights.columns)
     SR_list = [costs_dict[asset] for asset in asset_names]
 
@@ -38,7 +37,6 @@ def adjust_dataframe_of_weights_for_SR(
     avg_correlation: float = 0.5,
     years_of_data: float = 10,
 ) -> pd.DataFrame:
-
     list_of_weight_lists = [
         list(weights.iloc[idx].values) for idx in range(len(weights.index))
     ]
@@ -63,7 +61,6 @@ def adjust_list_of_weight_lists_for_SR(
     avg_correlation: float = 0.5,
     years_of_data: float = 10,
 ) -> list:
-
     adj_weight_list = [
         adjust_weights_for_SR(
             weights_as_list,
@@ -80,7 +77,6 @@ def adjust_list_of_weight_lists_for_SR(
 def adjust_weights_for_SR(
     weights_as_list: list, SR_list: list, avg_correlation: float, years_of_data: float
 ) -> list:
-
     if len(weights_as_list) == 1:
         return weights_as_list
 
@@ -222,7 +218,6 @@ def calculate_confident_mean_difference(
     confidence_interval: float,
     avg_correlation: float,
 ) -> float:
-
     omega_difference = calculate_omega_difference(std, years_of_data, avg_correlation)
     confident_mean_difference = stats.norm(mean_difference, omega_difference).ppf(
         confidence_interval
@@ -234,7 +229,6 @@ def calculate_confident_mean_difference(
 def calculate_omega_difference(
     std: float, years_of_data: float, avg_correlation: float
 ):
-
     omega_one_asset = std / (years_of_data) ** 0.5
     omega_variance_difference = 2 * (omega_one_asset**2) * (1 - avg_correlation)
     omega_difference = omega_variance_difference**0.5

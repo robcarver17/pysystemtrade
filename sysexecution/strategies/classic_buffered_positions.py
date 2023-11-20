@@ -124,7 +124,6 @@ def list_of_trades_given_optimal_and_actual_positions(
     optimal_positions: optimalPositions,
     actual_positions: dict,
 ) -> listOfOrders:
-
     upper_positions = optimal_positions.upper_positions
     list_of_instruments = upper_positions.keys()
     trade_list = [
@@ -146,7 +145,6 @@ def trade_given_optimal_and_actual_positions(
     optimal_positions: optimalPositions,
     actual_positions: dict,
 ) -> instrumentOrder:
-
     upper_for_instrument = optimal_positions.upper_positions[instrument_code]
     lower_for_instrument = optimal_positions.lower_positions[instrument_code]
     actual_for_instrument = actual_positions.get(instrument_code, 0.0)

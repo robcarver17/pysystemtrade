@@ -95,7 +95,6 @@ def full_merge_of_data_with_both_old_and_new(
     new_data: Union[pd.Series, pd.DataFrame],
     keep_older: bool = True,
 ) -> Union[pd.Series, pd.DataFrame]:
-
     if is_a_series(old_data):
         assert is_a_series(new_data)
         merged_data = full_merge_of_existing_series(

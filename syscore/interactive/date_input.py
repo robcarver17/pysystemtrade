@@ -10,7 +10,6 @@ from syscore.constants import arg_not_supplied
 
 
 def get_report_dates() -> Tuple[datetime.datetime, datetime.datetime]:
-
     end_date = arg_not_supplied
     start_date = arg_not_supplied
     start_period = arg_not_supplied
@@ -72,7 +71,6 @@ def get_datetime_input(
     allow_calendar_days: bool = False,
     allow_period: bool = False,
 ) -> Union[str, datetime.datetime, int]:
-
     input_str = _create_input_string_for_datetime_input(
         prompt=prompt,
         allow_default_datetime_of_now=allow_default_datetime_of_now,

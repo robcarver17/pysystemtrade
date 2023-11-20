@@ -11,7 +11,10 @@ from sysdata.mongodb.mongo_margin import mongoMarginData
 from sysdata.data_blob import dataBlob
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
-from sysproduction.data.production_data_objects import get_class_for_data_type, CAPITAL_DATA
+from sysproduction.data.production_data_objects import (
+    get_class_for_data_type,
+    CAPITAL_DATA,
+)
 
 from systems.accounts.from_returns import account_curve_from_returns
 
@@ -57,7 +60,6 @@ class dataCapital(productionDataLayerGeneric):
     def update_and_return_total_capital_with_new_broker_account_value(
         self, total_account_value_in_base_currency: float, check_limit: float = 0.1
     ) -> float:
-
         result = self.total_capital_calculator.update_and_return_total_capital_with_new_broker_account_value(
             total_account_value_in_base_currency, check_limit=check_limit
         )
@@ -83,7 +85,6 @@ class dataCapital(productionDataLayerGeneric):
         acc_pandl: float = arg_not_supplied,
         are_you_really_sure: bool = False,
     ):
-
         self.total_capital_calculator.create_initial_capital(
             broker_account_value=broker_account_value,
             total_capital=total_capital,
@@ -175,7 +176,6 @@ class dataCapital(productionDataLayerGeneric):
         new_capital_value: float,
         date: datetime.datetime = arg_not_supplied,
     ):
-
         self.db_capital_data.update_capital_value_for_strategy(
             strategy_name, new_capital_value, date=date
         )

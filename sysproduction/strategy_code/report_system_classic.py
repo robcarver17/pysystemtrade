@@ -363,7 +363,6 @@ get_upper_buffer = configForMethod(
 
 
 def get_stage_breakdown_over_codes(backtest: interactiveBacktest, method_list: list):
-
     value_dict = {}
     for config_for_method in method_list:
         value_dict[

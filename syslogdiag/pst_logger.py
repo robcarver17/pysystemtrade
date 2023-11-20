@@ -346,7 +346,6 @@ class nullLog(pst_logger):
         pass
 
     def log_handle_caller(self, *args, **kwargs):
-
         pass
 
     def get_next_log_id(self) -> int:

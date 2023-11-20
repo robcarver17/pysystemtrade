@@ -18,7 +18,6 @@ class mongoOverrideData(overrideData):
     """
 
     def __init__(self, mongo_db=None, log=get_logger("mongoOverrideData")):
-
         super().__init__(log=log)
         self._mongo_data = mongoDataWithMultipleKeys(
             OVERRIDE_STATUS_COLLECTION, mongo_db=mongo_db

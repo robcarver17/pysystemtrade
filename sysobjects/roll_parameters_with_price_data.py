@@ -248,7 +248,6 @@ def _find_earliest_held_contract_with_data(
     roll_parameters_object: rollParameters,
     price_dict: dictFuturesContractFinalPrices,
 ) -> contractWithRollParametersAndPrices:
-
     try_contract = _initial_contract_to_try_with(
         list_of_contract_dates, roll_parameters_object, price_dict
     )
@@ -273,7 +272,6 @@ def _initial_contract_to_try_with(
     roll_parameters_object: rollParameters,
     price_dict: dictFuturesContractFinalPrices,
 ) -> contractWithRollParametersAndPrices:
-
     plausible_earliest_contract_date = list_of_contract_dates[0]
     plausible_earliest_contract = contractDateWithRollParameters(
         contractDate(
@@ -294,7 +292,6 @@ def _check_valid_contract(
     try_contract: contractWithRollParametersAndPrices,
     list_of_contract_dates: listOfContractDateStr,
 ) -> bool:
-
     if try_contract.date_str in list_of_contract_dates:
         # possible candidate, let's check carry
         try:

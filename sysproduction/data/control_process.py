@@ -13,7 +13,11 @@ from sysdata.production.process_control_data import controlProcessData
 
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
-from sysproduction.data.production_data_objects import get_class_for_data_type, PROCESS_CONTROL_DATA
+from sysproduction.data.production_data_objects import (
+    get_class_for_data_type,
+    PROCESS_CONTROL_DATA,
+)
+
 DEFAULT_METHOD_FREQUENCY = 60
 DEFAULT_MAX_EXECUTIONS = 1
 DEFAULT_START_TIME_STRING = "00:01"
@@ -290,7 +294,6 @@ class diagControlProcess(productionDataLayerGeneric):
         return result
 
     def how_long_in_hours_before_trading_process_finishes(self) -> float:
-
         now_datetime = datetime.datetime.now()
 
         now_date = now_datetime.date()

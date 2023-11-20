@@ -171,7 +171,6 @@ class interactiveBacktest(object):
         return self.system.stage_names
 
     def get_stage(self, stage_name):
-
         return getattr(self.system, stage_name)
 
     def get_list_of_methods_for_stage(self, stage_name):

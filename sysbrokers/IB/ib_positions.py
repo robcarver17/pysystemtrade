@@ -87,7 +87,6 @@ def from_ib_positions_to_dict(
 
 
 def resolve_ib_stock_position(position):
-
     return dict(
         account=position.account,
         symbol=position.contract.symbol,
@@ -101,7 +100,6 @@ def resolve_ib_stock_position(position):
 
 
 def resolve_ib_future_position(position):
-
     return dict(
         account=position.account,
         symbol=position.contract.symbol,
@@ -114,7 +112,6 @@ def resolve_ib_future_position(position):
 
 
 def resolve_ib_cash_position(position):
-
     return dict(
         account=position.account,
         symbol=position.contract.localSymbol,

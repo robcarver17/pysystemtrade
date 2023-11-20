@@ -92,7 +92,6 @@ class TestExamples:
     """
 
     def test_simple_system_rules(self, data, raw_data):
-
         my_rules = Rules(ewmac)
         print(my_rules.trading_rules())
 
@@ -104,7 +103,6 @@ class TestExamples:
         print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5))
 
     def test_simple_system_trading_rule(self, data, raw_data, ewmac_8, ewmac_32):
-
         ewmac_rule = TradingRule(ewmac)
         print(ewmac_rule)
 
@@ -117,7 +115,6 @@ class TestExamples:
     def test_simple_system_trading_rules_estimated(
         self, data, raw_data, ewmac_8, ewmac_32, fcs
     ):
-
         my_rules = Rules(dict(ewmac8=ewmac_8, ewmac32=ewmac_32))
         my_config = Config()
         print(my_config)
@@ -138,7 +135,6 @@ class TestExamples:
         )
 
     def test_simple_system_trading_rules_fixed(self, data, my_rules, fcs):
-
         # or we can use the values from the book
         my_config = Config()
         my_config.trading_rules = dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
@@ -154,7 +150,6 @@ class TestExamples:
     def test_simple_system_combing_rules(
         self, data, raw_data, my_rules, my_config, fcs
     ):
-
         # defaults
         combiner = ForecastCombine()
         my_system = System([fcs, my_rules, combiner, raw_data], data, my_config)
@@ -169,7 +164,6 @@ class TestExamples:
     def test_simple_system_combining_and_estimating(
         self, data, raw_data, my_rules, my_config, fcs, combiner, possizer, account
     ):
-
         # estimates:
         my_config.forecast_weight_estimate = dict(method="one_period")
         my_config.use_forecast_weight_estimates = True
@@ -187,7 +181,6 @@ class TestExamples:
         )
 
     def test_simple_system_combining_fixed(self, data, raw_data, my_config, fcs):
-
         # fixed:
         my_config.forecast_weights = dict(ewmac8=0.5, ewmac32=0.5)
         my_config.forecast_div_multiplier = 1.1
@@ -204,7 +197,6 @@ class TestExamples:
     def test_simple_system_position_sizing(
         self, data, raw_data, my_rules, my_config, fcs, combiner, possizer
     ):
-
         # size positions
         my_config.percentage_vol_target = 25
         my_config.notional_trading_capital = 500000
@@ -230,7 +222,6 @@ class TestExamples:
     def test_simple_system_portfolio_estimated(
         self, data, raw_data, my_rules, my_config, fcs, combiner, possizer, account
     ):
-
         # portfolio - estimated
         portfolio = Portfolios()
 
@@ -252,7 +243,6 @@ class TestExamples:
     def test_simple_system_portfolio_fixed(
         self, data, raw_data, my_rules, my_config, fcs, combiner, possizer, portfolio
     ):
-
         # or fixed
         my_config.use_instrument_weight_estimates = False
         my_config.use_instrument_div_mult_estimates = False
@@ -279,7 +269,6 @@ class TestExamples:
         portfolio,
         account,
     ):
-
         my_config.forecast_weights = dict(ewmac8=0.5, ewmac32=0.5)
         my_config.instrument_weights = dict(US10=0.1, EDOLLAR=0.4, CORN=0.3, SP500=0.2)
 
@@ -296,7 +285,6 @@ class TestExamples:
         print(profits.net.percent.stats())
 
     def test_simple_system_config_object(self, data, ewmac_8, ewmac_32):
-
         my_config = Config(
             dict(
                 trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32),
@@ -333,7 +321,6 @@ class TestExamples:
 
     @pytest.mark.slow  # will be skipped unless run with 'pytest --runslow'
     def test_simple_system_risk_overlay(self, data, ewmac_8, ewmac_32):
-
         my_config = Config(
             dict(
                 trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32),
@@ -375,7 +362,6 @@ class TestExamples:
         print(my_system.portfolio.get_notional_position("EDOLLAR").tail(5))
 
     def test_simple_system_config_import(self, data):
-
         my_config = Config("systems.provided.example.simplesystemconfig.yaml")
         my_config.exclude_instrument_lists = dict(
             ignore_instruments=["MILK"],

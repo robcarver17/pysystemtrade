@@ -61,7 +61,6 @@ def get_average_daily_volume_for_contract_object(
 
 
 def get_best_average_daily_volume_for_instrument(data, instrument_code: str):
-
     data_contracts = dataContracts(data)
     contract_dates = data_contracts.get_all_sampled_contracts(instrument_code)
 

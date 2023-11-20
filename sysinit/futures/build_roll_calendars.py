@@ -91,7 +91,6 @@ class _listOfRollCalendarRows(list):
 def _create_approx_calendar_from_earliest_contract(
     earliest_contract_with_roll_data: contractWithRollParametersAndPrices,
 ) -> pd.DataFrame:
-
     roll_calendar_as_list = _listOfRollCalendarRows()
 
     # On the roll date we stop holding the current contract, and end up holding the next one
@@ -118,7 +117,6 @@ def _create_approx_calendar_from_earliest_contract(
 def _get_new_row_of_roll_calendar(
     current_contract: contractWithRollParametersAndPrices,
 ) -> (contractWithRollParametersAndPrices, _rollCalendarRow):
-
     roll_parameters = current_contract.roll_parameters
     final_contract_date_str = current_contract.prices.last_contract_date_str()
 
@@ -238,7 +236,6 @@ def adjust_to_price_series(
 def _get_local_data_for_row_number(
     approx_calendar: pd.DataFrame, row_number: int, idx_of_last_row_in_data: int
 ) -> localRowData:
-
     last_row_in_data = row_number == idx_of_last_row_in_data
     if last_row_in_data:
         return _last_row
@@ -247,9 +244,7 @@ def _get_local_data_for_row_number(
 
     approx_row = approx_calendar.iloc[row_number, :]
     if not first_row_in_data:
-        prev_approx_row = approx_calendar.iloc[
-            row_number - 1,
-        ]
+        prev_approx_row = approx_calendar.iloc[row_number - 1,]
     else:
         prev_approx_row = _bad_row
 
@@ -274,7 +269,6 @@ def _adjust_row_of_approx_roll_calendar(
     dict_of_futures_contract_prices: dictFuturesContractFinalPrices,
     omit_carry: bool = False,
 ):
-
     roll_date, date_to_avoid = _get_roll_date_and_date_to_avoid(local_row_data)
     set_of_prices = _get_set_of_prices(
         local_row_data, dict_of_futures_contract_prices, omit_carry
@@ -283,7 +277,6 @@ def _adjust_row_of_approx_roll_calendar(
         _print_roll_date_error(local_row_data)
         return _bad_row
     try:
-
         adjusted_roll_date = _find_best_matching_roll_date(
             roll_date,
             set_of_prices,
@@ -317,7 +310,6 @@ def _get_set_of_prices(
     dict_of_futures_contract_prices: dictFuturesContractFinalPrices,
     omit_carry: bool = False,
 ) -> setOfPrices:
-
     approx_row = local_row_data.current_row
 
     current_contract = str(approx_row.current_contract)
@@ -448,7 +440,6 @@ def _find_best_matching_roll_date(
 
 
 def _required_paired_prices(set_of_prices: setOfPrices) -> pd.DataFrame:
-
     no_carry_exists = set_of_prices.carry_prices is _no_carry_prices
     no_curr_carry_exists = set_of_prices.curr_carry_prices is _no_carry_prices
     if no_carry_exists or no_curr_carry_exists:
@@ -497,7 +488,6 @@ def _valid_dates_from_matching_prices(paired_prices_matching, avoid_date):
 
 
 def _find_closest_valid_date_to_approx_roll_date(valid_dates, roll_date):
-
     distance_to_roll = valid_dates - roll_date
     distance_to_roll_days = [
         abs(distance_item.days) for distance_item in distance_to_roll
@@ -511,7 +501,6 @@ def _find_closest_valid_date_to_approx_roll_date(valid_dates, roll_date):
 def _get_adjusted_row(
     local_row_data: localRowData, adjusted_roll_date
 ) -> _rollCalendarRow:
-
     approx_row = local_row_data.current_row
     current_carry_contract = approx_row.carry_contract
     current_contract = approx_row.current_contract
@@ -584,7 +573,6 @@ def _add_carry_calendar(
 def back_out_roll_calendar_from_multiple_prices(
     multiple_prices: futuresMultiplePrices,
 ) -> pd.DataFrame:
-
     multiple_prices_unique = multiple_prices[
         ~multiple_prices.index.duplicated(keep="last")
     ]
@@ -601,7 +589,6 @@ def back_out_roll_calendar_from_multiple_prices(
 def _get_roll_calendar_from_unique_prices(
     multiple_prices_unique: pd.DataFrame,
 ) -> pd.DataFrame:
-
     tuple_of_roll_dates = _get_time_indices_from_multiple_prices(multiple_prices_unique)
     roll_calendar = _get_roll_calendar_from_roll_dates_and_unique_prices(
         multiple_prices_unique, tuple_of_roll_dates
@@ -628,7 +615,6 @@ def _get_time_indices_from_multiple_prices(
 def _get_roll_calendar_from_roll_dates_and_unique_prices(
     multiple_prices_unique: pd.DataFrame, tuple_of_roll_dates: tuple
 ) -> pd.DataFrame:
-
     roll_dates, days_before = tuple_of_roll_dates
 
     current_contracts = _extract_contract_from_multiple_prices(

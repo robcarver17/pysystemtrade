@@ -27,7 +27,6 @@ class positionLimitData(baseData):
     def get_position_limit_object_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> positionLimitForStrategyInstrument:
-
         try:
             position_limit = self._get_abs_position_limit_for_instrument_strategy(
                 instrument_strategy
@@ -46,7 +45,6 @@ class positionLimitData(baseData):
     def get_position_limit_object_for_instrument(
         self, instrument_code: str
     ) -> positionLimitForInstrument:
-
         try:
             position_limit = self._get_abs_position_limit_for_instrument(
                 instrument_code
@@ -79,7 +77,6 @@ class positionLimitData(baseData):
         raise NotImplementedError
 
     def get_all_instrument_strategies_with_limits(self) -> listOfInstrumentStrategies:
-
         raise NotImplementedError
 
     def set_position_limit_for_instrument_strategy(
@@ -98,5 +95,4 @@ class positionLimitData(baseData):
         raise NotImplementedError
 
     def delete_position_limit_for_instrument(self, instrument_code: str):
-
         raise NotImplementedError

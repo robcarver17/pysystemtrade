@@ -28,7 +28,6 @@ class dbFuturesSimData(genericBlobUsingFuturesSimData):
     def __init__(
         self, data: dataBlob = arg_not_supplied, log=get_logger("dbFuturesSimData")
     ):
-
         if data is arg_not_supplied:
             data = dataBlob(
                 log=log,
@@ -38,7 +37,7 @@ class dbFuturesSimData(genericBlobUsingFuturesSimData):
                     get_class_for_data_type(FX_DATA),
                     get_class_for_data_type(FUTURES_INSTRUMENT_DATA),
                     get_class_for_data_type(ROLL_PARAMETERS_DATA),
-                    get_class_for_data_type(STORED_SPREAD_DATA)
+                    get_class_for_data_type(STORED_SPREAD_DATA),
                 ],
             )
 
@@ -58,21 +57,19 @@ ROLL_PARAMETERS_DATA = "roll_parameters_data"
 FUTURES_INSTRUMENT_DATA = "futures_instrument_data"
 STORED_SPREAD_DATA = "stored_spread_data"
 
-def get_class_for_data_type(data_type:str):
 
+def get_class_for_data_type(data_type: str):
     return use_sim_classes[data_type]
+
 
 use_sim_classes = {
     FX_DATA: parquetFxPricesData,
     ROLL_PARAMETERS_DATA: csvRollParametersData,
     FUTURES_INSTRUMENT_DATA: csvFuturesInstrumentData,
-
     FUTURES_MULTIPLE_PRICE_DATA: parquetFuturesMultiplePricesData,
     FUTURES_ADJUSTED_PRICE_DATA: parquetFuturesAdjustedPricesData,
-    STORED_SPREAD_DATA: mongoSpreadCostData
+    STORED_SPREAD_DATA: mongoSpreadCostData,
 }
-
-
 
 
 if __name__ == "__main__":

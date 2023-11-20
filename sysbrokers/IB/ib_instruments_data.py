@@ -49,7 +49,6 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
     def get_futures_instrument_object_with_IB_data(
         self, instrument_code: str
     ) -> futuresInstrumentWithIBConfigData:
-
         config = self.ib_config
         instrument_object = get_instrument_object_from_config(
             instrument_code, log=self.log, config=config
@@ -101,7 +100,6 @@ class ibFuturesInstrumentData(brokerFuturesInstrumentData):
         return self._ibconnection
 
     def _get_and_set_ib_config_from_file(self) -> IBconfig:
-
         config_data = read_ib_config_from_file(log=self.log)
 
         return config_data

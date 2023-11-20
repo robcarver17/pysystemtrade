@@ -6,7 +6,10 @@ from sysobjects.contracts import futuresContract
 from sysdata.data_blob import dataBlob
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
-from sysproduction.data.production_data_objects import FUTURES_CONTRACT_PRICE_DATA, get_class_for_data_type
+from sysproduction.data.production_data_objects import (
+    FUTURES_CONTRACT_PRICE_DATA,
+    get_class_for_data_type,
+)
 
 # Get volume data for the contract we're currently trading, plus what we might roll into, plus the previous one
 # This is handy for working out whether to roll
@@ -60,7 +63,6 @@ class diagVolumes(productionDataLayerGeneric):
     def get_smoothed_volume_for_contract(
         self, instrument_code: str, contract_date_str: str
     ) -> float:
-
         contract = futuresContract(instrument_code, contract_date_str)
         try:
             volumes = self.get_daily_volumes_for_contract(contract)

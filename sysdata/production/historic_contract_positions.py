@@ -86,7 +86,6 @@ class contractPositionData(baseData):
         start_date: datetime.datetime,
         end_date: datetime.datetime,
     ) -> List[str]:
-
         list_of_contracts = self.get_list_of_contracts_for_instrument_code(
             instrument_code
         )
@@ -144,7 +143,6 @@ class contractPositionData(baseData):
         start_date: datetime.datetime,
         end_date: datetime.datetime,
     ) -> bool:
-
         try:
             series_of_positions = self.get_position_as_series_for_contract_object(
                 contract
@@ -188,7 +186,6 @@ class contractPositionData(baseData):
         current_series: pd.Series,
         new_position_series: pd.Series,
     ):
-
         try:
             assert new_position_series.index[0] > current_series.index[-1]
         except:

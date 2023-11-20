@@ -55,12 +55,18 @@ def safely_modify_roll_parameters(data: dataBlob):
         print("Doing nothing")
         # return None
 
-    new_multiple_prices = process_multiple_prices_single_instrument(instrument_code=instrument_code,
-                                                                    csv_roll_data_path=output_path_for_temp_csv_files,
-                                                                    ADD_TO_DB=False, ADD_TO_CSV=False)
-    new_adjusted_prices = process_adjusted_prices_single_instrument(instrument_code,
-                                                                    multiple_prices=new_multiple_prices,
-                                                                    ADD_TO_DB=False, ADD_TO_CSV=False)
+    new_multiple_prices = process_multiple_prices_single_instrument(
+        instrument_code=instrument_code,
+        csv_roll_data_path=output_path_for_temp_csv_files,
+        ADD_TO_DB=False,
+        ADD_TO_CSV=False,
+    )
+    new_adjusted_prices = process_adjusted_prices_single_instrument(
+        instrument_code,
+        multiple_prices=new_multiple_prices,
+        ADD_TO_DB=False,
+        ADD_TO_CSV=False,
+    )
 
     diag_prices = diagPrices(data)
     existing_multiple_prices = diag_prices.get_multiple_prices(instrument_code)

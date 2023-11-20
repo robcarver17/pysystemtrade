@@ -69,7 +69,6 @@ class algoOriginalBest(Algo):
     def manage_trade(
         self, placed_broker_order_with_controls: orderWithControls
     ) -> orderWithControls:
-
         data = self.data
         placed_broker_order_with_controls = self.manage_live_trade(
             placed_broker_order_with_controls
@@ -81,7 +80,6 @@ class algoOriginalBest(Algo):
         return placed_broker_order_with_controls
 
     def prepare_and_submit_trade(self) -> orderWithControls:
-
         data = self.data
         contract_order = self.contract_order
         log = contract_order.log_with_attributes(data.log)
@@ -120,7 +118,6 @@ class algoOriginalBest(Algo):
             return missing_order
 
         if okay_to_do_limit_trade:
-
             # create and issue limit order
             broker_order_with_controls = (
                 self.get_and_submit_broker_order_for_contract_order(
@@ -146,7 +143,6 @@ class algoOriginalBest(Algo):
     def manage_live_trade(
         self, broker_order_with_controls_and_order_id: orderWithControls
     ) -> orderWithControls:
-
         data = self.data
         log = broker_order_with_controls_and_order_id.order.log_with_attributes(
             data.log
@@ -229,7 +225,6 @@ def limit_trade_viable(
     ticker_object: tickerObject,
     log: pst_logger,
 ) -> bool:
-
     # no point doing limit order if we've got imbalanced size issues, as we'd
     # switch to aggressive immediately
     raise_adverse_size_issue = adverse_size_issue(
@@ -242,7 +237,6 @@ def limit_trade_viable(
 
     # or if not enough time left
     if is_market_about_to_close(data_broker=data_broker, order=order, log=log):
-
         log.debug(
             "Market about to close or stack handler nearly close - doing market order"
         )
@@ -267,7 +261,6 @@ def file_log_report(
 def file_log_report_limit_order(
     log, is_aggressive: bool, broker_order_with_controls: orderWithControls
 ):
-
     if is_aggressive:
         agg_txt = "Aggressive"
     else:
@@ -337,7 +330,6 @@ def is_market_about_to_close(
     order: Union[brokerOrder, contractOrder, orderWithControls],
     log: pst_logger,
 ) -> bool:
-
     try:
         short_of_time = data_broker.less_than_N_hours_of_trading_left_for_contract(
             order.futures_contract,

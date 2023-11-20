@@ -15,7 +15,6 @@ class fxPrices(pd.Series):
     """
 
     def __init__(self, data):
-
         super().__init__(data)
         data.index.name = "index"
         data.name = ""

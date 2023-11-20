@@ -337,7 +337,6 @@ def update_historical_prices_for_instrument_and_contract(
     cleaning_config: priceFilterConfig = arg_not_supplied,
     interactive_mode: bool = False,
 ):
-
     diag_prices = diagPrices(data)
     intraday_frequency = diag_prices.get_intraday_frequency_for_historical_download()
     daily_frequency = DAILY_PRICE_FREQ
@@ -433,7 +432,6 @@ def price_updating_or_errors(
     cleaning_config: priceFilterConfig,
     check_for_spike: bool = True,
 ):
-
     price_updater = updatePrices(data)
 
     try:
@@ -476,7 +474,6 @@ def report_price_spike(data: dataBlob, contract_object: futuresContract):
 def write_merged_prices_for_contract(
     data: dataBlob, contract_object: futuresContract, list_of_frequencies: list
 ):
-
     ## note list of frequencies must have daily as last or groupby won't work with volume
 
     assert list_of_frequencies[-1] == DAILY_PRICE_FREQ

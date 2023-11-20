@@ -24,7 +24,6 @@ class mongoFuturesContractData(futuresContractData):
     def __init__(
         self, mongo_db=arg_not_supplied, log=get_logger("mongoFuturesContractData")
     ):
-
         super().__init__(log=log)
         mongo_data = mongoDataWithSingleKey(
             CONTRACT_COLLECTION, "contract_key", mongo_db=mongo_db
@@ -60,7 +59,6 @@ class mongoFuturesContractData(futuresContractData):
     def get_all_contract_objects_for_instrument_code(
         self, instrument_code: str
     ) -> listOfFuturesContracts:
-
         list_of_keys = self._get_all_contract_keys_for_instrument_code(instrument_code)
         list_of_objects = [
             self._get_contract_data_from_key_without_checking(key)
@@ -94,14 +92,12 @@ class mongoFuturesContractData(futuresContractData):
     def _get_contract_data_without_checking(
         self, instrument_code: str, contract_id: str
     ) -> futuresContract:
-
         key = contract_key_from_code_and_id(instrument_code, contract_id)
         contract_object = self._get_contract_data_from_key_without_checking(key)
 
         return contract_object
 
     def _get_contract_data_from_key_without_checking(self, key: str) -> futuresContract:
-
         result_dict = self.mongo_data.get_result_dict_for_key_without_key_value(key)
 
         contract_object = futuresContract.create_from_dict(result_dict)
@@ -111,7 +107,6 @@ class mongoFuturesContractData(futuresContractData):
     def _delete_contract_data_without_any_warning_be_careful(
         self, instrument_code: str, contract_date: str
     ):
-
         key = contract_key_from_code_and_id(instrument_code, contract_date)
         self.mongo_data.delete_data_without_any_warning(key)
 

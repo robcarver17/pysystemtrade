@@ -24,7 +24,6 @@ class csvSpreadsForInstrumentData(spreadsForInstrumentData):
     def __init__(
         self, datapath=arg_not_supplied, log=get_logger("csvSpreadsForInstrumentData")
     ):
-
         super().__init__(log=log)
 
         if datapath is arg_not_supplied:
@@ -66,7 +65,6 @@ class csvSpreadsForInstrumentData(spreadsForInstrumentData):
     def _add_spreads_without_checking_for_existing_entry(
         self, instrument_code: str, spreads: spreadsForInstrument
     ):
-
         # Ensures the file will be written with a column header
         spreads_as_dataframe = pd.DataFrame(spreads)
         spreads_as_dataframe.columns = [SPREAD_COLUMN_NAME]

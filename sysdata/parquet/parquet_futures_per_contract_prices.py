@@ -21,8 +21,11 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
     Class to read / write futures price data to and from arctic
     """
 
-    def __init__(self, parquet_access: ParquetAccess, log=get_logger("parquetFuturesContractPriceData")):
-
+    def __init__(
+        self,
+        parquet_access: ParquetAccess,
+        log=get_logger("parquetFuturesContractPriceData"),
+    ):
         super().__init__(log=log)
         self._parquet = parquet_access
 
@@ -36,7 +39,6 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
     def _get_merged_prices_for_contract_object_no_checking(
         self, futures_contract_object: futuresContract
     ) -> futuresContractPrices:
-
         # Returns a data frame which should have the right format
         data = self._get_prices_at_frequency_for_contract_object_no_checking(
             futures_contract_object, frequency=MIXED_FREQ
@@ -47,13 +49,14 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
     def _get_prices_at_frequency_for_contract_object_no_checking(
         self, futures_contract_object: futuresContract, frequency: Frequency
     ) -> futuresContractPrices:
-
         ident = from_contract_and_freq_to_key(
             futures_contract_object, frequency=frequency
         )
 
         # Returns a data frame which should have the right format
-        data = self.parquet.read_data_given_data_type_and_identifier(data_type=CONTRACT_COLLECTION, identifier=ident)
+        data = self.parquet.read_data_given_data_type_and_identifier(
+            data_type=CONTRACT_COLLECTION, identifier=ident
+        )
 
         return futuresContractPrices(data)
 
@@ -83,14 +86,17 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
         futures_price_data: futuresContractPrices,
         frequency: Frequency,
     ):
-
         log = futures_contract_object.log(self.log)
         ident = from_contract_and_freq_to_key(
             futures_contract_object, frequency=frequency
         )
         futures_price_data_as_pd = pd.DataFrame(futures_price_data)
 
-        self.parquet.write_data_given_data_type_and_identifier(data_type=CONTRACT_COLLECTION, identifier=ident, data_to_write=futures_price_data_as_pd)
+        self.parquet.write_data_given_data_type_and_identifier(
+            data_type=CONTRACT_COLLECTION,
+            identifier=ident,
+            data_to_write=futures_price_data_as_pd,
+        )
 
         log.debug(
             "Wrote %s lines of prices for %s at %s to %s"
@@ -117,7 +123,6 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
     def get_contracts_with_price_data_for_frequency(
         self, frequency: Frequency
     ) -> listOfFuturesContracts:
-
         list_of_contract_and_freq_tuples = (
             self._get_contract_and_frequencies_with_price_data()
         )
@@ -141,8 +146,10 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
     def has_price_data_for_contract_at_frequency(
         self, contract_object: futuresContract, frequency: Frequency
     ) -> bool:
-        ident =from_contract_and_freq_to_key(contract_object, frequency=frequency)
-        return self.parquet.does_idenitifier_with_data_type_exist(data_type=CONTRACT_COLLECTION, identifier=ident)
+        ident = from_contract_and_freq_to_key(contract_object, frequency=frequency)
+        return self.parquet.does_idenitifier_with_data_type_exist(
+            data_type=CONTRACT_COLLECTION, identifier=ident
+        )
 
     def _get_contract_and_frequencies_with_price_data(self) -> list:
         """
@@ -158,7 +165,9 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
         return list_of_contract_and_freq_tuples
 
     def _all_keynames_in_library(self) -> list:
-        return self.parquet.get_all_identifiers_with_data_type(data_type=CONTRACT_COLLECTION)
+        return self.parquet.get_all_identifiers_with_data_type(
+            data_type=CONTRACT_COLLECTION
+        )
 
     def _delete_merged_prices_for_contract_object_with_no_checks_be_careful(
         self, futures_contract_object: futuresContract
@@ -183,7 +192,9 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
         ident = from_contract_and_freq_to_key(
             contract=futures_contract_object, frequency=frequency
         )
-        self.parquet.delete_data_given_data_type_and_identifier(data_type=CONTRACT_COLLECTION, identifier=ident)
+        self.parquet.delete_data_given_data_type_and_identifier(
+            data_type=CONTRACT_COLLECTION, identifier=ident
+        )
         log.debug(
             "Deleted all prices for %s from %s"
             % (futures_contract_object.key, str(self))
@@ -205,7 +216,9 @@ def from_key_to_freq_and_contract(keyname) -> Tuple[Frequency, futuresContract]:
     return frequency, futures_contract
 
 
-def from_contract_and_freq_to_key(contract: futuresContract, frequency: Frequency) -> str:
+def from_contract_and_freq_to_key(
+    contract: futuresContract, frequency: Frequency
+) -> str:
     if frequency is MIXED_FREQ:
         frequency_str = ""
     else:

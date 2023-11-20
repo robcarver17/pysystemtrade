@@ -20,7 +20,6 @@ class futuresContractData(baseData):
     """
 
     def __init__(self, log=get_logger("futuresInstrumentData")):
-
         super().__init__(log=log)
 
     def __repr__(self):
@@ -45,7 +44,6 @@ class futuresContractData(baseData):
     def delete_contract_data(
         self, instrument_code: str, contract_date: str, are_you_sure=False
     ):
-
         log = self.log.setup(
             instrument_code=instrument_code, contract_date=contract_date
         )
@@ -78,7 +76,6 @@ class futuresContractData(baseData):
     def add_contract_data(
         self, contract_object: futuresContract, ignore_duplication: bool = False
     ):
-
         instrument_code = contract_object.instrument_code
         contract_date = contract_object.date_str
 

@@ -25,7 +25,6 @@ class returnsPreProcessor(object):
         cost_multiplier: float = 1.0,
         **_ignored_kwargs,
     ):
-
         self._dict_of_returns = dict_of_returns
 
         self._frequency = frequency
@@ -129,7 +128,6 @@ class returnsPreProcessor(object):
     def get_gross_returns_for_asset_name_before_equalisation(
         self, asset_name: str
     ) -> dictOfReturnsForOptimisation:
-
         if self.pool_gross_returns:
             return self.get_pooled_gross_returns_dict()
         else:
@@ -219,7 +217,6 @@ class returnsPreProcessor(object):
 def _calculate_pooled_turnover_costs(
     asset_name: str, turnovers: dict, dict_of_costs: dictOfSRacrossAssets
 ) -> dictOfSR:
-
     column_names = turnovers.keys()
     column_SR_dict = dict(
         [
@@ -244,7 +241,6 @@ def _calculate_pooled_turnover_costs(
 def _calculate_pooled_turnover_cost_for_column(
     asset_name: str, turnovers: dict, dict_of_costs: dict, column_name
 ) -> float:
-
     cost_per_turnover_this_asset = _calculate_cost_per_turnover(
         asset_name,
         column_name=column_name,
@@ -265,7 +261,6 @@ def _average_turnover(turnovers, column_name):
 def _calculate_cost_per_turnover(
     asset_name: str, column_name: str, turnovers: dict, dict_of_costs: dict
 ):
-
     turnover = _turnover_for_asset_and_column(asset_name, column_name, turnovers)
     if turnover > 0:
         cost = _cost_for_asset_and_column(asset_name, column_name, dict_of_costs)
@@ -278,10 +273,8 @@ def _calculate_cost_per_turnover(
 
 
 def _turnover_for_asset_and_column(asset_name: str, column_name: str, turnovers: dict):
-
     return turnovers[column_name][asset_name]
 
 
 def _cost_for_asset_and_column(asset_name: str, column_name: str, dict_of_costs: dict):
-
     return dict_of_costs[asset_name][column_name]

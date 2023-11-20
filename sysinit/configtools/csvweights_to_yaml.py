@@ -54,7 +54,6 @@ def forecast_weights_by_instrument_csv_to_yaml(filename_input, filename_output):
 
     my_config = {}
     for instrument in data_instruments:
-
         data_weights = data[instrument].values
         my_config[instrument] = dict(
             [

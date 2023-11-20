@@ -118,7 +118,6 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
     def contracts_with_merged_price_data_for_instrument_code(
         self, instrument_code: str, allow_expired=True
     ) -> listOfFuturesContracts:
-
         futures_instrument_with_ib_data = (
             self.futures_instrument_data.get_futures_instrument_object_with_IB_data(
                 instrument_code
@@ -142,7 +141,6 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
     def get_prices_at_frequency_for_potentially_expired_contract_object(
         self, contract: futuresContract, freq: Frequency = DAILY_PRICE_FREQ
     ) -> futuresContractPrices:
-
         price_data = self._get_prices_at_frequency_for_contract_object_no_checking_with_expiry_flag(
             contract, frequency=freq, allow_expired=True
         )
@@ -159,7 +157,6 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         frequency: Frequency,
         return_empty: bool = True,
     ):
-
         ## Override this because don't want to check for existing data first
 
         try:
@@ -177,7 +174,6 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
     def _get_prices_at_frequency_for_contract_object_no_checking(
         self, futures_contract_object: futuresContract, frequency: Frequency
     ) -> futuresContractPrices:
-
         return self._get_prices_at_frequency_for_contract_object_no_checking_with_expiry_flag(
             futures_contract_object=futures_contract_object,
             frequency=frequency,
@@ -190,7 +186,6 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         frequency: Frequency,
         allow_expired: bool = False,
     ) -> futuresContractPrices:
-
         """
         Get historical prices at a particular frequency
 
@@ -227,7 +222,6 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         freq: Frequency,
         allow_expired: bool = False,
     ) -> futuresContractPrices:
-
         new_log = contract_object_with_ib_broker_config.log(self.log)
 
         try:

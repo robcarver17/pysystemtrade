@@ -295,7 +295,6 @@ class simData(baseData):
 
 
 def _resolve_start_date(sim_data: simData):
-
     try:
         config = _resolve_config(sim_data)
     except missingData:

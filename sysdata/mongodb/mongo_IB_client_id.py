@@ -18,7 +18,6 @@ class mongoIbBrokerClientIdData(ibBrokerClientIdData):
         idoffset=arg_not_supplied,
         log=get_logger("mongoIDTracker"),
     ):
-
         super().__init__(log=log, idoffset=idoffset)
         self._mongo_data = mongoDataWithSingleKey(
             IB_CLIENT_COLLECTION, IB_ID_REF, mongo_db

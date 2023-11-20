@@ -185,7 +185,6 @@ def _find_dates_when_labels_change_given_label_data(
     existing_labels_in_new_period: pd.Series,
     new_labels_in_new_period: pd.Series,
 ) -> Union[named_object, Tuple[datetime.datetime, datetime.datetime]]:
-
     # Find the last date when the labels didn't match, and the first date
     # after that
     match_dates = _find_dates_when_series_starts_matching(
@@ -254,7 +253,6 @@ def _find_dates_when_series_starts_matching(
 def _match_dates_for_labels_when_not_equal_or_mismatch(
     series1: pd.Series, period_equal: List[bool]
 ) -> Tuple[datetime.datetime, datetime.datetime]:
-
     # Want last False value
     period_equal.reverse()
     first_false_in_reversed_list = period_equal.index(False)
@@ -280,7 +278,6 @@ def _match_dates_for_labels_when_not_equal_or_mismatch(
 def _match_dates_when_entire_series_of_labels_matches(
     original_data: pd.DataFrame, new_data: pd.DataFrame
 ) -> Union[named_object, Tuple[datetime.datetime, datetime.datetime]]:
-
     # Can use entire series becuase all match
     if new_data.index[0] == original_data.index[0]:
         # They are same size, so have to use whole of original data
@@ -342,7 +339,6 @@ def _stitch_merged_and_existing_data(
     data_column="PRICE",
     label_column="PRICE_CONTRACT",
 ) -> pd.DataFrame:
-
     labelled_merged_data = _get_labelled_merged_data(
         merged_data_series=merged_data_series,
         original_data=original_data,
@@ -377,7 +373,6 @@ def _get_labelled_merged_data(
     data_column="PRICE",
     label_column="PRICE_CONTRACT",
 ) -> pd.DataFrame:
-
     labels_in_merged_data = _get_merged_label_data(
         merged_data_series=merged_data_series,
         original_data=original_data,

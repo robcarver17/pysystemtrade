@@ -11,7 +11,6 @@ class brokerCapitalData(capitalData):
     def __init__(
         self, data: dataBlob, log: pst_logger = get_logger("brokerCapitalData")
     ):
-
         super().__init__(log=log)
         self._data = data
 

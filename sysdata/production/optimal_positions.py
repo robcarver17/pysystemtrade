@@ -70,7 +70,6 @@ class optimalPositionData(baseData):
     def get_list_of_optimal_positions_given_list_of_instrument_strategies(
         self, list_of_instrument_strategies: listOfInstrumentStrategies
     ) -> listOfOptimalPositionsAcrossInstrumentStrategies:
-
         list_of_optimal_positions_and_instrument_strategies = [
             self.get_instrument_strategy_and_optimal_position(instrument_strategy)
             for instrument_strategy in list_of_instrument_strategies
@@ -87,7 +86,6 @@ class optimalPositionData(baseData):
     def get_instrument_strategy_and_optimal_position(
         self, instrument_strategy: instrumentStrategy
     ) -> instrumentStrategyAndOptimalPosition:
-
         optimal_position = self.get_current_optimal_position_for_instrument_strategy(
             instrument_strategy
         )
@@ -100,7 +98,6 @@ class optimalPositionData(baseData):
     def get_list_of_instruments_for_strategy_with_optimal_position(
         self, strategy_name: str
     ) -> list:
-
         list_of_instrument_strategies = (
             self.get_list_of_instrument_strategies_with_optimal_position()
         )
@@ -125,7 +122,6 @@ class optimalPositionData(baseData):
     def get_list_of_instrument_strategies_for_strategy_with_optimal_position(
         self, strategy_name: str
     ) -> listOfInstrumentStrategies:
-
         list_of_instrument_strategies = (
             self.get_list_of_instrument_strategies_with_optimal_position()
         )
@@ -138,7 +134,6 @@ class optimalPositionData(baseData):
     def get_current_optimal_position_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> baseOptimalPosition:
-
         existing_optimal_positions_as_df = (
             self.get_optimal_position_as_df_for_instrument_strategy(instrument_strategy)
         )
@@ -177,13 +172,11 @@ class optimalPositionData(baseData):
     def get_list_of_instrument_strategies_with_optimal_position(
         self,
     ) -> listOfInstrumentStrategies:
-
         raise NotImplementedError
 
     def get_optimal_position_as_df_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> pd.DataFrame:
-
         raise NotImplementedError
 
     def write_optimal_position_as_df_for_instrument_strategy_without_checking(
@@ -191,5 +184,4 @@ class optimalPositionData(baseData):
         instrument_strategy: instrumentStrategy,
         optimal_positions_as_df: pd.DataFrame,
     ) -> pd.DataFrame:
-
         raise NotImplementedError

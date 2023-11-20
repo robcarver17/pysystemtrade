@@ -27,7 +27,6 @@ class orderGeneratorForStrategy(object):
     """
 
     def __init__(self, data: dataBlob, strategy_name: str):
-
         self._strategy_name = strategy_name
         self._data = data
         data_orders = dataOrders(data)
@@ -86,7 +85,6 @@ class orderGeneratorForStrategy(object):
     def apply_overrides_and_position_limits(
         self, order_list: listOfOrders
     ) -> listOfOrders:
-
         new_order_list = [
             self.apply_overrides_and_position_limits_for_instrument_and_strategy(
                 proposed_order
@@ -148,7 +146,6 @@ class orderGeneratorForStrategy(object):
     def adjust_order_for_position_limits(
         self, order: instrumentOrder
     ) -> instrumentOrder:
-
         log = order.log_with_attributes(self.log)
 
         data_position_limits = dataPositionLimits(self.data)

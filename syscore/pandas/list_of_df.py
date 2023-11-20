@@ -104,7 +104,7 @@ def stacked_df_with_added_time_from_list(data: listOfDataFrames) -> pd.DataFrame
     aligned_data = data.reindex_to_common_columns()
 
     # add on an offset
-    for (offset_value, data_item) in enumerate(aligned_data):
+    for offset_value, data_item in enumerate(aligned_data):
         data_item.index = data_item.index + pd.Timedelta("%dus" % offset_value)
 
     # pooled

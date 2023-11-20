@@ -187,7 +187,6 @@ class System(object):
         remove_short_history=False,
         days_required=750,
     ) -> list:
-
         instrument_list = self._get_raw_instrument_list_from_config()
         instrument_list = self._remove_instruments_from_instrument_list(
             instrument_list,
@@ -232,7 +231,6 @@ class System(object):
         remove_short_history=False,
         days_required: int = 750,
     ):
-
         list_of_instruments_to_remove = self.get_list_of_instruments_to_remove(
             remove_duplicates=remove_duplicates,
             remove_short_history=remove_short_history,
@@ -265,7 +263,6 @@ class System(object):
         remove_short_history=False,
         days_required=750,
     ) -> list:
-
         not_trading = self.get_list_of_instruments_to_remove(
             remove_duplicates=remove_duplicates,
             remove_short_history=remove_short_history,
@@ -298,7 +295,6 @@ class System(object):
         remove_short_history=False,
         days_required=750,
     ) -> list:
-
         list_to_remove = []
         if remove_duplicates:
             list_of_duplicates = self.get_list_of_duplicate_instruments_to_remove()
@@ -395,7 +391,6 @@ class System(object):
 
 
 def get_instrument_weights_from_config(config: Config) -> dict:
-
     instrument_weights_config = getattr(config, "instrument_weights", None)
     if instrument_weights_config is None:
         raise Exception("Instrument config not available")

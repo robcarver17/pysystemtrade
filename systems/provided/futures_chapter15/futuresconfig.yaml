@@ -88,7 +88,7 @@ base_currency: "USD"
 # Portfolio creation
 #
 instrument_weights:
-    EDOLLAR: 0.117
+    SOFR: 0.117
     US10: 0.117
     EUROSTX: 0.20
     V2X: 0.098
@@ -116,7 +116,7 @@ style_groups:
         - carry
 countries:
     US:
-      - EDOLLAR
+      - SOFR
       - US10
     Europe:
       - EUROSTX
@@ -126,7 +126,7 @@ countries:
     - CORN
 asset_classes:
     Rates:
-      - EDOLLAR
+      - SOFR
       - US10
     Risky:
       - EUROSTX

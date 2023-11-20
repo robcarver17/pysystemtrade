@@ -11,7 +11,6 @@ from sysproduction.data.optimal_positions import dataOptimalPositions
 
 
 def report_system_dynamic(data: dataBlob, backtest: interactiveBacktest):
-
     format_output = []
 
     strategy_name = backtest.strategy_name
@@ -41,7 +40,6 @@ def report_system_dynamic(data: dataBlob, backtest: interactiveBacktest):
 def get_optimal_positions_table_as_df(
     data: dataBlob, strategy_name: str
 ) -> pd.DataFrame:
-
     data_optimal_positions = dataOptimalPositions(data)
 
     list_of_positions = (

@@ -29,7 +29,6 @@ class strategyPositionData(baseData):
     def get_current_position_for_instrument_strategy_object(
         self, instrument_strategy: instrumentStrategy
     ) -> int:
-
         try:
             position_series = (
                 self.get_position_as_series_for_instrument_strategy_object(
@@ -68,7 +67,6 @@ class strategyPositionData(baseData):
     def get_list_of_strategies_and_instruments_with_positions(
         self, ignore_zero_positions: bool = True
     ) -> listOfInstrumentStrategies:
-
         list_of_instrument_strategies = self.get_list_of_instrument_strategies()
 
         if ignore_zero_positions:
@@ -90,7 +88,6 @@ class strategyPositionData(baseData):
     def get_list_of_instruments_for_strategy_with_position(
         self, strategy_name, ignore_zero_positions=True
     ) -> list:
-
         list_of_instrument_strategies = (
             self.get_list_of_strategies_and_instruments_with_positions(
                 ignore_zero_positions=ignore_zero_positions
@@ -192,7 +189,6 @@ class strategyPositionData(baseData):
         position: int,
         date_index: datetime.datetime,
     ):
-
         new_position_series = pd.Series([position], index=[date_index])
 
         try:
@@ -218,7 +214,6 @@ class strategyPositionData(baseData):
         current_series: pd.Series,
         new_position_series: pd.Series,
     ):
-
         try:
             assert new_position_series.index[0] > current_series.index[-1]
         except:
@@ -254,5 +249,4 @@ class strategyPositionData(baseData):
     def get_position_as_series_for_instrument_strategy_object(
         self, instrument_strategy: instrumentStrategy
     ) -> pd.Series:
-
         raise NotImplementedError

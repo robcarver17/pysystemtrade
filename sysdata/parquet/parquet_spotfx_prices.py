@@ -13,8 +13,9 @@ class parquetFxPricesData(fxPricesData):
     Class to read / write fx prices
     """
 
-    def __init__(self, parquet_access: ParquetAccess, log=get_logger("parquetFxPricesData")):
-
+    def __init__(
+        self, parquet_access: ParquetAccess, log=get_logger("parquetFxPricesData")
+    ):
         super().__init__(log=log)
         self._parquet = parquet_access
 
@@ -23,14 +24,17 @@ class parquetFxPricesData(fxPricesData):
         return self._parquet
 
     def __repr__(self):
-        return 'parquetFxPricesData'
+        return "parquetFxPricesData"
 
     def get_list_of_fxcodes(self) -> list:
-        return self.parquet.get_all_identifiers_with_data_type(data_type=SPOTFX_COLLECTION)
+        return self.parquet.get_all_identifiers_with_data_type(
+            data_type=SPOTFX_COLLECTION
+        )
 
     def _get_fx_prices_without_checking(self, currency_code: str) -> fxPrices:
-
-        fx_data = self.parquet.read_data_given_data_type_and_identifier(data_type=SPOTFX_COLLECTION, identifier=currency_code)
+        fx_data = self.parquet.read_data_given_data_type_and_identifier(
+            data_type=SPOTFX_COLLECTION, identifier=currency_code
+        )
 
         fx_prices = fxPrices(fx_data[fx_data.columns[0]])
 
@@ -38,7 +42,9 @@ class parquetFxPricesData(fxPricesData):
 
     def _delete_fx_prices_without_any_warning_be_careful(self, currency_code: str):
         log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
-        self.parquet.delete_data_given_data_type_and_identifier(data_type=SPOTFX_COLLECTION, identifier=currency_code)
+        self.parquet.delete_data_given_data_type_and_identifier(
+            data_type=SPOTFX_COLLECTION, identifier=currency_code
+        )
         log.debug("Deleted fX prices for %s from %s" % (currency_code, str(self)))
 
     def _add_fx_prices_without_checking_for_existing_entry(
@@ -50,7 +56,11 @@ class parquetFxPricesData(fxPricesData):
         fx_price_data_aspd.columns = ["price"]
         fx_price_data_aspd = fx_price_data_aspd.astype(float)
 
-        self.parquet.write_data_given_data_type_and_identifier(data_type=SPOTFX_COLLECTION, identifier=currency_code, data_to_write=fx_price_data_aspd)
+        self.parquet.write_data_given_data_type_and_identifier(
+            data_type=SPOTFX_COLLECTION,
+            identifier=currency_code,
+            data_to_write=fx_price_data_aspd,
+        )
         log.debug(
             "Wrote %s lines of prices for %s to %s"
             % (len(fx_price_data), currency_code, str(self))

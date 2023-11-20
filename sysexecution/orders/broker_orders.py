@@ -394,7 +394,6 @@ def create_new_broker_order_from_contract_order(
     broker_permid: str = "",
     broker_tempid: str = "",
 ) -> brokerOrder:
-
     broker_order = brokerOrder(
         contract_order.key,
         contract_order.trade,
@@ -428,7 +427,6 @@ class brokerOrderWithParentInformation(brokerOrder):
         instrument_order: instrumentOrder,
         contract_order: contractOrder,
     ):
-
         # Price when the trade was generated. We use the contract order price since
         #  the instrument order price may refer to a different contract
         order.parent_reference_price = contract_order.reference_price

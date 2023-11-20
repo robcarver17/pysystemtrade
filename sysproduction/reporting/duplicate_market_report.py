@@ -12,7 +12,6 @@ HEADER_TEXT = body_text(
 def duplicate_market_report(
     data: dataBlob = arg_not_supplied,
 ):
-
     if data is arg_not_supplied:
         data = dataBlob()
 

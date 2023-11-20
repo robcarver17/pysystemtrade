@@ -59,7 +59,6 @@ class rollCalendarData(baseData):
         roll_calendar: rollCalendar,
         ignore_duplication: bool = False,
     ):
-
         self.log.debug("Updating log attributes", instrument_code=instrument_code)
 
         if self.is_code_in_data(instrument_code):

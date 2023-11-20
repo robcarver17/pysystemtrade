@@ -148,7 +148,6 @@ class instrumentOrderStackData(orderStackData):
 def calculate_adjusted_order_given_existing_orders(
     new_order: instrumentOrder, existing_orders: listOfOrders, log
 ):
-
     desired_new_trade = new_order.trade
     (
         existing_trades,

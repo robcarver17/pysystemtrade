@@ -44,7 +44,6 @@ class objectiveFunctionForGreedy:
         log: pst_logger = get_logger("objectiveFunctionForGreedy"),
         constraint_function: Callable = arg_not_supplied,
     ):
-
         self.covariance_matrix = covariance_matrix
         self.per_contract_value = per_contract_value
         self.costs = costs
@@ -140,7 +139,6 @@ class objectiveFunctionForGreedy:
         return tracking_error_smaller_than_buffer
 
     def tracking_error_of_prior_weights(self) -> float:
-
         prior_weights = self.weights_prior_as_np_replace_nans_with_zeros
         tracking_error = self.tracking_error_against_optimal(prior_weights)
 

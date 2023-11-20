@@ -38,7 +38,6 @@ def generate_order_and_fill_at_idx_point_for_limit_orders(
     current_datetime: datetime.datetime,
     data_for_idx: DataAtIDXPoint,
 ) -> Tuple[ListOfSimpleOrdersWithDate, Fill]:
-
     current_optimal_position = data_for_idx.current_optimal_position
     if np.isnan(current_optimal_position):
         quantity = 0

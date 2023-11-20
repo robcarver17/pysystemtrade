@@ -19,7 +19,6 @@ from sysdata.data_blob import dataBlob
 
 
 def instrument_list_report():
-
     report_config = reportConfig(
         title="Instrument list", function="not_used", output="file"
     )
@@ -66,7 +65,6 @@ def instrument_results_as_pd_df_row(
     data_broker: dataBroker,
     contract_data: dataContracts,
 ):
-
     instrument_broker_data = data_broker.get_brokers_instrument_with_metadata(
         instrument_code
     )

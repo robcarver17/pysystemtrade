@@ -13,7 +13,6 @@ class arcticFxPricesData(fxPricesData):
     """
 
     def __init__(self, mongo_db=None, log=get_logger("arcticFxPricesData")):
-
         super().__init__(log=log)
         self._arctic = arcticData(SPOTFX_COLLECTION, mongo_db=mongo_db)
 
@@ -28,7 +27,6 @@ class arcticFxPricesData(fxPricesData):
         return self.arctic.get_keynames()
 
     def _get_fx_prices_without_checking(self, currency_code: str) -> fxPrices:
-
         fx_data = self.arctic.read(currency_code)
 
         fx_prices = fxPrices(fx_data[fx_data.columns[0]])

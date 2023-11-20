@@ -64,7 +64,6 @@ class genericOrdersData(baseData):
         period_start: datetime.datetime,
         period_end: datetime.datetime = arg_not_supplied,
     ) -> list:
-
         raise NotImplementedError
 
 
@@ -104,7 +103,6 @@ class strategyHistoricOrdersData(genericOrdersData):
     def get_list_of_order_ids_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ):
-
         raise NotImplementedError
 
 

@@ -18,7 +18,6 @@ def account_curve_report(
     start_date=arg_not_supplied,
     end_date=arg_not_supplied,
 ):
-
     if data is arg_not_supplied:
         data = dataBlob()
 
@@ -33,14 +32,12 @@ def account_curve_report(
 
 
 def _account_curve_report_with_dates(reporting_api: reportingApi) -> list:
-
     figure_object = reporting_api.figure_of_account_curve_using_dates()
 
     return [figure_object]
 
 
 def _account_curve_report_full(reporting_api: reportingApi) -> list:
-
     formatted_output = []
 
     for period in list_of_periods:

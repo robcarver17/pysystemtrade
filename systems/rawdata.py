@@ -345,7 +345,6 @@ class RawData(SystemStage):
     def _daily_vol_normalised_price_for_list_of_instruments(
         self, list_of_instruments: list
     ) -> pd.Series:
-
         norm_returns = (
             self._aggregate_daily_vol_normalised_returns_for_list_of_instruments(
                 list_of_instruments

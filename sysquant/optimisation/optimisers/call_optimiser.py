@@ -21,7 +21,6 @@ REGISTER_OF_OPTIMISERS = dict(
 def optimiser_for_method(
     method: str, estimates: Estimates, **weighting_args
 ) -> estimatesWithPortfolioWeights:
-
     assets_with_missing_data = estimates.assets_with_missing_data()
     estimates_with_only_valid_data = estimates.subset_with_available_data()
     if estimates_with_only_valid_data.size == 0:
@@ -61,7 +60,6 @@ def weights_and_estimates_with_no_valid_data(
 def call_optimiser(
     method: str, estimates_with_only_valid_data: Estimates, **weighting_args
 ) -> estimatesWithPortfolioWeights:
-
     optimisation_function = REGISTER_OF_OPTIMISERS.get(method, None)
     if optimisation_function is None:
         error_msg = "Optimiser %s not recognised" % method

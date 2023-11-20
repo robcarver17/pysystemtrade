@@ -16,7 +16,6 @@ class AccountWithOrderSimulator(Account):
     def pandl_for_subsystem(
         self, instrument_code, delayfill=True, roundpositions=True
     ) -> accountCurve:
-
         self.log.debug(
             "Calculating pandl for subsystem for instrument %s" % instrument_code,
             instrument_code=instrument_code,
@@ -41,7 +40,6 @@ class AccountWithOrderSimulator(Account):
     def _pandl_calculator_for_subsystem_with_cash_costs(
         self, instrument_code, delayfill=True, roundpositions=True
     ) -> pandlCalculationWithCashCostsAndFills:
-
         ## Should be checked earlier, but just in case called directly
         ## Order simulator doesn't work otherwise
         assert delayfill
@@ -102,7 +100,6 @@ class AccountWithOrderSimulator(Account):
     def _pandl_calculator_for_instrument_with_cash_costs(
         self, instrument_code, delayfill=True, roundpositions=True
     ) -> pandlCalculationWithCashCostsAndFills:
-
         ## Should be checked earlier, but just in case called directly
         ## Order simulator doesn't work otherwise
         assert delayfill

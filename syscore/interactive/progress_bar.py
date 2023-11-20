@@ -26,7 +26,6 @@ class progressBar(object):
         show_timings=True,
         toolbar_width: int = 80,
     ):
-
         self._start_time = time.time()
         self._current_iteration = 0
         self._suffix = suffix

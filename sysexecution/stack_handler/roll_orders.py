@@ -75,7 +75,6 @@ class stackHandlerForRolls(stackHandlerCore):
         )
 
     def check_roll_required_and_safe(self, instrument_code: str) -> bool:
-
         roll_orders_required_from_positions = (
             self.check_if_positions_require_order_generation(instrument_code)
         )
@@ -139,7 +138,6 @@ class stackHandlerForRolls(stackHandlerCore):
         return order_generation_is_appropriate
 
     def check_if_order_required_in_double_sided_roll_state(self, instrument_code: str):
-
         ## Double sided, so we will only do if there is no reducing order on the stack
         has_reducing_order = has_reducing_instrument_order_on_stack(
             data=self.data,
@@ -202,7 +200,6 @@ class stackHandlerForRolls(stackHandlerCore):
     def add_instrument_and_list_of_contract_orders_to_stack(
         self, instrument_order: instrumentOrder, list_of_contract_orders: listOfOrders
     ):
-
         instrument_stack = self.instrument_stack
         contract_stack = self.contract_stack
         parent_log = instrument_order.log_with_attributes(self.log)
@@ -472,16 +469,20 @@ def get_strategy_name_with_largest_position_for_instrument(
     )
 
     try:
-            strategy_name =         all_instrument_positions.strategy_name_with_largest_abs_position_for_instrument(
-                    instrument_code
-                )
+        strategy_name = all_instrument_positions.strategy_name_with_largest_abs_position_for_instrument(
+            instrument_code
+        )
     except:
-            ## corner case where nets out to 0
-            strategies = diag_positions.get_list_of_strategies_with_positions()
-            strategy_name = strategies[0]
-            data.log.debug("No strategies have net positions in %s, using arbitrary strategy %s" % (instrument_code, strategy_name))
+        ## corner case where nets out to 0
+        strategies = diag_positions.get_list_of_strategies_with_positions()
+        strategy_name = strategies[0]
+        data.log.debug(
+            "No strategies have net positions in %s, using arbitrary strategy %s"
+            % (instrument_code, strategy_name)
+        )
 
     return strategy_name
+
 
 def create_contract_roll_orders(
     data: dataBlob,
@@ -540,7 +541,6 @@ def create_contract_orders_close_first_contract(
 def create_contract_orders_outright(
     roll_spread_info: rollSpreadInformation,
 ) -> listOfOrders:
-
     strategy = ROLL_PSEUDO_STRATEGY
 
     first_order = contractOrder(
@@ -568,7 +568,6 @@ def create_contract_orders_outright(
 def create_contract_orders_spread(
     roll_spread_info: rollSpreadInformation,
 ) -> listOfOrders:
-
     strategy = ROLL_PSEUDO_STRATEGY
     contract_id_list = [
         roll_spread_info.priced_contract_id,

@@ -23,7 +23,6 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
     def __init__(
         self, datapath=arg_not_supplied, log=get_logger("csvFuturesContractPriceData")
     ):
-
         super().__init__(log=log)
 
         if datapath is arg_not_supplied:
@@ -70,7 +69,6 @@ class csvFuturesAdjustedPricesData(futuresAdjustedPricesData):
     def _add_adjusted_prices_without_checking_for_existing_entry(
         self, instrument_code: str, adjusted_price_data: futuresAdjustedPrices
     ):
-
         # Ensures the file will be written with a column header
         adjusted_price_data_as_dataframe = pd.DataFrame(adjusted_price_data)
         adjusted_price_data_as_dataframe.columns = ["price"]

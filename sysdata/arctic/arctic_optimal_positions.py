@@ -21,7 +21,6 @@ OPTIMAL_POSITION_COLLECTION = "optimal_positions"
 
 class arcticOptimalPositionData(optimalPositionData):
     def __init__(self, mongo_db=None, log=get_logger("arcticOptimalPositionData")):
-
         super().__init__(log=log)
 
         self._arctic_connection = arcticData(
@@ -38,7 +37,6 @@ class arcticOptimalPositionData(optimalPositionData):
     def get_list_of_instrument_strategies_with_optimal_position(
         self,
     ) -> listOfInstrumentStrategies:
-
         raw_list_of_instrument_strategies = self.arctic_connection.get_keynames()
         list_of_instrument_strategies = [
             instrumentStrategy.from_key(key)
@@ -50,7 +48,6 @@ class arcticOptimalPositionData(optimalPositionData):
     def get_optimal_position_as_df_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> pd.DataFrame:
-
         try:
             ident = instrument_strategy.key
             df_result = self.arctic_connection.read(ident)

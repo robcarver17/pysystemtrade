@@ -101,7 +101,6 @@ class controlProcessData(baseData):
         return result
 
     def check_if_pid_running_and_if_not_finish_all_processes(self):
-
         list_of_names = self.get_list_of_process_names()
         list_of_results = [
             self.check_if_pid_running_and_if_not_finish(process_name)
@@ -123,7 +122,6 @@ class controlProcessData(baseData):
             self._update_control_for_process_name(process_name, original_process)
 
     def finish_all_processes(self):
-
         list_of_names = self.get_list_of_process_names()
         for process_name in list_of_names:
             try:

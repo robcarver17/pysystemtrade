@@ -7,7 +7,10 @@ from sysdata.csv.csv_roll_calendars import csvRollCalendarData
 from sysdata.csv.csv_roll_parameters import csvRollParametersData
 from sysdata.futures.rolls_parameters import rollParametersData
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
-from sysproduction.data.production_data_objects import get_class_for_data_type, FUTURES_CONTRACT_PRICE_DATA
+from sysproduction.data.production_data_objects import (
+    get_class_for_data_type,
+    FUTURES_CONTRACT_PRICE_DATA,
+)
 
 from sysdata.data_blob import dataBlob
 
@@ -30,7 +33,6 @@ def build_and_write_roll_calendar(
     roll_parameters_data: rollParametersData = arg_not_supplied,
     roll_parameters: rollParameters = arg_not_supplied,
 ):
-
     if output_datapath is arg_not_supplied:
         print(
             "*** WARNING *** This will overwrite the provided roll calendar. Might be better to use a temporary directory!"
@@ -92,7 +94,6 @@ def build_and_write_roll_calendar(
 def check_saved_roll_calendar(
     instrument_code, input_datapath=arg_not_supplied, input_prices=arg_not_supplied
 ):
-
     if input_datapath is None:
         print(
             "This will check the roll calendar in the default directory : are you are that's what you want to do?"

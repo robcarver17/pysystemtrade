@@ -31,6 +31,7 @@ from sysdata.data_blob import dataBlob
 
 diag_prices = diagPrices()
 
+
 def _get_data_inputs(csv_roll_data_path, csv_multiple_data_path):
     csv_roll_calendars = csvRollCalendarData(csv_roll_data_path)
     db_individual_futures_prices = diag_prices.db_futures_contract_price_data
@@ -45,9 +46,12 @@ def _get_data_inputs(csv_roll_data_path, csv_multiple_data_path):
     )
 
 
-def process_multiple_prices_all_instruments(csv_multiple_data_path=arg_not_supplied,
-                                            csv_roll_data_path=arg_not_supplied, ADD_TO_DB=True, ADD_TO_CSV=False):
-
+def process_multiple_prices_all_instruments(
+    csv_multiple_data_path=arg_not_supplied,
+    csv_roll_data_path=arg_not_supplied,
+    ADD_TO_DB=True,
+    ADD_TO_CSV=False,
+):
     (
         _not_used1,
         db_individual_futures_prices,
@@ -60,16 +64,26 @@ def process_multiple_prices_all_instruments(csv_multiple_data_path=arg_not_suppl
 
     for instrument_code in instrument_list:
         print(instrument_code)
-        process_multiple_prices_single_instrument(instrument_code, csv_multiple_data_path=csv_multiple_data_path,
-                                                  csv_roll_data_path=csv_roll_data_path, ADD_TO_DB=ADD_TO_DB,
-                                                  ADD_TO_CSV=ADD_TO_CSV)
+        process_multiple_prices_single_instrument(
+            instrument_code,
+            csv_multiple_data_path=csv_multiple_data_path,
+            csv_roll_data_path=csv_roll_data_path,
+            ADD_TO_DB=ADD_TO_DB,
+            ADD_TO_CSV=ADD_TO_CSV,
+        )
 
 
-def process_multiple_prices_single_instrument(instrument_code, target_instrument_code=arg_not_supplied,
-                                              adjust_calendar_to_prices=True, csv_multiple_data_path=arg_not_supplied,
-                                              csv_roll_data_path=arg_not_supplied, roll_parameters=arg_not_supplied,
-                                              roll_calendar=arg_not_supplied, ADD_TO_DB=True, ADD_TO_CSV=False):
-
+def process_multiple_prices_single_instrument(
+    instrument_code,
+    target_instrument_code=arg_not_supplied,
+    adjust_calendar_to_prices=True,
+    csv_multiple_data_path=arg_not_supplied,
+    csv_roll_data_path=arg_not_supplied,
+    roll_parameters=arg_not_supplied,
+    roll_calendar=arg_not_supplied,
+    ADD_TO_DB=True,
+    ADD_TO_CSV=False,
+):
     if target_instrument_code is arg_not_supplied:
         target_instrument_code = instrument_code
     (
@@ -80,9 +94,7 @@ def process_multiple_prices_single_instrument(instrument_code, target_instrument
     ) = _get_data_inputs(csv_roll_data_path, csv_multiple_data_path)
 
     dict_of_futures_contract_prices = (
-        db_individual_futures_prices.get_merged_prices_for_instrument(
-            instrument_code
-        )
+        db_individual_futures_prices.get_merged_prices_for_instrument(instrument_code)
     )
     dict_of_futures_contract_closing_prices = (
         dict_of_futures_contract_prices.final_prices()
@@ -186,5 +198,7 @@ if __name__ == "__main__":
     csv_roll_data_path = arg_not_supplied
 
     # modify flags as required
-    process_multiple_prices_all_instruments(csv_multiple_data_path=csv_multiple_data_path,
-                                            csv_roll_data_path=csv_roll_data_path)
+    process_multiple_prices_all_instruments(
+        csv_multiple_data_path=csv_multiple_data_path,
+        csv_roll_data_path=csv_roll_data_path,
+    )

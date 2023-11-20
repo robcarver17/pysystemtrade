@@ -14,7 +14,6 @@ def assets_in_cluster_order(corr_matrix: correlationEstimate, cluster_size: int 
 
 
 def cluster_correlation_matrix(corr_matrix: correlationEstimate, cluster_size: int = 2):
-
     if corr_matrix.is_boring:
         # Boring correlation will break if we try and cluster
         corr_as_np = corr_matrix.values
@@ -92,7 +91,6 @@ def arbitrary_split_for_asset_length(count_assets: int, cluster_size: int = 2) -
 def from_cluster_index_to_asset_names(
     clusters: list, corr_matrix: correlationEstimate
 ) -> list:
-
     all_clusters = list(set(clusters))
     asset_names = corr_matrix.columns
     list_of_asset_clusters = [
@@ -106,7 +104,6 @@ def from_cluster_index_to_asset_names(
 def get_asset_names_for_cluster_index(
     cluster_id: int, clusters: list, asset_names: list
 ):
-
     list_of_assets = [
         asset for asset, cluster in zip(asset_names, clusters) if cluster == cluster_id
     ]

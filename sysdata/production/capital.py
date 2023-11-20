@@ -132,7 +132,6 @@ class capitalData(baseData):
         )
 
     def delete_all_global_capital(self, are_you_really_sure=False):
-
         self.delete_all_capital_for_strategy(
             GLOBAL_CAPITAL_DICT_KEY, are_you_really_sure=are_you_really_sure
         )
@@ -144,7 +143,6 @@ class capitalData(baseData):
         return capital_df
 
     def update_df_of_all_global_capital(self, updated_capital_series: pd.DataFrame):
-
         ## ignore warning - for global we pass a Frame not a Series
         self.update_capital_pd_df_for_strategy(
             GLOBAL_CAPITAL_DICT_KEY, updated_capital_series
@@ -190,7 +188,6 @@ class capitalData(baseData):
     def delete_all_capital_for_strategy(
         self, strategy_name: str, are_you_really_sure=False
     ):
-
         if are_you_really_sure:
             self._delete_all_capital_for_strategy_no_checking(strategy_name)
         else:
@@ -212,13 +209,11 @@ class capitalData(baseData):
         raise NotImplementedError
 
     def _delete_all_capital_for_strategy_no_checking(self, strategy_name: str):
-
         raise NotImplementedError
 
     def update_capital_pd_df_for_strategy(
         self, strategy_name: str, updated_capital_df: pd.DataFrame
     ):
-
         raise NotImplementedError
 
 
@@ -326,7 +321,6 @@ class totalCapitalCalculationData(object):
     def update_and_return_total_capital_with_new_broker_account_value(
         self, broker_account_value: float, check_limit=0.1
     ) -> float:
-
         """
         does everything you'd expect when a new broker account value arrives:
            - add on to broker account value series
@@ -354,7 +348,6 @@ class totalCapitalCalculationData(object):
     def _init_capital_updater(
         self, new_broker_account_value: float
     ) -> totalCapitalUpdater:
-
         calc_method = self.calc_method
         try:
             prev_broker_account_value = self._get_prev_broker_account_value()
@@ -384,7 +377,6 @@ class totalCapitalCalculationData(object):
     def _update_capital_data_after_pandl_event(
         self, capital_updater: totalCapitalUpdater
     ):
-
         # Update broker account value and add p&l entry with synched dates
         date = datetime.datetime.now()
 

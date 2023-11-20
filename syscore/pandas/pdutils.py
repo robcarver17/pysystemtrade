@@ -16,7 +16,6 @@ DEFAULT_DATE_FORMAT_FOR_CSV = "%Y-%m-%d %H:%M:%S"
 def rolling_pairwise_correlation(
     x: pd.DataFrame, periods: int, min_periods: int = 3
 ) -> pd.Series:
-
     assert len(x.columns) == 2
 
     rolling_corr_df = x.rolling(periods, min_periods=min_periods).corr()
@@ -312,7 +311,6 @@ def apply_with_min_periods(
     not_nan = sum(~np.isnan(xcol))
 
     if not_nan >= min_periods:
-
         return my_func(xcol)
     else:
         return np.nan
@@ -332,7 +330,6 @@ def from_series_to_matching_df_frame(
 def from_series_to_df_with_column_names(
     pd_series: pd.Series, list_of_columns: list
 ) -> pd.DataFrame:
-
     new_df = pd.concat([pd_series] * len(list_of_columns), axis=1)
     new_df.columns = list_of_columns
 
