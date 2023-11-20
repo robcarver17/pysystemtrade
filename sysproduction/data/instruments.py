@@ -9,11 +9,11 @@ from sysobjects.instruments import instrumentCosts
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 from sysproduction.data.config import get_list_of_stale_instruments
-from sysproduction.data.production_data_objects import FX_DATA, SPREAD_DATA, get_class_for_data_type, FUTURES_INSTRUMENT_DATA
+from sysproduction.data.production_data_objects import STORED_SPREAD_DATA, get_class_for_data_type, FUTURES_INSTRUMENT_DATA
 
 class updateSpreadCosts(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(get_class_for_data_type(SPREAD_DATA))
+        data.add_class_object(get_class_for_data_type(STORED_SPREAD_DATA))
         return data
 
     def update_spread_costs(self, instrument_code: str, spread_cost: float):
@@ -35,7 +35,7 @@ class diagInstruments(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data: dataBlob) -> dataBlob:
         data.add_class_list([
             get_class_for_data_type(FUTURES_INSTRUMENT_DATA),
-            get_class_for_data_type(SPREAD_DATA)])
+            get_class_for_data_type(STORED_SPREAD_DATA)])
 
         return data
 

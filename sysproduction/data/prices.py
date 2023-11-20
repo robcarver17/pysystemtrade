@@ -35,7 +35,7 @@ from sysproduction.data.generic_production_data import productionDataLayerGeneri
 
 ## default for spike checking
 from sysproduction.data.instruments import diagInstruments, get_block_size
-from sysproduction.data.production_data_objects import get_class_for_data_type, FUTURES_CONTRACT_PRICE_DATA, FUTURES_ADJUSTED_PRICE_DATA, FUTURES_MULTIPLE_PRICE_DATA, FUTURES_CONTRACT_DATA, SPREAD_DATA
+from sysproduction.data.production_data_objects import get_class_for_data_type, FUTURES_CONTRACT_PRICE_DATA, FUTURES_ADJUSTED_PRICE_DATA, FUTURES_MULTIPLE_PRICE_DATA, FUTURES_CONTRACT_DATA, HISTORIC_SPREAD_DATA
 
 VERY_BIG_NUMBER = 999999.0
 
@@ -47,7 +47,7 @@ class diagPrices(productionDataLayerGeneric):
                 get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA),
                 get_class_for_data_type(FUTURES_ADJUSTED_PRICE_DATA),
                 get_class_for_data_type(FUTURES_CONTRACT_DATA),
-                get_class_for_data_type(SPREAD_DATA),
+                get_class_for_data_type(HISTORIC_SPREAD_DATA),
                 get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA)
             ]
         )
@@ -243,7 +243,7 @@ class updatePrices(productionDataLayerGeneric):
                 get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
                 get_class_for_data_type(FUTURES_CONTRACT_DATA),
                 get_class_for_data_type(FUTURES_ADJUSTED_PRICE_DATA),
-                get_class_for_data_type(SPREAD_DATA)
+                get_class_for_data_type(HISTORIC_SPREAD_DATA)
             ]
         )
 
