@@ -79,7 +79,8 @@ def backup_arctic_to_parquet():
 def get_data_blob(logname):
 
     data = dataBlob(
-          log_name=logname
+          log_name=logname,
+        keep_original_prefix=True
     )
 
     data.add_class_list(
@@ -100,7 +101,7 @@ def get_data_blob(logname):
             #csvStrategyPositionData,
             parquetFuturesContractPriceData,
         ],
-        use_prefix='parquet'
+        
     )
 
     data.add_class_list(
