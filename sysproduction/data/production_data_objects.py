@@ -4,16 +4,20 @@ from sysdata.parquet.parquet_futures_per_contract_prices import parquetFuturesCo
 from sysdata.parquet.parquet_multiple_prices import parquetFuturesMultiplePricesData
 from sysdata.parquet.parquet_spotfx_prices import parquetFxPricesData
 from sysdata.parquet.parquet_spreads import parquetSpreadsForInstrumentData
+from sysdata.parquet.parquet_optimal_positions import parquetOptimalPositionData
 
+"""
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.arctic.arctic_capital import arcticCapitalData
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
-from sysdata.arctic.arctic_historic_contract_positions import arcticContractPositionData
-from sysdata.arctic.arctic_historic_strategy_positions import arcticStrategyPositionData
 from sysdata.arctic.arctic_optimal_positions import arcticOptimalPositionData
 from sysdata.arctic.arctic_spreads import arcticSpreadsForInstrumentData
+
+"""
+from sysdata.arctic.arctic_historic_contract_positions import arcticContractPositionData
+from sysdata.arctic.arctic_historic_strategy_positions import arcticStrategyPositionData
 
 
 from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
@@ -71,7 +75,7 @@ use_production_classes = {
 
     CONTRACT_POSITION_DATA: arcticContractPositionData,
     STRATEGY_POSITION_DATA: arcticStrategyPositionData,
-    OPTIMAL_POSITION_DATA: arcticOptimalPositionData,
+    OPTIMAL_POSITION_DATA: parquetOptimalPositionData,
     HISTORIC_SPREAD_DATA: parquetSpreadsForInstrumentData,
 
     STRATEGY_HISTORIC_ORDERS_DATA: mongoStrategyHistoricOrdersData,

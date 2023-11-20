@@ -9,9 +9,11 @@ from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPrices
 from sysdata.parquet.parquet_multiple_prices import parquetFuturesMultiplePricesData
 from sysdata.parquet.parquet_spotfx_prices import parquetFxPricesData
 
+"""
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
+"""
 
 from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
 from sysdata.csv.csv_roll_parameters import csvRollParametersData
