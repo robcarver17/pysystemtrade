@@ -3,7 +3,7 @@ from sysdata.config.production_config import get_production_config
 
 from sysproduction.data.directories import (
 
-    get_mongo_backup_directory,
+    get_parquet_backup_directory
 
 )
 
@@ -13,9 +13,15 @@ from sysdata.data_blob import dataBlob
 def backup_parquet_data_to_remote():
     data = dataBlob(log_name="backup_mongo_data_as_dump")
     backup_object = backupParquet(data)
-    backup_object.backup_mongo_data_as_dump()
+    backup_object.backup_parquet_data_to_remote()
 
     return None
+
+
+
+def get_parquet_directory():
+    data = dataBlob()
+    return data.parquet_root_directory
 
 
 class backupParquet(object):
