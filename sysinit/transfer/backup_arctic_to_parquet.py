@@ -13,9 +13,9 @@ from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPrices
 from sysdata.parquet.parquet_capital import parquetCapitalData
 from sysdata.parquet.parquet_futures_per_contract_prices import parquetFuturesContractPriceData
 from sysdata.parquet.parquet_multiple_prices import parquetFuturesMultiplePricesData
+from sysdata.parquet.parquet_spotfx_prices import parquetFxPricesData
 
 from sysdata.csv.csv_futures_contracts import csvFuturesContractData
-from sysdata.csv.csv_spot_fx import csvFxPricesData
 from sysdata.csv.csv_contract_position_data import csvContractPositionData
 from sysdata.csv.csv_strategy_position_data import csvStrategyPositionData
 from sysdata.csv.csv_historic_orders import (
@@ -66,7 +66,9 @@ def backup_arctic_to_parquet():
         if do:
             backup_futures_contract_prices_to_parquet(backup_data)
         #backup_spreads_to_csv(backup_data)
-        #backup_fx_to_csv(backup_data)
+        do = true_if_answer_is_yes("FX?")
+        if do:
+            backup_fx_to_parquet(backup_data)
         do = true_if_answer_is_yes("Multiple prices?")
         if do:
             backup_multiple_to_parquet(backup_data)
@@ -101,7 +103,7 @@ def get_data_blob(logname):
             #csvContractPositionData,
             parquetFuturesAdjustedPricesData,
             #csvFuturesContractData,
-            #csvFxPricesData,
+            parquetFxPricesData,
             #csvOptimalPositionData,
             #csvRollStateData,
             #csvSpreadCostData,
@@ -280,22 +282,20 @@ def backup_multiple_to_parquet_for_instrument(data, instrument_code: str):
 
 
 # fx
-def backup_fx_to_csv(data):
-    fx_codes = data.db_fx_prices.get_list_of_fxcodes()
+def backup_fx_to_parquet(data):
+    fx_codes = data.arctic_fx_prices.get_list_of_fxcodes()
     for fx_code in fx_codes:
-        arctic_data = data.db_fx_prices.get_fx_prices(fx_code)
-        csv_data = data.csv_fx_prices.get_fx_prices(fx_code)
-        if check_ts_equals(arctic_data, csv_data):
+        arctic_data = data.arctic_fx_prices.get_fx_prices(fx_code)
+        parquet_data = data.parquet_fx_prices.get_fx_prices(fx_code)
+        if len(parquet_data)>=len(arctic_data):
             data.log.debug("No fx backup needed for %s" % fx_code)
         else:
             # Write backup
-            try:
-                data.csv_fx_prices.add_fx_prices(
-                    fx_code, arctic_data, ignore_duplication=True
-                )
-                data.log.debug("Written .csv backup for %s" % fx_code)
-            except BaseException:
-                data.log.warning("Problem writing .csv backup for %s" % fx_code)
+            data.parquet_fx_prices.add_fx_prices(
+                fx_code, arctic_data, ignore_duplication=True
+            )
+            parquet_data = data.parquet_fx_prices.get_fx_prices(fx_code)
+            data.log.debug("Written fx for %s, was %s now %s" % (fx_code, arctic_data, parquet_data))
 
 
 
