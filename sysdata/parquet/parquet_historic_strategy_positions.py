@@ -24,7 +24,6 @@ class parquetStrategyPositionData(strategyPositionData):
         return "parquetStrategyPositionData"
 
     @property
-    @property
     def parquet(self):
         return self._parquet
 
