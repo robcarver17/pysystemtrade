@@ -15,6 +15,7 @@ from sysdata.parquet.parquet_futures_per_contract_prices import parquetFuturesCo
 from sysdata.parquet.parquet_multiple_prices import parquetFuturesMultiplePricesData
 from sysdata.parquet.parquet_spotfx_prices import parquetFxPricesData
 from sysdata.parquet.parquet_spreads import parquetSpreadsForInstrumentData
+from sysdata.parquet.parquet_optimal_positions import parquetOptimalPositionData
 
 from sysdata.csv.csv_futures_contracts import csvFuturesContractData
 from sysdata.csv.csv_contract_position_data import csvContractPositionData
@@ -85,7 +86,9 @@ def backup_arctic_to_parquet():
         do = true_if_answer_is_yes("Time series of spread costs?")
         if do:
             backup_spreads_to_parquet(backup_data)
-        #backup_optimal_positions(backup_data)
+        do = true_if_answer_is_yes("optimal positions?")
+        if do:
+            backup_optimal_positions(backup_data)
         #backup_roll_state_data(backup_data)
 
 
@@ -106,7 +109,7 @@ def get_data_blob(logname):
             parquetFuturesAdjustedPricesData,
             #csvFuturesContractData,
             parquetFxPricesData,
-            #csvOptimalPositionData,
+            parquetOptimalPositionData,
             #csvRollStateData,
             #csvSpreadCostData,
             parquetSpreadsForInstrumentData,
@@ -430,10 +433,25 @@ def backup_optimal_positions(data):
             )
         except missingData:
             continue
-        data.csv_optimal_position.write_optimal_position_as_df_for_instrument_strategy_without_checking(
+
+        try:
+            parquet_data = data.parquet_optimal_position.get_optimal_position_as_df_for_instrument_strategy(
+                instrument_strategy
+            )
+        except missingData:
+            parquet_data=[]
+
+        if len(parquet_data)>=len(arctic_data):
+            data.log.debug("skipping already written")
+
+        data.parquet_optimal_position.write_optimal_position_as_df_for_instrument_strategy_without_checking(
             instrument_strategy, arctic_data
         )
-        data.log.debug("Backed up %s  optimal position data" % str(instrument_strategy))
+        parquet_data = data.parquet_optimal_position.get_optimal_position_as_df_for_instrument_strategy(
+            instrument_strategy
+        )
+
+        data.log.debug("Backed up %s  optimal position data was %s now %s" % (str(instrument_strategy), str(arctic_data), str(parquet_data)))
 
 
 def backup_spread_cost_data(data):
