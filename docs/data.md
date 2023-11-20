@@ -416,7 +416,7 @@ The next stage is to create and store *multiple prices*. Multiple prices are the
 
 ### Creating multiple prices from contract prices
 
-The [relevant script is here](/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic.py).
+The [relevant script is here](/sysinit/futures/multipleprices_from_db_prices_and_csv_calendars_to_db.py).
 
 The script should be reasonably self explanatory in terms of data pipelines, but it's worth briefly reviewing what it does:
 
@@ -471,12 +471,14 @@ build_and_write_roll_calendar(instrument_code,
     output_datapath=roll_calendars_from_arctic)
 ```
 We use our updated prices and the roll calendar just built to [calculate multiple prices](#/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic):
-```python
-from sysinit.futures.multipleprices_from_arcticprices_and_csv_calendars_to_arctic import process_multiple_prices_single_instrument
 
-process_multiple_prices_single_instrument(instrument_code, 
-    csv_multiple_data_path=multiple_prices_from_arctic, ADD_TO_ARCTIC=False, 
-    csv_roll_data_path=roll_calendars_from_arctic, ADD_TO_CSV=True)
+```python
+from sysinit.futures.multipleprices_from_db_prices_and_csv_calendars_to_db import
+    process_multiple_prices_single_instrument
+
+process_multiple_prices_single_instrument(instrument_code,
+                                          csv_multiple_data_path=multiple_prices_from_arctic, ADD_TO_ARCTIC=False,
+                                          csv_roll_data_path=roll_calendars_from_arctic, ADD_TO_CSV=True)
 ```
 
 ...which we splice onto the repo data (checking that the price and forward contracts match):
@@ -521,7 +523,7 @@ init_arctic_with_csv_prices_for_code(instrument_code, multiple_price_datapath=sp
 <a name="back_adjusted_prices"></a>
 ## Creating and storing back adjusted prices
 
-Once we have multiple prices we can then create a backadjusted price series. The [relevant script](/sysinit/futures/adjustedprices_from_mongo_multiple_to_mongo.py) will read multiple prices from Arctic, do the backadjustment, and then write the prices to Arctic (and optionally to .csv if you want to use that for backup or simulation purposes). It's easy to modify this to read/write to/from different sources.
+Once we have multiple prices we can then create a backadjusted price series. The [relevant script](/sysinit/futures/adjustedprices_from_db_multiple_to_db.py) will read multiple prices from Arctic, do the backadjustment, and then write the prices to Arctic (and optionally to .csv if you want to use that for backup or simulation purposes). It's easy to modify this to read/write to/from different sources.
 
 
 ### Changing the stitching method
@@ -544,7 +546,7 @@ data=csvFxPricesData()
 data.get_fx_prices("GBPUSD")
 ```
 
-Save the files in a directory with no other content, using the filename format "GBPUSD.csv". Using [this simple script](/sysinit/futures/spotfx_from_csvAndInvestingDotCom_to_arctic.py) they are written to Arctic and/or .csv files. You will need to modify the script to point to the right directory, and you can also change the column and formatting parameters to use data from other sources.
+Save the files in a directory with no other content, using the filename format "GBPUSD.csv". Using [this simple script](/sysinit/futures/spotfx_from_csvAndInvestingDotCom_to_db.py) they are written to Arctic and/or .csv files. You will need to modify the script to point to the right directory, and you can also change the column and formatting parameters to use data from other sources.
 
 You can also run the script with `ADD_EXTRA_DATA = False, ADD_TO_CSV = True`. Then it will just do a straight copy from provided .csv data to Arctic. Your data will be stale, but in production it will automatically be updated with data from IB (as long as the provided data isn't more than a year out of date, since IB will give you only a year of daily prices).
 

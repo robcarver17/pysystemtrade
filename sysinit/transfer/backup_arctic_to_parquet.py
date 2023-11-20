@@ -229,9 +229,9 @@ def backup_futures_contract_prices_for_contract_to_parquet(
 
 # fx
 def backup_fx_to_csv(data):
-    fx_codes = data.arctic_fx_prices.get_list_of_fxcodes()
+    fx_codes = data.db_fx_prices.get_list_of_fxcodes()
     for fx_code in fx_codes:
-        arctic_data = data.arctic_fx_prices.get_fx_prices(fx_code)
+        arctic_data = data.db_fx_prices.get_fx_prices(fx_code)
         csv_data = data.csv_fx_prices.get_fx_prices(fx_code)
         if check_ts_equals(arctic_data, csv_data):
             data.log.debug("No fx backup needed for %s" % fx_code)

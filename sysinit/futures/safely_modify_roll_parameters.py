@@ -11,10 +11,10 @@ from sysdata.data_blob import dataBlob
 from sysinit.futures.rollcalendars_from_arcticprices_to_csv import (
     build_and_write_roll_calendar,
 )
-from sysinit.futures.multipleprices_from_arcticprices_and_csv_calendars_to_arctic import (
+from sysinit.futures.multipleprices_from_db_prices_and_csv_calendars_to_db import (
     process_multiple_prices_single_instrument,
 )
-from sysinit.futures.adjustedprices_from_mongo_multiple_to_mongo import (
+from sysinit.futures.adjustedprices_from_db_multiple_to_db import (
     process_adjusted_prices_single_instrument,
 )
 from sysobjects.rolls import rollParameters
@@ -55,18 +55,12 @@ def safely_modify_roll_parameters(data: dataBlob):
         print("Doing nothing")
         # return None
 
-    new_multiple_prices = process_multiple_prices_single_instrument(
-        instrument_code=instrument_code,
-        csv_roll_data_path=output_path_for_temp_csv_files,
-        ADD_TO_CSV=False,
-        ADD_TO_ARCTIC=False,
-    )
-    new_adjusted_prices = process_adjusted_prices_single_instrument(
-        instrument_code,
-        multiple_prices=new_multiple_prices,
-        ADD_TO_CSV=False,
-        ADD_TO_ARCTIC=False,
-    )
+    new_multiple_prices = process_multiple_prices_single_instrument(instrument_code=instrument_code,
+                                                                    csv_roll_data_path=output_path_for_temp_csv_files,
+                                                                    ADD_TO_DB=False, ADD_TO_CSV=False)
+    new_adjusted_prices = process_adjusted_prices_single_instrument(instrument_code,
+                                                                    multiple_prices=new_multiple_prices,
+                                                                    ADD_TO_DB=False, ADD_TO_CSV=False)
 
     diag_prices = diagPrices(data)
     existing_multiple_prices = diag_prices.get_multiple_prices(instrument_code)

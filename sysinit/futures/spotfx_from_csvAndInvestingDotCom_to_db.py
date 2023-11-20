@@ -1,30 +1,27 @@
 """
 Get FX prices from investing.com files, and from csv, merge and write to Arctic and/or optionally overwrite csv files
 """
-from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
+
 from sysdata.csv.csv_spot_fx import csvFxPricesData, ConfigCsvFXPrices
 import pandas as pd
-
+from sysproduction.data.currency_data import fxPricesData
 
 # You may need to change this!
 # There must be ONLY fx prices here, with filenames "GBPUSD.csv" etc
 
+db_fx_prices_data = fxPricesData()
 
 investing_dot_com_config = ConfigCsvFXPrices(
     price_column="Close", date_column="Date Time", date_format="%Y-%m-%d"
 )
 
 
-def spotfx_from_csv_and_investing_dot_com(
-    datapath, ADD_TO_ARCTIC=True, ADD_TO_CSV=True, ADD_EXTRA_DATA=True
-):
+def spotfx_from_csv_and_investing_dot_com(datapath, ADD_TO_DB=True, ADD_TO_CSV=True, ADD_EXTRA_DATA=True):
     # You can adapt this for different providers by changing these parameters
     if ADD_EXTRA_DATA:
         investingDotCom_csv_fx_prices = csvFxPricesData(
             datapath=datapath, config=investing_dot_com_config
         )
-    if ADD_TO_ARCTIC:
-        arctic_fx_prices = arcticFxPricesData()
     my_csv_fx_prices_data = csvFxPricesData()
 
     list_of_ccy_codes = my_csv_fx_prices_data.get_list_of_fxcodes()
@@ -60,7 +57,7 @@ def spotfx_from_csv_and_investing_dot_com(
                 currency_code, fx_prices, ignore_duplication=True
             )
 
-        if ADD_TO_ARCTIC:
-            arctic_fx_prices.add_fx_prices(
-                currency_code, fx_prices, ignore_duplication=True
+        if ADD_TO_DB:
+            db_fx_prices_data.add_fx_prices(
+                code=currency_code, fx_price_data=fx_prices, ignore_duplication=True
             )
