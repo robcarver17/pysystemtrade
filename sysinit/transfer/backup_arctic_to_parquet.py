@@ -101,7 +101,7 @@ def get_data_blob(logname):
             #csvStrategyPositionData,
             parquetFuturesContractPriceData,
         ],
-        
+
     )
 
     data.add_class_list(

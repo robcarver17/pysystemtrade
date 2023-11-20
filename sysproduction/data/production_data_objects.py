@@ -1,14 +1,16 @@
 from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
 from sysdata.parquet.parquet_capital import parquetCapitalData
 from sysdata.parquet.parquet_futures_per_contract_prices import parquetFuturesContractPriceData
+from sysdata.parquet.parquet_multiple_prices import parquetFuturesMultiplePricesData
 
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
 from sysdata.arctic.arctic_capital import arcticCapitalData
 from sysdata.arctic.arctic_futures_per_contract_prices import arcticFuturesContractPriceData
+from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
+
 from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.arctic.arctic_historic_contract_positions import arcticContractPositionData
 from sysdata.arctic.arctic_historic_strategy_positions import arcticStrategyPositionData
-from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
 from sysdata.arctic.arctic_optimal_positions import arcticOptimalPositionData
 from sysdata.arctic.arctic_spreads import arcticSpreadsForInstrumentData
 
@@ -59,7 +61,7 @@ use_production_classes = {
     FUTURES_CONTRACT_DATA: mongoFuturesContractData,
 
     FUTURES_CONTRACT_PRICE_DATA: parquetFuturesContractPriceData,
-    FUTURES_MULTIPLE_PRICE_DATA: arcticFuturesMultiplePricesData,
+    FUTURES_MULTIPLE_PRICE_DATA: parquetFuturesMultiplePricesData,
     FUTURES_ADJUSTED_PRICE_DATA: parquetFuturesAdjustedPricesData,
 
     CAPITAL_DATA: parquetCapitalData,
