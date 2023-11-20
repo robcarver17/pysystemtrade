@@ -84,14 +84,13 @@ def get_data_blob(logname):
 
     data.add_class_list(
         [
+            parquetFuturesMultiplePricesData,
             #csvBrokerHistoricOrdersData,
             parquetCapitalData,
             #csvContractHistoricOrdersData,
             #csvContractPositionData,
             parquetFuturesAdjustedPricesData,
             #csvFuturesContractData,
-            parquetFuturesContractPriceData,
-            parquetFuturesMultiplePricesData,
             #csvFxPricesData,
             #csvOptimalPositionData,
             #csvRollStateData,
@@ -99,6 +98,7 @@ def get_data_blob(logname):
             #csvSpreadsForInstrumentData,
             #csvStrategyHistoricOrdersData,
             #csvStrategyPositionData,
+            parquetFuturesContractPriceData,
         ],
         use_prefix='parquet'
     )
@@ -137,6 +137,10 @@ def backup_adj_to_parquet_for_instrument(data: dataBlob, instrument_code: str):
     arctic_data = data.arctic_futures_adjusted_prices.get_adjusted_prices(
         instrument_code
     )
+    px = data.parquet_futures_adjusted_prices.get_adjusted_prices(instrument_code)
+    if len(px)>=len(arctic_data):
+        data.log.warning("Appears to be more parquet data, not doing this")
+        return
     try:
         data.parquet_futures_adjusted_prices.add_adjusted_prices(
             instrument_code, arctic_data, ignore_duplication=True
@@ -188,6 +192,14 @@ def backup_futures_contract_prices_for_contract_to_parquet(
             futures_contract
         )
     )
+    parquet_data = (
+        data.parquet_futures_contract_price.get_merged_prices_for_contract_object(
+            futures_contract
+        )
+    )
+    if len(parquet_data)>=len(arctic_data):
+        data.log.warning("More parquet data, not doing")
+        return
 
     data.parquet_futures_contract_price.write_merged_prices_for_contract_object(
         futures_contract,
@@ -238,6 +250,12 @@ def backup_multiple_to_parquet_for_instrument(data, instrument_code: str):
     arctic_data = data.arctic_futures_multiple_prices.get_multiple_prices(
         instrument_code
     )
+    parquet_data = data.parquet_futures_multiple_prices.get_multiple_prices(
+        instrument_code)
+    if len(parquet_data)>=len(arctic_data):
+        data.log.warning("More parquet data, skipping")
+        return
+
     data.parquet_futures_multiple_prices.add_multiple_prices(
         instrument_code, arctic_data, ignore_duplication=True
     )
@@ -378,6 +396,10 @@ def backup_capital(data):
     strategy_list = data.arctic_capital._get_list_of_strategies_with_capital_including_total()
     for strategy_name in strategy_list:
         strategy_capital_data=data.arctic_capital.get_capital_pd_df_for_strategy(strategy_name)
+        parquet_data = data.parquet_capital.get_capital_pd_df_for_strategy(strategy_name)
+        if len(parquet_data)>strategy_capital_data:
+            data.log.warning("More parquet data, skipping")
+
         data.parquet_capital.update_capital_pd_df_for_strategy(strategy_name=strategy_name, updated_capital_df=strategy_capital_data)
         written_data = data.parquet_capital.get_capital_pd_df_for_strategy(strategy_name)
         print("Wrote capital data for strategy %s, was %s now %s" % (strategy_name, str(strategy_capital_data), str(written_data)))
@@ -385,17 +407,6 @@ def backup_capital(data):
     return strategy_capital_data
 
 
-def add_total_capital_to_strategy_capital_dict_return_df(
-    data: dataBlob, capital_data: dict
-) -> pd.DataFrame:
-
-    strategy_capital_as_df = pd.concat(capital_data, axis=1)
-    total_capital = data.arctic_capital.get_df_of_all_global_capital()
-    capital_data = pd.concat([strategy_capital_as_df, total_capital], axis=1)
-
-    capital_data = capital_data.ffill()
-
-    return capital_data
 
 
 def backup_optimal_positions(data):
