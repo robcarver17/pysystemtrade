@@ -64,7 +64,7 @@ class parquetContractPositionData(contractPositionData):
         return listOfFuturesContracts(list_of_futures_contract)
 
 def from_contract_to_key(contract: futuresContract) -> str:
-    return contract.instrument_code+"#"+contract.contract_date
+    return str(contract.instrument_code)+"#"+str(contract.contract_date)
 
 def from_key_to_contract(key: str) -> futuresContract:
     [instrument_code, contract_date] = key.split("#")
