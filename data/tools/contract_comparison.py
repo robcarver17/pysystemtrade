@@ -1,8 +1,10 @@
 
-from sysdata.pointers import parquet_futures_contract_price_data
+from sysproduction.data.prices import diagPrices
+
 from sysobjects.contracts import futuresContract
 import pandas as pd
 
+diag_prices = diagPrices()
 
 class ContractComparison:
     """Class for comparing futures contracts side by side on different dimensions"""
@@ -25,7 +27,7 @@ class ContractComparison:
             instrument_object=instrument_code, contract_date_object=forward_date_str
         )
 
-        contract_prices = parquet_futures_contract_price_data
+        contract_prices = diag_prices.db_futures_contract_price_data
         price_prices = contract_prices.get_merged_prices_for_contract_object(
             price_contract
         )
