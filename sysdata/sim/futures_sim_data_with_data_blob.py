@@ -122,4 +122,4 @@ class genericBlobUsingFuturesSimData(futuresSimData):
 
     @property
     def db_spread_cost_data(self) -> spreadCostData:
-        return self.data.db_spread_cost_data
+        return self.data.db_spread_cost
