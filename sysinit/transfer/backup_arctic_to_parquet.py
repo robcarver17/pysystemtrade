@@ -14,6 +14,7 @@ from sysdata.parquet.parquet_capital import parquetCapitalData
 from sysdata.parquet.parquet_futures_per_contract_prices import parquetFuturesContractPriceData
 from sysdata.parquet.parquet_multiple_prices import parquetFuturesMultiplePricesData
 from sysdata.parquet.parquet_spotfx_prices import parquetFxPricesData
+from sysdata.parquet.parquet_spreads import parquetSpreadsForInstrumentData
 
 from sysdata.csv.csv_futures_contracts import csvFuturesContractData
 from sysdata.csv.csv_contract_position_data import csvContractPositionData
@@ -26,7 +27,6 @@ from sysdata.csv.csv_historic_orders import (
 from sysdata.csv.csv_optimal_position import csvOptimalPositionData
 from sysdata.csv.csv_spread_costs import csvSpreadCostData
 from sysdata.csv.csv_roll_state_storage import csvRollStateData
-from sysdata.csv.csv_spreads import csvSpreadsForInstrumentData
 
 from sysdata.arctic.arctic_futures_per_contract_prices import (
     arcticFuturesContractPriceData,
@@ -65,7 +65,7 @@ def backup_arctic_to_parquet():
         do = true_if_answer_is_yes("Do futures contract prices?")
         if do:
             backup_futures_contract_prices_to_parquet(backup_data)
-        #backup_spreads_to_csv(backup_data)
+
         do = true_if_answer_is_yes("FX?")
         if do:
             backup_fx_to_parquet(backup_data)
@@ -82,7 +82,9 @@ def backup_arctic_to_parquet():
         if do:
             backup_capital(backup_data)
         #backup_contract_data(backup_data)
-        #backup_spread_cost_data(backup_data)
+        do = true_if_answer_is_yes("Time series of spread costs?")
+        if do:
+            backup_spreads_to_parquet(backup_data)
         #backup_optimal_positions(backup_data)
         #backup_roll_state_data(backup_data)
 
@@ -107,7 +109,7 @@ def get_data_blob(logname):
             #csvOptimalPositionData,
             #csvRollStateData,
             #csvSpreadCostData,
-            #csvSpreadsForInstrumentData,
+            parquetSpreadsForInstrumentData,
             #csvStrategyHistoricOrdersData,
             #csvStrategyPositionData,
             parquetFuturesContractPriceData,
@@ -300,29 +302,25 @@ def backup_fx_to_parquet(data):
 
 
 
-def backup_spreads_to_csv(data: dataBlob):
+def backup_spreads_to_parquet(data: dataBlob):
     instrument_list = data.arctic_spreads_for_instrument.get_list_of_instruments()
     for instrument_code in instrument_list:
-        backup_spreads_to_csv_for_instrument(data, instrument_code)
+        backup_spreads_to_parquet_for_instrument(data, instrument_code)
 
 
-def backup_spreads_to_csv_for_instrument(data: dataBlob, instrument_code: str):
+def backup_spreads_to_parquet_for_instrument(data: dataBlob, instrument_code: str):
     arctic_data = data.arctic_spreads_for_instrument.get_spreads(instrument_code)
-    csv_data = data.csv_spreads_for_instrument.get_spreads(instrument_code)
+    parquet_data = data.parquet_spreads_for_instrument.get_spreads(instrument_code)
 
-    if check_ts_equals(arctic_data, csv_data):
+    if len(parquet_data)>=len(arctic_data):
         data.log.debug("No spreads backup needed for %s" % instrument_code)
         pass
     else:
-        try:
-            data.csv_spreads_for_instrument.add_spreads(
+            data.parquet_spreads_for_instrument.add_spreads(
                 instrument_code, arctic_data, ignore_duplication=True
             )
-            data.log.debug("Written .csv backup for spreads %s" % instrument_code)
-        except BaseException:
-            data.log.warning(
-                "Problem writing .csv backup for spreads %s" % instrument_code
-            )
+            parquet_data = data.parquet_spreads_for_instrument.get_spreads(instrument_code)
+            data.log.debug("Written .csv backup for spreads %s was %s now %s" % (instrument_code, str(arctic_data), str(parquet_data)))
 
 
 def backup_contract_position_data(data):
@@ -439,10 +437,7 @@ def backup_optimal_positions(data):
 
 
 def backup_spread_cost_data(data):
-    spread_cost_as_series = data.mongo_spread_cost.get_spread_costs_as_series()
-    data.csv_spread_cost.write_all_instrument_spreads(spread_cost_as_series)
-    data.log.debug("Backed up spread cost data")
-
+    pass
 
 def backup_roll_state_data(data):
     instrument_list = data.mongo_roll_state.get_list_of_instruments()
