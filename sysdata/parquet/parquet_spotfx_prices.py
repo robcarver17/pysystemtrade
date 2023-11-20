@@ -50,7 +50,7 @@ class parquetFxPricesData(fxPricesData):
         fx_price_data_aspd.columns = ["price"]
         fx_price_data_aspd = fx_price_data_aspd.astype(float)
 
-        self.parquet.write_data_given_data_type_and_identifier(data_type=SPOTFX_COLLECTION, identifier=currency_code)
+        self.parquet.write_data_given_data_type_and_identifier(data_type=SPOTFX_COLLECTION, identifier=currency_code, data_to_write=fx_price_data_aspd)
         log.debug(
             "Wrote %s lines of prices for %s to %s"
             % (len(fx_price_data), currency_code, str(self))
