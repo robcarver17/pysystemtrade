@@ -221,7 +221,7 @@ class strategyPositionData(baseData):
             self.log.critical(error_msg)
             raise Exception(error_msg)
 
-        updated_series = current_series.append(new_position_series)
+        updated_series = current_series._append(new_position_series)
         self._write_updated_position_series_for_instrument_strategy_object(
             instrument_strategy=instrument_strategy, updated_series=updated_series
         )
