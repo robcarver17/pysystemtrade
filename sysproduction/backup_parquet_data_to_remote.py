@@ -19,8 +19,7 @@ def backup_parquet_data_to_remote():
 
 
 
-def get_parquet_directory():
-    data = dataBlob()
+def get_parquet_directory(data):
     return data.parquet_root_directory
 
 
@@ -28,16 +27,19 @@ class backupParquet(object):
     def __init__(self, data):
         self.data = data
 
-    def backup_parquet_data_to_remote(self):
+    def backup_parquet(self):
         data = self.data
         log = data.log
         log.debug("Copying data to backup destination")
-        backup_parquet_data(data)
+        backup_parquet_data_to_remote_with_data(data)
 
+def backup_parquet_data_to_remote():
+    ## if called as standalone script
+    data = dataBlob()
+    backup_parquet_data_to_remote_with_data(data)
 
-
-def backup_parquet_data(data):
-    source_path = get_parquet_directory()
+def backup_parquet_data_to_remote_with_data(data):
+    source_path = get_parquet_directory(data)
     destination_path = get_parquet_backup_directory()
     data.log.debug("Copy from %s to %s" % (source_path, destination_path))
     os.system("rsync -av %s %s" % (source_path, destination_path))
