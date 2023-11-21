@@ -132,7 +132,7 @@ class futuresNamedContractFinalPricesWithContractID(pd.DataFrame):
         """
         contract_ids = self.ts_of_contract_str
 
-        return contract_ids[-1]
+        return contract_ids.iloc[-1]
 
     def check_all_contracts_equal_to(self, test_contractid: str) -> bool:
         """

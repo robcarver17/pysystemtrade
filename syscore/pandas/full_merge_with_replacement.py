@@ -190,7 +190,7 @@ def full_merge_of_existing_series(
 
         # fill to the left
         # NA from the original series will be preserved
-        joint_data_filled_across = joint_data.bfill(1)
+        joint_data_filled_across = joint_data.bfill(axis=1)
         merged_data = joint_data_filled_across["original"]
     else:
         # update older data with non-NA values from new data series
