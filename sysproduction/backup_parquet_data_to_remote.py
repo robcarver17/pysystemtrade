@@ -13,7 +13,7 @@ from sysdata.data_blob import dataBlob
 def backup_parquet_data_to_remote():
     data = dataBlob(log_name="backup_mongo_data_as_dump")
     backup_object = backupParquet(data)
-    backup_object.backup_parquet_data_to_remote()
+    backup_object.backup_parquet()
 
     return None
 
@@ -32,11 +32,6 @@ class backupParquet(object):
         log = data.log
         log.debug("Copying data to backup destination")
         backup_parquet_data_to_remote_with_data(data)
-
-def backup_parquet_data_to_remote():
-    ## if called as standalone script
-    data = dataBlob()
-    backup_parquet_data_to_remote_with_data(data)
 
 def backup_parquet_data_to_remote_with_data(data):
     source_path = get_parquet_directory(data)
