@@ -34,7 +34,7 @@ class contractPositionData(baseData):
         if len(position_series) == 0:
             return 0.0
 
-        return position_series[-1]
+        return position_series.iloc[-1]
 
     def update_position_for_contract_object(
         self,
