@@ -67,6 +67,9 @@ class pandlCalculation(object):
     ) -> pd.Series:
         as_pd_series = self.as_pd_series(**kwargs)
 
+        ## FIXME: Ugly to get pandas 2.x working
+        as_pd_series.index = pd.to_datetime(as_pd_series.index)
+
         resample_freq = from_config_frequency_pandas_resample(frequency)
         pd_series_at_frequency = as_pd_series.resample(resample_freq).sum()
 
