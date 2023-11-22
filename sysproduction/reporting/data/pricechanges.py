@@ -220,4 +220,4 @@ def get_stdev_at_start_date_for_instrument(
     daily_returns = daily_price_series.diff()
     vol_series = daily_returns.ewm(30).std()
 
-    return vol_series[-1]
+    return vol_series.iloc[-1]

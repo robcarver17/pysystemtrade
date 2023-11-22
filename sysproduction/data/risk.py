@@ -160,7 +160,7 @@ def get_current_ann_stdev_of_prices(data, instrument_code):
     try:
         current_stdev_ann_price_units = get_ann_ts_stdev_of_prices(
             data=data, instrument_code=instrument_code
-        )[-1]
+        ).iloc[-1]
     except:
         ## can happen for brand new instruments not properly loaded
         return np.nan
