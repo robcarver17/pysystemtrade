@@ -111,6 +111,6 @@ def get_smoothed_volume_ignoring_old_data(
         return 0.0
 
     smoothed_recent_volumes = recent_volumes.ewm(span=span).mean()
-    final_volume = smoothed_recent_volumes[-1]
+    final_volume = smoothed_recent_volumes.iloc[-1]
 
     return final_volume
