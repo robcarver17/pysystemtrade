@@ -32,20 +32,20 @@ class capitalData(baseData):
 
     def get_current_total_capital(self) -> float:
         pd_series = self.get_total_capital_pd_series()
-        return float(pd_series[-1])
+        return float(pd_series.iloc[-1])
 
     def get_current_broker_account_value(self) -> float:
         pd_series = self.get_broker_account_value_pd_series()
 
-        return float(pd_series[-1])
+        return float(pd_series.iloc[-1])
 
     def get_current_maximum_capital_value(self) -> float:
         pd_series = self.get_maximum_account_value_pd_series()
-        return float(pd_series[-1])
+        return float(pd_series.iloc[-1])
 
     def get_current_pandl_account(self) -> float:
         pd_series = self.get_profit_and_loss_account_pd_series()
-        return float(pd_series[-1])
+        return float(pd_series.iloc[-1])
 
     def get_total_capital_pd_series(self) -> pd.Series:
         all_capital_series = self.get_df_of_all_global_capital()
