@@ -34,7 +34,7 @@ class futuresContractPrices(pd.DataFrame):
         super().__init__(price_data_as_df)
 
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message="UserWarning: Pandas doesn't allow columns to be created via a new attribute name - see https://pandas.pydata.org/pandas-docs/stable/indexing.html#attribute-access")
+            warnings.filterwarnings("ignore", UserWarning)
             self._as_df = price_data_as_df
 
     def __copy__(self):

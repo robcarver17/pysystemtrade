@@ -88,7 +88,7 @@ class ibContractsClient(ibClient):
             raise missingContract
 
         expiry_date = ibcontract.lastTradeDateOrContractMonth
-        expiry_date = expiry_date[:8] ## in case of weird '... GB format'
+        expiry_date = expiry_date[:8]  ## in case of weird '... GB format'
 
         return expiry_date
 
