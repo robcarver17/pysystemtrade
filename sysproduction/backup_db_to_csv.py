@@ -132,7 +132,7 @@ def get_data_and_create_csv_directories(logname):
             get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA),
             get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
             get_class_for_data_type(FX_DATA),
-            get_class_for_data_type(SPREAD_DATA),
+            get_class_for_data_type(STORED_SPREAD_DATA),
             get_class_for_data_type(BROKER_HISTORIC_ORDERS_DATA),
             get_class_for_data_type(CONTRACT_HISTORIC_ORDERS_DATA),
             get_class_for_data_type(STRATEGY_HISTORIC_ORDERS_DATA),
@@ -141,7 +141,7 @@ def get_data_and_create_csv_directories(logname):
             get_class_for_data_type(FUTURES_CONTRACT_DATA),
             get_class_for_data_type(OPTIMAL_POSITION_DATA),
             get_class_for_data_type(ROLL_STATE_DATA),
-            get_class_for_data_type(SPREAD_DATA),
+            get_class_for_data_type(HISTORIC_SPREAD_DATA),
         ],
         use_prefix="db",
     )
