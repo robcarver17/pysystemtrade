@@ -306,7 +306,7 @@ def _infer_position_at_start(
     if no_positions_before_start:
         position_at_start = 0
     else:
-        last_position_before_start = positions_before_start[-1]
+        last_position_before_start = positions_before_start.iloc[-1]
         position_at_start = last_position_before_start
 
     return position_at_start
