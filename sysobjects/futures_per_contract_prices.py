@@ -34,7 +34,7 @@ class futuresContractPrices(pd.DataFrame):
         super().__init__(price_data_as_df)
 
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", UserWarning)
+            warnings.filterwarnings("ignore", category=UserWarning)
             self._as_df = price_data_as_df
 
     def __copy__(self):
