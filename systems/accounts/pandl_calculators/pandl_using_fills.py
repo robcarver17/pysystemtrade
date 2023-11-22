@@ -103,7 +103,7 @@ def merge_fill_prices_with_prices(
     prices_to_use.columns = ["price", "fill_price"]
 
     # Where no fill price available, use price
-    prices_to_use = prices_to_use.fillna(axis=1, method="ffill")
+    prices_to_use = prices_to_use.ffill(axis=1)
 
     prices_to_use = prices_to_use.fill_price
 
