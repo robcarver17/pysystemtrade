@@ -80,7 +80,7 @@ class pandlCalculateAndStore(object):
         total_pandl = get_total_capital_pandl(self.data, self.start_date, self.end_date)
         residual_pandl = total_pandl - total_pandl_strategies
         residual_dfrow = pd.DataFrame(dict(codes=["residual"], pandl=residual_pandl))
-        strategies_pandl = strategies_pandl.append(residual_dfrow)
+        strategies_pandl = strategies_pandl._append(residual_dfrow)
         strategies_pandl.pandl = strategies_pandl.pandl
 
         return strategies_pandl
