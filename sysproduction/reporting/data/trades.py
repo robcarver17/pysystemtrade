@@ -225,7 +225,7 @@ def cash_slippage_row(slippage_row, data):
             "trade",
         ]
     ]
-    new_slippage_row = new_slippage_row.append(
+    new_slippage_row = new_slippage_row._append(
         pd.Series(
             [
                 value_of_price_point,
@@ -307,7 +307,7 @@ def vol_slippage_row(slippage_row, data):
             "trade",
         ]
     ]
-    new_slippage_row = new_slippage_row.append(
+    new_slippage_row = new_slippage_row._append(
         pd.Series(
             [
                 last_annual_vol,
