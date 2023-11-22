@@ -401,7 +401,7 @@ def delay_row(order_row):
             "fill_datetime",
         ]
     ]
-    new_order_row = new_order_row.append(
+    new_order_row = new_order_row._append(
         pd.Series(
             [submit_minus_generated, filled_minus_submit],
             index=["submit_minus_generated", "filled_minus_submit"],
