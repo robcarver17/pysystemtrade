@@ -11,7 +11,7 @@ import numpy as np
 from syscore.constants import named_object, arg_not_supplied
 
 DEFAULT_DATE_FORMAT_FOR_CSV = "%Y-%m-%d %H:%M:%S"
-
+EXPECTED_LENGTH_OF_DATE =  19
 
 def rolling_pairwise_correlation(
     x: pd.DataFrame, periods: int, min_periods: int = 3
@@ -105,15 +105,25 @@ def pd_readcsv(
     df = pd.read_csv(filename, skiprows=skiprows, skipfooter=skipfooter)
 
     ## Add time index as index
-    df.index = pd.to_datetime(df[date_index_name], format=date_format).values
-    del df[date_index_name]
-    df.index.name = None
+    df = add_datetime_index(df=df, date_index_name=date_index_name, date_format=date_format)
 
     if input_column_mapping is not arg_not_supplied:
         df = remap_columns_in_pd(df, input_column_mapping)
 
     return df
 
+
+def add_datetime_index(df: pd.DataFrame, date_index_name: str, date_format: str = DEFAULT_DATE_FORMAT_FOR_CSV, expected_length_of_date: int = EXPECTED_LENGTH_OF_DATE) -> pd.DataFrame:
+    date_index = df[date_index_name]
+    date_index = date_index.astype(str)
+    def left(x:str, n):
+        return x[:n]
+    date_index = date_index.apply(left, n=EXPECTED_LENGTH_OF_DATE)
+    df.index = pd.to_datetime(date_index, format=date_format).values
+    del df[date_index_name]
+    df.index.name = None
+
+    return df
 
 def remap_columns_in_pd(df: pd.DataFrame, input_column_mapping: dict) -> pd.DataFrame:
     """
