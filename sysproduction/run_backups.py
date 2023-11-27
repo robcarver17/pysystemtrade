@@ -29,7 +29,7 @@ def get_list_of_timer_functions_for_backup():
         ("backup_db_to_csv", db_backup_object),
         ("backup_mongo_data_as_dump", mongodump_backup_object),
         ("backup_files", statefile_backup_object),
-        ("backup_parquet", parquet_backup_object)
+        ("backup_parquet", parquet_backup_object),
     ]
 
     return list_of_timer_names_and_functions

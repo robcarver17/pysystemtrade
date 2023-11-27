@@ -1,11 +1,7 @@
 import os
 from sysdata.config.production_config import get_production_config
 
-from sysproduction.data.directories import (
-
-    get_parquet_backup_directory
-
-)
+from sysproduction.data.directories import get_parquet_backup_directory
 
 from sysdata.data_blob import dataBlob
 
@@ -16,7 +12,6 @@ def backup_parquet_data_to_remote():
     backup_object.backup_parquet()
 
     return None
-
 
 
 def get_parquet_directory(data):
@@ -32,6 +27,7 @@ class backupParquet(object):
         log = data.log
         log.debug("Copying data to backup destination")
         backup_parquet_data_to_remote_with_data(data)
+
 
 def backup_parquet_data_to_remote_with_data(data):
     source_path = get_parquet_directory(data)
