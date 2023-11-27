@@ -131,7 +131,7 @@ class TestExamples:
         my_system = System([fcs, my_rules, raw_data], data, my_config)
         my_config.forecast_scalar_estimate["pool_instruments"] = False
         print(
-            my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32").tail(5)
+            my_system.forecastScaleCap.get_forecast_scalar("SOFR", "ewmac32").tail(5)
         )
 
     def test_simple_system_trading_rules_fixed(self, data, my_rules, fcs):
@@ -144,7 +144,7 @@ class TestExamples:
 
         my_system = System([fcs, my_rules], data, my_config)
         print(
-            my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32").tail(5)
+            my_system.forecastScaleCap.get_capped_forecast("SOFR", "ewmac32").tail(5)
         )
 
     def test_simple_system_combing_rules(
@@ -156,7 +156,7 @@ class TestExamples:
         print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
         print(
             my_system.combForecast.get_forecast_diversification_multiplier(
-                "EDOLLAR"
+                "SOFR"
             ).tail(5)
         )
 
@@ -212,7 +212,7 @@ class TestExamples:
         print(my_system.positionSize.get_instrument_value_vol("EDOLLAR").tail(5))
         print(
             my_system.positionSize.get_average_position_at_subsystem_level(
-                "EDOLLAR"
+                "SOFR"
             ).tail(5)
         )
         print(my_system.positionSize.get_vol_target_dict())
@@ -382,14 +382,14 @@ class TestExamples:
             data,
             my_config,
         )
-        print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5))
-        print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac8").tail(5))
+        print(my_system.rules.get_raw_forecast("SOFR", "ewmac32").tail(5))
+        print(my_system.rules.get_raw_forecast("SOFR", "ewmac8").tail(5))
         print(
-            my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32").tail(5)
+            my_system.forecastScaleCap.get_capped_forecast("SOFR", "ewmac32").tail(5)
         )
-        print(my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32"))
-        print(my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5))
-        print(my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5))
+        print(my_system.forecastScaleCap.get_forecast_scalar("SOFR", "ewmac32"))
+        print(my_system.combForecast.get_combined_forecast("SOFR").tail(5))
+        print(my_system.combForecast.get_forecast_weights("SOFR").tail(5))
 
         print(my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5))
 
