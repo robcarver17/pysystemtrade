@@ -328,7 +328,6 @@ class contractOrderKeyArguments:
 def from_contract_order_args_to_resolved_args(
     args: tuple, fill: tradeQuantity
 ) -> contractOrderKeyArguments:
-
     # different ways of specifying tradeable object
     key_arguments = split_contract_order_args(args, fill)
 

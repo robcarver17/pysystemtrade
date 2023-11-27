@@ -158,7 +158,6 @@ class tradeLimitData(baseData):
     def reset_strategy_limit_all_instruments(
         self, strategy_name: str, period_days: int
     ):
-
         pass
 
     def reset_instrument_strategy_limit(
@@ -190,7 +189,6 @@ class tradeLimitData(baseData):
     def _get_trade_limit_object(
         self, instrument_strategy: instrumentStrategy, period_days: int
     ) -> tradeLimit:
-
         try:
             trade_limit_as_dict = self._get_trade_limit_as_dict_or_missing_data(
                 instrument_strategy, period_days

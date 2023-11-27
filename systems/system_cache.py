@@ -35,7 +35,6 @@ class cacheRef(object):
     def __init__(
         self, stage_name, itemname, instrument_code=ALL_KEYNAME, flags="", keyname=""
     ):
-
         self.stage_name = stage_name
         self.itemname = itemname
         self.instrument_code = instrument_code
@@ -143,7 +142,6 @@ class cacheElement(object):
 
 class systemCache(dict):
     def __init__(self, parent_system):
-
         super().__init__()
         self._parent = parent_system  # so we can access the instrument list
         self.set_caching_on()

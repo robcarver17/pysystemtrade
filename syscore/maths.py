@@ -11,7 +11,6 @@ from copy import copy
 def calculate_weighted_average_with_nans(
     weights: list, list_of_values: list, sum_of_weights_should_be: float = 1.0
 ) -> float:
-
     """
     Calculate a weighted average when the weights and/or values might be nans
     >>> calculate_weighted_average_with_nans([0.2, 0.2, np.nan, 0.4],[2, np.nan, 3, np.nan])

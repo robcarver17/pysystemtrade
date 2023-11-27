@@ -42,7 +42,6 @@ def analyse_tick_data_frame(
     forward_fill: bool = False,
     replace_qty_nans=False,
 ):
-
     if tick_data.is_empty():
         raise missingData("Tick data is empty")
 
@@ -262,7 +261,6 @@ class tickerObject(object):
     def wait_for_valid_bid_and_ask_and_analyse_current_tick(
         self, qty: int = arg_not_supplied, wait_time_seconds: int = 10
     ) -> oneTick:
-
         current_tick = self.wait_for_valid_bid_and_ask_and_return_current_tick(
             wait_time_seconds=wait_time_seconds
         )
@@ -403,7 +401,6 @@ def get_next_n_ticks_from_ticker_object(
 def from_list_of_ticks_to_dataframe(
     list_of_ticks: List[oneTick],
 ) -> dataFrameOfRecentTicks:
-
     fields = TICK_REQUIRED_COLUMNS
 
     value_dict = {}

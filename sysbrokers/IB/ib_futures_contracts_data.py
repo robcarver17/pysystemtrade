@@ -130,7 +130,6 @@ class ibFuturesContractData(brokerFuturesContractData):
     def _get_contract_object_with_IB_metadata(
         self, contract_object: futuresContract
     ) -> futuresContract:
-
         try:
             futures_instrument_with_ib_data = (
                 self._get_futures_instrument_object_with_IB_data(

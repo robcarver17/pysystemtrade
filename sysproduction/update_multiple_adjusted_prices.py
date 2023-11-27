@@ -151,7 +151,6 @@ def calc_updated_multiple_prices(
 def calc_update_adjusted_prices(
     data: dataBlob, instrument_code: str, updated_multiple_prices: futuresMultiplePrices
 ) -> futuresAdjustedPrices:
-
     diag_prices = diagPrices(data)
     existing_adjusted_prices = diag_prices.get_adjusted_prices(instrument_code)
 
@@ -210,7 +209,6 @@ def update_with_new_prices(
     updated_multiple_prices: futuresMultiplePrices,
     updated_adjusted_prices: futuresAdjustedPrices,
 ):
-
     update_prices = updatePrices(data)
 
     update_prices.add_multiple_prices(

@@ -123,7 +123,6 @@ class listOfOrders(list):
 def calculate_most_conservative_trade_from_list_of_orders_with_limits_applied(
     position: int, original_order: Order, list_of_orders: listOfOrders
 ) -> Order:
-
     list_of_trade_qty = list_of_orders.list_of_qty()
 
     new_trade_qty = (

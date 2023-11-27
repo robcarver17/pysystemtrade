@@ -112,7 +112,6 @@ class positionLimitAndPosition(object):
 def apply_position_limit_to_order(
     position: int, position_limit: int, order: Order
 ) -> Order:
-
     ## POSIITON LIMITS CAN ONLY BE APPLIED TO SINGLE LEG TRADES, EG INSTRUMENT ORDERS
     proposed_trade = order.as_single_trade_qty_or_error()
     possible_trade = apply_position_limit_to_single_leg_trade(

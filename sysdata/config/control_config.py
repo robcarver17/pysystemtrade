@@ -7,7 +7,6 @@ DEFAULT_CONTROL_CONFIG_FILE = "syscontrol.control_config.yaml"
 
 
 def get_control_config() -> Config:
-
     private_control_path = get_full_path_for_private_config(PRIVATE_CONTROL_CONFIG_FILE)
 
     try:

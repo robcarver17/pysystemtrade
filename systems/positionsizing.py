@@ -68,7 +68,6 @@ class PositionSizing(SystemStage):
 
     @diagnostic()
     def get_subsystem_buffers(self, instrument_code: str) -> pd.Series:
-
         position = self.get_subsystem_position(instrument_code)
 
         vol_scalar = self.get_average_position_at_subsystem_level(instrument_code)

@@ -39,7 +39,6 @@ class autoGroupPortfolioWeight(dict):
     def __init__(
         self, auto_group_weights: dict, auto_group_parameters: dict = arg_not_supplied
     ):
-
         copy_auto_group_weights = copy(auto_group_weights)
         group_weight = copy_auto_group_weights.pop(WEIGHT_FLAG, 1.0)
         auto_group_weights_without_weight_entry = copy_auto_group_weights

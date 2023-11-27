@@ -24,7 +24,6 @@ class csvRollCalendarData(rollCalendarData):
     def __init__(
         self, datapath=arg_not_supplied, log=get_logger("csvRollCalendarData")
     ):
-
         super().__init__(log=log)
 
         if datapath is arg_not_supplied:
@@ -45,7 +44,6 @@ class csvRollCalendarData(rollCalendarData):
     def _get_roll_calendar_without_checking(self, instrument_code: str) -> rollCalendar:
         filename = self._filename_given_instrument_code(instrument_code)
         try:
-
             roll_calendar = pd_readcsv(filename, date_index_name=DATE_INDEX_NAME)
         except OSError:
             self.log.warning("Can't find roll calendar file %s" % filename)

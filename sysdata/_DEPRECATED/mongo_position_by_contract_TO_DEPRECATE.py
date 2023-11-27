@@ -14,7 +14,6 @@ class mongoContractPositionData(object):
     """
 
     def __init__(self, mongo_db=arg_not_supplied, log=logtoscreen("")):
-
         self._log = log
         self._mongo_data = mongoDataWithMultipleKeys(
             POSITION_CONTRACT_COLLECTION, mongo_db=mongo_db

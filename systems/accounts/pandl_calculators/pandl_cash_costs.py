@@ -188,7 +188,6 @@ class pandlCalculationWithCashCostsAndFills(
         return self.positions.index[-1]
 
     def normalise_costs_in_instrument_currency(self, costs_as_pd_series) -> pd.Series:
-
         dont_normalise_currency_costs = not self.vol_normalise_currency_costs
         if dont_normalise_currency_costs:
             return costs_as_pd_series

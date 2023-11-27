@@ -1,10 +1,10 @@
-
 from sysproduction.data.prices import diagPrices
 
 from sysobjects.contracts import futuresContract
 import pandas as pd
 
 diag_prices = diagPrices()
+
 
 class ContractComparison:
     """Class for comparing futures contracts side by side on different dimensions"""

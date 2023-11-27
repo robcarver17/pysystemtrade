@@ -17,7 +17,6 @@ class arcticData(object):
     """
 
     def __init__(self, collection_name, mongo_db=None):
-
         if mongo_db is None:
             mongo_db = mongoDb()
 

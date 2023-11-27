@@ -53,7 +53,6 @@ class orderWithControls(object):
         control_object,
         ticker_object: tickerObject = None,
     ):
-
         self._order = broker_order
         self._control_object = control_object
         self._ticker = ticker_object

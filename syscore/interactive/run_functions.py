@@ -25,7 +25,7 @@ def interactively_input_arguments_for_function(func, full_funcname):
 
     args = []
     kwargs = dict()
-    for (argname, parameter_signature) in func_arguments.items():
+    for argname, parameter_signature in func_arguments.items():
         arg_value = input_and_type_cast_argument(argname, parameter_signature)
 
         is_kwarg = has_default(parameter_signature)
@@ -85,7 +85,6 @@ def has_type(parameter_signature) -> bool:
 def parameter_type(
     parameter_signature: inspect.Parameter,
 ):
-
     ptype = parameter_signature.annotation
     if ptype is EMPTY_VALUE:
         # get from default

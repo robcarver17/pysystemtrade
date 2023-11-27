@@ -6,6 +6,7 @@ from sysproduction.data.prices import diagPrices
 
 diag_prices = diagPrices()
 
+
 def init_arctic_with_csv_futures_contract_prices(
     multiple_price_datapath=arg_not_supplied, adj_price_datapath=arg_not_supplied
 ):

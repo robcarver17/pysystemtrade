@@ -17,7 +17,6 @@ class nestedAccountCurveGroup(accountCurveGroup):
         capital,
         **kwargs,
     ):
-
         super().__init__(nested_dict_of_account_curves, capital=capital, **kwargs)
 
         self._nested_dict_of_account_curves = nested_dict_of_account_curves

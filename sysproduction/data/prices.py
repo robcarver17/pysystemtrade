@@ -35,7 +35,14 @@ from sysproduction.data.generic_production_data import productionDataLayerGeneri
 
 ## default for spike checking
 from sysproduction.data.instruments import diagInstruments, get_block_size
-from sysproduction.data.production_data_objects import get_class_for_data_type, FUTURES_CONTRACT_PRICE_DATA, FUTURES_ADJUSTED_PRICE_DATA, FUTURES_MULTIPLE_PRICE_DATA, FUTURES_CONTRACT_DATA, HISTORIC_SPREAD_DATA
+from sysproduction.data.production_data_objects import (
+    get_class_for_data_type,
+    FUTURES_CONTRACT_PRICE_DATA,
+    FUTURES_ADJUSTED_PRICE_DATA,
+    FUTURES_MULTIPLE_PRICE_DATA,
+    FUTURES_CONTRACT_DATA,
+    HISTORIC_SPREAD_DATA,
+)
 
 VERY_BIG_NUMBER = 999999.0
 
@@ -48,7 +55,7 @@ class diagPrices(productionDataLayerGeneric):
                 get_class_for_data_type(FUTURES_ADJUSTED_PRICE_DATA),
                 get_class_for_data_type(FUTURES_CONTRACT_DATA),
                 get_class_for_data_type(HISTORIC_SPREAD_DATA),
-                get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA)
+                get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
             ]
         )
         return data
@@ -243,7 +250,7 @@ class updatePrices(productionDataLayerGeneric):
                 get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
                 get_class_for_data_type(FUTURES_CONTRACT_DATA),
                 get_class_for_data_type(FUTURES_ADJUSTED_PRICE_DATA),
-                get_class_for_data_type(HISTORIC_SPREAD_DATA)
+                get_class_for_data_type(HISTORIC_SPREAD_DATA),
             ]
         )
 
@@ -254,7 +261,6 @@ class updatePrices(productionDataLayerGeneric):
         contract_object: futuresContract,
         new_prices: futuresContractPrices,
     ):
-
         self.db_futures_contract_price_data.write_merged_prices_for_contract_object(
             contract_object, futures_price_data=new_prices, ignore_duplication=True
         )
@@ -265,7 +271,6 @@ class updatePrices(productionDataLayerGeneric):
         new_prices: futuresContractPrices,
         frequency: Frequency,
     ):
-
         self.db_futures_contract_price_data.write_prices_at_frequency_for_contract_object(
             futures_contract_object=contract_object,
             futures_price_data=new_prices,
@@ -281,7 +286,6 @@ class updatePrices(productionDataLayerGeneric):
         check_for_spike: bool = True,
         max_price_spike: float = VERY_BIG_NUMBER,
     ) -> int:
-
         error_or_rows_added = (
             self.db_futures_contract_price_data.update_prices_at_frequency_for_contract(
                 contract_object=contract_object,
@@ -498,7 +502,6 @@ def modify_price_when_contract_has_changed(
     original_contract_date: str,
     original_price: float,
 ) -> float:
-
     if original_contract_date == new_contract_date:
         return original_price
 

@@ -29,7 +29,6 @@ class logEntry(object):
         attributes: dict = arg_not_supplied,
         log_id: int = 0,
     ):
-
         if attributes is arg_not_supplied:
             attributes = {}
 

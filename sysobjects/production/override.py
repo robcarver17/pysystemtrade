@@ -187,7 +187,6 @@ def _apply_float_override(
 def _apply_reduce_only(
     original_position_no_override: int, proposed_trade: Order
 ) -> Order:
-
     proposed_trade_value = proposed_trade.trade.as_single_trade_qty_or_error()
     desired_new_position = original_position_no_override + proposed_trade_value
     if sign(desired_new_position) != sign(original_position_no_override):

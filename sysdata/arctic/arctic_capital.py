@@ -14,7 +14,6 @@ class arcticCapitalData(capitalData):
     """
 
     def __init__(self, mongo_db=None, log=get_logger("arcticCapitalData")):
-
         super().__init__(log=log)
 
         self._arctic = arcticData(CAPITAL_COLLECTION, mongo_db=mongo_db)
@@ -40,7 +39,6 @@ class arcticCapitalData(capitalData):
         return pd_series
 
     def _delete_all_capital_for_strategy_no_checking(self, strategy_name: str):
-
         self.arctic.delete(strategy_name)
 
     def update_capital_pd_df_for_strategy(

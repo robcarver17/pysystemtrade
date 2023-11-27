@@ -15,7 +15,6 @@ class arcticFuturesAdjustedPricesData(futuresAdjustedPricesData):
     """
 
     def __init__(self, mongo_db=None, log=get_logger("arcticFuturesAdjustedPrices")):
-
         super().__init__(log=log)
 
         self._arctic = arcticData(ADJPRICE_COLLECTION, mongo_db=mongo_db)

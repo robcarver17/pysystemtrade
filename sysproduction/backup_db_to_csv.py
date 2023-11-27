@@ -33,6 +33,7 @@ from sysproduction.data.strategies import get_list_of_strategies
 
 from sysproduction.data.production_data_objects import *
 
+
 def backup_db_to_csv():
     data = dataBlob(log_name="backup_db_to_csv")
     backup_object = backupDbToCsv(data)
@@ -75,7 +76,6 @@ class backupDbToCsv:
 
 
 def get_data_and_create_csv_directories(logname):
-
     csv_dump_dir = get_csv_dump_dir()
 
     class_paths = dict(
@@ -102,9 +102,7 @@ def get_data_and_create_csv_directories(logname):
         if not os.path.exists(dir_name):
             os.makedirs(dir_name)
 
-        data = dataBlob(
-            csv_data_paths=class_paths, log_name=logname
-        )
+        data = dataBlob(csv_data_paths=class_paths, log_name=logname)
 
     data.add_class_list(
         [
@@ -123,8 +121,8 @@ def get_data_and_create_csv_directories(logname):
             csvSpreadsForInstrumentData,
             csvStrategyHistoricOrdersData,
             csvStrategyPositionData,
-        ]
-        , use_prefix="csv"
+        ],
+        use_prefix="csv",
     )
 
     data.add_class_list(
@@ -134,7 +132,7 @@ def get_data_and_create_csv_directories(logname):
             get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA),
             get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
             get_class_for_data_type(FX_DATA),
-            get_class_for_data_type(SPREAD_DATA),
+            get_class_for_data_type(STORED_SPREAD_DATA),
             get_class_for_data_type(BROKER_HISTORIC_ORDERS_DATA),
             get_class_for_data_type(CONTRACT_HISTORIC_ORDERS_DATA),
             get_class_for_data_type(STRATEGY_HISTORIC_ORDERS_DATA),
@@ -143,10 +141,9 @@ def get_data_and_create_csv_directories(logname):
             get_class_for_data_type(FUTURES_CONTRACT_DATA),
             get_class_for_data_type(OPTIMAL_POSITION_DATA),
             get_class_for_data_type(ROLL_STATE_DATA),
-            get_class_for_data_type(SPREAD_DATA)
-
+            get_class_for_data_type(HISTORIC_SPREAD_DATA),
         ],
-        use_prefix="db"
+        use_prefix="db",
     )
 
     return data
@@ -194,10 +191,8 @@ def backup_futures_contract_prices_for_contract_to_csv(
 
             return None
 
-    db_data = (
-        data.db_futures_contract_price.get_merged_prices_for_contract_object(
-            futures_contract
-        )
+    db_data = data.db_futures_contract_price.get_merged_prices_for_contract_object(
+        futures_contract
     )
 
     csv_data = data.csv_futures_contract_price.get_merged_prices_for_contract_object(
@@ -250,9 +245,7 @@ def backup_multiple_to_csv(data):
 
 
 def backup_multiple_to_csv_for_instrument(data, instrument_code: str):
-    db_data = data.db_futures_multiple_prices.get_multiple_prices(
-        instrument_code
-    )
+    db_data = data.db_futures_multiple_prices.get_multiple_prices(instrument_code)
     csv_data = data.csv_futures_multiple_prices.get_multiple_prices(instrument_code)
 
     if check_df_equals(db_data, csv_data):
@@ -279,9 +272,7 @@ def backup_adj_to_csv(data):
 
 
 def backup_adj_to_csv_for_instrument(data: dataBlob, instrument_code: str):
-    db_data = data.db_futures_adjusted_prices.get_adjusted_prices(
-        instrument_code
-    )
+    db_data = data.db_futures_adjusted_prices.get_adjusted_prices(instrument_code)
     csv_data = data.csv_futures_adjusted_prices.get_adjusted_prices(instrument_code)
 
     if check_ts_equals(db_data, csv_data):
@@ -427,7 +418,6 @@ def get_dict_of_strategy_capital(data: dataBlob) -> dict:
 def add_total_capital_to_strategy_capital_dict_return_df(
     data: dataBlob, capital_data: dict
 ) -> pd.DataFrame:
-
     strategy_capital_as_df = pd.concat(capital_data, axis=1)
     total_capital = data.db_capital.get_df_of_all_global_capital()
     capital_data = pd.concat([strategy_capital_as_df, total_capital], axis=1)
@@ -438,7 +428,6 @@ def add_total_capital_to_strategy_capital_dict_return_df(
 
 
 def backup_optimal_positions(data):
-
     strategy_instrument_list = (
         data.db_optimal_position.get_list_of_instrument_strategies_with_optimal_position()
     )

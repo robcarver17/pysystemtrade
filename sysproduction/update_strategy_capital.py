@@ -93,7 +93,6 @@ def get_total_current_margin(data: dataBlob) -> float:
 
 
 def call_allocation_function(data: dataBlob, capital_to_allocate: float) -> dict:
-
     strategy_allocation_config_dict = get_strategy_allocation_config_dict(data)
 
     strategy_allocation_function_str = strategy_allocation_config_dict.pop("function")

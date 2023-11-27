@@ -5,7 +5,6 @@ import unittest
 
 class Test(unittest.TestCase):
     def setUp(self):
-
         (rawdata, data, config) = get_test_object()
 
         system = System([rawdata], data)

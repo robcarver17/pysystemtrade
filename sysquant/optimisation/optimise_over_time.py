@@ -20,7 +20,6 @@ class optimiseWeightsOverTime(object):
         log=get_logger("optimiser"),
         **kwargs,
     ):
-
         # Generate time periods
         fit_dates = generate_fitting_dates(
             net_returns, date_method=date_method, rollyears=rollyears

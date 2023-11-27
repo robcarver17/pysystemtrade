@@ -139,7 +139,6 @@ def merge_newer_data_no_checks(
 def _merge_newer_data_no_checks_if_both_old_and_new(
     old_data: Union[pd.Series, pd.DataFrame], new_data: Union[pd.Series, pd.DataFrame]
 ) -> mergingDataWithStatus:
-
     last_date_in_old_data = old_data.index[-1]
     new_data.sort_index()
     actually_new_data = new_data[new_data.index > last_date_in_old_data]
@@ -168,7 +167,6 @@ def spike_check_merged_data(
     column_to_check_for_spike: str = arg_not_supplied,
     max_spike: float = VERY_BIG_NUMBER,
 ) -> mergingDataWithStatus:
-
     merge_status = merged_data_with_status.status
     merged_data = merged_data_with_status.merged_data
 
@@ -228,7 +226,6 @@ def _get_data_to_check(
     merged_data: Union[pd.Series, pd.DataFrame],
     column_to_check_for_spike: str = arg_not_supplied,
 ) -> Union[pd.Series, pd.DataFrame]:
-
     if is_a_series(merged_data):
         # already a series
         data_to_check = merged_data
@@ -244,7 +241,6 @@ def _get_data_to_check(
 
 
 def _calculate_change_in_vol_normalised_units(data_to_check: pd.Series) -> pd.Series:
-
     # Calculate the average change per day
     change_per_day = _calculate_change_in_daily_units(data_to_check)
 
@@ -312,7 +308,6 @@ def _check_for_spikes_in_change_in_vol_normalised_units(
     relevant_change_in_vol_normalised_units: pd.Series,
     max_spike: float = VERY_BIG_NUMBER,
 ) -> Union[datetime.datetime, named_object]:
-
     if any(relevant_change_in_vol_normalised_units > max_spike):
         first_spike = relevant_change_in_vol_normalised_units.index[
             relevant_change_in_vol_normalised_units > max_spike

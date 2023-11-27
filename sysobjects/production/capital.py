@@ -15,7 +15,6 @@ class totalCapitalUpdater(object):
         prev_pandl_cum_acc: float,
         calc_method: str,
     ):
-
         self._new_broker_account_value = new_broker_account_value
         self._calc_method = calc_method
         self._prev_broker_account_value = prev_broker_account_value

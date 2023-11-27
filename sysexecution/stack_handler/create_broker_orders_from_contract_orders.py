@@ -39,11 +39,9 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         """
         list_of_contract_order_ids = self.contract_stack.get_list_of_order_ids()
         for contract_order_id in list_of_contract_order_ids:
-
             self.create_broker_order_for_contract_order(contract_order_id)
 
     def create_broker_order_for_contract_order(self, contract_order_id: int):
-
         original_contract_order = self.contract_stack.get_order_with_id_from_stack(
             contract_order_id
         )
@@ -74,7 +72,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         )
 
         if algo_instance.blocking_algo_requires_management:
-
             completed_broker_order_with_controls = algo_instance.manage_trade(
                 broker_order_with_controls_and_order_id
             )
@@ -87,7 +84,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
     def preprocess_contract_order(
         self, original_contract_order: contractOrder
     ) -> contractOrder:
-
         if original_contract_order is missing_order:
             # weird race condition
             return missing_order
@@ -192,7 +188,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
     def liquidity_size_contract_order(
         self, contract_order_after_trade_limits: contractOrder
     ) -> contractOrder:
-
         data_broker = self.data_broker
         log = contract_order_after_trade_limits.log_with_attributes(self.log)
 
@@ -222,7 +217,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
     def send_to_algo(
         self, contract_order_to_trade: contractOrder
     ) -> (Algo, orderWithControls):
-
         log = contract_order_to_trade.log_with_attributes(self.log)
         instrument_order = self.get_parent_of_contract_order(contract_order_to_trade)
 
@@ -328,7 +322,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
     def post_trade_processing(
         self, completed_broker_order_with_controls: orderWithControls
     ):
-
         broker_order = completed_broker_order_with_controls.order
 
         # update trade limits
@@ -347,7 +340,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         )
 
     def add_trade_to_trade_limits(self, executed_order: brokerOrder):
-
         data_trade_limits = dataTradeLimits(self.data)
 
         data_trade_limits.add_trade(executed_order)

@@ -9,7 +9,6 @@ from sysdata.csv.csv_roll_parameters import csvRollParametersData
 
 
 class TestFuturesInit:
-
     csv_config = ConfigCsvFuturesPrices(
         input_date_index_name="Time",
         input_skiprows=0,

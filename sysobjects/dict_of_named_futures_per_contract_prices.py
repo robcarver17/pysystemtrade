@@ -132,7 +132,7 @@ class futuresNamedContractFinalPricesWithContractID(pd.DataFrame):
         """
         contract_ids = self.ts_of_contract_str
 
-        return contract_ids[-1]
+        return contract_ids.iloc[-1]
 
     def check_all_contracts_equal_to(self, test_contractid: str) -> bool:
         """
@@ -170,7 +170,6 @@ def _merge_futures_contract_final_prices_with_contract_id(
     original_data: futuresNamedContractFinalPricesWithContractID,
     new_data: futuresNamedContractFinalPricesWithContractID,
 ) -> futuresNamedContractFinalPricesWithContractID:
-
     if len(new_data) == 0:
         return original_data
 
@@ -199,7 +198,6 @@ def _assert_merge_is_valid(
     original_data: futuresNamedContractFinalPricesWithContractID,
     new_data: futuresNamedContractFinalPricesWithContractID,
 ):
-
     last_contract_in_original_data = original_data.final_contract()
 
     try:

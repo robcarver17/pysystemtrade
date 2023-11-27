@@ -14,7 +14,6 @@ def make_account_curve_plot(
     start_date: datetime.datetime = arg_not_supplied,
     end_date: datetime.datetime = arg_not_supplied,
 ):
-
     curve_to_plot = daily_pandl.resample("1B").sum()
     if start_date is not arg_not_supplied:
         curve_to_plot = curve_to_plot[start_date:]
@@ -45,7 +44,6 @@ def make_account_curve_plot_from_df(
     end_date: datetime.datetime = arg_not_supplied,
     title_style: dict = None,
 ):
-
     curve_to_plot = pandl_df.resample("1B").sum()
     if start_date is not arg_not_supplied:
         curve_to_plot = curve_to_plot[start_date:]

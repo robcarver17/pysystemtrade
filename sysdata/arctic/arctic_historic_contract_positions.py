@@ -14,7 +14,6 @@ CONTRACT_POSITION_COLLECTION = "contract_positions"
 
 class arcticContractPositionData(contractPositionData):
     def __init__(self, mongo_db=None, log=get_logger("arcticContractPositionData")):
-
         super().__init__(log=log)
 
         self._arctic = arcticData(CONTRACT_POSITION_COLLECTION, mongo_db=mongo_db)

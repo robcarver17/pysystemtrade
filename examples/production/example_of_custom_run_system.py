@@ -13,7 +13,6 @@ from systems.basesystem import System
 
 
 class runMySystemCarryTrendDynamic(runSystemCarryTrendDynamic):
-
     # DO NOT CHANGE THE NAME OF THIS FUNCTION; IT IS HARDCODED INTO CONFIGURATION FILES
     # BECAUSE IT IS ALSO USED TO LOAD BACKTESTS
     def system_method(
@@ -40,7 +39,6 @@ def production_carry_trend_dynamic_system(
     notional_trading_capital: float = arg_not_supplied,
     base_currency: str = arg_not_supplied,
 ) -> System:
-
     sim_data = get_sim_data_object_for_production(data)
     config = Config(config_filename)
 
@@ -76,7 +74,6 @@ from systems.provided.dynamic_small_system_optimise.accounts_stage import (
 
 
 def futures_system(data, config):
-
     system = System(
         [
             Risk(),

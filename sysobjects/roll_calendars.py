@@ -122,7 +122,6 @@ def _check_row_of_row_calendar(
     calendar_row: pd.Series,
     dict_of_futures_contract_prices: dictFuturesContractFinalPrices,
 ) -> bool:
-
     current_contract = str(calendar_row.current_contract)
     next_contract = str(calendar_row.next_contract)
     carry_contract = str(calendar_row.carry_contract)

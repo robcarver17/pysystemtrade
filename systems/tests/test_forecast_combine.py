@@ -9,7 +9,6 @@ from systems.tests.testdata import get_test_object_futures_with_rules_and_cappin
 @unittest.SkipTest
 class Test(unittest.TestCase):
     def setUp(self):
-
         (
             fcs,
             rules,
@@ -63,7 +62,6 @@ class Test(unittest.TestCase):
         # max        30.000000
 
     def test_get_capped_forecast(self):
-
         self.assertAlmostEqual(
             self.system.combForecast.get_capped_forecast("SOFR", "ewmac8")
             .tail(1)
@@ -75,7 +73,6 @@ class Test(unittest.TestCase):
         self.assertEqual(self.system.combForecast.get_forecast_cap(), 21.0)
 
     def test_get_trading_rule_list(self):
-
         # fixed weights
         ans = self.system.combForecast.get_trading_rule_list("SOFR")
         self.assertEqual(ans, ["ewmac16", "ewmac8"])
@@ -145,7 +142,6 @@ class Test(unittest.TestCase):
         self.assertEqual(ans8, ["ewmac16", "ewmac8"])  # missing
 
     def test_has_same_rules_as_code(self):
-
         ans = self.system.combForecast.has_same_rules_as_code("SOFR")
         self.assertEqual(ans, ["SOFR", "US10"])
 
@@ -153,7 +149,6 @@ class Test(unittest.TestCase):
         self.assertEqual(ans2, ["BUND"])
 
     def test_get_all_forecasts(self):
-
         ans = self.system.combForecast.get_all_forecasts("SOFR")
         self.assertAlmostEqual(ans.ewmac16.values[-1], 3.6062425)
 
@@ -161,7 +156,6 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(ans2.ewmac8.values[-1], -0.276206423)
 
     def test_get_raw_fixed_forecast_weights(self):
-
         # fixed weights:
         #    nested dict (in config)
         ans1a = self.system.combForecast.get_forecast_weights("SOFR")

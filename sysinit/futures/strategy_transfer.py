@@ -13,7 +13,6 @@ from sysdata.data_blob import dataBlob
 def transfer_positions_between_strategies(
     old_strategy: str, new_strategy: str, instruments_to_transfer=arg_not_supplied
 ):
-
     data = dataBlob()
     old_positions = get_old_strategy_positions(data, old_strategy)
     if instruments_to_transfer is arg_not_supplied:
@@ -47,7 +46,6 @@ def transfer_position_instrument(
     instrument_code: str,
     old_positions: dict,
 ):
-
     current_position = old_positions[instrument_code]
     filled_price = get_last_price(data, instrument_code)
     balance_trade(

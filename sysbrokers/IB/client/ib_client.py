@@ -67,7 +67,6 @@ class ibClient(object):
     def __init__(
         self, ibconnection: connectionIB, log: pst_logger = get_logger("ibClient")
     ):
-
         # means our first call won't be throttled for pacing
         self.last_historic_price_calltime = (
             datetime.datetime.now()
@@ -144,7 +143,6 @@ class ibClient(object):
     def get_instrument_code_from_broker_contract_object(
         self, broker_contract_object: ibContract
     ) -> str:
-
         broker_identity = self.broker_identity_for_contract(broker_contract_object)
         instrument_code = self.get_instrument_code_from_broker_identity_for_contract(
             broker_identity
@@ -174,7 +172,6 @@ class ibClient(object):
         return config
 
     def _get_and_set_ib_config_from_file(self) -> IBconfig:
-
         config_data = read_ib_config_from_file(log=self.log)
 
         return config_data
@@ -183,7 +180,6 @@ class ibClient(object):
         self,
         ib_contract_pattern: ibContract,
     ) -> IBInstrumentIdentity:
-
         contract_details = self.get_contract_details(
             ib_contract_pattern=ib_contract_pattern,
             allow_expired=False,
@@ -203,7 +199,6 @@ class ibClient(object):
         allow_expired: bool = False,
         allow_multiple_contracts: bool = False,
     ) -> Union[ibContractDetails, List[ibContractDetails]]:
-
         contract_details = self._get_contract_details(
             ib_contract_pattern, allow_expired=allow_expired
         )

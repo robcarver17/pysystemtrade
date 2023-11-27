@@ -30,7 +30,6 @@ def trading_rule_pandl_adhoc_report(
     system_function,
     end_date: datetime.datetime = arg_not_supplied,
 ):
-
     data = dataBlob()
     report_config = reportConfig(
         title="Trading rule p&l", function="not_used", output="file"
@@ -83,7 +82,6 @@ def get_figure_for_rule_group(
     period_label: str,
     end_date: datetime.datetime,
 ):
-
     rules = dict_of_rule_groups[rule_group]
     pandl_by_rule = dict(
         [

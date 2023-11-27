@@ -16,7 +16,9 @@ investing_dot_com_config = ConfigCsvFXPrices(
 )
 
 
-def spotfx_from_csv_and_investing_dot_com(datapath, ADD_TO_DB=True, ADD_TO_CSV=True, ADD_EXTRA_DATA=True):
+def spotfx_from_csv_and_investing_dot_com(
+    datapath, ADD_TO_DB=True, ADD_TO_CSV=True, ADD_EXTRA_DATA=True
+):
     # You can adapt this for different providers by changing these parameters
     if ADD_EXTRA_DATA:
         investingDotCom_csv_fx_prices = csvFxPricesData(
@@ -27,7 +29,6 @@ def spotfx_from_csv_and_investing_dot_com(datapath, ADD_TO_DB=True, ADD_TO_CSV=T
     list_of_ccy_codes = my_csv_fx_prices_data.get_list_of_fxcodes()
 
     for currency_code in list_of_ccy_codes:
-
         print(currency_code)
 
         fx_prices_my_csv = my_csv_fx_prices_data.get_fx_prices(currency_code)

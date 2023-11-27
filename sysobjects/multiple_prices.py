@@ -48,7 +48,6 @@ class singleRowMultiplePrices:
         return new_multiple_prices
 
     def as_aligned_pd_row(self, time_index: datetime.timedelta) -> pd.DataFrame:
-
         new_dict = {
             price_name: self.price,
             carry_name: self.carry,
@@ -69,7 +68,6 @@ class singleRowMultiplePrices:
 
 class futuresMultiplePrices(pd.DataFrame):
     def __init__(self, data):
-
         _check_valid_multiple_price_data(data)
         super().__init__(data)
 

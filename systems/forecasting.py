@@ -127,7 +127,6 @@ class Rules(SystemStage):
         return trading_rules
 
     def _get_trading_rules_from_passed_rules(self):
-
         # What where we passed when object was created?
         passed_rules = self.passed_trading_rules
 

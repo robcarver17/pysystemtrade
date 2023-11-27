@@ -54,7 +54,6 @@ class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):
 
 
 def logging_server():
-
     """
     Adapted from:
     https://code.activestate.com/recipes/577025-loggingwebmonitor-a-central-logging-server-and-mon/

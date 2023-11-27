@@ -76,7 +76,6 @@ class exponentialStdev(exponentialEstimator):
         frequency: str = "W",
         **_ignored_kwargs,
     ):
-
         super().__init__(
             data_for_stdev,
             ew_lookback=ew_lookback,
@@ -97,7 +96,6 @@ class exponentialStdev(exponentialEstimator):
         adjusted_min_periods=20,
         **other_kwargs,
     ) -> pd.DataFrame:
-
         stdev_calculations = exponential_std_deviation(
             data_for_stdev,
             ew_lookback=adjusted_lookback,
@@ -129,7 +127,6 @@ def exponential_std_deviation(
     min_periods: int = 20,
     **_ignored_kwargs,
 ) -> pd.DataFrame:
-
     exponential_stdev = data_for_stdev.ewm(
         span=ew_lookback, min_periods=min_periods
     ).std()

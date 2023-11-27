@@ -35,7 +35,6 @@ class dataReports(productionDataLayerGeneric):
 def populate_reporting_config_from_yaml_input(
     config_dict_from_yaml: dict, default_config: dict
 ) -> dict:
-
     if len(config_dict_from_yaml) == 0:
         return default_config
 
@@ -60,7 +59,6 @@ def populate_reporting_config_from_yaml_input(
 def _resolve_config_for_named_report(
     report_name: str, config_dict_from_yaml: dict, default_config: dict
 ) -> reportConfig:
-
     default_config_for_report = default_config[report_name]
     new_config_for_report = config_dict_from_yaml[report_name]
 
@@ -78,7 +76,6 @@ def _resolve_config_for_named_report(
 def _resolve_config_from_config_pair(
     default_config_for_report: reportConfig, new_config_for_report: dict
 ) -> reportConfig:
-
     new_config = copy(default_config_for_report)
     attr_names = new_config_for_report.keys()
     for attribute in attr_names:

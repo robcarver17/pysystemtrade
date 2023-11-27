@@ -200,7 +200,6 @@ def reconcile_report(data):
 
 
 def strategy_report(data):
-
     strategy_name = get_valid_strategy_name_from_user(
         data=data, allow_all=True, all_code=ALL_STRATEGIES
     )
@@ -259,7 +258,6 @@ def remove_markets_report(data):
 
 
 def market_monitor_report(data):
-
     run_full_report = true_if_answer_is_yes(
         "Run normal full report? (alternative is customise dates)"
     )
@@ -698,7 +696,6 @@ def check_trading_hours_one_day(
 def get_trading_hours_for_instrument(
     data: dataBlob, instrument_code: str
 ) -> listOfTradingHours:
-
     diag_contracts = dataContracts(data)
     contract_id = diag_contracts.get_priced_contract_id(instrument_code)
 

@@ -40,7 +40,6 @@ class stackHandlerForFills(stackHandlerForCompletions):
             self.apply_broker_fill_from_broker_to_broker_database(broker_order_id)
 
     def apply_broker_fill_from_broker_to_broker_database(self, broker_order_id: int):
-
         db_broker_order = self.broker_stack.get_order_with_id_from_stack(
             broker_order_id
         )
@@ -72,7 +71,6 @@ class stackHandlerForFills(stackHandlerForCompletions):
     def apply_broker_order_fills_to_database(
         self, broker_order_id: int, broker_order: brokerOrder
     ):
-
         # Turn commissions into floats
         data_broker = dataBroker(self.data)
         broker_order_with_commissions = (
@@ -163,7 +161,6 @@ class stackHandlerForFills(stackHandlerForCompletions):
         filled_price: float,
         fill_datetime: datetime.datetime,
     ):
-
         contract_order_id = contract_order_before_fill.order_id
         self.contract_stack.change_fill_quantity_for_order(
             contract_order_id,
@@ -208,7 +205,6 @@ class stackHandlerForFills(stackHandlerForCompletions):
         )
 
     def apply_contract_fill_to_instrument_order(self, contract_order_id: int):
-
         contract_order = self.contract_stack.get_order_with_id_from_stack(
             contract_order_id
         )
@@ -233,7 +229,6 @@ class stackHandlerForFills(stackHandlerForCompletions):
         )
 
     def apply_contract_fills_for_instrument_order(self, instrument_order_id: int):
-
         instrument_order = self.instrument_stack.get_order_with_id_from_stack(
             instrument_order_id
         )
@@ -371,7 +366,6 @@ class stackHandlerForFills(stackHandlerForCompletions):
         fill_price: float,
         fill_datetime: datetime.datetime,
     ):
-
         # if fill has changed then update positions
         self.apply_position_change_to_instrument(original_instrument_order, fill_qty)
 
@@ -407,7 +401,6 @@ class stackHandlerForFills(stackHandlerForCompletions):
 def check_to_see_if_distributed_order(
     instrument_order: instrumentOrder, contract_orders: listOfOrders
 ) -> bool:
-
     trade_instrument_order = instrument_order.trade
     trade_contract_orders = [order.trade for order in contract_orders]
 

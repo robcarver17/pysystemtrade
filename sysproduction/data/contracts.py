@@ -17,7 +17,13 @@ from sysobjects.contracts import futuresContract, listOfFuturesContracts
 
 from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
-from sysproduction.data.production_data_objects import get_class_for_data_type, FUTURES_CONTRACT_PRICE_DATA, ROLL_PARAMETERS_DATA, FUTURES_MULTIPLE_PRICE_DATA, FUTURES_CONTRACT_DATA
+from sysproduction.data.production_data_objects import (
+    get_class_for_data_type,
+    FUTURES_CONTRACT_PRICE_DATA,
+    ROLL_PARAMETERS_DATA,
+    FUTURES_MULTIPLE_PRICE_DATA,
+    FUTURES_CONTRACT_DATA,
+)
 from sysdata.data_blob import dataBlob
 
 missing_expiry = datetime.datetime(1900, 1, 1)
@@ -30,7 +36,7 @@ class dataContracts(productionDataLayerGeneric):
                 get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA),
                 get_class_for_data_type(ROLL_PARAMETERS_DATA),
                 get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
-                get_class_for_data_type(FUTURES_CONTRACT_DATA)
+                get_class_for_data_type(FUTURES_CONTRACT_DATA),
             ]
         )
 
@@ -142,7 +148,6 @@ class dataContracts(productionDataLayerGeneric):
         return sampled_contracts
 
     def get_labelled_dict_of_current_contracts(self, instrument_code: str) -> dict:
-
         current_contracts = self.get_current_contract_dict(instrument_code)
 
         list_of_date_str, labelled_contracts = label_up_current_contracts(
@@ -190,7 +195,6 @@ class dataContracts(productionDataLayerGeneric):
     def get_contract_from_db_given_code_and_id(
         self, instrument_code: str, contract_id: str
     ) -> futuresContract:
-
         contract_object = self.db_contract_data.get_contract_object(
             instrument_code=instrument_code, contract_id=contract_id
         )
@@ -244,7 +248,6 @@ class dataContracts(productionDataLayerGeneric):
     def get_contract_date_object_with_roll_parameters(
         self, instrument_code: str, contract_date_str: str
     ) -> contractDateWithRollParameters:
-
         roll_parameters = self.get_roll_parameters(instrument_code)
         contract_date = self._get_contract_date_object(
             instrument_code, contract_date_str
@@ -279,7 +282,6 @@ def get_valid_contract_object_from_user(
     instrument_code: str = None,
     only_include_priced_contracts: bool = False,
 ) -> futuresContract:
-
     (
         instrument_code,
         contract_date_str,
@@ -297,7 +299,6 @@ def get_valid_instrument_code_and_contractid_from_user(
     instrument_code: str = None,
     only_include_priced_contracts: bool = False,
 ) -> (str, str):
-
     diag_contracts = dataContracts(data)
 
     invalid_input = True
@@ -339,7 +340,6 @@ def get_valid_instrument_code_and_contractid_from_user(
 def get_dates_to_choose_from(
     data: dataBlob, instrument_code: str, only_priced_contracts: bool = False
 ) -> listOfContractDateStr:
-
     diag_contracts = dataContracts(data)
     diag_prices = diagPrices(data)
     if only_priced_contracts:
@@ -381,7 +381,6 @@ def label_up_contracts_with_date_list(
 
     contract_names = []
     for contract in contract_date_list:
-
         if contract == price_contract_date:
             suffix = PRICE_SUFFIX
         elif contract == forward_contract_date:

@@ -52,7 +52,6 @@ def get_daily_perc_pandl(data):
 
 
 def get_total_capital_pandl(data, start_date, end_date=arg_not_supplied):
-
     if end_date is arg_not_supplied:
         end_date = datetime.datetime.now()
     perc_pandl_series = get_daily_perc_pandl(data)
@@ -81,7 +80,7 @@ class pandlCalculateAndStore(object):
         total_pandl = get_total_capital_pandl(self.data, self.start_date, self.end_date)
         residual_pandl = total_pandl - total_pandl_strategies
         residual_dfrow = pd.DataFrame(dict(codes=["residual"], pandl=residual_pandl))
-        strategies_pandl = strategies_pandl.append(residual_dfrow)
+        strategies_pandl = strategies_pandl._append(residual_dfrow)
         strategies_pandl.pandl = strategies_pandl.pandl
 
         return strategies_pandl
@@ -292,7 +291,6 @@ class pandlCalculateAndStore(object):
     def _get_perc_pandl_series_for_strategy_instrument_vs_total_capital(
         self, instrument_strategy: instrumentStrategy
     ):
-
         pandl_series = get_perc_pandl_series_for_strategy_instrument_vs_total_capital(
             self.data, instrument_strategy
         )
@@ -364,7 +362,6 @@ def get_list_of_instruments_held_for_a_strategy(data, strategy_name):
 
 
 def get_perc_pandl_series_for_contract(data, instrument_code, contract_id):
-
     capital = get_total_capital_series(data)
     fx = get_fx_series_for_instrument(data, instrument_code)
     diag_instruments = diagInstruments(data)

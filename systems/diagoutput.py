@@ -252,7 +252,6 @@ class systemDiag(object):
             "instrument_div_multiplier",
         ],
     ):
-
         output_dict = {}
         for config_item in attr_names:
             dict_function = getattr(self, config_item)
@@ -276,7 +275,6 @@ class systemDiag(object):
             "instrument_div_multiplier",
         ],
     ):
-
         output_dict = self.output_config_with_estimated_parameters(
             attr_names=attr_names
         )

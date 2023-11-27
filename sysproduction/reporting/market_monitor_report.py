@@ -30,7 +30,6 @@ def market_monitor_report(
     start_date=arg_not_supplied,
     end_date=arg_not_supplied,
 ):
-
     if data is arg_not_supplied:
         data = dataBlob()
 
@@ -72,7 +71,6 @@ def _market_monitor_with_dates(reporting_api: reportingApi) -> list:
 
 
 def _market_monitor_report_full(reporting_api: reportingApi) -> list:
-
     formatted_output = []
     formatted_output.append(reporting_api.terse_header("Market monitor report"))
     formatted_output.append(MARKET_REPORT)

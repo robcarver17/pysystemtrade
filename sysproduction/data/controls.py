@@ -132,7 +132,6 @@ class dataTradeLimits(productionDataLayerGeneric):
     def what_trade_is_possible_for_strategy_instrument(
         self, instrument_strategy: instrumentStrategy, proposed_trade: tradeQuantity
     ) -> int:
-
         proposed_trade_qty = proposed_trade.total_abs_qty()
         possible_trade = self.what_trade_qty_possible_for_instrument_strategy(
             instrument_strategy=instrument_strategy,
@@ -144,7 +143,6 @@ class dataTradeLimits(productionDataLayerGeneric):
     def what_trade_qty_possible_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy, proposed_trade_qty: int
     ) -> int:
-
         possible_trade = (
             self.db_trade_limit_data.what_trade_is_possible_for_instrument_strategy(
                 instrument_strategy, proposed_trade_qty
@@ -156,7 +154,6 @@ class dataTradeLimits(productionDataLayerGeneric):
     def what_trade_qty_possible_for_instrument_code(
         self, instrument_code, proposed_trade_qty: int
     ) -> int:
-
         possible_trade = self.db_trade_limit_data.what_trade_is_possible_for_instrument(
             instrument_code=instrument_code, proposed_trade=proposed_trade_qty
         )
@@ -267,7 +264,6 @@ class diagOverrides(productionDataLayerGeneric):
     def get_cumulative_override_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> Override:
-
         cumulative_override_from_db = (
             self.get_cumulative_override_for_instrument_strategy_from_db(
                 instrument_strategy
@@ -529,7 +525,6 @@ class dataPositionLimits(productionDataLayerGeneric):
         return self.data.db_temporary_close
 
     def apply_position_limit_to_order(self, order: instrumentOrder) -> instrumentOrder:
-
         list_of_orders = self._get_list_of_orders_after_position_limits_applied(order)
 
         ## use instrument position as it includes everything
@@ -548,7 +543,6 @@ class dataPositionLimits(productionDataLayerGeneric):
     def _get_list_of_orders_after_position_limits_applied(
         self, order: instrumentOrder
     ) -> listOfOrders:
-
         instrument_strategy = order.instrument_strategy
         instrument_code = instrument_strategy.instrument_code
 
@@ -573,7 +567,6 @@ class dataPositionLimits(productionDataLayerGeneric):
     def _apply_instrument_strategy_position_limit_to_order(
         self, instrument_strategy: instrumentStrategy, order: instrumentOrder
     ) -> instrumentOrder:
-
         position_and_limit = self._get_limit_and_position_for_instrument_strategy(
             instrument_strategy
         )
@@ -587,7 +580,6 @@ class dataPositionLimits(productionDataLayerGeneric):
     def get_maximum_position_contracts_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> int:
-
         ## FIXME: THIS WON'T WORK IF THERE ARE MULTIPLE STRATEGIES TRADING AN INSTRUMENT
 
         limit_for_instrument = self._get_position_limit_object_for_instrument(
@@ -639,7 +631,6 @@ class dataPositionLimits(productionDataLayerGeneric):
     def _apply_instrument_position_limit_to_order(
         self, instrument_code: str, order: instrumentOrder
     ) -> instrumentOrder:
-
         position_and_limit = self._get_limit_and_position_for_instrument(
             instrument_code
         )
@@ -808,7 +799,6 @@ class dataPositionLimits(productionDataLayerGeneric):
     def set_position_limit_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy, new_position_limit: int
     ):
-
         self.db_position_limit_data.set_position_limit_for_instrument_strategy(
             instrument_strategy, new_position_limit
         )
@@ -816,7 +806,6 @@ class dataPositionLimits(productionDataLayerGeneric):
     def set_abs_position_limit_for_instrument(
         self, instrument_code: str, new_position_limit: int
     ):
-
         self.db_position_limit_data.set_position_limit_for_instrument(
             instrument_code, new_position_limit
         )
@@ -824,13 +813,11 @@ class dataPositionLimits(productionDataLayerGeneric):
     def delete_position_limit_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ):
-
         self.db_position_limit_data.delete_position_limit_for_instrument_strategy(
             instrument_strategy
         )
 
     def delete_position_limit_for_instrument(self, instrument_code: str):
-
         self.db_position_limit_data.delete_position_limit_for_instrument(
             instrument_code
         )

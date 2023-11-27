@@ -62,7 +62,6 @@ class stackHandlerForCompletions(stackHandlerCore):
     def get_order_family_for_instrument_order_id(
         self, instrument_order_id: int
     ) -> orderFamily:
-
         instrument_order = self.instrument_stack.get_order_with_id_from_stack(
             instrument_order_id
         )
@@ -112,7 +111,6 @@ class stackHandlerForCompletions(stackHandlerCore):
         allow_zero_completions=False,
         treat_inactive_as_complete=True,
     ):
-
         order_family = self.get_order_family_for_instrument_order_id(
             instrument_order_id
         )
@@ -164,7 +162,6 @@ class stackHandlerForCompletions(stackHandlerCore):
         allow_zero_completions=False,
         treat_inactive_as_complete=False,
     ):
-
         for broker_order_id in list_of_broker_order_id:
             completely_filled = self.broker_stack.is_completed(
                 broker_order_id,
@@ -179,7 +176,6 @@ class stackHandlerForCompletions(stackHandlerCore):
         return True
 
     def add_order_family_to_historic_orders_database(self, order_family: orderFamily):
-
         instrument_order = self.instrument_stack.get_order_with_id_from_stack(
             order_family.instrument_order_id
         )
@@ -197,7 +193,6 @@ class stackHandlerForCompletions(stackHandlerCore):
         )
 
     def deactivate_family_of_orders(self, order_family: orderFamily):
-
         # Make orders inactive
         # A subsequent process will delete them
         self.instrument_stack.deactivate_order(order_family.instrument_order_id)

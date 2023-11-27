@@ -6,6 +6,7 @@ from sysobjects.contracts import futuresContract
 
 diag_prices = diagPrices()
 
+
 def init_db_with_csv_futures_contract_prices(
     datapath: str, csv_config=arg_not_supplied
 ):

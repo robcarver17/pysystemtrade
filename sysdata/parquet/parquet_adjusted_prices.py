@@ -15,8 +15,11 @@ class parquetFuturesAdjustedPricesData(futuresAdjustedPricesData):
     Class to read / write multiple futures price data to and from arctic
     """
 
-    def __init__(self, parquet_access: ParquetAccess, log=get_logger("parquetFuturesAdjustedPrices")):
-
+    def __init__(
+        self,
+        parquet_access: ParquetAccess,
+        log=get_logger("parquetFuturesAdjustedPrices"),
+    ):
         super().__init__(log=log)
         self._parquet = parquet_access
 
@@ -28,18 +31,24 @@ class parquetFuturesAdjustedPricesData(futuresAdjustedPricesData):
         return self._parquet
 
     def get_list_of_instruments(self) -> list:
-        return self.parquet.get_all_identifiers_with_data_type(data_type=ADJPRICE_COLLECTION)
+        return self.parquet.get_all_identifiers_with_data_type(
+            data_type=ADJPRICE_COLLECTION
+        )
 
     def _get_adjusted_prices_without_checking(
         self, instrument_code: str
     ) -> futuresAdjustedPrices:
-        raw_price_df = self.parquet.read_data_given_data_type_and_identifier(data_type=ADJPRICE_COLLECTION, identifier=instrument_code)
+        raw_price_df = self.parquet.read_data_given_data_type_and_identifier(
+            data_type=ADJPRICE_COLLECTION, identifier=instrument_code
+        )
         return futuresAdjustedPrices(raw_price_df.squeeze())
 
     def _delete_adjusted_prices_without_any_warning_be_careful(
         self, instrument_code: str
     ):
-        self.parquet.delete_data_given_data_type_and_identifier(data_type=ADJPRICE_COLLECTION, identifier=instrument_code)
+        self.parquet.delete_data_given_data_type_and_identifier(
+            data_type=ADJPRICE_COLLECTION, identifier=instrument_code
+        )
         self.log.debug(
             "Deleted adjusted prices for %s from %s" % (instrument_code, str(self)),
             instrument_code=instrument_code,
@@ -52,7 +61,11 @@ class parquetFuturesAdjustedPricesData(futuresAdjustedPricesData):
         adjusted_price_data_aspd.columns = ["price"]
         adjusted_price_data_aspd = adjusted_price_data_aspd.astype(float)
 
-        self.parquet.write_data_given_data_type_and_identifier(data_to_write=adjusted_price_data_aspd, data_type=ADJPRICE_COLLECTION, identifier=instrument_code)
+        self.parquet.write_data_given_data_type_and_identifier(
+            data_to_write=adjusted_price_data_aspd,
+            data_type=ADJPRICE_COLLECTION,
+            identifier=instrument_code,
+        )
 
         self.log.debug(
             "Wrote %s lines of prices for %s to %s"

@@ -1,12 +1,18 @@
 from sysdata.parquet.parquet_adjusted_prices import parquetFuturesAdjustedPricesData
 from sysdata.parquet.parquet_capital import parquetCapitalData
-from sysdata.parquet.parquet_futures_per_contract_prices import parquetFuturesContractPriceData
+from sysdata.parquet.parquet_futures_per_contract_prices import (
+    parquetFuturesContractPriceData,
+)
 from sysdata.parquet.parquet_multiple_prices import parquetFuturesMultiplePricesData
 from sysdata.parquet.parquet_spotfx_prices import parquetFxPricesData
 from sysdata.parquet.parquet_spreads import parquetSpreadsForInstrumentData
 from sysdata.parquet.parquet_optimal_positions import parquetOptimalPositionData
-from sysdata.parquet.parquet_historic_strategy_positions import parquetStrategyPositionData
-from sysdata.parquet.parquet_historic_contract_positions import parquetContractPositionData
+from sysdata.parquet.parquet_historic_strategy_positions import (
+    parquetStrategyPositionData,
+)
+from sysdata.parquet.parquet_historic_contract_positions import (
+    parquetContractPositionData,
+)
 
 """
 from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
@@ -47,11 +53,11 @@ CONTRACT_POSITION_DATA = "contract_position_data"
 STRATEGY_POSITION_DATA = "strategy_position_data"
 OPTIMAL_POSITION_DATA = "optimal_position_data"
 HISTORIC_SPREAD_DATA = "historic_spread_data"
-STORED_SPREAD_DATA ="stored_spread_data"
+STORED_SPREAD_DATA = "stored_spread_data"
 FX_DATA = "fx_data"
 ROLL_PARAMETERS_DATA = "roll_parameters_data"
 FUTURES_CONTRACT_DATA = "futures_contract_data"
-PROCESS_CONTROL_DATA= "process_control_data"
+PROCESS_CONTROL_DATA = "process_control_data"
 FUTURES_INSTRUMENT_DATA = "futures_instrument_data"
 INSTRUMENT_ORDER_STACK_DATA = "instrument_order_stack_data"
 CONTRACT_ORDER_STACK_DATA = "contract_order_stack_data"
@@ -67,32 +73,24 @@ use_production_classes = {
     FUTURES_INSTRUMENT_DATA: csvFuturesInstrumentData,
     FUTURES_CONTRACT_DATA: mongoFuturesContractData,
     STORED_SPREAD_DATA: mongoSpreadCostData,
-
     FUTURES_CONTRACT_PRICE_DATA: parquetFuturesContractPriceData,
     FUTURES_MULTIPLE_PRICE_DATA: parquetFuturesMultiplePricesData,
     FUTURES_ADJUSTED_PRICE_DATA: parquetFuturesAdjustedPricesData,
-
     CAPITAL_DATA: parquetCapitalData,
-
     CONTRACT_POSITION_DATA: parquetContractPositionData,
     STRATEGY_POSITION_DATA: parquetStrategyPositionData,
     OPTIMAL_POSITION_DATA: parquetOptimalPositionData,
     HISTORIC_SPREAD_DATA: parquetSpreadsForInstrumentData,
-
     STRATEGY_HISTORIC_ORDERS_DATA: mongoStrategyHistoricOrdersData,
     CONTRACT_HISTORIC_ORDERS_DATA: mongoContractHistoricOrdersData,
     BROKER_HISTORIC_ORDERS_DATA: mongoBrokerHistoricOrdersData,
-
     INSTRUMENT_ORDER_STACK_DATA: mongoInstrumentOrderStackData,
     CONTRACT_ORDER_STACK_DATA: mongoContractOrderStackData,
     BROKER_ORDER_STACK_DATA: mongoBrokerOrderStackData,
-
     ROLL_STATE_DATA: mongoRollStateData,
-
-    PROCESS_CONTROL_DATA: mongoControlProcessData
+    PROCESS_CONTROL_DATA: mongoControlProcessData,
 }
 
-def get_class_for_data_type(data_type:str):
 
+def get_class_for_data_type(data_type: str):
     return use_production_classes[data_type]
-

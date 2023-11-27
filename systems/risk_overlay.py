@@ -76,7 +76,6 @@ def get_risk_multiplier(
 def multiplier_given_series_and_limit(
     risk_measure: pd.Series, risk_limit: float
 ) -> pd.Series:
-
     limit_as_series = pd.Series(
         [risk_limit] * len(risk_measure.index), risk_measure.index
     )

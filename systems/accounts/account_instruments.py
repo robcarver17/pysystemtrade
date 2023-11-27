@@ -120,7 +120,6 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
         delayfill: bool = True,
         roundpositions: bool = True,
     ) -> accountCurve:
-
         price = self.get_instrument_prices_for_position_or_forecast(
             instrument_code, position_or_forecast=positions
         )
@@ -162,7 +161,6 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
     def turnover_at_portfolio_level(
         self, instrument_code: str, roundpositions: bool = True
     ) -> float:
-
         ## assumes we use all capital
         average_position_for_turnover = self.get_average_position_at_subsystem_level(
             instrument_code
@@ -184,7 +182,6 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
         delayfill: bool = True,
         roundpositions: bool = True,
     ) -> accountCurve:
-
         if not roundpositions:
             self.log.warning(
                 "Using roundpositions=False with cash costs may lead to inaccurate costs (fixed costs, eg commissions will be overstated!!!"

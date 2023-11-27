@@ -14,7 +14,6 @@ class ibAccountingClient(ibClient):
     def broker_get_account_value_across_currency(
         self, account_id: str = arg_not_supplied
     ) -> listOfCurrencyValues:
-
         list_of_values_per_currency = self._get_named_value_across_currency(
             named_value="NetLiquidation", account_id=account_id
         )
@@ -24,7 +23,6 @@ class ibAccountingClient(ibClient):
     def broker_get_excess_liquidity_value_across_currency(
         self, account_id: str = arg_not_supplied
     ) -> listOfCurrencyValues:
-
         list_of_values_per_currency = self._get_named_value_across_currency(
             named_value="FullExcessLiquidity", account_id=account_id
         )
@@ -34,7 +32,6 @@ class ibAccountingClient(ibClient):
     def _get_named_value_across_currency(
         self, named_value: str, account_id: str = arg_not_supplied
     ) -> listOfCurrencyValues:
-
         list_of_currencies = self._get_list_of_currencies_for_named_values(named_value)
         list_of_values_per_currency = list(
             [
@@ -154,7 +151,6 @@ class ibAccountingClient(ibClient):
         self._account_summary_data_update = datetime.datetime.now()
 
     def _ib_get_account_summary_from_broker(self) -> dict:
-
         account_summary_rawdata = self.ib.accountSummary()
 
         # Weird format let's clean it up

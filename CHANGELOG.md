@@ -1,5 +1,13 @@
 # Release notes
 
+## Version 1.80
+
+- *NO LONGER REQUIRES ARCTIC* Time series data is stored in parquet, install pyarrow
+- But does require newer versions of pandas and python, see requirements.txt
+- See the discussion [here](https://github.com/robcarver17/pysystemtrade/discussions/1290) to see how to switch from arctic to parquet
+- added long only constraint to dynamic optimisation
+- various bugs fixed
+
 ## Version 1.71
 
 - Further progress in replacing old logging with python logging

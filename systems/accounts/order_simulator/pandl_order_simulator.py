@@ -138,7 +138,6 @@ def build_daily_series_data_for_order_simulator(
     instrument_code: str,
     is_subsystem: bool = False,
 ) -> OrdersSeriesData:
-
     price_series = system_accounts_stage.get_daily_prices(instrument_code)
     if is_subsystem:
         unrounded_positions = (
@@ -172,7 +171,6 @@ def generate_positions_orders_and_fills_from_series_data(
     passed_idx_data_function: Callable,
     passed_orders_fills_function: Callable,
 ) -> PositionsOrdersFills:
-
     master_index = series_data.price_series.index
 
     list_of_positions = []
@@ -244,7 +242,6 @@ def generate_order_and_fill_at_idx_point_for_market_orders(
     current_datetime: datetime.datetime,
     data_for_idx: DataAtIDXPoint,
 ) -> ListOfSimpleOrdersAndResultingFill:
-
     current_optimal_position = data_for_idx.current_optimal_position
     next_datetime = data_for_idx.next_datetime
     next_price = data_for_idx.next_price

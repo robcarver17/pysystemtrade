@@ -11,7 +11,6 @@ class csvRollStateData(rollStateData):
     """
 
     def __init__(self, datapath=arg_not_supplied, log=get_logger("csvRollStateData")):
-
         super().__init__(log=log)
 
         if datapath is arg_not_supplied:

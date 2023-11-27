@@ -95,7 +95,6 @@ class futuresContractPriceData(baseData):
     def has_price_data_for_contract_at_frequency(
         self, contract_object: futuresContract, frequency: Frequency
     ) -> bool:
-
         list_of_contracts = self.get_contracts_with_price_data_for_frequency(
             frequency=frequency
         )
@@ -351,7 +350,6 @@ class futuresContractPriceData(baseData):
         check_for_spike: bool = True,
         max_price_spike: float = VERY_BIG_NUMBER,
     ) -> int:
-
         new_log = contract_object.log(self.log)
 
         if len(new_futures_per_contract_prices) == 0:
@@ -496,13 +494,11 @@ class futuresContractPriceData(baseData):
             )
 
     def get_contracts_with_merged_price_data(self) -> listOfFuturesContracts:
-
         raise NotImplementedError(BASE_CLASS_ERROR)
 
     def get_contracts_with_price_data_for_frequency(
         self, frequency: Frequency
     ) -> listOfFuturesContracts:
-
         raise NotImplementedError(BASE_CLASS_ERROR)
 
     def _delete_merged_prices_for_contract_object_with_no_checks_be_careful(
@@ -520,7 +516,6 @@ class futuresContractPriceData(baseData):
         futures_contract_object: futuresContract,
         futures_price_data: futuresContractPrices,
     ):
-
         raise NotImplementedError(BASE_CLASS_ERROR)
 
     def _write_prices_at_frequency_for_contract_object_no_checking(
@@ -529,17 +524,14 @@ class futuresContractPriceData(baseData):
         futures_price_data: futuresContractPrices,
         frequency: Frequency,
     ):
-
         raise NotImplementedError(BASE_CLASS_ERROR)
 
     def _get_merged_prices_for_contract_object_no_checking(
         self, contract_object: futuresContract
     ) -> futuresContractPrices:
-
         raise NotImplementedError(BASE_CLASS_ERROR)
 
     def _get_prices_at_frequency_for_contract_object_no_checking(
         self, futures_contract_object: futuresContract, frequency: Frequency
     ) -> futuresContractPrices:
-
         raise NotImplementedError(BASE_CLASS_ERROR)

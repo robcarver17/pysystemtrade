@@ -41,7 +41,6 @@ class runSystemClassic(object):
         strategy_name: str,
         backtest_config_filename=arg_not_supplied,
     ):
-
         if backtest_config_filename is arg_not_supplied:
             raise Exception("Need to supply config filename")
 
@@ -128,7 +127,6 @@ def production_classic_futures_system(
     notional_trading_capital: float = arg_not_supplied,
     base_currency: str = arg_not_supplied,
 ) -> System:
-
     sim_data = get_sim_data_object_for_production(data)
     config = Config(config_filename)
 
@@ -192,7 +190,6 @@ def construct_position_entry(
     lower_position: float,
     upper_position: float,
 ) -> bufferedOptimalPositions:
-
     diag_contracts = dataContracts(data)
     reference_price = system.rawdata.get_daily_prices(instrument_code).iloc[-1]
     reference_contract = diag_contracts.get_priced_contract_id(instrument_code)

@@ -221,7 +221,6 @@ class orderStackData(object):
         allow_zero_completions=False,
         treat_inactive_as_complete=False,
     ) -> bool:
-
         existing_order = self.get_order_with_id_from_stack(order_id)
 
         if allow_zero_completions:
@@ -295,7 +294,6 @@ class orderStackData(object):
         self._change_order_on_stack(order_id, new_order)
 
     def mark_as_manual_fill_for_order_id(self, order_id: int):
-
         order = self.get_order_with_id_from_stack(order_id)
         order.manual_fill = True
         self._change_order_on_stack(order_id, order)
@@ -308,7 +306,6 @@ class orderStackData(object):
         filled_price: float = None,
         fill_datetime: datetime.datetime = None,
     ):
-
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
             error_msg = "Can't apply fill to non existent order %d" % order_id
@@ -503,7 +500,6 @@ class orderStackData(object):
     def _get_list_of_order_ids_with_key_from_stack(
         self, order_key: str, exclude_inactive_orders: bool = True
     ) -> list:
-
         all_order_ids = self.get_list_of_order_ids(
             exclude_inactive_orders=exclude_inactive_orders
         )

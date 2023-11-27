@@ -24,7 +24,6 @@ def resolve_multiple_expiries(
     ibcontract_list: list,
     futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
 ) -> ibContract:
-
     code = futures_instrument_with_ib_data.instrument_code
     ib_data = futures_instrument_with_ib_data.ib_data
     ignore_weekly = ib_data.ignoreWeekly
@@ -58,7 +57,6 @@ def resolve_multiple_expiries_for_EUREX(ibcontract_list: list) -> ibContract:
 
 
 def resolve_multiple_expiries_for_VIX(ibcontract_list: list) -> ibContract:
-
     # Get the symbols
     resolved_contract = resolve_multiple_expiries_for_generic_futures(
         ibcontract_list=ibcontract_list, is_monthly_function=_is_vix_symbol_monthly
@@ -70,7 +68,6 @@ def resolve_multiple_expiries_for_VIX(ibcontract_list: list) -> ibContract:
 def resolve_multiple_expiries_for_generic_futures(
     ibcontract_list: list, is_monthly_function: Callable
 ) -> ibContract:
-
     # Get the symbols
     contract_symbols = [ibcontract.localSymbol for ibcontract in ibcontract_list]
 
@@ -128,7 +125,6 @@ def get_ib_contract_with_specific_expiry(
     futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
     contract_date: contractDate,
 ) -> Contract:
-
     ibcontract = ib_futures_instrument(futures_instrument_with_ib_data)
     contract_date_string = str(contract_date.date_str)
 
@@ -172,7 +168,6 @@ def _add_legs_to_ib_contract(
     trade_list_for_multiple_legs: tradeQuantity,
     resolved_legs: list,
 ) -> ibcontractWithLegs:
-
     ratio_list = list_of_ints_with_highest_common_factor_positive_first(
         trade_list_for_multiple_legs
     )

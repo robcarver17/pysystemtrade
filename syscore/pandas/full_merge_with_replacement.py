@@ -95,7 +95,6 @@ def full_merge_of_data_with_both_old_and_new(
     new_data: Union[pd.Series, pd.DataFrame],
     keep_older: bool = True,
 ) -> Union[pd.Series, pd.DataFrame]:
-
     if is_a_series(old_data):
         assert is_a_series(new_data)
         merged_data = full_merge_of_existing_series(
@@ -191,7 +190,7 @@ def full_merge_of_existing_series(
 
         # fill to the left
         # NA from the original series will be preserved
-        joint_data_filled_across = joint_data.bfill(1)
+        joint_data_filled_across = joint_data.bfill(axis=1)
         merged_data = joint_data_filled_across["original"]
     else:
         # update older data with non-NA values from new data series

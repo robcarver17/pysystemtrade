@@ -7,6 +7,7 @@ from sysproduction.data.prices import diagPrices
 
 diag_prices = diagPrices()
 
+
 def write_split_data_for_instrument(instrument_code):
     a = diag_prices.db_futures_contract_price_data
     list_of_contracts = a.contracts_with_merged_price_data_for_instrument_code(

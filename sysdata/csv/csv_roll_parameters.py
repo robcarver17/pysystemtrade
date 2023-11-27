@@ -66,7 +66,6 @@ class csvRollParametersData(rollParametersData):
     def __init__(
         self, log=get_logger("csvRollParametersData"), datapath=arg_not_supplied
     ):
-
         super().__init__(log=log)
         if datapath is arg_not_supplied:
             datapath = ROLLS_DATAPATH
@@ -84,7 +83,6 @@ class csvRollParametersData(rollParametersData):
     def _get_roll_parameters_without_checking(
         self, instrument_code: str
     ) -> rollParameters:
-
         all_parameters = self.get_roll_parameters_all_instruments()
         return all_parameters.get_roll_parameters_for_instrument(instrument_code)
 

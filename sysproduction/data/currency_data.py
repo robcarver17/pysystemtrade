@@ -9,6 +9,7 @@ from sysobjects.spot_fx_prices import currencyValue, fxPrices
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 from sysproduction.data.production_data_objects import get_class_for_data_type, FX_DATA
 
+
 class dataCurrency(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data: dataBlob) -> dataBlob:
         data.add_class_object(get_class_for_data_type(FX_DATA))

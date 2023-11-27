@@ -41,7 +41,6 @@ class exponentialMeans(exponentialEstimator):
         frequency: str = "W",
         **_ignored_kwargs,
     ):
-
         super().__init__(
             data_for_mean,
             ew_lookback=ew_lookback,
@@ -62,7 +61,6 @@ class exponentialMeans(exponentialEstimator):
         adjusted_min_periods=20,
         **_other_kwargs,
     ) -> pd.DataFrame:
-
         mean_calculations = exponential_mean(
             data, ew_lookback=adjusted_lookback, min_periods=adjusted_min_periods
         )
@@ -89,7 +87,6 @@ class exponentialMeans(exponentialEstimator):
 def exponential_mean(
     data_for_mean: pd.DataFrame, ew_lookback: int = 250, min_periods: int = 20
 ) -> pd.DataFrame:
-
     exponential_mean = data_for_mean.ewm(
         span=ew_lookback, min_periods=min_periods
     ).mean()
@@ -105,7 +102,6 @@ class meanEstimator(genericEstimator):
         frequency: str = "W",
         **kwargs,
     ):
-
         super().__init__(data_for_mean, using_exponent=using_exponent, **kwargs)
 
     def calculate_estimate_normally(self, fit_period: fitDates) -> meanEstimates:
@@ -172,7 +168,6 @@ def empty_mean(data_for_mean: pd.DataFrame) -> meanEstimates:
 
 
 def annualise_mean_estimate(mean: meanEstimates, frequency: str) -> meanEstimates:
-
     return meanEstimates(
         [
             (asset_name, annualised_mean(mean_value, frequency=frequency))

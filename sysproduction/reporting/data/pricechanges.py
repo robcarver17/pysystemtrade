@@ -62,7 +62,6 @@ class marketMovers(object):
         )
 
     def get_market_moves_for_period(self, period: str) -> pd.DataFrame:
-
         self._end_date = datetime.datetime.now()
 
         print("Getting data for %s" % period)
@@ -115,7 +114,6 @@ class marketMovers(object):
         start_date: datetime.datetime,
         end_date: datetime.date,
     ) -> float:
-
         price_series = self.get_prices_for_instrument(instrument_code)
         change = get_percentage_change_from_series_for_period(
             price_series, start_date=start_date, end_date=end_date
@@ -157,7 +155,6 @@ class marketMovers(object):
         start_date: datetime.datetime,
         end_date: datetime.date,
     ) -> float:
-
         vol_scalar = get_approx_vol_scalar_versus_daily_vol_for_period(
             start_date, end_date
         )
@@ -170,7 +167,6 @@ class marketMovers(object):
     def get_stdev_at_start_date_for_instrument(
         self, start_date: datetime.date, instrument_code: str
     ):
-
         stdev = get_stdev_at_start_date_for_instrument(
             start_date=start_date,
             price_series=self.get_prices_for_instrument(instrument_code),
@@ -204,7 +200,7 @@ def get_price_change_from_series_for_period(
     price_series_for_period = price_series[start_date:end_date]
     if len(price_series_for_period) == 0:
         return np.nan
-    return price_series_for_period[-1] - price_series_for_period[0]
+    return price_series_for_period.iloc[-1] - price_series_for_period.iloc[0]
 
 
 def get_percentage_change_from_series_for_period(
@@ -213,7 +209,7 @@ def get_percentage_change_from_series_for_period(
     price_series_for_period = price_series[start_date:end_date]
     if len(price_series_for_period) == 0:
         return np.nan
-    return 100 * ((price_series_for_period[-1] / price_series_for_period[0]) - 1)
+    return 100 * ((price_series_for_period.iloc[-1] / price_series_for_period.iloc[0]) - 1)
 
 
 def get_stdev_at_start_date_for_instrument(
@@ -224,4 +220,4 @@ def get_stdev_at_start_date_for_instrument(
     daily_returns = daily_price_series.diff()
     vol_series = daily_returns.ewm(30).std()
 
-    return vol_series[-1]
+    return vol_series.iloc[-1]

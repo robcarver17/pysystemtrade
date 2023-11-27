@@ -25,7 +25,6 @@ class mongoListOfEntriesData(object):
     def __init__(
         self, mongo_db=arg_not_supplied, log=logtoscreen("mongoStrategyCapitalData")
     ):
-
         super().__init__(log=log)
         self._mongo_data = mongoDataWithMultipleKeys(
             self._collection_name, mongo_db=mongo_db

@@ -20,7 +20,6 @@ HEADER_TEXT = body_text(
 def instrument_risk_report(
     data: dataBlob = arg_not_supplied,
 ):
-
     if data is arg_not_supplied:
         data = dataBlob()
 

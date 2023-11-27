@@ -13,6 +13,7 @@ from sysproduction.data.prices import diagPrices
 
 diag_prices = diagPrices()
 
+
 def _get_data_inputs(csv_adj_data_path):
     db_multiple_prices = diag_prices.db_futures_multiple_prices_data
     db_adjusted_prices = diag_prices.db_futures_adjusted_prices_data
@@ -21,17 +22,28 @@ def _get_data_inputs(csv_adj_data_path):
     return db_multiple_prices, db_adjusted_prices, csv_adjusted_prices
 
 
-def process_adjusted_prices_all_instruments(csv_adj_data_path=arg_not_supplied, ADD_TO_DB=True, ADD_TO_CSV=False):
+def process_adjusted_prices_all_instruments(
+    csv_adj_data_path=arg_not_supplied, ADD_TO_DB=True, ADD_TO_CSV=False
+):
     db_multiple_prices, _notused, _alsonotused = _get_data_inputs(csv_adj_data_path)
     instrument_list = db_multiple_prices.get_list_of_instruments()
     for instrument_code in instrument_list:
         print(instrument_code)
-        process_adjusted_prices_single_instrument(instrument_code, csv_adj_data_path=csv_adj_data_path,
-                                                  ADD_TO_DB=ADD_TO_DB, ADD_TO_CSV=ADD_TO_CSV)
+        process_adjusted_prices_single_instrument(
+            instrument_code,
+            csv_adj_data_path=csv_adj_data_path,
+            ADD_TO_DB=ADD_TO_DB,
+            ADD_TO_CSV=ADD_TO_CSV,
+        )
 
 
-def process_adjusted_prices_single_instrument(instrument_code, csv_adj_data_path=arg_not_supplied,
-                                              multiple_prices=arg_not_supplied, ADD_TO_DB=True, ADD_TO_CSV=False):
+def process_adjusted_prices_single_instrument(
+    instrument_code,
+    csv_adj_data_path=arg_not_supplied,
+    multiple_prices=arg_not_supplied,
+    ADD_TO_DB=True,
+    ADD_TO_CSV=False,
+):
     (
         arctic_multiple_prices,
         parquet_adjusted_prices,
@@ -60,4 +72,6 @@ def process_adjusted_prices_single_instrument(instrument_code, csv_adj_data_path
 if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")
     # modify flags and datapath as required
-    process_adjusted_prices_all_instruments(csv_adj_data_path=arg_not_supplied, ADD_TO_DB=True, ADD_TO_CSV=True)
+    process_adjusted_prices_all_instruments(
+        csv_adj_data_path=arg_not_supplied, ADD_TO_DB=True, ADD_TO_CSV=True
+    )
