@@ -41,7 +41,6 @@ class diagobject(object):
         pass
 
     def __repr__(self):
-
         return "%s \n %s " % (self.calcs, self.description)
 
 
@@ -1338,7 +1337,6 @@ def cluster_correlation_matrix(corr_matrix: np.array, max_cluster_size=3) -> lis
 
 
 def optimise(sigma, mean_list):
-
     # will replace nans with big negatives
     mean_list = fix_mus(mean_list)
 

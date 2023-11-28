@@ -175,7 +175,6 @@ def _calc_new_multiple_prices(
     existing_adjusted_prices: futuresAdjustedPrices,
     updated_multiple_prices: futuresMultiplePrices,
 ) -> (futuresMultiplePrices, str):
-
     last_date_in_current_adj = existing_adjusted_prices.index[-1]
     multiple_prices_as_dict = updated_multiple_prices.as_dict()
 

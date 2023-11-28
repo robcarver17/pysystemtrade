@@ -13,23 +13,11 @@ from sysobjects.dict_of_futures_per_contract_prices import (
 )
 from sysobjects.spreads import spreadsForInstrument
 
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-    futuresContractPrices,
-)
-from sysdata.arctic.arctic_multiple_prices import (
-    arcticFuturesMultiplePricesData,
-    futuresMultiplePrices,
-)
-from sysdata.arctic.arctic_adjusted_prices import (
-    arcticFuturesAdjustedPricesData,
-    futuresAdjustedPrices,
-)
-from sysdata.arctic.arctic_spreads import (
-    arcticSpreadsForInstrumentData,
-    spreadsForInstrumentData,
-)
-from sysdata.mongodb.mongo_futures_contracts import mongoFuturesContractData
+from sysobjects.futures_per_contract_prices import futuresContractPrices
+from sysobjects.multiple_prices import futuresMultiplePrices
+from sysobjects.adjusted_prices import futuresAdjustedPrices
+
+from sysdata.futures.spreads import spreadsForInstrumentData
 
 from sysdata.futures.multiple_prices import futuresMultiplePricesData
 from sysdata.futures.adjusted_prices import futuresAdjustedPricesData
@@ -47,6 +35,14 @@ from sysproduction.data.generic_production_data import productionDataLayerGeneri
 
 ## default for spike checking
 from sysproduction.data.instruments import diagInstruments, get_block_size
+from sysproduction.data.production_data_objects import (
+    get_class_for_data_type,
+    FUTURES_CONTRACT_PRICE_DATA,
+    FUTURES_ADJUSTED_PRICE_DATA,
+    FUTURES_MULTIPLE_PRICE_DATA,
+    FUTURES_CONTRACT_DATA,
+    HISTORIC_SPREAD_DATA,
+)
 
 VERY_BIG_NUMBER = 999999.0
 
@@ -55,11 +51,11 @@ class diagPrices(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
             [
-                arcticFuturesContractPriceData,
-                arcticFuturesAdjustedPricesData,
-                arcticFuturesMultiplePricesData,
-                mongoFuturesContractData,
-                arcticSpreadsForInstrumentData,
+                get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA),
+                get_class_for_data_type(FUTURES_ADJUSTED_PRICE_DATA),
+                get_class_for_data_type(FUTURES_CONTRACT_DATA),
+                get_class_for_data_type(HISTORIC_SPREAD_DATA),
+                get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
             ]
         )
         return data
@@ -250,11 +246,11 @@ class updatePrices(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
             [
-                arcticFuturesContractPriceData,
-                arcticFuturesMultiplePricesData,
-                mongoFuturesContractData,
-                arcticFuturesAdjustedPricesData,
-                arcticSpreadsForInstrumentData,
+                get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA),
+                get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
+                get_class_for_data_type(FUTURES_CONTRACT_DATA),
+                get_class_for_data_type(FUTURES_ADJUSTED_PRICE_DATA),
+                get_class_for_data_type(HISTORIC_SPREAD_DATA),
             ]
         )
 
@@ -265,7 +261,6 @@ class updatePrices(productionDataLayerGeneric):
         contract_object: futuresContract,
         new_prices: futuresContractPrices,
     ):
-
         self.db_futures_contract_price_data.write_merged_prices_for_contract_object(
             contract_object, futures_price_data=new_prices, ignore_duplication=True
         )
@@ -276,7 +271,6 @@ class updatePrices(productionDataLayerGeneric):
         new_prices: futuresContractPrices,
         frequency: Frequency,
     ):
-
         self.db_futures_contract_price_data.write_prices_at_frequency_for_contract_object(
             futures_contract_object=contract_object,
             futures_price_data=new_prices,
@@ -292,7 +286,6 @@ class updatePrices(productionDataLayerGeneric):
         check_for_spike: bool = True,
         max_price_spike: float = VERY_BIG_NUMBER,
     ) -> int:
-
         error_or_rows_added = (
             self.db_futures_contract_price_data.update_prices_at_frequency_for_contract(
                 contract_object=contract_object,
@@ -509,7 +502,6 @@ def modify_price_when_contract_has_changed(
     original_contract_date: str,
     original_price: float,
 ) -> float:
-
     if original_contract_date == new_contract_date:
         return original_price
 

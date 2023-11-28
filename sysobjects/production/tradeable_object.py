@@ -162,7 +162,6 @@ class futuresContractStrategy(tradeableObject):
     def from_strategy_name_and_contract_object(
         futuresContractStrategy, strategy_name: str, futures_contract: futuresContract
     ):
-
         return futuresContractStrategy(
             strategy_name=strategy_name,
             contract_id=futures_contract.date_str,

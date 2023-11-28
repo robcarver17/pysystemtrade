@@ -18,7 +18,6 @@ class pandlCalculation(object):
         delayfill=False,
         passed_diagnostic_df: pd.DataFrame = arg_not_supplied,
     ):
-
         self._price = price
         self._positions = positions
         self._fx = fx
@@ -41,7 +40,6 @@ class pandlCalculation(object):
         raise NotImplemented("Not implemented")
 
     def weight(self, weight: pd.Series):
-
         weighted_capital = apply_weighting(weight, self.capital)
         weighted_positions = apply_weighting(weight, self.positions)
 
@@ -58,7 +56,6 @@ class pandlCalculation(object):
     def capital_as_pd_series_for_frequency(
         self, frequency: Frequency = DAILY_PRICE_FREQ
     ) -> pd.Series:
-
         capital = self.capital
         resample_freq = from_config_frequency_pandas_resample(frequency)
         capital_at_frequency = capital.resample(resample_freq).ffill()
@@ -68,8 +65,10 @@ class pandlCalculation(object):
     def as_pd_series_for_frequency(
         self, frequency: Frequency = DAILY_PRICE_FREQ, **kwargs
     ) -> pd.Series:
-
         as_pd_series = self.as_pd_series(**kwargs)
+
+        ## FIXME: Ugly to get pandas 2.x working
+        as_pd_series.index = pd.to_datetime(as_pd_series.index)
 
         resample_freq = from_config_frequency_pandas_resample(frequency)
         pd_series_at_frequency = as_pd_series.resample(resample_freq).sum()
@@ -121,7 +120,6 @@ class pandlCalculation(object):
         return pandl_in_points * point_size
 
     def pandl_in_points(self) -> pd.Series:
-
         pandl_in_points = calculate_pandl(positions=self.positions, prices=self.price)
         return pandl_in_points
 

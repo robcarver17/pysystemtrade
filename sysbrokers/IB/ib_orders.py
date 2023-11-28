@@ -40,7 +40,6 @@ class ibOrderWithControls(orderWithControls):
         instrument_code: str = None,
         ticker_object: tickerObject = None,
     ):
-
         if broker_order is None:
             # This might happen if for example we are getting the orders from
             #   IB
@@ -378,7 +377,6 @@ class ibExecutionStackData(brokerExecutionStackData):
         return matched_control_order
 
     def cancel_order_on_stack(self, broker_order: brokerOrder):
-
         log_attrs = {**broker_order.log_attributes(), "method": "temp"}
         matched_control_order = (
             self.match_db_broker_order_to_control_order_from_brokers(broker_order)
@@ -482,7 +480,6 @@ class ibExecutionStackData(brokerExecutionStackData):
 def add_trade_info_to_broker_order(
     broker_order: brokerOrder, broker_order_from_trade_object: ibBrokerOrder
 ) -> brokerOrder:
-
     new_broker_order = copy(broker_order)
     keys_to_replace = [
         "broker_permid",
@@ -534,7 +531,6 @@ def match_control_order_on_permid(
 def match_control_order_from_dict(
     dict_of_broker_control_orders: dict, broker_order_to_match: brokerOrder
 ):
-
     matched_control_order_from_dict = dict_of_broker_control_orders.get(
         broker_order_to_match.broker_tempid, missing_order
     )

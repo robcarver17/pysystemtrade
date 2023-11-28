@@ -41,8 +41,7 @@ def diversification_multiplier_from_list(
     # here's where we stack up the answers
     div_mult_vector = []
 
-    for (corrmatrix, start_of_period) in zip(correlation_list.corr_list, ref_periods):
-
+    for corrmatrix, start_of_period in zip(correlation_list.corr_list, ref_periods):
         weight_slice = weight_df_aligned[:start_of_period]
         if weight_slice.shape[0] == 0:
             # empty space

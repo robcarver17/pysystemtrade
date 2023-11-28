@@ -6,9 +6,9 @@ Read and write data from mongodb for individual futures contracts
 from syscore.dateutils import Frequency, MIXED_FREQ
 
 from sysdata.arctic.arctic_connection import arcticData
+from sysobjects.contracts import listOfFuturesContracts
 from sysdata.futures.futures_per_contract_prices import (
     futuresContractPriceData,
-    listOfFuturesContracts,
 )
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysobjects.contracts import futuresContract, get_code_and_id_from_contract_key
@@ -25,7 +25,6 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     """
 
     def __init__(self, mongo_db=None, log=get_logger("arcticFuturesContractPriceData")):
-
         super().__init__(log=log)
 
         self._arctic_connection = arcticData(CONTRACT_COLLECTION, mongo_db=mongo_db)
@@ -57,7 +56,6 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     def _get_prices_at_frequency_for_contract_object_no_checking(
         self, futures_contract_object: futuresContract, frequency: Frequency
     ) -> futuresContractPrices:
-
         ident = from_contract_and_freq_to_key(
             futures_contract_object, frequency=frequency
         )
@@ -93,7 +91,6 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
         futures_price_data: futuresContractPrices,
         frequency: Frequency,
     ):
-
         ident = from_contract_and_freq_to_key(
             futures_contract_object, frequency=frequency
         )
@@ -128,7 +125,6 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     def get_contracts_with_price_data_for_frequency(
         self, frequency: Frequency
     ) -> listOfFuturesContracts:
-
         list_of_contract_and_freq_tuples = (
             self._get_contract_and_frequencies_with_price_data()
         )
@@ -152,7 +148,6 @@ class arcticFuturesContractPriceData(futuresContractPriceData):
     def has_price_data_for_contract_at_frequency(
         self, contract_object: futuresContract, frequency: Frequency
     ) -> bool:
-
         return self.arctic_connection.has_keyname(
             from_contract_and_freq_to_key(contract_object, frequency=frequency)
         )

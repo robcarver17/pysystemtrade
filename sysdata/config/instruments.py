@@ -56,7 +56,6 @@ def generate_matching_duplicate_dict(config: Config):
 
 
 def get_duplicate_dict_entry(key: str, include_dict: dict, exclude_dict: dict) -> dict:
-
     include_entry = get_entry_for_key_in_dict(key, include_dict, is_include_dict=True)
     exclude_entry = get_entry_for_key_in_dict(key, exclude_dict, is_include_dict=False)
 
@@ -64,7 +63,6 @@ def get_duplicate_dict_entry(key: str, include_dict: dict, exclude_dict: dict) -
 
 
 def get_entry_for_key_in_dict(key: str, check_dict: dict, is_include_dict: bool = True):
-
     if key not in check_dict.keys():
         if is_include_dict:
             print(

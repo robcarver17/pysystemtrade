@@ -1,14 +1,16 @@
 """
-Copy from csv repo files to arctic for multiple prices
+Copy from csv repo files to db for multiple prices
 """
 
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
-from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
+from sysproduction.data.prices import diagPrices
+
 
 if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")
+    diag_prices = diagPrices()
 
-    arctic_multiple_prices = arcticFuturesMultiplePricesData()
+    db_multiple_prices = diag_prices.db_futures_multiple_prices_data
     csv_multiple_prices = csvFuturesMultiplePricesData()
 
     instrument_code = input("Instrument code? <return for ALL instruments> ")
@@ -23,6 +25,6 @@ if __name__ == "__main__":
 
         print(multiple_prices)
 
-        arctic_multiple_prices.add_multiple_prices(
+        db_multiple_prices.add_multiple_prices(
             instrument_code, multiple_prices, ignore_duplication=True
         )

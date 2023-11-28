@@ -114,7 +114,6 @@ Did we make money?
 from systems.accounts.account_forecast import pandl_for_instrument_forecast
 
 account = pandl_for_instrument_forecast(forecast=ewmac, price=price)
-account2 = pandl_for_instrument_forecast(forecast=ewmac, price=price)
 
 account.curve()
 

@@ -80,7 +80,6 @@ def check_and_if_required_allocate_algo_to_single_contract_order(
     contract_order: contractOrder,
     instrument_order: instrumentOrder,
 ) -> contractOrder:
-
     config = get_algo_allocation_config(data)
     log_attrs = {**contract_order.log_attributes(), "method": "temp"}
 
@@ -147,7 +146,6 @@ def already_has_algo_allocated(contract_order: contractOrder) -> bool:
 def algo_allocation_is_overriden_for_instrument(
     contract_order: contractOrder, config: AlgoConfig
 ) -> bool:
-
     instrument_code = contract_order.instrument_code
     instruments_with_keys = list(config.algo_overrides.keys())
 

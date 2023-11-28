@@ -26,7 +26,6 @@ def handcraft_optimisation(
     equalise_vols: bool = True,
     **_ignored_weighting_kwargs,
 ) -> estimatesWithPortfolioWeights:
-
     weights = get_handcrafted_portfolio_weights_for_valid_data(
         estimates, equalise_vols=equalise_vols, equalise_SR=equalise_SR
     )
@@ -41,7 +40,6 @@ def handcraft_optimisation(
 def get_handcrafted_portfolio_weights_for_valid_data(
     estimates: Estimates, equalise_vols: bool = True, equalise_SR: bool = False
 ) -> portfolioWeights:
-
     handcraft_portfolio = handcraftPortfolio(estimates)
     risk_weights = handcraft_portfolio.risk_weights(equalise_SR=equalise_SR)
 
@@ -57,7 +55,6 @@ FIXED_CLUSTER_SIZE = 2  # Do not change
 
 class handcraftPortfolio(object):
     def __init__(self, estimates: Estimates):
-
         self._estimates = estimates
 
     @property
@@ -117,7 +114,6 @@ class handcraftPortfolio(object):
             return adjusted_weights
 
     def risk_weights_this_portfolio(self) -> portfolioWeights:
-
         asset_names = self.asset_names
         raw_weights = one_over_n_weights_given_asset_names(asset_names)
 
@@ -152,7 +148,6 @@ class handcraftPortfolio(object):
 def adjust_weights_for_SR_on_handcrafted_portfolio(
     raw_weights: portfolioWeights, handcraft_portfolio: handcraftPortfolio
 ) -> portfolioWeights:
-
     SR_list = handcraft_portfolio.sharpe_ratio
     avg_correlation = handcraft_portfolio.avg_correlation
     years_of_data = handcraft_portfolio.data_length_years
@@ -178,7 +173,6 @@ def adjust_weights_for_SR_on_handcrafted_portfolio(
 
 
 def create_sub_portfolios_from_portfolio(handcraft_portfolio: handcraftPortfolio):
-
     clusters_as_names = cluster_correlation_matrix(handcraft_portfolio.correlation)
 
     sub_portfolios = create_sub_portfolios_given_clusters(
@@ -242,7 +236,6 @@ def multiplied_out_risk_weight_for_sub_portfolios(
     div_mult_for_portfolio: float = 1.0,
     weight_for_subportfolio: float = 0.5,
 ) -> portfolioWeights:
-
     asset_names = list(weights_for_portfolio.keys())
     mult_weights = portfolioWeights(
         [

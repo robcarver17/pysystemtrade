@@ -189,7 +189,6 @@ def spawn_contracts_from_instrument_orders(data):
 
 
 def create_balance_trade(data):
-
     print(
         "Most likely use case here is that IB has closed one of your positions as close to the expiry"
     )
@@ -331,7 +330,6 @@ def default_price_for_contract(data: dataBlob, futures_contract: futuresContract
 
 
 def create_instrument_balance_trade(data):
-
     print("Use to fix breaks between instrument strategy and contract level positions")
     strategy_name = get_valid_strategy_name_from_user(data=data, source="positions")
     instrument_code = get_valid_instrument_code_from_user(data)
@@ -380,7 +378,6 @@ def default_price_for_instrument(data: dataBlob, instrument_code: str) -> float:
 
 
 def create_manual_trade(data):
-
     print(
         "Create a trade which will then be executed by the system (so don't use this if you are doing your trades manually)"
     )
@@ -587,7 +584,7 @@ def generate_generic_manual_fill(data):
     stack_handler = stackHandler()
     if type(order) is brokerOrder:
         ## pass up and change positions
-        stack_handler.apply_broker_order_fills_to_database(order)
+        stack_handler.apply_broker_order_fills_to_database(order_id, order)
     else:
         stack_handler.apply_contract_order_fill_to_database(order)
 

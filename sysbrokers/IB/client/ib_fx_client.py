@@ -57,7 +57,6 @@ class ibFxClient(ibPriceClient):
     def _create_fx_market_order_for_submission(
         self, trade: float, account_id: str = arg_not_supplied
     ) -> MarketOrder:
-
         ib_BS_str, ib_qty = resolveBS(trade)
         ib_order = MarketOrder(ib_BS_str, ib_qty)
         if account_id is not arg_not_supplied:
@@ -94,7 +93,6 @@ class ibFxClient(ibPriceClient):
         return fx_data
 
     def ib_spotfx_contract(self, ccy1, ccy2="USD") -> Forex:
-
         ibcontract = Forex(ccy1 + ccy2)
         ibcontract = self.ib_resolve_unique_contract(ibcontract)
 

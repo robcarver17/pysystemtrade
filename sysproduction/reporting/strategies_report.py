@@ -20,7 +20,6 @@ ALL_STRATEGIES = "ALL"
 def strategy_report(
     data=arg_not_supplied, timestamp=arg_not_supplied, strategy_name=ALL_STRATEGIES
 ):
-
     if data is arg_not_supplied:
         data = dataBlob()
 
@@ -41,7 +40,6 @@ def strategy_report(
 
 
 def get_strategies_report_output(data, list_of_strategies, timestamp=arg_not_supplied):
-
     formatted_output = []
     for strategy_name in list_of_strategies:
         try:

@@ -13,7 +13,6 @@ process_name = "run_strategy_order_generator"
 def update_strategy_orders():
     ## function if called from script
     with dataBlob(log_name="Update-Strategy-Orders") as data:
-
         list_of_strategies = get_list_of_strategies_for_process(data, process_name)
         ALL = "ALL"
         print("Which strategy?")

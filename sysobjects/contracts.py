@@ -247,7 +247,6 @@ class futuresContract(object):
         )
 
     def update_expiry_dates_one_at_a_time_with_method(self, method, **kwargs):
-
         as_list_of_individual_contracts = self.as_list_of_individual_contracts()
         new_expiries = [
             method(single_contract, **kwargs)
@@ -295,7 +294,6 @@ class futuresContract(object):
 def _resolve_args_for_futures_contract(
     instrument_object, contract_date_object
 ) -> tuple:
-
     if isinstance(instrument_object, str):
         instrument_object = futuresInstrument(instrument_object)
 
@@ -378,7 +376,6 @@ class listOfFuturesContracts(list):
         return contract_dict
 
     def difference(self, another_contract_list):
-
         self_contract_dates = set(self.list_of_dates())
         another_contract_list_dates = set(another_contract_list.list_of_dates())
 

@@ -1,20 +1,23 @@
-from sysdata.csv.csv_instrument_data import csvFuturesInstrumentData
-
 from sysdata.data_blob import dataBlob
 from sysdata.futures.instruments import futuresInstrumentData
 from sysdata.futures.spread_costs import spreadCostData
-from sysdata.mongodb.mongo_spread_costs import mongoSpreadCostData
+
 from sysobjects.spot_fx_prices import currencyValue
 from sysobjects.instruments import instrumentCosts
 
 from sysproduction.data.currency_data import dataCurrency
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 from sysproduction.data.config import get_list_of_stale_instruments
+from sysproduction.data.production_data_objects import (
+    STORED_SPREAD_DATA,
+    get_class_for_data_type,
+    FUTURES_INSTRUMENT_DATA,
+)
 
 
 class updateSpreadCosts(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(mongoSpreadCostData)
+        data.add_class_object(get_class_for_data_type(STORED_SPREAD_DATA))
         return data
 
     def update_spread_costs(self, instrument_code: str, spread_cost: float):
@@ -34,7 +37,13 @@ class updateSpreadCosts(productionDataLayerGeneric):
 
 class diagInstruments(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data: dataBlob) -> dataBlob:
-        data.add_class_list([csvFuturesInstrumentData, mongoSpreadCostData])
+        data.add_class_list(
+            [
+                get_class_for_data_type(FUTURES_INSTRUMENT_DATA),
+                get_class_for_data_type(STORED_SPREAD_DATA),
+            ]
+        )
+
         return data
 
     def get_spread_costs_as_series(self):

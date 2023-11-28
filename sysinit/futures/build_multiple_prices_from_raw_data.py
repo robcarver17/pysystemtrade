@@ -94,7 +94,6 @@ def _get_price_data_between_rolls(
     roll_calendar_with_roll_index: rollCalendarWithRollIndex,
     dict_of_futures_contract_closing_prices: dictFuturesContractFinalPrices,
 ):
-
     # consider consolidating input args
 
     roll_date_info = _calc_roll_date_info(roll_calendar_with_roll_index)
@@ -154,7 +153,6 @@ def _calc_contract_date_info(
     roll_date_info: rollDateInfo,
     dict_of_futures_contract_closing_prices: dictFuturesContractFinalPrices,
 ) -> contractAndPriceInfo:
-
     roll_calendar = roll_date_info.roll_calendar_with_roll_index.roll_calendar
 
     contracts_now = roll_calendar.loc[roll_date_info.next_roll_date, :]
@@ -194,7 +192,6 @@ def _invalid_current_contract(contract_date_info: contractAndPriceInfo) -> bool:
 def _calculate_price_data_from_current_next_carry_data(
     roll_date_info: rollDateInfo, contract_date_info: contractAndPriceInfo
 ):
-
     set_of_price_data = _get_current_next_carry_data(roll_date_info, contract_date_info)
 
     all_price_data = _build_all_price_data(set_of_price_data, contract_date_info)
@@ -241,7 +238,6 @@ def _get_next_price_data(
     next_contract_str = contract_date_info.next_contract_str
 
     if next_contract_str not in contract_keys:
-
         if _last_row_in_roll_calendar(roll_date_info):
             # Last entry, this is fine
             print(
@@ -281,7 +277,6 @@ def _get_carry_price_data(
     carry_contract_str = contract_date_info.carry_contract_str
 
     if carry_contract_str not in contract_keys:
-
         if _last_row_in_roll_calendar(roll_date_info):
             # Last entry, this is fine
             print(
@@ -319,7 +314,6 @@ def _last_row_in_roll_calendar(roll_date_info: rollDateInfo):
 
 
 def _build_all_price_data(set_of_price_data, contract_date_info):
-
     current_price_data, next_price_data, carry_price_data = set_of_price_data
     all_price_data = pd.concat(
         [current_price_data, next_price_data, carry_price_data], axis=1

@@ -109,7 +109,6 @@ class mongoGenericHistoricOrdersData(genericOrdersData):
         period_start: datetime.datetime,
         period_end: datetime.datetime = arg_not_supplied,
     ) -> list:
-
         if period_end is arg_not_supplied:
             period_end = datetime.datetime.now()
 
@@ -138,7 +137,6 @@ class mongoStrategyHistoricOrdersData(
     def get_list_of_order_ids_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> list:
-
         old_list_of_order_id = (
             self._get_list_of_order_ids_for_instrument_strategy_specify_key(
                 instrument_strategy, "old_key"
@@ -155,7 +153,6 @@ class mongoStrategyHistoricOrdersData(
     def _get_list_of_order_ids_for_instrument_strategy_specify_key(
         self, instrument_strategy: instrumentStrategy, keyfield: str
     ) -> list:
-
         object_key = getattr(instrument_strategy, keyfield)
         custom_dict = dict(key=object_key)
         list_of_result_dicts = self.mongo_data.get_list_of_result_dict_for_custom_dict(

@@ -3,7 +3,6 @@ from copy import copy
 import pandas as pd
 
 from sysdata.data_blob import dataBlob
-from sysdata.arctic.arctic_optimal_positions import arcticOptimalPositionData
 from sysdata.production.optimal_positions import optimalPositionData
 from sysobjects.production.optimal_positions import (
     listOfOptimalPositionsAcrossInstrumentStrategies,
@@ -18,18 +17,21 @@ from sysproduction.data.config import (
     get_list_of_stale_instruments,
     get_list_of_stale_strategies,
 )
+from sysproduction.data.production_data_objects import (
+    get_class_for_data_type,
+    OPTIMAL_POSITION_DATA,
+)
 
 
 class dataOptimalPositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(arcticOptimalPositionData)
+        data.add_class_object(get_class_for_data_type(OPTIMAL_POSITION_DATA))
 
         return data
 
     def get_list_of_current_optimal_positions_for_strategy_name(
         self, strategy_name: str
     ) -> listOfOptimalPositionsAcrossInstrumentStrategies:
-
         all_optimal_positions = self.get_list_of_optimal_positions()
         optimal_positions_for_strategy = all_optimal_positions.filter_by_strategy(
             strategy_name
@@ -52,7 +54,6 @@ class dataOptimalPositions(productionDataLayerGeneric):
         return list_of_instruments
 
     def get_list_of_strategies_with_optimal_position(self) -> list:
-
         list_of_strategies = (
             self.db_optimal_position_data.list_of_strategies_with_optimal_position()
         )
@@ -63,7 +64,6 @@ class dataOptimalPositions(productionDataLayerGeneric):
     def get_current_optimal_position_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy, raw_positions=False
     ) -> baseOptimalPosition:
-
         if raw_positions:
             use_instrument_strategy = instrument_strategy_with_raw_tag(
                 instrument_strategy
@@ -80,7 +80,6 @@ class dataOptimalPositions(productionDataLayerGeneric):
     def get_optimal_position_as_df_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> pd.DataFrame:
-
         df_object = self.db_optimal_position_data.get_optimal_position_as_df_for_instrument_strategy(
             instrument_strategy
         )
@@ -107,7 +106,6 @@ class dataOptimalPositions(productionDataLayerGeneric):
     def get_list_of_optimal_positions(
         self,
     ) -> listOfOptimalPositionsAcrossInstrumentStrategies:
-
         ## drop stale markets
         list_of_optimal_positions_and_instrument_strategies = (
             self.db_optimal_position_data.get_list_of_optimal_positions()
@@ -141,7 +139,6 @@ class dataOptimalPositions(productionDataLayerGeneric):
     def get_list_of_optimal_and_current_positions(
         self,
     ) -> listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies:
-
         optimal_positions = self.get_list_of_optimal_positions()
 
         position_data = diagPositions(self.data)
@@ -181,7 +178,6 @@ def is_raw_strategy(strategy_name: str) -> bool:
 def remove_raw_from_list_of_optimal_positions_and_instrument_strategies(
     list_of_optimal_positions_and_instrument_strategies: listOfOptimalPositionsAcrossInstrumentStrategies,
 ) -> listOfOptimalPositionsAcrossInstrumentStrategies:
-
     list_of_optimal_positions_and_instrument_strategies = [
         optimal_position_and_instrument_strategy
         for optimal_position_and_instrument_strategy in list_of_optimal_positions_and_instrument_strategies
@@ -198,7 +194,6 @@ def remove_raw_from_list_of_optimal_positions_and_instrument_strategies(
 def is_not_raw_optimal_position_and_instrument_strategy(
     optimal_position_and_instrument_strategy: instrumentStrategyAndOptimalPosition,
 ) -> bool:
-
     return is_not_raw_instrument_strategy(
         optimal_position_and_instrument_strategy.instrument_strategy
     )
@@ -228,7 +223,6 @@ def strategy_name_with_raw_tag(strategy_name: str) -> str:
 def remove_stale_strategies_and_instruments_from_list_of_optimal_positions_and_instrument_strategies(
     list_of_optimal_positions_and_instrument_strategies: listOfOptimalPositionsAcrossInstrumentStrategies,
 ) -> listOfOptimalPositionsAcrossInstrumentStrategies:
-
     filtered_list = remove_stale_strategies_from_list_of_optimal_positions_and_instrument_strategies(
         list_of_optimal_positions_and_instrument_strategies=list_of_optimal_positions_and_instrument_strategies,
     )
@@ -243,7 +237,6 @@ def remove_stale_strategies_and_instruments_from_list_of_optimal_positions_and_i
 def remove_stale_strategies_from_list_of_optimal_positions_and_instrument_strategies(
     list_of_optimal_positions_and_instrument_strategies: listOfOptimalPositionsAcrossInstrumentStrategies,
 ) -> listOfOptimalPositionsAcrossInstrumentStrategies:
-
     list_of_stale_strategies = get_list_of_stale_strategies()
     new_list = (
         list_of_optimal_positions_and_instrument_strategies.filter_removing_strategies(
@@ -257,7 +250,6 @@ def remove_stale_strategies_from_list_of_optimal_positions_and_instrument_strate
 def remove_stale_instruments_from_list_of_optimal_positions_and_instrument_strategies(
     list_of_optimal_positions_and_instrument_strategies: listOfOptimalPositionsAcrossInstrumentStrategies,
 ) -> listOfOptimalPositionsAcrossInstrumentStrategies:
-
     list_of_stale_instruments = get_list_of_stale_instruments()
     new_list = (
         list_of_optimal_positions_and_instrument_strategies.filter_removing_instruments(

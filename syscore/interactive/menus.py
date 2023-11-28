@@ -82,7 +82,6 @@ class interactiveMenu(object):
             return TRAVERSING_MENU
 
     def _propose_options_and_get_input_at_sub_level(self) -> int:
-
         sub_menu = self.current_submenu
         option_chosen = print_menu_and_get_desired_option_index(
             sub_menu, default_option_index=EXIT_OPTION, default_str="Back"
@@ -136,7 +135,6 @@ class interactiveMenu(object):
 def print_menu_of_values_and_get_response(
     menu_of_options_as_list: List[str], default_str=""
 ) -> str:
-
     default_option_index, copy_menu_of_options_as_list = _get_index_of_default_option(
         menu_of_options_as_list=menu_of_options_as_list, default_str=default_str
     )
@@ -156,7 +154,6 @@ def print_menu_of_values_and_get_response(
 def _get_index_of_default_option(
     menu_of_options_as_list: List[str], default_str=""
 ) -> Tuple[Union[type(None), int], List[str]]:
-
     copy_menu_of_options_as_list = copy(menu_of_options_as_list)
     if default_str == "":
         return None, copy_menu_of_options_as_list
@@ -218,7 +215,6 @@ def print_menu_and_get_desired_option_index(
 def _resolve_default_for_dict_of_menu_options(
     menu_of_options: dict, default_option_index=None, default_str: str = ""
 ) -> Tuple[bool, dict, int, str]:
-
     """
 
     >>> _resolve_default_for_dict_of_menu_options({1: 'a', 2: 'b'}, 1)

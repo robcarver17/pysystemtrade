@@ -88,7 +88,6 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
                 instrument_order_id, [contract_order_id]
             )
         except Exception as e:
-
             self.log.error(
                 "Couldn't add children to instrument order error %s" % str(e),
                 **log_attrs,
@@ -136,7 +135,6 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
     def rollback_balance_trades(
         self, instrument_order_id: int, contract_order_id: int, broker_order_id: int
     ):
-
         if instrument_order_id is not missing_order:
             self.instrument_stack.remove_order_with_id_from_stack(instrument_order_id)
         if contract_order_id is not missing_order:

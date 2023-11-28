@@ -36,7 +36,6 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         log=get_logger("csvFuturesContractPriceData"),
         config: ConfigCsvFuturesPrices = arg_not_supplied,
     ):
-
         super().__init__(log=log)
         if datapath is arg_not_supplied:
             raise Exception("Need to pass datapath")
@@ -66,7 +65,6 @@ class csvFuturesContractPriceData(futuresContractPriceData):
     def _get_prices_at_frequency_for_contract_object_no_checking(
         self, futures_contract_object: futuresContract, frequency: Frequency
     ) -> futuresContractPrices:
-
         keyname = self._keyname_given_contract_object_and_freq(
             futures_contract_object, frequency=frequency
         )
@@ -134,7 +132,6 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         futures_price_data: futuresContractPrices,
         frequency: Frequency,
     ):
-
         keyname = self._keyname_given_contract_object_and_freq(
             futures_contract_object, frequency=frequency
         )
@@ -186,7 +183,6 @@ class csvFuturesContractPriceData(futuresContractPriceData):
     def get_contracts_with_price_data_for_frequency(
         self, frequency: Frequency
     ) -> listOfFuturesContracts:
-
         list_of_contract_and_freq_tuples = (
             self._get_contract_freq_tuples_with_price_data()
         )

@@ -17,7 +17,6 @@ class csvStrategyPositionData(strategyPositionData):
     def __init__(
         self, datapath=arg_not_supplied, log=get_logger("csvStrategyPositionData")
     ):
-
         super().__init__(log=log)
 
         if datapath is None:

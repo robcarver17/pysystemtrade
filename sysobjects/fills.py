@@ -61,7 +61,6 @@ class ListOfFills(list):
 
     @classmethod
     def from_position_series_and_prices(cls, positions: pd.Series, price: pd.Series):
-
         list_of_fills = _list_of_fills_from_position_series_and_prices(
             positions=positions, price=price
         )
@@ -72,7 +71,6 @@ class ListOfFills(list):
 def _list_of_fills_from_position_series_and_prices(
     positions: pd.Series, price: pd.Series
 ) -> ListOfFills:
-
     (
         trades_without_zeros,
         prices_aligned_to_trades,

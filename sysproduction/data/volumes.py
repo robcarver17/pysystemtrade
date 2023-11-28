@@ -1,14 +1,15 @@
 import datetime as datetime
 import pandas as pd
 from syscore.exceptions import missingData
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
 from sysdata.futures.futures_per_contract_prices import futuresContractPriceData
 from sysobjects.contracts import futuresContract
 from sysdata.data_blob import dataBlob
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
+from sysproduction.data.production_data_objects import (
+    FUTURES_CONTRACT_PRICE_DATA,
+    get_class_for_data_type,
+)
 
 # Get volume data for the contract we're currently trading, plus what we might roll into, plus the previous one
 # This is handy for working out whether to roll
@@ -18,7 +19,7 @@ NOTIONALLY_ZERO_VOLUME = 0.0001
 
 class diagVolumes(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
-        data.add_class_object(arcticFuturesContractPriceData)
+        data.add_class_object(get_class_for_data_type(FUTURES_CONTRACT_PRICE_DATA))
         return data
 
     @property
@@ -62,7 +63,6 @@ class diagVolumes(productionDataLayerGeneric):
     def get_smoothed_volume_for_contract(
         self, instrument_code: str, contract_date_str: str
     ) -> float:
-
         contract = futuresContract(instrument_code, contract_date_str)
         try:
             volumes = self.get_daily_volumes_for_contract(contract)
@@ -111,6 +111,6 @@ def get_smoothed_volume_ignoring_old_data(
         return 0.0
 
     smoothed_recent_volumes = recent_volumes.ewm(span=span).mean()
-    final_volume = smoothed_recent_volumes[-1]
+    final_volume = smoothed_recent_volumes.iloc[-1]
 
     return final_volume

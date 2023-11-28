@@ -9,7 +9,6 @@ from systems.accounts.accounts_stage import Account
 
 class Test(unittest.TestCase):
     def setUp(self):
-
         (
             posobject,
             combobject,

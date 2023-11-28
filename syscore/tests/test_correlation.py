@@ -77,7 +77,6 @@ class Test(unittest.TestCase):
 
     @unittest.SkipTest
     def testFrequency(self):
-
         self.system.config.forecast_correlation_estimate["frequency"] = "D"
         self.system.config.forecast_correlation_estimate["floor_at_zero"] = False
         instrument_code = "US10"

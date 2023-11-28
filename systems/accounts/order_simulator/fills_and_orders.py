@@ -66,7 +66,6 @@ def fill_from_simple_limit_order(
     market_price: float,
     fill_datetime: datetime.datetime,
 ) -> Fill:
-
     limit_price = simple_order.limit_price
     if simple_order.quantity > 0:
         if limit_price > market_price:
@@ -94,7 +93,6 @@ def fill_from_simple_market_order(
     market_price: float,
     fill_datetime: datetime.datetime,
 ) -> Fill:
-
     return Fill(
         fill_datetime,
         simple_order.quantity,

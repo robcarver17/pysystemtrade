@@ -61,7 +61,6 @@ class Estimates:
         ann_target_SR: float = 0.5,
         equalise_vols: bool = True,
     ):
-
         return equalise_estimates(
             self,
             equalise_SR=equalise_SR,
@@ -114,7 +113,6 @@ def equalise_estimates(
     ann_target_SR: float = 0.5,
     equalise_vols: bool = True,
 ) -> Estimates:
-
     list_of_asset_names = estimates.asset_names
     mean_list = estimates.mean_list
     stdev_list = estimates.stdev_list
@@ -156,7 +154,6 @@ def equalise_estimates_from_lists(
     ann_target_SR: float = 0.5,
     equalise_vols: bool = True,
 ) -> list:
-
     equalise_vols = str2Bool(equalise_vols)
     equalise_SR = str2Bool(equalise_SR)
 
@@ -213,7 +210,6 @@ def vol_equaliser(mean_list, stdev_list):
 def shrink_means_to_SR(
     estimates: Estimates, shrinkage_SR: float = 1.0, target_SR=0.5
 ) -> meanEstimates:
-
     list_of_asset_names = estimates.asset_names
     mean_list = estimates.mean_list
     stdev_list = estimates.stdev_list

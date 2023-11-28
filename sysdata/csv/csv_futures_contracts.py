@@ -16,7 +16,6 @@ class csvFuturesContractData(futuresContractData):
     def __init__(
         self, datapath=arg_not_supplied, log=get_logger("csvFuturesContractData")
     ):
-
         super().__init__(log=log)
 
         if datapath is arg_not_supplied:
@@ -75,5 +74,4 @@ class csvFuturesContractData(futuresContractData):
     def _get_contract_data_without_checking(
         self, instrument_code: str, contract_date: str
     ):
-
         raise NotImplementedError("used for backup only no read methods")

@@ -36,7 +36,6 @@ class exponentialEstimator(object):
         length_adjustment: int = 1,
         **other_kwargs,
     ):
-
         adjusted_lookback = ew_lookback * length_adjustment
         adjusted_min_periods = min_periods * length_adjustment
 

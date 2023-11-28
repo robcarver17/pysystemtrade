@@ -25,5 +25,4 @@ class productionDataLayerGeneric(object):
         return self.data.log
 
     def _add_required_classes_to_data(self, data) -> dataBlob:
-
         return data

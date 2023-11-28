@@ -31,14 +31,12 @@ def mongo_defaults(**kwargs):
     production_config = get_production_config()
     output_dict = {}
     for param_name in LIST_OF_MONGO_PARAMS:
-
         if param_name in passed_param_names:
             param_value = kwargs[param_name]
         else:
             param_value = arg_not_supplied
 
         if param_value is arg_not_supplied:
-
             param_value = getattr(production_config, param_name)
 
         output_dict[param_name] = param_value
@@ -89,7 +87,6 @@ class mongoDb:
         mongo_host: str = arg_not_supplied,
         mongo_port: int = arg_not_supplied,
     ):
-
         database_name, host, port = mongo_defaults(
             mongo_database_name=mongo_database_name,
             mongo_host=mongo_host,
@@ -121,7 +118,6 @@ class mongoConnection(object):
     """
 
     def __init__(self, collection_name: str, mongo_db: mongoDb = arg_not_supplied):
-
         # FIXME REMOVE NONE WHEN CODE PROPERLY REFACTORED
         if mongo_db is arg_not_supplied or mongo_db is None:
             mongo_db = mongoDb()
@@ -152,7 +148,6 @@ class mongoConnection(object):
         )
 
     def get_indexes(self):
-
         raw_index_information = copy(self.collection.index_information())
 
         if len(raw_index_information) == 0:

@@ -79,7 +79,6 @@ class stackHandlerCancelAndModify(stackHandlerCore):
     def are_all_orders_cancelled_after_timeout(
         self, list_of_broker_orders: listOfOrders, wait_time_seconds: int = 60
     ) -> listOfOrders:
-
         timer = quickTimer(wait_time_seconds)
         while timer.unfinished:
             list_of_broker_orders = self.list_of_orders_not_yet_cancelled(
@@ -116,7 +115,6 @@ class stackHandlerCancelAndModify(stackHandlerCore):
         return new_list_of_orders
 
     def check_order_cancelled(self, broker_order: brokerOrder) -> bool:
-
         data_broker = self.data_broker
         order_is_cancelled = data_broker.check_order_is_cancelled(broker_order)
 

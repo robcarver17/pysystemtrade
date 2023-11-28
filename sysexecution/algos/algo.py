@@ -84,7 +84,6 @@ class Algo(object):
         ticker_object: tickerObject = None,
         broker_account: str = arg_not_supplied,
     ):
-
         broker = self.data_broker.get_broker_name()
 
         if broker_account is arg_not_supplied:
@@ -202,7 +201,6 @@ class Algo(object):
         input_limit_price: float = None,
         limit_price_from: str = limit_price_from_input,
     ) -> float:
-
         assert limit_price_from in sources_of_limit_price
 
         if limit_price_from == limit_price_from_input:

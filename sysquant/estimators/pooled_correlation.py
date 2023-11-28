@@ -13,7 +13,6 @@ from sysquant.estimators.correlation_over_time import correlation_over_time
 def pooled_correlation_estimator(
     data: listOfDataFrames, frequency="W", forward_fill_data=True, **kwargs
 ) -> CorrelationList:
-
     copied_data = copy(data)
     if forward_fill_data:
         # NOTE if we're not pooling passes a list of one

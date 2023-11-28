@@ -16,7 +16,6 @@ class accountTradingRules(accountForecast):
     def pandl_for_trading_rule_weighted(
         self, rule_variation_name: str, delayfill: bool = True
     ) -> accountCurveGroup:
-
         list_of_instruments = self.get_instrument_list()
         dict_of_pandl_by_instrument = dict(
             [
@@ -46,7 +45,6 @@ class accountTradingRules(accountForecast):
     def pandl_for_trading_rule_unweighted(
         self, rule_variation_name: str, delayfill: bool = True
     ) -> accountCurveGroup:
-
         list_of_instruments = self.get_instrument_list()
         dict_of_pandl_by_instrument = dict(
             [
@@ -76,7 +74,6 @@ class accountTradingRules(accountForecast):
     def pandl_for_trading_rule(
         self, rule_variation_name: str, delayfill: bool = True
     ) -> accountCurveGroup:
-
         #  If I want the performance of a given trading rule across individual
         #  instruments in isolation, then I need to take pandl_for_trading_rule_weighted
         #  and normalise it so that the returns are as a proportion of the sum of
@@ -114,7 +111,6 @@ class accountTradingRules(accountForecast):
     def pandl_for_all_trading_rules(
         self, delayfill: bool = True
     ) -> nestedAccountCurveGroup:
-
         ## group of pandl_for_trading_rule_weighted
         list_of_rules = self.list_of_trading_rules()
 
@@ -136,7 +132,6 @@ class accountTradingRules(accountForecast):
 
     @diagnostic(not_pickable=True)
     def pandl_for_all_trading_rules_unweighted(self, delayfill: bool = True):
-
         # group of pandl_for_trading_rule
         list_of_rules = self.list_of_trading_rules()
 
@@ -160,7 +155,6 @@ class accountTradingRules(accountForecast):
     def pandl_for_instrument_rules(
         self, instrument_code: str, delayfill: bool = True
     ) -> accountCurveGroup:
-
         # how all trading rules have done for a particular instrument, weighted
         list_of_rules = self.list_of_rules_for_code(instrument_code)
         dict_of_pandl_by_rule = dict(
@@ -194,7 +188,6 @@ class accountTradingRules(accountForecast):
         trading_rule_list=arg_not_supplied,
         delayfill: bool = True,
     ) -> accountCurveGroup:
-
         # (unweighted group - elements are pandl_for_instrument_forecast across trading rules)
         if trading_rule_list is arg_not_supplied:
             trading_rule_list = self.list_of_rules_for_code(instrument_code)

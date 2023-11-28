@@ -18,7 +18,6 @@ from sysquant.optimisation.weights import seriesOfPortfolioWeights
 def calc_sum_annualised_risk_given_portfolio_weights(
     portfolio_weights: seriesOfPortfolioWeights, pd_of_stdev: seriesOfStdevEstimates
 ) -> pd.Series:
-
     instrument_list = list(portfolio_weights.columns)
     aligned_stdev = pd_of_stdev[instrument_list].reindex(portfolio_weights.index)
 
@@ -33,7 +32,6 @@ def calc_portfolio_risk_series(
     list_of_correlations: CorrelationList,
     pd_of_stdev: seriesOfStdevEstimates,
 ) -> pd.Series:
-
     risk_series = []
     common_index = list(portfolio_weights.index)
     progress = progressBar(
@@ -66,7 +64,6 @@ def get_covariance_matrix(
     pd_of_stdev: seriesOfStdevEstimates,
     relevant_date: datetime.datetime,
 ) -> covarianceEstimate:
-
     instrument_list = list(pd_of_stdev.columns)
     correlation_estimate = get_correlation_matrix(
         relevant_date=relevant_date,

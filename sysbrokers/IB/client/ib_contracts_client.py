@@ -86,6 +86,7 @@ class ibContractsClient(ibClient):
             raise missingContract
 
         expiry_date = ibcontract.lastTradeDateOrContractMonth
+        expiry_date = expiry_date[:8]  ## in case of weird '... GB format'
 
         return expiry_date
 
@@ -100,7 +101,6 @@ class ibContractsClient(ibClient):
     def _ib_get_uncached_trading_hours(
         self, contract_object_with_ib_data: futuresContract
     ) -> listOfTradingHours:
-
         try:
             trading_hours_from_ib = self.ib_get_trading_hours_from_IB(
                 contract_object_with_ib_data
@@ -134,7 +134,6 @@ class ibContractsClient(ibClient):
     def ib_get_trading_hours_from_IB(
         self, contract_object_with_ib_data: futuresContract
     ) -> listOfTradingHours:
-
         try:
             ib_contract_details = self.ib_get_contract_details(
                 contract_object_with_ib_data
@@ -156,7 +155,6 @@ class ibContractsClient(ibClient):
     def ib_get_saved_weekly_trading_hours_for_contract(
         self, contract_object_with_ib_data: futuresContract
     ) -> weekdayDictOfListOfTradingHoursAnyDay:
-
         try:
             weekly_hours_for_timezone = (
                 self.ib_get_saved_weekly_trading_hours_for_timezone_of_contract(
@@ -196,7 +194,6 @@ class ibContractsClient(ibClient):
     def ib_get_saved_weekly_trading_hours_custom_for_contract(
         self, contract_object_with_ib_data: futuresContract
     ) -> weekdayDictOfListOfTradingHoursAnyDay:
-
         instrument_code = contract_object_with_ib_data.instrument_code
         all_saved_trading_hours = self.get_all_saved_weekly_trading_hours()
         specific_weekly_hours_for_contract = all_saved_trading_hours.get(
@@ -354,7 +351,6 @@ class ibContractsClient(ibClient):
         always_return_single_leg=False,
         trade_list_for_multiple_legs: tradeQuantity = None,
     ) -> Contract:
-
         ibcontract_with_legs = self.ib_futures_contract_with_legs(
             futures_contract_with_ib_data=futures_contract_with_ib_data,
             allow_expired=allow_expired,
@@ -397,7 +393,6 @@ class ibContractsClient(ibClient):
         trade_list_for_multiple_legs: tradeQuantity = None,
         allow_expired: bool = False,
     ):
-
         ibcontract_with_legs = self.cache.get(
             self._get_ib_futures_contract_from_broker,
             contract_object_to_use,
@@ -456,7 +451,6 @@ class ibContractsClient(ibClient):
         contract_date: contractDate,
         allow_expired: bool = False,
     ) -> ibcontractWithLegs:
-
         ibcontract = self._get_vanilla_ib_futures_contract(
             futures_instrument_with_ib_data, contract_date, allow_expired=allow_expired
         )

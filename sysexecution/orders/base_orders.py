@@ -158,7 +158,6 @@ class Order(object):
     def replace_required_trade_size_only_use_for_unsubmitted_trades(
         self, new_trade: tradeQuantity
     ):
-
         # ensure refactoring works
         assert type(new_trade) is tradeQuantity
 
@@ -308,7 +307,6 @@ class Order(object):
     def reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
         self, max_size: int
     ):
-
         new_order = copy(self)
         old_trade = new_order.trade
         new_trade = (
@@ -494,7 +492,6 @@ def resolve_parent(parent: int):
 def resolve_multi_leg_price_to_single_price(
     trade_list: tradeQuantity, price_list: list
 ) -> float:
-
     if len(price_list) == 0:
         ## This will be the case when an order is first created or has no fills
         return None

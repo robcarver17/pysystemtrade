@@ -21,7 +21,7 @@ forecast_weights:
      ewmac32: 0.50
 forecast_div_multiplier: 1.1
 instrument_weights:
-     EDOLLAR: .4
+     SOFR: .4
      US10: .1
      CORN: .3
      SP500: .2

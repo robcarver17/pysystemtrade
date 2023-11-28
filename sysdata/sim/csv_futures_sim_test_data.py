@@ -32,7 +32,6 @@ class CsvFuturesSimTestData(genericBlobUsingFuturesSimData):
     def __init__(
         self, start_date=None, end_date=None, log=get_logger("csvFuturesSimTestData")
     ):
-
         data = dataBlob(
             log=log,
             csv_data_paths=dict(

@@ -123,7 +123,7 @@ def raw_slippage_row(order_row):
     ) = price_calculations_for_order_row(order_row)
     new_order_row = copy(order_row)
     new_order_row = new_order_row[NEW_ORDER_ROW_COLS]
-    new_order_row = new_order_row.append(
+    new_order_row = new_order_row._append(
         pd.Series(
             [
                 delay,
@@ -225,7 +225,7 @@ def cash_slippage_row(slippage_row, data):
             "trade",
         ]
     ]
-    new_slippage_row = new_slippage_row.append(
+    new_slippage_row = new_slippage_row._append(
         pd.Series(
             [
                 value_of_price_point,
@@ -307,7 +307,7 @@ def vol_slippage_row(slippage_row, data):
             "trade",
         ]
     ]
-    new_slippage_row = new_slippage_row.append(
+    new_slippage_row = new_slippage_row._append(
         pd.Series(
             [
                 last_annual_vol,
@@ -334,7 +334,6 @@ def vol_slippage_row(slippage_row, data):
 
 
 def vol_calculations_for_slippage_row(slippage_row, data):
-
     last_annual_vol = get_last_annual_vol_for_slippage_row(slippage_row, data)
 
     input_items = [
@@ -362,7 +361,6 @@ def get_last_annual_vol_for_slippage_row(slippage_row, data):
 def get_stats_for_slippage_groups(df_to_process, item_list):
     results = {}
     for item_name in item_list:
-
         sum_data = df_to_process.groupby(["strategy_name", "instrument_code"]).agg(
             {item_name: "sum"}
         )
@@ -403,7 +401,7 @@ def delay_row(order_row):
             "fill_datetime",
         ]
     ]
-    new_order_row = new_order_row.append(
+    new_order_row = new_order_row._append(
         pd.Series(
             [submit_minus_generated, filled_minus_submit],
             index=["submit_minus_generated", "filled_minus_submit"],
@@ -414,7 +412,6 @@ def delay_row(order_row):
 
 
 def delay_calculations_for_order_row(order_row):
-
     submit_minus_generated = delay_calc(
         order_row.parent_reference_datetime, order_row.submit_datetime
     )

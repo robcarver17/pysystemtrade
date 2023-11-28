@@ -12,7 +12,6 @@ def correlation_over_time_for_returns(
     forward_fill_price_index=True,
     **kwargs,
 ) -> CorrelationList:
-
     index_prices_for_correlation = returns_for_correlation.cumsum()
     if forward_fill_price_index:
         index_prices_for_correlation = index_prices_for_correlation.ffill()
@@ -34,7 +33,6 @@ def correlation_over_time(
     interval_frequency: str = "12M",
     **kwargs,
 ) -> CorrelationList:
-
     column_names = list(data_for_correlation.columns)
 
     # Generate time periods

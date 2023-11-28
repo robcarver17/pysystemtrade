@@ -23,7 +23,6 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(ans.values[0], 0.164383, places=6)
 
     def test_get_forecast_cap(self):
-
         ans = self.system.forecastScaleCap.get_forecast_cap()
         self.assertEqual(ans, 21.0)
 
@@ -94,7 +93,6 @@ class Test(unittest.TestCase):
 
     @unittest.SkipTest
     def test_get_scaled_forecast(self):
-
         self.assertAlmostEqual(
             self.system.forecastScaleCap.get_scaled_forecast("EDOLLAR", "ewmac8")
             .tail(1)
@@ -104,7 +102,6 @@ class Test(unittest.TestCase):
 
     @unittest.SkipTest
     def test_get_capped_forecast(self):
-
         # fixed, normal cap
         self.assertAlmostEqual(
             self.system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac8")

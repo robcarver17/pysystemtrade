@@ -273,7 +273,6 @@ def get_directory_store_backtests():
 
 
 def pickle_state(data, system, backtest_filename):
-
     try:
         system.cache.pickle(backtest_filename)
         data.log.debug("Pickled backtest state to %s" % backtest_filename)

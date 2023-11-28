@@ -74,7 +74,6 @@ class ibPriceClient(ibContractsClient):
         contract_object_with_ib_data: futuresContract,
         trade_list_for_multiple_legs: tradeQuantity = None,
     ) -> tickerWithBS:
-
         ib_ticker = self.get_ib_ticker_object(
             contract_object_with_ib_data, trade_list_for_multiple_legs
         )
@@ -92,7 +91,6 @@ class ibPriceClient(ibContractsClient):
         contract_object_with_ib_data: futuresContract,
         trade_list_for_multiple_legs: tradeQuantity = None,
     ) -> "ib.ticker":
-
         try:
             ibcontract = self.ib_futures_contract(
                 contract_object_with_ib_data,
@@ -123,7 +121,6 @@ class ibPriceClient(ibContractsClient):
         contract_object_with_ib_data: futuresContract,
         trade_list_for_multiple_legs: tradeQuantity = None,
     ):
-
         try:
             ibcontract = self.ib_futures_contract(
                 contract_object_with_ib_data,
@@ -216,7 +213,6 @@ class ibPriceClient(ibContractsClient):
         return price_data_as_df
 
     def _raw_ib_data_to_df(self, price_data_raw: pd.DataFrame, log) -> pd.DataFrame:
-
         if price_data_raw is None:
             log.warning("No price data from IB")
             raise missingData
@@ -250,7 +246,6 @@ class ibPriceClient(ibContractsClient):
         return adjusted_ts
 
     def _adjust_ib_time_to_local(self, timestamp_ib) -> datetime.datetime:
-
         if getattr(timestamp_ib, "tz_localize", None) is None:
             # daily, nothing to do
             return timestamp_ib
@@ -304,7 +299,6 @@ class ibPriceClient(ibContractsClient):
 
 
 def _get_barsize_and_duration_from_frequency(bar_freq: Frequency) -> (str, str):
-
     barsize_lookup = dict(
         [
             (Frequency.Day, "1 day"),

@@ -140,7 +140,6 @@ class TradingRule(object):
     def _get_data_methods_from_list_of_data_string(
         self, list_of_data_str_references: list, system
     ) -> list:
-
         # Turn a list of strings into a list of function objects
         list_of_data_methods = [
             resolve_data_method(system, data_string)
@@ -155,7 +154,6 @@ class TradingRule(object):
         list_of_data_methods: list,
         list_of_args_to_pass_to_data_calls: list,
     ) -> list:
-
         # Call the functions, providing additional data if neccesssary
         list_of_data_for_call = [
             data_method(instrument_code, **data_arguments)
@@ -200,7 +198,6 @@ class tradingRuleComponents(object):
         other_args: dict,
         data_args: list = arg_not_supplied,
     ):
-
         rule_function, data, other_args, data_args = self._process_inputs(
             rule_function=rule_function,
             data=data,
@@ -221,7 +218,6 @@ class tradingRuleComponents(object):
         other_args: dict,
         data_args: list = arg_not_supplied,
     ):
-
         # turn string into a callable function if required
         self._rule_function = resolve_function(rule_function)
 
@@ -260,7 +256,6 @@ class tradingRuleComponents(object):
         return self._other_args
 
     def _check_values(self):
-
         assert isinstance(self.data, list)
         assert isinstance(self.data_args, list)
         assert isinstance(self.other_args, dict)
@@ -270,7 +265,6 @@ class tradingRuleComponents(object):
 def _get_trading_rule_components_depending_on_rule_input(
     rule, data: list, other_args: dict
 ) -> tradingRuleComponents:
-
     if data is arg_not_supplied:
         data = []
 
@@ -305,7 +299,6 @@ def _already_a_trading_rule(rule):
 def _create_rule_from_existing_rule(
     rule, data: list, other_args: dict
 ) -> tradingRuleComponents:
-
     _throw_warning_if_passed_rule_and_data(
         "tradingRule", data=data, other_args=other_args
     )
@@ -328,7 +321,6 @@ def _throw_warning_if_passed_rule_and_data(
 
 
 def _create_rule_from_tuple(rule, data: list, other_args: dict):
-
     _throw_warning_if_passed_rule_and_data("tuple", data=data, other_args=other_args)
 
     if len(rule) != 3:
@@ -345,7 +337,6 @@ def _create_rule_from_tuple(rule, data: list, other_args: dict):
 
 
 def _create_rule_from_dict(rule, data: list, other_args: dict) -> tradingRuleComponents:
-
     _throw_warning_if_passed_rule_and_data("dict", data=data, other_args=other_args)
 
     try:
@@ -368,7 +359,6 @@ def _create_rule_from_dict(rule, data: list, other_args: dict) -> tradingRuleCom
 def _create_rule_from_passed_elements(
     rule, data: list, other_args: dict
 ) -> tradingRuleComponents:
-
     rule_components = tradingRuleComponents(
         rule_function=rule, data=data, other_args=other_args
     )
@@ -486,7 +476,6 @@ def create_variations(
     """
 
     if key_argname is None:
-
         if all([len(args_dict) == 1 for args_dict in list_of_args_dict]):
             # okay to use argname as only seems to be one of them
             key_argname = list_of_args_dict[0].keys()[0]

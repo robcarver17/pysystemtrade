@@ -54,7 +54,6 @@ EXIT_CODE = "EXIT"
 
 
 def interactive_update_roll_status():
-
     with dataBlob(log_name="Interactive_Update-Roll-Status") as data:
         api = reportingApi(data)
         function_to_call = get_rolling_master_function()
@@ -104,7 +103,6 @@ class RollDataWithStateReporting(object):
         return self.original_roll_status.name
 
     def display_roll_query_banner(self):
-
         print(landing_strip(80))
         print("Current State: %s" % self.original_roll_status)
         print(
@@ -206,7 +204,6 @@ def update_roll_status_full_auto(api: reportingApi, data: dataBlob):
         if roll_state_required is no_change_required:
             warn_not_rolling(instrument_code, auto_parameters)
         else:
-
             modify_roll_state(
                 data=api.data,
                 instrument_code=instrument_code,
@@ -228,7 +225,6 @@ def get_days_ahead_to_consider_when_auto_cycling() -> int:
 
 
 def get_list_of_instruments_to_auto_cycle(data: dataBlob, days_ahead: int = 10) -> list:
-
     diag_prices = diagPrices()
     list_of_potential_instruments = (
         diag_prices.get_list_of_instruments_in_multiple_prices()
@@ -252,13 +248,11 @@ def get_list_of_instruments_to_auto_cycle(data: dataBlob, days_ahead: int = 10) 
 def include_instrument_in_auto_cycle(
     data: dataBlob, instrument_code: str, days_ahead: int = 10
 ) -> bool:
-
     days_until_expiry = days_until_earliest_expiry(data, instrument_code)
     return days_until_expiry <= days_ahead
 
 
 def days_until_earliest_expiry(data: dataBlob, instrument_code: str) -> int:
-
     data_contracts = dataContracts(data)
     carry_days = data_contracts.days_until_carry_expiry(instrument_code)
     roll_days = data_contracts.days_until_roll(instrument_code)
@@ -376,7 +370,6 @@ def default_auto_roll_parameters(data: dataBlob) -> dict:
 
 
 def describe_roll_rules_from_parameters(auto_parameters: autoRollParameters):
-
     print(
         "AUTO ROLL RULES:\n\n"
         + "%s\n\n" % describe_action_for_auto_roll_expired(auto_parameters)
@@ -425,7 +418,6 @@ def auto_selected_roll_state_instrument(
     roll_data: RollDataWithStateReporting,
     auto_parameters: autoRollParameters,
 ) -> RollState:
-
     run_roll_report(api, roll_data.instrument_code)
     roll_state_required = suggest_roll_state_for_instrument(
         roll_data=roll_data, auto_parameters=auto_parameters
@@ -454,7 +446,6 @@ def suggest_roll_state_for_instrument(
     roll_data: RollDataWithStateReporting,
     auto_parameters: autoRollParameters,
 ) -> RollState:
-
     forward_liquid = check_if_forward_liquid(
         roll_data=roll_data, auto_parameters=auto_parameters
     )
@@ -533,7 +524,6 @@ def check_if_getting_close_to_desired_roll_date(
 def check_if_expired_and_auto_rolling_expired(
     roll_data: RollDataWithStateReporting, auto_parameters: autoRollParameters
 ) -> bool:
-
     expired = roll_data.days_until_expiry <= 0
     auto_rolling_expired = auto_parameters.auto_roll_expired
 
@@ -541,7 +531,6 @@ def check_if_expired_and_auto_rolling_expired(
 
 
 def warn_not_rolling(instrument_code: str, auto_parameters: autoRollParameters):
-
     print_with_landing_strips_around(
         "\nNo change to rolling status for %s given parameters %s\n"
         % (instrument_code, str(auto_parameters))
@@ -700,7 +689,6 @@ def modify_roll_state(
     roll_state_required: RollState,
     confirm_adjusted_price_change: bool = True,
 ):
-
     roll_state_is_unchanged = (roll_state_required is no_change_required) or (
         roll_state_required is original_roll_state
     )
@@ -832,7 +820,6 @@ def get_roll_adjusted_multiple_prices_object(
     data: dataBlob,
     instrument_code: str,
 ) -> rollingAdjustedAndMultiplePrices:
-
     ## returns failure if goes wrong
     try:
         rolling_adj_and_mult_object = rollingAdjustedAndMultiplePrices(
@@ -857,7 +844,6 @@ def get_roll_adjusted_multiple_prices_object(
 def _get_roll_adjusted_multiple_prices_object_ffill_option(
     data: dataBlob, instrument_code: str
 ) -> rollingAdjustedAndMultiplePrices:
-
     ## returns failure if goes wrong
     try_forward_fill = true_if_answer_is_yes(
         "Do you want to try forward filling prices first (less accurate, but guarantees roll)? [y/n]"
@@ -919,7 +905,6 @@ def check_trading_limits_for_roll_state(
 def calculate_abs_trades_required_for_roll(
     data: dataBlob, roll_state_required: RollState, instrument_code: str
 ) -> float:
-
     data_contacts = dataContracts(data)
     diag_positions = diagPositions(data)
     current_priced_contract_id = data_contacts.get_priced_contract_id(

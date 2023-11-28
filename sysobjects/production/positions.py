@@ -48,7 +48,6 @@ class instrumentPosition(Position):
 
 class instrumentStrategyPosition(Position):
     def __init__(self, position: int, instrument_strategy: instrumentStrategy):
-
         super().__init__(position, instrument_strategy)
 
     @property
@@ -311,7 +310,6 @@ class listOfInstrumentStrategyPositions(listOfPositionsWithInstruments):
     def position_object_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ):
-
         result = list(
             filter(
                 lambda position: position.instrument_strategy == instrument_strategy,

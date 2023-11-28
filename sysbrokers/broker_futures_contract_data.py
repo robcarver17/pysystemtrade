@@ -22,7 +22,6 @@ class brokerFuturesContractData(futuresContractData):
         raise NotImplementedError
 
     def is_contract_okay_to_trade(self, futures_contract: futuresContract) -> bool:
-
         try:
             trading_hours = self.get_trading_hours_for_contract(futures_contract)
         except missingContract:

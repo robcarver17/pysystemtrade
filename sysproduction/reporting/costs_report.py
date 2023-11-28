@@ -10,7 +10,6 @@ COSTS_REPORT_TEXT = body_text(
 
 
 def costs_report(data: dataBlob = arg_not_supplied, calendar_days_back=250):
-
     if data is arg_not_supplied:
         data = dataBlob()
 

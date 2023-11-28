@@ -31,7 +31,6 @@ class portfolioOptimiser:
         method="handcraft",
         **weighting_args,
     ):
-
         self._net_returns = net_returns
         self._log = log
         self._weighting_args = weighting_args
@@ -62,7 +61,6 @@ class portfolioOptimiser:
         return str2Bool(self.weighting_args["cleaning"])
 
     def calculate_weights_for_period(self, fit_period: fitDates) -> portfolioWeights:
-
         if fit_period.no_data:
             return one_over_n_weights_given_data(self.net_returns)
 
@@ -76,7 +74,6 @@ class portfolioOptimiser:
     def clean_weights_for_period(
         self, weights: portfolioWeights, fit_period: fitDates
     ) -> portfolioWeights:
-
         if fit_period.no_data:
             return weights
 
@@ -88,7 +85,6 @@ class portfolioOptimiser:
         return cleaned_weights
 
     def calculate_weights_given_data(self, fit_period: fitDates) -> portfolioWeights:
-
         estimates_and_portfolio_weights = (
             self.get_weights_and_returned_estimates_for_period(fit_period)
         )
@@ -99,7 +95,6 @@ class portfolioOptimiser:
     def get_weights_and_returned_estimates_for_period(
         self, fit_period: fitDates
     ) -> estimatesWithPortfolioWeights:
-
         method = self.method
         weighting_args = self._weighting_args
 

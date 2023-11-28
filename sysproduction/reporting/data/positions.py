@@ -28,7 +28,6 @@ def get_broker_positions(data):
 
 
 def get_position_breaks(data):
-
     data_optimal = dataOptimalPositions(data)
     breaks_str0 = "Breaks Optimal vs actual %s" % str(
         data_optimal.get_list_of_optimal_position_breaks()

@@ -45,7 +45,6 @@ class stackHandlerForSpawning(stackHandlerCore):
             self.spawn_children_from_instrument_order_id(instrument_order_id)
 
     def spawn_children_from_instrument_order_id(self, instrument_order_id: int):
-
         instrument_order = self.instrument_stack.get_order_with_id_from_stack(
             instrument_order_id
         )
@@ -85,7 +84,6 @@ class stackHandlerForSpawning(stackHandlerCore):
         parent_order: Order,
         list_of_child_orders: listOfOrders,
     ):
-
         # TODO log_with_attributes
         parent_log = parent_order.log_with_attributes(self.log)
 
@@ -318,7 +316,6 @@ def passive_roll_child_order(
     data: dataBlob,
     instrument_order: instrumentOrder,
 ) -> list:
-
     log_attrs = {**instrument_order.log_attributes(), "method": "temp"}
     diag_positions = diagPositions(data)
     instrument_code = instrument_order.instrument_code
@@ -419,7 +416,6 @@ def passive_trade_split_over_two_contracts(
 def list_of_contract_orders_from_list_of_child_date_and_trade(
     instrument_order: instrumentOrder, list_of_child_contract_dates_and_trades: list
 ) -> listOfOrders:
-
     list_of_contract_orders = [
         contract_order_for_direct_instrument_child_date_and_trade(
             instrument_order, child_date_and_trade

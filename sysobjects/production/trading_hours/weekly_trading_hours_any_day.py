@@ -16,7 +16,6 @@ class weekdayDictOfListOfTradingHoursAnyDay(dict):
         self,
         weekday_dict_of_list_of_open_times: "weekdayDictOfListOfTradingHoursAnyDay",
     ) -> "weekdayDictOfListOfTradingHoursAnyDay":
-
         return intersection_weekday_dict_of_list_of_trading_hours_any_day(
             self, weekday_dict_of_list_of_open_times
         )
@@ -51,7 +50,6 @@ def intersection_weekday_dict_of_list_of_trading_hours_any_day(
     first_dict: weekdayDictOfListOfTradingHoursAnyDay,
     second_dict: weekdayDictOfListOfTradingHoursAnyDay,
 ) -> weekdayDictOfListOfTradingHoursAnyDay:
-
     new_dict = dict(
         [
             (weekday, first_dict[weekday].intersect(second_dict[weekday]))

@@ -48,7 +48,6 @@ def parse_trading_hours_string(
     trading_hours_string: str,
     adjustment_hours: int = 0,
 ) -> listOfTradingHours:
-
     day_by_day = trading_hours_string.split(";")
     list_of_open_times = [
         parse_trading_for_day(string_for_day, adjustment_hours=adjustment_hours)
@@ -67,7 +66,6 @@ def parse_trading_hours_string(
 def parse_trading_for_day(
     string_for_day: str, adjustment_hours: int = 0
 ) -> tradingHours:
-
     start_and_end = string_for_day.split("-")
     if len(start_and_end) == 1:
         # closed

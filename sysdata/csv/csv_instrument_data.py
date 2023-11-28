@@ -27,7 +27,6 @@ class csvFuturesInstrumentData(futuresInstrumentData):
         datapath=arg_not_supplied,
         log=get_logger("csvFuturesInstrumentData"),
     ):
-
         super().__init__(log=log)
 
         if datapath is arg_not_supplied:
@@ -79,7 +78,6 @@ class csvFuturesInstrumentData(futuresInstrumentData):
         return config_data
 
     def _instrument_csv_as_df(self) -> pd.DataFrame:
-
         config_data = getattr(self, "_instrument_df", None)
         if config_data is None:
             config_data = self._load_and_store_instrument_csv_as_df()

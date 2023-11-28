@@ -101,7 +101,6 @@ def put_children_on_stack(  # TODO passed logger instance
     list_of_child_orders: listOfOrders,
     parent_log,
 ) -> list:
-
     try:
         list_of_child_ids = child_stack.put_list_of_orders_on_stack(
             list_of_child_orders
@@ -158,7 +157,6 @@ def log_successful_adding(  # TODO passed logger instance
     parent_order: Order,
     parent_log,
 ):
-
     for child_order, child_id in zip(list_of_child_orders, list_of_child_ids):
         # TODO log_with_attributes
         child_log = child_order.log_with_attributes(parent_log)
@@ -176,7 +174,6 @@ def rollback_parents_and_children_and_handle_exceptions(
     parent_log,
     error_from_adding_child_orders: Exception,
 ):
-
     ##
     try:
         rollback_parents_and_children(
@@ -206,7 +203,6 @@ def rollback_parents_and_children(
     parent_order_id: int,
     list_of_child_order_ids: list,
 ):
-
     ## parent order might be locked
     parent_stack.unlock_order_on_stack(parent_order_id)
     parent_stack.deactivate_order(parent_order_id)

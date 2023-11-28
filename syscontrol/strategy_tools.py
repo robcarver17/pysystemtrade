@@ -44,7 +44,6 @@ class strategyRunner:
 def get_strategy_method(
     data: dataBlob, strategy_name: str, process_name: str, function_name: str
 ):
-
     strategy_class_instance = get_strategy_class_instance(
         data=data, strategy_name=strategy_name, process_name=process_name
     )

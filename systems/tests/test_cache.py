@@ -65,7 +65,6 @@ class testStage2(SystemStage):
 @unittest.SkipTest
 class TestCache(unittest.TestCase):
     def setUp(self):
-
         system = System(
             [testStage1(), testStage2()],
             simData(),
@@ -85,7 +84,6 @@ class TestCache(unittest.TestCase):
         self.assertEqual(0, len(self.system.cache.get_items_with_data()))
 
     def test_single_instrument_no_keywords(self):
-
         self.system.test_stage1.single_instrument_no_keywords("code")
         cache_ref = self.system.cache.get_cacherefs_for_stage("test_stage1")[0]
         self.assertEqual("code", cache_ref.instrument_code)
@@ -111,7 +109,6 @@ class TestCache(unittest.TestCase):
         self.assertEqual(0, len(self.system.cache.get_items_with_data()))
 
     def test_single_instrument_with_keywords(self):
-
         self.system.test_stage1.single_instrument_with_keywords("code", "keyname")
         cache_ref = self.system.cache.get_cacherefs_for_stage("test_stage1")[0]
         self.assertEqual("code", cache_ref.instrument_code)
@@ -175,7 +172,6 @@ class TestCache(unittest.TestCase):
         self.assertEqual(4, len(cache_refs))
 
     def test_protection_and_deletion_across(self):
-
         # one protected, one unprotected
         ans = self.system.test_stage1.single_instrument_no_keywords("code")
         ans2 = self.system.test_stage1.single_instrument_protected("code")

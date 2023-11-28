@@ -31,7 +31,6 @@ def apply_price_cleaning(
     cleaning_config=arg_not_supplied,
     daily_data: bool = True,
 ):
-
     cleaning_config = get_config_for_price_filtering(
         data=data, cleaning_config=cleaning_config
     )
@@ -102,7 +101,6 @@ FIXME THIS IS HORRIBLE
 def get_config_for_price_filtering(
     data: dataBlob, cleaning_config: priceFilterConfig = arg_not_supplied
 ) -> priceFilterConfig:
-
     if cleaning_config is not arg_not_supplied:
         ## override
         return cleaning_config

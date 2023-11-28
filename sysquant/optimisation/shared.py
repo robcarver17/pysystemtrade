@@ -19,7 +19,6 @@ def optimise_given_estimates(
     equalise_vols: bool = True,
     **_ignored_kwargs,
 ) -> estimatesWithPortfolioWeights:
-
     estimates = estimates.equalise_estimates(
         equalise_vols=equalise_vols,
         equalise_SR=equalise_SR,
@@ -57,7 +56,6 @@ def sigma_from_corr_and_std(stdev_list: list, corrmatrix: list):
 
 
 def optimise_from_sigma_and_mean_list(sigma: np.array, mean_list: list) -> list:
-
     mus = np.array(mean_list, ndmin=2).transpose()
     number_assets = sigma.shape[1]
     start_weights = [1.0 / number_assets] * number_assets

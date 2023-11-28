@@ -82,7 +82,6 @@ class correlationEstimate(Estimate):
         return self.shrink(prior_corr=prior_corr, shrinkage_corr=shrinkage_corr)
 
     def shrink(self, prior_corr: "correlationEstimate", shrinkage_corr: float = 1.0):
-
         if shrinkage_corr == 1.0:
             return prior_corr
 
@@ -128,14 +127,12 @@ class correlationEstimate(Estimate):
         return clean_correlation
 
     def clean_correlations(self, must_haves: list = arg_not_supplied, offdiag=0.99):
-
         # means we can use earlier correlations with sensible values
         cleaned_corr_matrix = clean_correlation(self, must_haves, offdiag=offdiag)
 
         return cleaned_corr_matrix
 
     def boring_corr_matrix(self, offdiag: float = 0.99, diag: float = 1.0):
-
         return create_boring_corr_matrix(
             self.size, offdiag=offdiag, diag=diag, columns=self.columns
         )
@@ -285,7 +282,6 @@ def create_boring_corr_matrix(
 def boring_corr_matrix_values(
     size: int, offdiag: float = 0.99, diag: float = 1.0
 ) -> np.array:
-
     size_index = range(size)
 
     def _od(i, j, offdiag, diag):
@@ -464,7 +460,6 @@ def modify_correlation(
     shrinkage: float = 0.0,
     clip=arg_not_supplied,
 ):
-
     if floor_at_zero:
         corr_matrix = corr_matrix.floor_correlation_matrix(floor=0.0)
 

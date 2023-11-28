@@ -108,7 +108,6 @@ class ibFxPricesData(brokerFxPricesData):
         return raw_fx_prices_as_series
 
     def _get_config_info_for_code(self, currency_code: str) -> ibFXConfig:
-
         try:
             config_data = self._get_ib_fx_config()
         except missingFile as e:
@@ -133,7 +132,6 @@ class ibFxPricesData(brokerFxPricesData):
         return config
 
     def _get_and_set_ib_config_from_file(self) -> pd.DataFrame:
-
         config_data = get_ib_config_from_file(log=self.log)
         self._config = config_data
 

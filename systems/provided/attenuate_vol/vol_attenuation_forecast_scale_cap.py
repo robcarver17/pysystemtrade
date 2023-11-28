@@ -54,7 +54,6 @@ class volAttenForecastScaleCap(ForecastScaleCap):
     def get_attenuation_for_rule_and_instrument_indexed_to_forecast(
         self, instrument_code, rule_variation_name
     ) -> pd.Series:
-
         raw_forecast_before_atten = self.get_raw_forecast_before_attenuation(
             instrument_code, rule_variation_name
         )

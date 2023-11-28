@@ -1,8 +1,9 @@
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
+from sysproduction.data.prices import diagPrices
+
 from sysobjects.contracts import futuresContract
 import pandas as pd
+
+diag_prices = diagPrices()
 
 
 class ContractComparison:
@@ -26,7 +27,7 @@ class ContractComparison:
             instrument_object=instrument_code, contract_date_object=forward_date_str
         )
 
-        contract_prices = arcticFuturesContractPriceData()
+        contract_prices = diag_prices.db_futures_contract_price_data
         price_prices = contract_prices.get_merged_prices_for_contract_object(
             price_contract
         )

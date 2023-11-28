@@ -46,7 +46,6 @@ class contractOrderStackData(orderStackData):
             raise Exception(error_msg)
 
     def release_order_from_algo_control(self, order_id: int):
-
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
             error_msg = "Can't add controlling ago as order %d doesn't exist" % order_id

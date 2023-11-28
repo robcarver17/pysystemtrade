@@ -103,7 +103,6 @@ def calculations_for_code(
     optimium_weight: float = np.nan,
     long_only: bool = False,
 ):
-
     minimum, maximum = calculate_minima_and_maxima(
         reduce_only=reduce_only,
         no_trade=no_trade,
@@ -132,7 +131,6 @@ def calculate_minima_and_maxima(
     max_position: float = arg_not_supplied,
     weight_prior: float = arg_not_supplied,
 ) -> tuple:
-
     minimum = -A_VERY_LARGE_NUMBER
     maximum = A_VERY_LARGE_NUMBER
 
@@ -173,7 +171,6 @@ def calculate_direction(
     minimum: float = -A_VERY_LARGE_NUMBER,
     maximum: float = A_VERY_LARGE_NUMBER,
 ) -> float:
-
     ## always start at zero, so if minima/maxima already bind we can only go up or down
     if minimum >= 0.0:
         return 1

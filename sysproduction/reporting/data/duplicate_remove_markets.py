@@ -131,7 +131,6 @@ class RemoveMarketData:
     def bad_markets(
         self, apply_higher_threshold=False, apply_lower_threshold=False
     ) -> list:
-
         threshold_factor = calculate_threshold_factor(
             apply_lower_threshold=apply_lower_threshold,
             apply_higher_threshold=apply_higher_threshold,
@@ -531,7 +530,6 @@ def get_bad_market_filter_parameters():
 def calculate_threshold_factor(
     apply_lower_threshold: bool = False, apply_higher_threshold: bool = False
 ) -> float:
-
     ## The threshold factor is a number we apply
     ## To be stopped from trading an existing market must be well below the threshold for not being a bad market
     ## To be added to trading an existing bad market must be well above the threshold for not being a bad market

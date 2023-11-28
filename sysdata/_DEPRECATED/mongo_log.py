@@ -89,7 +89,6 @@ def add_before_n_days_to_attribute_dict(
 def add_after_n_days_to_attribute_dict(
     attribute_dict: dict, lookback_days: int
 ) -> dict:
-
     attribute_dict = add_timestamp_cutoff_to_attribute_dict(
         attribute_dict=attribute_dict,
         lookback_days=lookback_days,

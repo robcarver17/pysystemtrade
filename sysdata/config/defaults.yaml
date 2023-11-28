@@ -43,6 +43,9 @@ mongo_db: 'production'
 # format for mongo_host, eg mongodb://127.0.0.1:27018
 mongo_port: 27017
 #
+# Parquet store
+parquet_store: '/home/me/data/parquet'
+#
 # Needs to be consistent with what you are using in crontab
 echo_extension: '.txt'
 # Spike checker

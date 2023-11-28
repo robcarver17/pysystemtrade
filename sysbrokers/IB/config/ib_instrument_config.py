@@ -35,7 +35,6 @@ def read_ib_config_from_file(log=get_logger("")) -> IBconfig:
 def get_instrument_object_from_config(
     instrument_code: str, config: IBconfig = None, log=get_logger("")
 ) -> futuresInstrumentWithIBConfigData:
-
     log_attrs = {INSTRUMENT_CODE_LOG_LABEL: instrument_code, "method": "temp"}
 
     if config is None:
@@ -69,7 +68,6 @@ def get_instrument_object_from_config(
 def _get_instrument_object_from_valid_config(
     instrument_code: str, config: IBconfig = None
 ) -> futuresInstrumentWithIBConfigData:
-
     config_row = config[config.Instrument == instrument_code]
     symbol = config_row.IBSymbol.values[0]
     exchange = config_row.IBExchange.values[0]
@@ -115,7 +113,6 @@ def get_instrument_code_from_broker_instrument_identity(
     ib_instrument_identity: IBInstrumentIdentity,
     log=get_logger(""),
 ) -> str:
-
     ib_code = ib_instrument_identity.ib_code
     ib_multiplier = ib_instrument_identity.ib_multiplier
     ib_exchange = ib_instrument_identity.ib_exchange
@@ -150,7 +147,6 @@ def get_instrument_code_from_broker_instrument_identity(
             raise Exception(msg)
 
     if len(config_rows) > 1:
-
         msg = (
             "Broker symbol %s (%s, %f) appears more than once in configuration file!"
             % (ib_code, ib_exchange, ib_multiplier)
@@ -164,7 +160,6 @@ def get_instrument_code_from_broker_instrument_identity(
 def _get_relevant_config_rows_from_broker_instrument_identity_using_multiple_valid_exchanges(
     config: IBconfig, ib_instrument_identity: IBInstrumentIdentity
 ) -> pd.Series:
-
     ib_code = ib_instrument_identity.ib_code
     ib_multiplier = ib_instrument_identity.ib_multiplier
     ib_valid_exchange = ib_instrument_identity.ib_valid_exchange
@@ -189,7 +184,6 @@ def _get_relevant_config_rows_from_broker_instrument_identity_using_multiple_val
 def _get_relevant_config_rows_from_broker_instrument_identity_fields(
     config: IBconfig, ib_code: str, ib_multiplier: float, ib_exchange: str
 ) -> pd.Series:
-
     config_rows = config[
         (config.IBSymbol == ib_code)
         & (config.IBMultiplier == ib_multiplier)

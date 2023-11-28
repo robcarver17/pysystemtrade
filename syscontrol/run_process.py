@@ -366,7 +366,6 @@ def check_for_pause_and_log(process_to_run: processToRun) -> bool:
 
 ## FINISH CODE
 def _check_for_stop(process_to_run: processToRun) -> bool:
-
     """
     - is my process marked as STOP in process control (check database)
 

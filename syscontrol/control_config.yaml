@@ -116,7 +116,9 @@ process_configuration_methods:
     account_curve_report:
       max_executions: 1
   run_backups:
-    backup_arctic_to_csv:
+    backup_db_to_csv:
+      max_executions: 1
+    backup_parquet:
       max_executions: 1
     backup_files:
       max_executions: 1

@@ -9,12 +9,11 @@ from sysdata.csv.csv_roll_parameters import csvRollParametersData
 
 
 class TestFuturesInit:
-
     csv_config = ConfigCsvFuturesPrices(
         input_date_index_name="Time",
         input_skiprows=0,
         input_skipfooter=0,
-        input_date_format="%Y-%m-%dT%H:%M:%S%z",
+        input_date_format="%Y-%m-%dT%H:%M:%S",
         input_column_mapping=dict(
             OPEN="Open", HIGH="High", LOW="Low", FINAL="Close", VOLUME="Volume"
         ),

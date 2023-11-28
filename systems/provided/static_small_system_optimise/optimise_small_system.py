@@ -24,7 +24,6 @@ def find_best_ordered_set_of_instruments(
     notional_starting_IDM=1.0,
     capital=500000,
 ) -> list:
-
     ## 'system' can be precalculated up to the combined forecast stage to save time
 
     system.config.notional_trading_capital = capital
@@ -83,7 +82,6 @@ def get_correlation_matrix(system) -> correlationEstimate:
 def find_best_market(
     system, list_of_instruments: list, minimum_instrument_weight_idm: float
 ) -> str:
-
     all_results = []
     for instrument_code in list_of_instruments:
         all_results.append(
@@ -134,7 +132,6 @@ def find_next_instrument(
 def SR_for_instrument_list(
     system, corr_matrix, instrument_list, minimum_instrument_weight_idm
 ):
-
     estimates = build_estimates(
         instrument_list=instrument_list, corr_matrix=corr_matrix
     )
@@ -157,7 +154,6 @@ def SR_for_instrument_list(
 
 
 def build_estimates(instrument_list, corr_matrix, notional_years_data=30):
-
     ## We don't take SR into account
     mean_estimates = meanEstimates(
         dict([(instrument_code, 1.0) for instrument_code in instrument_list])
@@ -263,7 +259,6 @@ def net_SR_for_instrument_in_system(
     minimum_instrument_weight_idm: float,
     instrument_weight_idm: float,
 ):
-
     if instrument_weight_idm == 0:
         return 0.0
 

@@ -1,8 +1,10 @@
 from syscore.constants import arg_not_supplied
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
-from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
-from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
+
+from sysproduction.data.prices import diagPrices
+
+diag_prices = diagPrices()
 
 
 def init_arctic_with_csv_futures_contract_prices(
@@ -31,18 +33,18 @@ def init_arctic_with_csv_prices_for_code(
 ):
     print(instrument_code)
     csv_mult_data = csvFuturesMultiplePricesData(multiple_price_datapath)
-    arctic_mult_data = arcticFuturesMultiplePricesData()
+    db_mult_data = diagPrices.db_futures_multiple_prices_data
 
     mult_prices = csv_mult_data.get_multiple_prices(instrument_code)
-    arctic_mult_data.add_multiple_prices(
+    db_mult_data.add_multiple_prices(
         instrument_code, mult_prices, ignore_duplication=True
     )
 
     csv_adj_data = csvFuturesAdjustedPricesData(adj_price_datapath)
-    arctic_adj_data = arcticFuturesAdjustedPricesData()
+    db_adj_data = diagPrices.db_futures_adjusted_prices_data
 
     adj_prices = csv_adj_data.get_adjusted_prices(instrument_code)
-    arctic_adj_data.add_adjusted_prices(
+    db_adj_data.add_adjusted_prices(
         instrument_code, adj_prices, ignore_duplication=True
     )
 

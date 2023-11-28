@@ -34,7 +34,7 @@ class contractPositionData(baseData):
         if len(position_series) == 0:
             return 0.0
 
-        return position_series[-1]
+        return position_series.iloc[-1]
 
     def update_position_for_contract_object(
         self,
@@ -86,7 +86,6 @@ class contractPositionData(baseData):
         start_date: datetime.datetime,
         end_date: datetime.datetime,
     ) -> List[str]:
-
         list_of_contracts = self.get_list_of_contracts_for_instrument_code(
             instrument_code
         )
@@ -144,7 +143,6 @@ class contractPositionData(baseData):
         start_date: datetime.datetime,
         end_date: datetime.datetime,
     ) -> bool:
-
         try:
             series_of_positions = self.get_position_as_series_for_contract_object(
                 contract
@@ -188,7 +186,6 @@ class contractPositionData(baseData):
         current_series: pd.Series,
         new_position_series: pd.Series,
     ):
-
         try:
             assert new_position_series.index[0] > current_series.index[-1]
         except:
@@ -196,7 +193,7 @@ class contractPositionData(baseData):
             self.log.critical(error_msg)
             raise Exception(error_msg)
 
-        updated_series = current_series.append(new_position_series)
+        updated_series = current_series._append(new_position_series)
         self._write_updated_position_series_for_contract_object(
             contract_object=contract_object, updated_series=updated_series
         )
@@ -309,7 +306,7 @@ def _infer_position_at_start(
     if no_positions_before_start:
         position_at_start = 0
     else:
-        last_position_before_start = positions_before_start[-1]
+        last_position_before_start = positions_before_start.iloc[-1]
         position_at_start = last_position_before_start
 
     return position_at_start
