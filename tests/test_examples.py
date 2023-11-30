@@ -253,7 +253,6 @@ class TestExamples:
 
         print(my_system.portfolio.get_notional_position("SOFR").tail(5))
 
-    @pytest.mark.skip  # TODO figure out why this fails
     def test_simple_system_costs(
         self,
         data,
