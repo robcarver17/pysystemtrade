@@ -277,7 +277,7 @@ class accountCurve(pd.Series):
         return sortino
 
     def vals(self):
-        vals = self.values[~np.isnan(self.values)]
+        vals = pd.to_numeric(self.values[~pd.isnull(self.values)], errors="coerce")
 
         return vals
 
