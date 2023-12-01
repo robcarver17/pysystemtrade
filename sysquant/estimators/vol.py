@@ -169,7 +169,7 @@ def mixed_vol_calc(
     vol = simple_ewvol_calc(daily_returns, days=days, min_periods=min_periods)
 
     slow_vol_days = slow_vol_years * BUSINESS_DAYS_IN_YEAR
-    long_vol = vol.ewm(slow_vol_days).mean()
+    long_vol = vol.ewm(span=slow_vol_days).mean()
 
     vol = long_vol * proportion_of_slow_vol + vol * (1 - proportion_of_slow_vol)
 
