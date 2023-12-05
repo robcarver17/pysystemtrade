@@ -165,7 +165,7 @@ def calculate_cost_deflator(price: pd.Series) -> pd.Series:
     daily_returns = price_to_daily_returns(price)
     ## crude but doesn't matter
     vol_price = daily_returns.rolling(180, min_periods=3).std().ffill()
-    final_vol = vol_price[-1]
+    final_vol = vol_price.iloc[-1]
 
     cost_scalar = vol_price / final_vol
 
