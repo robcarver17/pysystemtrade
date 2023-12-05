@@ -189,9 +189,6 @@ class Config(object):
         :return: nothing
         """
 
-        # inherit the log
-        setattr(self, "log", base_system.log.setup(stage="config"))
-
         # fill with defaults
         self.fill_with_defaults()
 

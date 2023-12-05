@@ -445,11 +445,19 @@ class Order(object):
         """
         Returns a new log object with order attributes added
 
-        :param log: pst_logger
+        :param log: logger
         :return: log
         """
 
         return log
+
+    def log_attributes(self):
+        """
+        Returns a dict of order log attributes
+        :return: dict
+        """
+
+        return {}
 
 
 def resolve_inputs_to_order(trade, fill) -> (tradeQuantity, tradeQuantity):

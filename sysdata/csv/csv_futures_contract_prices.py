@@ -89,8 +89,11 @@ class csvFuturesContractPriceData(futuresContractPriceData):
                 skipfooter=skipfooter,
             )
         except OSError:
-            log = futures_contract_object.log(self.log)
-            log.warning("Can't find adjusted price file %s" % filename)
+            self.log.warning(
+                "Can't find adjusted price file %s" % filename,
+                **futures_contract_object.log_attributes(),
+                method="temp",
+            )
             return futuresContractPrices.create_empty()
 
         instrpricedata = instrpricedata.groupby(level=0).last()

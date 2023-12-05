@@ -41,7 +41,7 @@ class objectiveFunctionForGreedy:
         previous_positions: portfolioWeights = arg_not_supplied,
         constraints: constraintsForDynamicOpt = arg_not_supplied,
         maximum_positions: portfolioWeights = arg_not_supplied,
-        log: pst_logger = get_logger("objectiveFunctionForGreedy"),
+        log=get_logger("objectiveFunctionForGreedy"),
         constraint_function: Callable = arg_not_supplied,
     ):
         self.covariance_matrix = covariance_matrix

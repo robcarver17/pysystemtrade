@@ -232,7 +232,7 @@ class instrumentOrder(Order):
         """
         Returns a new log object with instrument_order attributes added
 
-        :param log: pst_logger
+        :param log: logger
         :return: log
         """
         new_log = log.setup(
@@ -254,3 +254,17 @@ class instrumentOrder(Order):
         )
 
         return new_log
+
+    def log_attributes(self):
+        """
+        Returns a dict of instrument_order log attributes
+
+        :return: dict
+        """
+        return {
+            STRATEGY_NAME_LOG_LABEL: self.strategy_name,
+            INSTRUMENT_CODE_LOG_LABEL: self.instrument_code,
+            INSTRUMENT_ORDER_ID_LABEL: if_object_matches_return_empty_string(
+                self.order_id, no_order_id
+            ),
+        }

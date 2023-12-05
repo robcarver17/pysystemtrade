@@ -90,7 +90,7 @@ class futuresContract(object):
         self._contract_date = contract_date_object
         self._params = parameter_object
 
-    def specific_log(self, log):
+    def specific_log(self, log):  # TODO remove
         new_log = log.setup(
             **{
                 INSTRUMENT_CODE_LOG_LABEL: self.instrument_code,
@@ -99,6 +99,17 @@ class futuresContract(object):
         )
 
         return new_log
+
+    def log_attributes(self):
+        """
+        Returns a dict of futuresContract log attributes
+
+        :return: dict
+        """
+        return {
+            INSTRUMENT_CODE_LOG_LABEL: self.instrument_code,
+            CONTRACT_DATE_LOG_LABEL: self.date_str,
+        }
 
     @property
     def instrument(self):
@@ -145,11 +156,6 @@ class futuresContract(object):
 
     def sampling_off(self):
         self.params.sampling = False
-
-    def log(self, log: pst_logger):
-        return log.setup(
-            instrument_code=self.instrument_code, contract_date=self.date_str
-        )
 
     def as_dict(self):
         """

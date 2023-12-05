@@ -94,14 +94,16 @@ class instrumentOrderStackData(orderStackData):
     ) -> int:
         # no current order for this instrument/strategy
 
-        log = new_order.log_with_attributes(self.log)
+        log_attrs = {**new_order.log_attributes(), "method": "temp"}
 
         if new_order.is_zero_trade() and not allow_zero_orders:
             log_msg = "Zero orders not allowed"
-            log.debug(log_msg)
+            self.log.debug(log_msg, **log_attrs)
             raise zeroOrderException(log_msg)
 
-        log.debug("New order %s putting on %s" % (str(new_order), str(self)))
+        self.log.debug(
+            "New order %s putting on %s" % (str(new_order), str(self)), **log_attrs
+        )
 
         order_id = self._put_order_on_stack_and_get_order_id(new_order)
 
@@ -119,6 +121,7 @@ class instrumentOrderStackData(orderStackData):
         :param new_order:
         :return:
         """
+        # TODO log_with_attributes
         log = new_order.log_with_attributes(self.log)
 
         existing_orders = listOfOrders(
@@ -145,7 +148,7 @@ class instrumentOrderStackData(orderStackData):
         return order_id
 
 
-def calculate_adjusted_order_given_existing_orders(
+def calculate_adjusted_order_given_existing_orders(  # TODO passed logger instance
     new_order: instrumentOrder, existing_orders: listOfOrders, log
 ):
     desired_new_trade = new_order.trade

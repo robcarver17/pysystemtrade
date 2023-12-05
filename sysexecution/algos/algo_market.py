@@ -46,10 +46,13 @@ class algoMarket(Algo):
 
     def prepare_and_submit_trade(self):
         contract_order = self.contract_order
-        log = contract_order.log_with_attributes(self.data.log)
+        log_attrs = {**contract_order.log_attributes(), "method": "temp"}
 
         if contract_order.panic_order:
-            log.debug("PANIC ORDER! DON'T RESIZE AND DO ENTIRE TRADE")
+            self.data.log.debug(
+                "PANIC ORDER! DON'T RESIZE AND DO ENTIRE TRADE",
+                **log_attrs,
+            )
             cut_down_contract_order = copy(contract_order)
         else:
             cut_down_contract_order = contract_order.reduce_trade_size_proportionally_so_smallest_leg_is_max_size(
@@ -57,9 +60,10 @@ class algoMarket(Algo):
             )
 
         if cut_down_contract_order.trade != contract_order.trade:
-            log.debug(
+            self.data.log.debug(
                 "Cut down order to size %s from %s because of algo size limit"
-                % (str(contract_order.trade), str(cut_down_contract_order.trade))
+                % (str(contract_order.trade), str(cut_down_contract_order.trade)),
+                **log_attrs,
             )
 
         order_type = self.order_type_to_use
@@ -78,6 +82,7 @@ class algoMarket(Algo):
     def manage_live_trade(
         self, broker_order_with_controls: orderWithControls
     ) -> orderWithControls:
+        # TODO log_with_attributes
         log = broker_order_with_controls.order.log_with_attributes(self.data.log)
         data_broker = self.data_broker
 

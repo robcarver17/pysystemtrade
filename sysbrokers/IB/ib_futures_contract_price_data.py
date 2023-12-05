@@ -196,7 +196,6 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         :param frequency: str; one of D, H, 15M, 5M, M, 10S, S
         :return: data
         """
-        new_log = futures_contract_object.log(self.log)
 
         try:
             contract_object_with_ib_broker_config = (
@@ -205,7 +204,11 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 )
             )
         except missingContract:
-            new_log.warning("Can't get data for %s" % str(futures_contract_object))
+            self.log.warning(
+                "Can't get data for %s" % str(futures_contract_object),
+                **futures_contract_object.log_attributes(),
+                method="temp",
+            )
             raise missingData
 
         price_data = self._get_prices_at_frequency_for_ibcontract_object_no_checking(
@@ -222,7 +225,10 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         freq: Frequency,
         allow_expired: bool = False,
     ) -> futuresContractPrices:
-        new_log = contract_object_with_ib_broker_config.log(self.log)
+        log_attrs = {
+            **contract_object_with_ib_broker_config.log_attributes(),
+            "method": "temp",
+        }
 
         try:
             price_data = self.ib_client.broker_get_historical_futures_data_for_contract(
@@ -231,16 +237,18 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 allow_expired=allow_expired,
             )
         except missingData:
-            new_log.warning(
+            self.log.warning(
                 "Something went wrong getting IB price data for %s"
-                % str(contract_object_with_ib_broker_config)
+                % str(contract_object_with_ib_broker_config),
+                **log_attrs,
             )
             raise
 
         if len(price_data) == 0:
-            new_log.warning(
+            self.log.warning(
                 "No IB price data found for %s"
-                % str(contract_object_with_ib_broker_config)
+                % str(contract_object_with_ib_broker_config),
+                **log_attrs,
             )
             return futuresContractPrices.create_empty()
 
@@ -269,8 +277,6 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         futures_contract: futuresContract,
         trade_list_for_multiple_legs: tradeQuantity = None,
     ) -> tickerObject:
-        new_log = futures_contract.specific_log(self.log)
-
         try:
             contract_object_with_ib_data = (
                 self.futures_contract_data.get_contract_object_with_IB_data(
@@ -278,7 +284,11 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 )
             )
         except missingContract as e:
-            new_log.warning("Can't get data for %s" % str(futures_contract))
+            self.log.warning(
+                "Can't get data for %s" % str(futures_contract),
+                **futures_contract.log_attributes(),
+                method="temp",
+            )
             raise e
 
         ticker_with_bs = self.ib_client.get_ticker_object_with_BS(
@@ -291,13 +301,16 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         return ticker_object
 
     def cancel_market_data_for_contract(self, contract: futuresContract):
-        new_log = contract.specific_log(self.log)
         try:
             contract_object_with_ib_data = (
                 self.futures_contract_data.get_contract_object_with_IB_data(contract)
             )
         except missingContract:
-            new_log.warning("Can't get data for %s" % str(contract))
+            self.log.warning(
+                "Can't get data for %s" % str(contract),
+                **contract.log_attributes(),
+                method="temp",
+            )
             return futuresContractPrices.create_empty()
 
         self.ib_client.cancel_market_data_for_contract(contract_object_with_ib_data)
@@ -306,8 +319,6 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         contract_object = order.futures_contract
         trade_list_for_multiple_legs = order.trade
 
-        new_log = order.log_with_attributes(self.log)
-
         try:
             contract_object_with_ib_data = (
                 self.futures_contract_data.get_contract_object_with_IB_data(
@@ -315,7 +326,11 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
                 )
             )
         except missingContract:
-            new_log.warning("Can't get data for %s" % str(contract_object))
+            self.log.warning(
+                "Can't get data for %s" % str(contract_object),
+                **order.log_attributes(),
+                method="temp",
+            )
             return futuresContractPrices.create_empty()
 
         self.ib_client.cancel_market_data_for_contract_and_trade_qty(

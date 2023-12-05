@@ -14,14 +14,14 @@ from sysexecution.orders.broker_orders import brokerOrder
 
 class stackHandlerCreateBalanceTrades(stackHandlerForFills):
     def create_balance_trade(self, broker_order: brokerOrder):
-        log = broker_order.log_with_attributes(self.log)
+        log_attrs = {**broker_order.log_attributes(), "method": "temp"}
 
         contract_order = create_balance_contract_order_from_broker_order(broker_order)
         instrument_order = create_balance_instrument_order_from_contract_order(
             contract_order
         )
 
-        log.debug("Putting balancing trades on stacks")
+        self.log.debug("Putting balancing trades on stacks", **log_attrs)
 
         try:
             self.put_balance_trades_on_stack(
@@ -30,7 +30,7 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
         except failureWithRollback:
             return None
 
-        log.debug("Updating positions")
+        self.log.debug("Updating positions", **log_attrs)
         self.apply_position_change_to_stored_contract_positions(
             contract_order, contract_order.fill, apply_entire_trade=True
         )
@@ -38,7 +38,10 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
             instrument_order, instrument_order.fill, apply_entire_trade=True
         )
 
-        log.debug("Marking balancing trades as completed and historic order data")
+        self.log.debug(
+            "Marking balancing trades as completed and historic order data",
+            **log_attrs,
+        )
         self.handle_completed_instrument_order(
             instrument_order.order_id, treat_inactive_as_complete=True
         )
@@ -49,8 +52,8 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
         contract_order: contractOrder,
         broker_order: brokerOrder,
     ):
-        log = instrument_order.log_with_attributes(self.log)
-        log.debug("Putting balancing trades on stacks")
+        log_attrs = {**instrument_order.log_attributes(), "method": "temp"}
+        self.log.debug("Putting balancing trades on stacks", **log_attrs)
 
         try:
             instrument_order_id = (
@@ -59,20 +62,22 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
                 )
             )
         except Exception as e:
-            log.error(
-                "Couldn't add balancing instrument trade error condition %s" % str(e)
+            self.log.error(
+                "Couldn't add balancing instrument trade error condition %s" % str(e),
+                **log_attrs,
             )
-            log.error("Nothing to roll back")
+            self.log.error("Nothing to roll back", **log_attrs)
             raise failureWithRollback from e
 
         try:
             contract_order.parent = instrument_order_id
             contract_order_id = self.contract_stack.put_order_on_stack(contract_order)
         except Exception as e:
-            log.error(
-                "Couldn't add balancing contract trade error condition %s " % str(e)
+            self.log.error(
+                "Couldn't add balancing contract trade error condition %s " % str(e),
+                **log_attrs,
             )
-            log.error("Rolling back")
+            self.log.error("Rolling back", **log_attrs)
             self.rollback_balance_trades(
                 instrument_order_id, missing_order, missing_order
             )
@@ -83,8 +88,11 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
                 instrument_order_id, [contract_order_id]
             )
         except Exception as e:
-            log.error("Couldn't add children to instrument order error %s" % str(e))
-            log.error("Rolling back")
+            self.log.error(
+                "Couldn't add children to instrument order error %s" % str(e),
+                **log_attrs,
+            )
+            self.log.error("Rolling back", **log_attrs)
             self.rollback_balance_trades(
                 instrument_order_id, contract_order_id, missing_order
             )
@@ -94,8 +102,11 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
         try:
             broker_order_id = self.broker_stack.put_order_on_stack(broker_order)
         except Exception as e:
-            log.error("Couldn't add balancing broker trade error condition %s" % str(e))
-            log.error("Rolling back")
+            self.log.error(
+                "Couldn't add balancing broker trade error condition %s" % str(e),
+                **log_attrs,
+            )
+            self.log.error("Rolling back", **log_attrs)
             self.rollback_balance_trades(
                 instrument_order_id, contract_order_id, missing_order
             )
@@ -106,8 +117,11 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
                 contract_order_id, [broker_order_id]
             )
         except Exception as e:
-            log.error("Couldn't add children to contract order exception %s" % str(e))
-            log.error("Rolling back")
+            self.log.error(
+                "Couldn't add children to contract order exception %s" % str(e),
+                **log_attrs,
+            )
+            self.log.error("Rolling back", **log_attrs)
             self.rollback_balance_trades(
                 instrument_order_id, contract_order_id, broker_order_id
             )
@@ -116,7 +130,7 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
         contract_order.order_id = contract_order_id
         instrument_order.order_id = instrument_order_id
 
-        log.debug("All balancing trades added to stacks")
+        self.log.debug("All balancing trades added to stacks", **log_attrs)
 
     def rollback_balance_trades(
         self, instrument_order_id: int, contract_order_id: int, broker_order_id: int
@@ -129,8 +143,8 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
             self.broker_stack.remove_order_with_id_from_stack(broker_order_id)
 
     def create_balance_instrument_trade(self, instrument_order: instrumentOrder):
-        log = instrument_order.log_with_attributes(self.log)
-        log.debug("Putting balancing order on instrument stack")
+        log_attrs = {**instrument_order.log_attributes(), "method": "temp"}
+        self.log.debug("Putting balancing order on instrument stack", **log_attrs)
         instrument_order_id = (
             self.instrument_stack.put_manual_order_on_stack_and_return_order_id(
                 instrument_order
@@ -139,8 +153,9 @@ class stackHandlerCreateBalanceTrades(stackHandlerForFills):
 
         instrument_order.order_id = instrument_order_id
 
-        log.debug(
-            "Marking balancing trades as completed and updating positions and historic order data"
+        self.log.debug(
+            "Marking balancing trades as completed and updating positions and historic order data",
+            **log_attrs,
         )
         self.apply_position_change_to_instrument(
             instrument_order, instrument_order.fill, apply_entire_trade=True

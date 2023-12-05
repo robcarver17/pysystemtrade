@@ -33,7 +33,7 @@ def post_trade_processing(
 def cancel_order(
     data: dataBlob, broker_order_with_controls: orderWithControls
 ) -> orderWithControls:
-    log = broker_order_with_controls.order.log_with_attributes(data.log)
+    log_attrs = {**broker_order_with_controls.order.log_attributes(), "method": "temp"}
     data_broker = dataBroker(data)
     data_broker.cancel_order_given_control_object(broker_order_with_controls)
 
@@ -47,10 +47,13 @@ def cancel_order(
             broker_order_with_controls
         )
         if is_cancelled:
-            log.debug("Cancelled order")
+            data.log.debug("Cancelled order", **log_attrs)
             break
         if timer.finished:
-            log.warning("Ran out of time to cancel order - may cause weird behaviour!")
+            data.log.warning(
+                "Ran out of time to cancel order - may cause weird behaviour!",
+                **log_attrs,
+            )
             break
 
     return broker_order_with_controls
@@ -61,7 +64,7 @@ def set_limit_price(
     broker_order_with_controls: orderWithControls,
     new_limit_price: float,
 ):
-    log = broker_order_with_controls.order.log_with_attributes(data_broker.data.log)
+    log_attrs = {**broker_order_with_controls.order.log_attributes(), "method": "temp"}
 
     try:
         broker_order_with_controls = (
@@ -69,9 +72,15 @@ def set_limit_price(
                 broker_order_with_controls, new_limit_price
             )
         )
-        log.debug("Tried to change limit price to %f" % new_limit_price)
+        data_broker.data.log.debug(
+            "Tried to change limit price to %f" % new_limit_price,
+            **log_attrs,
+        )
     except orderCannotBeModified as error:
-        log.debug("Can't modify limit price for order, error %s" % str(error))
+        data_broker.data.log.debug(
+            "Can't modify limit price for order, error %s" % str(error),
+            **log_attrs,
+        )
 
     return broker_order_with_controls
 
@@ -103,6 +112,7 @@ def check_current_limit_price_at_inside_spread(
     return new_limit_price
 
 
+# TODO passed logger instance
 def file_log_report_market_order(log, broker_order_with_controls: orderWithControls):
     ticker_object = broker_order_with_controls.ticker
     current_tick = str(ticker_object.current_tick())

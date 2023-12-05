@@ -9,9 +9,6 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
 
     """
     # TODO futures_contract.specific_log
-    # TODO data_blob.update_log
-    # TODO data.update_log(contract_object.specific_log(data.log))
-    # TODO data_blob._get_specific_logger
     # TODO log_with_attributes
 
     """
@@ -85,7 +82,3 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
                 raise Exception(
                     "Attributes %s not allowed in log" % str(bad_attributes)
                 )
-
-
-class pst_logger(DynamicAttributeLogger):
-    pass

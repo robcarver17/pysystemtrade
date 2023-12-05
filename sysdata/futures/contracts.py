@@ -44,20 +44,28 @@ class futuresContractData(baseData):
     def delete_contract_data(
         self, instrument_code: str, contract_date: str, are_you_sure=False
     ):
-        log = self.log.setup(
-            instrument_code=instrument_code, contract_date=contract_date
-        )
+        log_attrs = {
+            INSTRUMENT_CODE_LOG_LABEL: instrument_code,
+            CONTRACT_DATE_LOG_LABEL: contract_date,
+            "method": "temp",
+        }
         if are_you_sure:
             if self.is_contract_in_data(instrument_code, contract_date):
                 self._delete_contract_data_without_any_warning_be_careful(
                     instrument_code, contract_date
                 )
-                log.info("Deleted contract %s/%s" % (instrument_code, contract_date))
+                self.log.info(
+                    "Deleted contract %s/%s" % (instrument_code, contract_date),
+                    **log_attrs,
+                )
             else:
                 # doesn't exist anyway
-                log.warning("Tried to delete non existent contract")
+                self.log.warning("Tried to delete non existent contract", **log_attrs)
         else:
-            log.error("You need to call delete_contract_data with a flag to be sure")
+            self.log.error(
+                "You need to call delete_contract_data with a flag to be sure",
+                **log_attrs,
+            )
 
     def delete_all_contracts_for_instrument(
         self, instrument_code: str, areyoureallysure=False
@@ -79,20 +87,23 @@ class futuresContractData(baseData):
         instrument_code = contract_object.instrument_code
         contract_date = contract_object.date_str
 
-        log = contract_object.log(self.log)
+        log_attrs = {**contract_object.log_attributes(), "method": "temp"}
 
         if self.is_contract_in_data(instrument_code, contract_date):
             if ignore_duplication:
                 pass
             else:
-                log.warning(
+                self.log.warning(
                     "There is already %s in the data, you have to delete it first"
-                    % (contract_object.key)
+                    % (contract_object.key),
+                    **log_attrs,
                 )
                 return None
 
         self._add_contract_object_without_checking_for_existing_entry(contract_object)
-        log.info("Added contract %s %s" % (instrument_code, contract_date))
+        self.log.info(
+            "Added contract %s %s" % (instrument_code, contract_date), **log_attrs
+        )
 
     def get_list_of_contract_dates_for_instrument_code(
         self, instrument_code: str, allow_expired: bool = False
