@@ -90,7 +90,10 @@ class pandlCalculation(object):
 
     def _percentage_pandl_given_pandl(self, pandl_in_base: pd.Series):
         capital = self.capital
-        capital_aligned = capital.reindex(pandl_in_base.index, method="ffill")
+        if type(capital) is pd.Series:
+            capital_aligned = capital.reindex(pandl_in_base.index, method="ffill")
+        elif type(capital) is float or type(capital) is int:
+            capital_aligned = capital
 
         return 100.0 * pandl_in_base / capital_aligned
 
