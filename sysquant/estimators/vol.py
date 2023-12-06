@@ -113,10 +113,7 @@ def backfill_vol(vol: pd.Series) -> pd.Series:
     # have to fill forwards first, as it's only the start we want to
     # backfill, eg before any value available
 
-    vol_forward_fill = vol.fillna(method="ffill")
-    vol_backfilled = vol_forward_fill.fillna(method="bfill")
-
-    return vol_backfilled
+    return vol.ffill().bfill()
 
 
 def mixed_vol_calc(
