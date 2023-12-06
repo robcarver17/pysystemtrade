@@ -8,7 +8,6 @@ from syslogdiag.pst_logger import *
 class DynamicAttributeLogger(logging.LoggerAdapter):
 
     """
-    # TODO futures_contract.specific_log
     # TODO log_with_attributes
 
     """

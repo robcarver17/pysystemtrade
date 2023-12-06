@@ -76,19 +76,20 @@ class ibFxClient(ibPriceClient):
         """
 
         ccy_code = ccy1 + ccy2
-        # TODO log.setup
-        log = self.log.setup(currency_code=ccy_code)
+        self.log.debug("Updating log attributes", currency_code=ccy_code)
 
         try:
             ibcontract = self.ib_spotfx_contract(ccy1, ccy2=ccy2)
         except missingContract:
-            log.warning("Can't find IB contract for %s%s" % (ccy1, ccy2))
+            self.log.warning("Can't find IB contract for %s%s" % (ccy1, ccy2))
             raise missingData
 
         # uses parent class ibClientPrices
         fx_data = self._get_generic_data_for_contract(
-            ibcontract, log=log, bar_freq=bar_freq, whatToShow="MIDPOINT"
+            ibcontract, bar_freq=bar_freq, whatToShow="MIDPOINT"
         )
+
+        self.log.debug("Log attributes reset", method="clear")
 
         return fx_data
 
