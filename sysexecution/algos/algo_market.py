@@ -10,7 +10,6 @@ from sysexecution.algos.common_functions import (
     post_trade_processing,
     MESSAGING_FREQUENCY,
     cancel_order,
-    file_log_report_market_order,
 )
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.orders.broker_orders import market_order_type, brokerOrderType
@@ -82,14 +81,17 @@ class algoMarket(Algo):
     def manage_live_trade(
         self, broker_order_with_controls: orderWithControls
     ) -> orderWithControls:
-        # TODO log_with_attributes
-        log = broker_order_with_controls.order.log_with_attributes(self.data.log)
+        log_attrs = {
+            **broker_order_with_controls.order.log_attributes(),
+            "method": "temp",
+        }
         data_broker = self.data_broker
 
         trade_open = True
-        log.debug(
+        self.data.log.debug(
             "Managing trade %s with market order"
-            % str(broker_order_with_controls.order)
+            % str(broker_order_with_controls.order),
+            **log_attrs,
         )
         while trade_open:
             time.sleep(0.001)
@@ -97,7 +99,7 @@ class algoMarket(Algo):
                 messaging_frequency_seconds=MESSAGING_FREQUENCY
             )
             if log_message_required:
-                file_log_report_market_order(log, broker_order_with_controls)
+                self.file_log_report_market_order(broker_order_with_controls)
 
             is_order_completed = broker_order_with_controls.completed()
             is_order_timeout = (
@@ -110,19 +112,22 @@ class algoMarket(Algo):
                 )
             )
             if is_order_completed:
-                log.debug("Trade completed")
+                self.data.log.debug("Trade completed", **log_attrs)
                 break
 
             if is_order_timeout:
-                log.debug("Run out of time to execute: cancelling")
+                self.data.log.debug(
+                    "Run out of time to execute: cancelling", **log_attrs
+                )
                 broker_order_with_controls = cancel_order(
                     self.data, broker_order_with_controls
                 )
                 break
 
             if is_order_cancelled:
-                log.warning(
-                    "Order has been cancelled apparently by broker: not by algo!"
+                self.data.log.warning(
+                    "Order has been cancelled apparently by broker: not by algo!",
+                    **log_attrs,
                 )
                 break
 

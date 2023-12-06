@@ -1,7 +1,7 @@
 from copy import copy
 from dataclasses import dataclass
 
-from syscore.exceptions import missingContract, missingData
+from syscore.exceptions import missingContract, missingData, orderCannotBeModified
 from syscore.constants import arg_not_supplied
 from sysexecution.orders.named_order_objects import missing_order
 
@@ -242,3 +242,17 @@ class Algo(object):
         rounded_limit_price = min_tick * round(limit_price / min_tick)
 
         return rounded_limit_price
+
+    def file_log_report_market_order(
+        self, broker_order_with_controls: orderWithControls
+    ):
+        ticker_object = broker_order_with_controls.ticker
+        current_tick = str(ticker_object.current_tick())
+
+        log_report = "Market order execution current tick %s" % current_tick
+
+        self.data.log.debug(
+            log_report,
+            **broker_order_with_controls.order.log_attributes(),
+            method="temp",
+        )
