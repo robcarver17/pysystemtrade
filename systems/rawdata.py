@@ -345,7 +345,6 @@ class RawData(SystemStage):
     def _daily_vol_normalised_price_for_list_of_instruments(
         self, list_of_instruments: list
     ) -> pd.Series:
-
         norm_returns = (
             self._aggregate_daily_vol_normalised_returns_for_list_of_instruments(
                 list_of_instruments
@@ -385,24 +384,23 @@ class RawData(SystemStage):
         :return: pd.Series
         """
 
-        return self._by_asset_class_daily_vol_normalised_price_for_asset_class(asset_class)
+        return self._by_asset_class_daily_vol_normalised_price_for_asset_class(
+            asset_class
+        )
 
     @diagnostic()
     def system_with_redundant_instrument_code_passed(
-        self,instrument_code: str, asset_class: str
+        self, instrument_code: str, asset_class: str
     ):
         ## allows ultimate flexibility when creating trading rules but be careful!
 
         return self.parent
 
     @diagnostic()
-    def instrument_code(
-        self,instrument_code: str
-    ) -> pd.Series:
+    def instrument_code(self, instrument_code: str) -> pd.Series:
         ## allows ultimate flexibility when creating trading rules
 
         return instrument_code
-
 
     @output()
     def normalised_price_for_asset_class(self, instrument_code: str) -> pd.Series:
