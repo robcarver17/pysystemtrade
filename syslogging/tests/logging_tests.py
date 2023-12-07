@@ -38,6 +38,21 @@ class TestLogging:
             ("Clear", logging.INFO, "{'stage': 'second'} Clearing attributes")
         ]
 
+    def test_attributes_reset(self, caplog):
+        reset = get_logger("reset")
+        reset.info("Updating log attributes", **{"instrument_code": "GOLD"})
+        assert caplog.record_tuples[0] == (
+            "reset",
+            logging.INFO,
+            "{'instrument_code': 'GOLD'} Updating log attributes",
+        )
+        reset.info("Log attributes reset", **{"method": "clear"})
+        assert caplog.record_tuples[1] == (
+            "reset",
+            logging.INFO,
+            "Log attributes reset",
+        )
+
     def test_attributes_preserve(self, caplog):
         preserve = get_logger("Preserve", {"stage": "first"})
         preserve.info(
