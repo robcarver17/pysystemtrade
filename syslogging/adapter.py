@@ -6,12 +6,6 @@ from syslogdiag.pst_logger import *
 
 
 class DynamicAttributeLogger(logging.LoggerAdapter):
-
-    """
-    # TODO log_with_attributes
-
-    """
-
     def __init__(self, logger, attributes) -> None:
         self._check_attributes(attributes)
         super().__init__(logger, attributes)

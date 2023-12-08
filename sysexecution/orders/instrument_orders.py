@@ -228,33 +228,6 @@ class instrumentOrder(Order):
     def roll_order(self):
         return bool(self.order_info["roll_order"])
 
-    def log_with_attributes(self, log):
-        """
-        Returns a new log object with instrument_order attributes added
-
-        :param log: logger
-        :return: log
-        """
-        new_log = log.setup(
-            strategy_name=self.strategy_name,
-            instrument_code=self.instrument_code,
-            instrument_order_id=if_object_matches_return_empty_string(
-                self.order_id, no_order_id
-            ),
-        )
-
-        new_log = log.setup(
-            **{
-                STRATEGY_NAME_LOG_LABEL: self.strategy_name,
-                INSTRUMENT_CODE_LOG_LABEL: self.instrument_code,
-                INSTRUMENT_ORDER_ID_LABEL: if_object_matches_return_empty_string(
-                    self.order_id, no_order_id
-                ),
-            }
-        )
-
-        return new_log
-
     def log_attributes(self):
         """
         Returns a dict of instrument_order log attributes

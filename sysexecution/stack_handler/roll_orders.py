@@ -19,12 +19,7 @@ from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import updatePositions
 
-from sysexecution.stack_handler.stackHandlerCore import (
-    stackHandlerCore,
-    put_children_on_stack,
-    rollback_parents_and_children_and_handle_exceptions,
-    log_successful_adding,
-)
+from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysexecution.orders.contract_orders import contractOrder, best_order_type
 from sysexecution.orders.instrument_orders import zero_roll_order_type
 
@@ -202,8 +197,7 @@ class stackHandlerForRolls(stackHandlerCore):
     ):
         instrument_stack = self.instrument_stack
         contract_stack = self.contract_stack
-        # TODO log_with_attributes
-        parent_log = instrument_order.log_with_attributes(self.log)
+        log_attrs = {**instrument_order.log_attributes(), "method": "temp"}
 
         # Do as a transaction: if everything doesn't go to plan can roll back
         # We lock now, and
@@ -214,9 +208,10 @@ class stackHandlerForRolls(stackHandlerCore):
             )
 
         except Exception as parent_order_error:
-            parent_log.warning(
+            self.log.warning(
                 "Couldn't put parent order %s on instrument order stack error %s"
-                % (str(instrument_order), str(parent_order_error))
+                % (str(instrument_order), str(parent_order_error)),
+                **log_attrs,
             )
             instrument_order.unlock_order()
             return None
@@ -238,9 +233,8 @@ class stackHandlerForRolls(stackHandlerCore):
             #     - a list of order IDS if all went well
             #     - an empty list if error and rolled back,
             #      - or an error something went wrong and couldn't rollback (the outer catch will try and rollback)
-            list_of_child_order_ids = put_children_on_stack(
+            list_of_child_order_ids = self.put_children_on_stack(
                 child_stack=contract_stack,
-                parent_log=parent_log,
                 list_of_child_orders=list_of_contract_orders,
                 parent_order=instrument_order,
             )
@@ -266,25 +260,24 @@ class stackHandlerForRolls(stackHandlerCore):
             # Roll back parent order and possibly children
             # At this point list_of_child_order_ids will either be empty (if succesful rollback) or contain child ids
 
-            rollback_parents_and_children_and_handle_exceptions(
+            self.rollback_parents_and_children_and_handle_exceptions(
                 child_stack=contract_stack,
                 parent_stack=instrument_stack,
                 list_of_child_order_ids=list_of_child_order_ids,
-                parent_order_id=parent_order_id,
+                parent_order=instrument_order,
                 error_from_adding_child_orders=error_from_adding_child_orders,
-                parent_log=parent_log,
             )
 
         # phew got there
-        parent_log.debug(
+        self.log.debug(
             "Added parent order with ID %d %s to stack"
-            % (parent_order_id, str(instrument_order))
+            % (parent_order_id, str(instrument_order)),
+            **log_attrs,
         )
-        log_successful_adding(
+        self.log_successful_adding(
             list_of_child_orders=list_of_contract_orders,
             list_of_child_ids=list_of_child_order_ids,
             parent_order=instrument_order,
-            parent_log=parent_log,
         )
 
 
