@@ -71,7 +71,7 @@ class genericBlobUsingFuturesSimData(futuresSimData):
         self, instrument_code: str, start_date
     ) -> futuresMultiplePrices:
         data = self.db_futures_multiple_prices_data.get_multiple_prices(instrument_code)
-        if len(data)==0:
+        if len(data) == 0:
             raise missingData(
                 "Data for %s not found! Remove from instrument list, or add to config.ignore_instruments"
                 % instrument_code

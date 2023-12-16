@@ -15,6 +15,7 @@ EXPECTED_LENGTH_OF_DATE = 19
 
 FALLBACK_DATE_FORMAT_FOR_CSV = "%Y-%m-%d"
 
+
 def rolling_pairwise_correlation(
     x: pd.DataFrame, periods: int, min_periods: int = 3
 ) -> pd.Series:
@@ -113,7 +114,7 @@ def pd_readcsv(
             df=df, date_index_name=date_index_name, date_format=date_format
         )
     except:
-        df =add_datetime_index(
+        df = add_datetime_index(
             df=df, date_index_name=date_index_name, date_format=fallback_date_format
         )
 
