@@ -1,5 +1,5 @@
 [project]
-name = "pysystemtrader"
+name = "pysystemtrade"
 version = "1.80"
 authors = [
   { name="Robert Carver", email="rob@systematicmoney.org" },
