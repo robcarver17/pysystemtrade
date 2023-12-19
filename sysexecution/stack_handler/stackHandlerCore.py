@@ -95,7 +95,7 @@ class stackHandlerCore(object):
         return update_prices
 
 
-def put_children_on_stack(
+def put_children_on_stack(  # TODO passed logger instance
     child_stack: orderStackData,
     parent_order: Order,
     list_of_child_orders: listOfOrders,
@@ -122,7 +122,7 @@ def put_children_on_stack(
     return list_of_child_ids
 
 
-def add_children_to_parent_or_rollback_children(
+def add_children_to_parent_or_rollback_children(  # TODO passed logger instance
     parent_order: Order,
     list_of_child_ids: list,
     parent_stack: orderStackData,
@@ -151,13 +151,14 @@ def add_children_to_parent_or_rollback_children(
     return success
 
 
-def log_successful_adding(
+def log_successful_adding(  # TODO passed logger instance
     list_of_child_orders: listOfOrders,
     list_of_child_ids: list,
     parent_order: Order,
     parent_log,
 ):
     for child_order, child_id in zip(list_of_child_orders, list_of_child_ids):
+        # TODO log_with_attributes
         child_log = child_order.log_with_attributes(parent_log)
         child_log.debug(
             "Put child order %s on stack with ID %d from parent order %s"

@@ -76,6 +76,7 @@ class ibFxClient(ibPriceClient):
         """
 
         ccy_code = ccy1 + ccy2
+        # TODO log.setup
         log = self.log.setup(currency_code=ccy_code)
 
         try:

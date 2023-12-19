@@ -9,7 +9,7 @@ from syscore.pandas.frequency import (
     resample_prices_to_business_day_index,
 )
 from sysdata.base_data import baseData
-
+from syslogging.logger import *
 from sysobjects.spot_fx_prices import fxPrices
 from sysobjects.instruments import instrumentCosts
 
@@ -71,7 +71,7 @@ class simData(baseData):
         """
 
         # inherit the log
-        self._log = base_system.log.setup(stage="data")
+        self._log = get_logger("base_system", {STAGE_LOG_LABEL: "data"})
         self._parent = base_system
 
     @property

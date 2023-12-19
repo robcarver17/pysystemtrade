@@ -202,6 +202,7 @@ class stackHandlerForRolls(stackHandlerCore):
     ):
         instrument_stack = self.instrument_stack
         contract_stack = self.contract_stack
+        # TODO log_with_attributes
         parent_log = instrument_order.log_with_attributes(self.log)
 
         # Do as a transaction: if everything doesn't go to plan can roll back
@@ -508,9 +509,12 @@ def create_contract_roll_orders(
         contract_orders = create_contract_orders_outright(roll_spread_info)
 
     else:
-        log = instrument_order.log_with_attributes(data.log)
         roll_state = diag_positions.get_roll_state(instrument_code)
-        log.warning("Roll state %s is unexpected, might have changed" % str(roll_state))
+        data.log.warning(
+            "Roll state %s is unexpected, might have changed" % str(roll_state),
+            **instrument_order.log_attributes(),
+            method="temp",
+        )
         return missing_order
 
     contract_orders = allocate_algo_to_list_of_contract_orders(

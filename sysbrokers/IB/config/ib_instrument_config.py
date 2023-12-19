@@ -22,7 +22,7 @@ IB_FUTURES_CONFIG_FILE = resolve_path_and_filename_for_package(
 )
 
 
-def read_ib_config_from_file(log: pst_logger = get_logger("")) -> IBconfig:
+def read_ib_config_from_file(log=get_logger("")) -> IBconfig:
     try:
         df = pd.read_csv(IB_FUTURES_CONFIG_FILE)
     except Exception as e:
@@ -33,17 +33,18 @@ def read_ib_config_from_file(log: pst_logger = get_logger("")) -> IBconfig:
 
 
 def get_instrument_object_from_config(
-    instrument_code: str, config: IBconfig = None, log: pst_logger = get_logger("")
+    instrument_code: str, config: IBconfig = None, log=get_logger("")
 ) -> futuresInstrumentWithIBConfigData:
-    new_log = log.setup(instrument_code=instrument_code)
+    log_attrs = {INSTRUMENT_CODE_LOG_LABEL: instrument_code, "method": "temp"}
 
     if config is None:
         try:
             config = read_ib_config_from_file()
         except missingFile as e:
-            new_log.warning(
+            log.warning(
                 "Can't get config for instrument %s as IB configuration file missing"
-                % instrument_code
+                % instrument_code,
+                **log_attrs,
             )
             raise missingInstrument from e
 
@@ -51,8 +52,9 @@ def get_instrument_object_from_config(
     try:
         assert instrument_code in list_of_instruments
     except:
-        new_log.warning(
-            "Instrument %s is not in IB configuration file" % instrument_code
+        log.warning(
+            "Instrument %s is not in IB configuration file" % instrument_code,
+            **log_attrs,
         )
         raise missingInstrument
 
@@ -109,7 +111,7 @@ class IBInstrumentIdentity:
 def get_instrument_code_from_broker_instrument_identity(
     config: IBconfig,
     ib_instrument_identity: IBInstrumentIdentity,
-    log: pst_logger = get_logger(""),
+    log=get_logger(""),
 ) -> str:
     ib_code = ib_instrument_identity.ib_code
     ib_multiplier = ib_instrument_identity.ib_multiplier

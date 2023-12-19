@@ -373,6 +373,35 @@ class RawData(SystemStage):
 
         return norm_price
 
+    @diagnostic()
+    def daily_vol_normalised_price_for_asset_class_with_redundant_instrument_code(
+        self, instrument_code: str, asset_class: str
+    ) -> pd.Series:
+        """
+        Price for an asset class, built up from cumulative returns
+
+        :param asset_class: str
+        :return: pd.Series
+        """
+
+        return self._by_asset_class_daily_vol_normalised_price_for_asset_class(
+            asset_class
+        )
+
+    @diagnostic()
+    def system_with_redundant_instrument_code_passed(
+        self, instrument_code: str, asset_class: str
+    ):
+        ## allows ultimate flexibility when creating trading rules but be careful!
+
+        return self.parent
+
+    @diagnostic()
+    def instrument_code(self, instrument_code: str) -> pd.Series:
+        ## allows ultimate flexibility when creating trading rules
+
+        return instrument_code
+
     @output()
     def normalised_price_for_asset_class(self, instrument_code: str) -> pd.Series:
         """

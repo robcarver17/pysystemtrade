@@ -155,7 +155,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
     def apply_trade_limits_to_contract_order(
         self, proposed_order: contractOrder
     ) -> contractOrder:
-        log = proposed_order.log_with_attributes(self.log)
         data_trade_limits = dataTradeLimits(self.data)
 
         instrument_strategy = proposed_order.instrument_strategy
@@ -174,13 +173,15 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         )
 
         if contract_order_after_trade_limits.trade != proposed_order.trade:
-            log.debug(
+            self.log.debug(
                 "%s trade change from %s to %s because of trade limits"
                 % (
                     proposed_order.key,
                     str(proposed_order.trade),
                     str(contract_order_after_trade_limits.trade),
-                )
+                ),
+                **proposed_order.log_attributes(),
+                method="temp",
             )
 
         return contract_order_after_trade_limits
@@ -189,7 +190,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         self, contract_order_after_trade_limits: contractOrder
     ) -> contractOrder:
         data_broker = self.data_broker
-        log = contract_order_after_trade_limits.log_with_attributes(self.log)
 
         # check liquidity, and if necessary carve up order
         # Note for spread orders we check liquidity in the component markets
@@ -200,9 +200,11 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
         )
 
         if liquid_qty != contract_order_after_trade_limits.trade:
-            log.debug(
+            self.log.debug(
                 "Cut down order to size %s from %s because of liquidity"
-                % (str(liquid_qty), str(contract_order_after_trade_limits.trade))
+                % (str(liquid_qty), str(contract_order_after_trade_limits.trade)),
+                **contract_order_after_trade_limits.log_attributes(),
+                method="temp",
             )
 
         if liquid_qty.equals_zero():
@@ -217,7 +219,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
     def send_to_algo(
         self, contract_order_to_trade: contractOrder
     ) -> (Algo, orderWithControls):
-        log = contract_order_to_trade.log_with_attributes(self.log)
         instrument_order = self.get_parent_of_contract_order(contract_order_to_trade)
 
         contract_order_to_trade_with_algo_set = (
@@ -228,12 +229,14 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
             )
         )
 
-        log.debug(
+        self.log.debug(
             "Sending order %s to algo %s"
             % (
                 str(contract_order_to_trade_with_algo_set),
                 contract_order_to_trade_with_algo_set.algo_to_use,
-            )
+            ),
+            **contract_order_to_trade.log_attributes(),
+            method="temp",
         )
 
         algo_class_to_call = self.add_controlling_algo_to_order(
@@ -292,7 +295,6 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
 
         broker_order = broker_order_with_controls_and_order_id.order
 
-        log = broker_order.log_with_attributes(self.log)
         try:
             broker_order_id = self.broker_stack.put_order_on_stack(broker_order)
         except Exception as e:
@@ -303,7 +305,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
                 "Created a broker order %s but can't add it to the order stack!! (condition %s) STACK CORRUPTED"
                 % (str(broker_order), str(e))
             )
-            log.critical(error_msg)
+            self.log.critical(error_msg, **broker_order.log_attributes(), method="temp")
             raise Exception(error_msg)
 
         # set order_id (wouldn't have had one before, might be done inside db adding but make explicit)

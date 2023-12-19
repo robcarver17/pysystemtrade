@@ -64,9 +64,10 @@ class stackHandlerForSpawning(stackHandlerCore):
         )
 
         if len(list_of_contract_orders) > 0:
-            log = instrument_order.log_with_attributes(self.log)
-            log.debug(
-                "List of contract orders spawned %s" % str(list_of_contract_orders)
+            self.log.debug(
+                "List of contract orders spawned %s" % str(list_of_contract_orders),
+                **instrument_order.log_attributes(),
+                method="temp",
             )
 
             self.add_children_to_stack_and_child_id_to_parent(
@@ -83,6 +84,7 @@ class stackHandlerForSpawning(stackHandlerCore):
         parent_order: Order,
         list_of_child_orders: listOfOrders,
     ):
+        # TODO log_with_attributes
         parent_log = parent_order.log_with_attributes(self.log)
 
         list_of_child_ids = put_children_on_stack(
@@ -233,6 +235,7 @@ def get_required_contract_trade_for_instrument(
     :return: tuple: list of child orders: each is a tuple: contract str or missing_contract, trade int
     """
     instrument_code = instrument_order.instrument_code
+    # TODO log_with_attributes
     log = instrument_order.log_with_attributes(data.log)
 
     trade = instrument_order.as_single_trade_qty_or_error()
@@ -295,7 +298,7 @@ def get_required_contract_trade_for_instrument(
     return []
 
 
-def child_order_in_priced_contract_only(
+def child_order_in_priced_contract_only(  # TODO passed logger instance
     data: dataBlob, instrument_order: instrumentOrder, log
 ):
     diag_contracts = dataContracts(data)
@@ -313,7 +316,7 @@ def passive_roll_child_order(
     data: dataBlob,
     instrument_order: instrumentOrder,
 ) -> list:
-    log = instrument_order.log_with_attributes(data.log)
+    log_attrs = {**instrument_order.log_attributes(), "method": "temp"}
     diag_positions = diagPositions(data)
     instrument_code = instrument_order.instrument_code
     trade = instrument_order.trade
@@ -330,9 +333,10 @@ def passive_roll_child_order(
     if position_current_contract == 0:
         # Passive roll and no position in the current contract, start trading
         # the next contract
-        log.debug(
+        data.log.debug(
             "Passive roll handling order %s, no position in current contract, entire trade in next contract %s"
-            % (str(instrument_order), next_contract)
+            % (str(instrument_order), next_contract),
+            **log_attrs,
         )
         return [contractIdAndTrade(next_contract, trade)]
 
@@ -343,9 +347,10 @@ def passive_roll_child_order(
     if increasing_trade:
         # Passive roll and increasing trade
         # Do it all in next contract
-        log.debug(
+        data.log.debug(
             "Passive roll handling order %s, increasing trade, entire trade in next contract %s"
-            % (str(instrument_order), next_contract)
+            % (str(instrument_order), next_contract),
+            **log_attrs,
         )
         return [contractIdAndTrade(next_contract, trade)]
 
@@ -356,18 +361,20 @@ def passive_roll_child_order(
     )
     if new_position == 0 or sign_of_position_is_unchanged:
         # A reducing trade that we can do entirely in the current contract
-        log.debug(
+        data.log.debug(
             "Passive roll handling order %s, reducing trade, entire trade in next contract %s"
-            % (str(instrument_order), next_contract)
+            % (str(instrument_order), next_contract),
+            **log_attrs,
         )
         return [contractIdAndTrade(current_contract, trade)]
 
     # OKAY to recap: it's a passive roll, but the trade will be split between
     # current and next
 
-    log.debug(
+    data.log.debug(
         "Passive roll handling order %s, reducing trade, split trade between contract %s and %s"
-        % (str(instrument_order), current_contract, next_contract)
+        % (str(instrument_order), current_contract, next_contract),
+        **log_attrs,
     )
 
     return passive_trade_split_over_two_contracts(
@@ -549,15 +556,16 @@ def add_reference_price_to_a_direct_child_order(
             data, child_order, contract_to_match, price_to_adjust
         )
     except missingData:
-        log = instrument_order.log_with_attributes(data.log)
-        log.warning(
+        data.log.warning(
             "Couldn't adjust reference price for order %s child %s going from %s to %s, can't do TCA"
             % (
                 str(instrument_order),
                 str(child_order),
                 contract_to_match,
                 child_order.contract_date,
-            )
+            ),
+            **instrument_order.log_attributes(),
+            method="temp",
         )
         return child_order
 
@@ -623,10 +631,11 @@ def calculate_limit_prices_for_direct_child_orders(
         child_order is missing_order for child_order in list_of_contract_orders
     ]
     if any(flag_missing_orders):
-        log = instrument_order.log_with_attributes(data.log)
-        log.critical(
+        data.log.critical(
             "Couldn't adjust limit price for at least one child order %s: can't execute any child orders"
-            % str(instrument_order)
+            % str(instrument_order),
+            **instrument_order.log_attributes(),
+            method="temp",
         )
         return listOfOrders([])
 
@@ -660,15 +669,16 @@ def add_limit_price_to_a_direct_child_order(
     except missingData:
         # This is a serious problem
         # We can't possibly execute any part of the parent order
-        log = instrument_order.log_with_attributes(data.log)
-        log.critical(
+        data.log.critical(
             "Couldn't adjust limit price for order %s child %s going from %s to %s"
             % (
                 str(instrument_order),
                 str(child_order),
                 contract_to_match,
                 child_order.contract_date,
-            )
+            ),
+            **instrument_order.log_attributes(),
+            method="temp",
         )
         return missing_order
 

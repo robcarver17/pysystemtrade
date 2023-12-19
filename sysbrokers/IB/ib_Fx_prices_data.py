@@ -52,8 +52,10 @@ class ibFxPricesData(brokerFxPricesData):
         try:
             ib_config_for_code = self._get_config_info_for_code(currency_code)
         except missingInstrument:
-            log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
-            log.warning("Can't get prices as missing IB config for %s" % currency_code)
+            self.log.warning(
+                "Can't get prices as missing IB config for %s" % currency_code,
+                **{CURRENCY_CODE_LOG_LABEL: currency_code, "method": "temp"},
+            )
             return fxPrices.create_empty()
 
         data = self._get_fx_prices_with_ib_config(currency_code, ib_config_for_code)
@@ -65,12 +67,16 @@ class ibFxPricesData(brokerFxPricesData):
     ) -> fxPrices:
         raw_fx_prices_as_series = self._get_raw_fx_prices(ib_config_for_code)
 
-        log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
+        log_attrs = {
+            CURRENCY_CODE_LOG_LABEL: currency_code,
+            "method": "temp",
+        }
 
         if len(raw_fx_prices_as_series) == 0:
-            log.warning(
+            self.log.warning(
                 "No available IB prices for %s %s"
-                % (currency_code, str(ib_config_for_code))
+                % (currency_code, str(ib_config_for_code)),
+                **log_attrs,
             )
             return fxPrices.create_empty()
 
@@ -82,7 +88,10 @@ class ibFxPricesData(brokerFxPricesData):
         # turn into a fxPrices
         fx_prices = fxPrices(raw_fx_prices)
 
-        log.debug("Downloaded %d prices" % len(fx_prices))
+        self.log.debug(
+            "Downloaded %d prices" % len(fx_prices),
+            **log_attrs,
+        )
 
         return fx_prices
 
@@ -102,9 +111,9 @@ class ibFxPricesData(brokerFxPricesData):
         try:
             config_data = self._get_ib_fx_config()
         except missingFile as e:
-            new_log = self.log.setup(**{CURRENCY_CODE_LOG_LABEL: currency_code})
-            new_log.warning(
-                "Can't get IB FX config for %s as config file missing" % currency_code
+            self.log.warning(
+                "Can't get IB FX config for %s as config file missing" % currency_code,
+                **{CURRENCY_CODE_LOG_LABEL: currency_code, "method": "temp"},
             )
             raise missingInstrument from e
 

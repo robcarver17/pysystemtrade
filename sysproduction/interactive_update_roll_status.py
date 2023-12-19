@@ -561,7 +561,6 @@ def manually_update_roll_state_for_code(
     # First get the roll info
     # This will also update to console
 
-    data.log.setup(instrument_code=instrument_code)
     roll_state_suggested = suggest_roll_state_for_instrument(
         roll_data=roll_data, auto_parameters=auto_parameters
     )
