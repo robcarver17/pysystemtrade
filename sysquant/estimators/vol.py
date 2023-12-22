@@ -112,9 +112,8 @@ def apply_vol_floor(
 def backfill_vol(vol: pd.Series) -> pd.Series:
     # have to fill forwards first, as it's only the start we want to
     # backfill, eg before any value available
-
-    vol_forward_fill = vol.fillna(method="ffill")
-    vol_backfilled = vol_forward_fill.fillna(method="bfill")
+    vol_forward_fill = vol.ffill()
+    vol_backfilled = vol_forward_fill.bfill()
 
     return vol_backfilled
 
