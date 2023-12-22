@@ -75,7 +75,7 @@ class futuresSimData(simData):
         :return: price
         """
         price = self.get_backadjusted_futures_price(instrument_code)
-        if len(price)==0:
+        if len(price) == 0:
             raise Exception("Instrument code %s has no data!" % instrument_code)
 
         return price[start_date:]
