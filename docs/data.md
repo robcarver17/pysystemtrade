@@ -124,7 +124,7 @@ Because of this it's possible at (almost) every stage to store data in either .c
 <a name="set_up_instrument_config"></a>
 ## Instrument configuration and spread costs
 
-Instrument configuration consists of static information that enables us to trade an instrument like EDOLLAR: the asset class, futures contract point size, and traded currency (it also includes cost levels, that are required in the simulation environment). This is now mostly stored in [this file](/data/futures/csvconfig/instrumentconfig.csv) for both sim and production. The file includes a number of futures contracts that I don't actually trade or get prices for. Any configuration information for these may not be accurate and you use it at your own risk. The exception is spread costs, which are stored in [this file](/data/futures/csvconfig/spreadcosts.csv) for sim, but usually in a database for production, as they should be periodically updated with more accurate information.
+Instrument configuration consists of static information that enables us to trade an instrument like SOFR: the asset class, futures contract point size, and traded currency (it also includes cost levels, that are required in the simulation environment). This is now mostly stored in [this file](/data/futures/csvconfig/instrumentconfig.csv) for both sim and production. The file includes a number of futures contracts that I don't actually trade or get prices for. Any configuration information for these may not be accurate and you use it at your own risk. The exception is spread costs, which are stored in [this file](/data/futures/csvconfig/spreadcosts.csv) for sim, but usually in a database for production, as they should be periodically updated with more accurate information.
 
 To copy spread costs into the database we are going to *read* from .csv files, and *write* to a [Mongo Database](https://www.mongodb.com/). 
 
@@ -141,7 +141,7 @@ The information is sucked out of [this file](/data/futures/csvconfig/spreadcosts
 
 It's worth explaining the available options for roll configuration. First of all we have two *roll cycles*: 'priced' and 'hold'. Roll cycles use the usual definition for futures months (January is F, February G, March H, and the rest of the year is JKMNQUVX, with December Z). The 'priced' contracts are those that we can get prices for, whereas the 'hold' cycle contracts are those we actually hold. We may hold all the priced contracts (like for equities), or only only some because of liquidity issues (eg Gold), or to keep a consistent seasonal position (i.e. CRUDE_W is Winter Crude, so we only hold December).
 
-'RollOffsetDays': This indicates how many calendar days before a contract expires that we'd normally like to roll it. These vary from zero (Korean bonds KR3 and KR10 which you can't roll until the expiry date) up to -1100 (Eurodollar where I like to stay several years out on the curve).
+'RollOffsetDays': This indicates how many calendar days before a contract expires that we'd normally like to roll it. These vary from zero (Korean bonds KR3 and KR10 which you can't roll until the expiry date) up to -1100 (SOFR where I like to stay several years out on the curve).
 
 'ExpiryOffset': How many days to shift the expiry date in a month, eg (the day of the month that a contract expires)-1. These values are just here so we can build roughly correct roll calendars (of which more later). In live trading you'd get the actual expiry date for each contract.
 
@@ -149,7 +149,7 @@ Using these two dates together will indicate when we'd ideally roll an instrumen
 
 For example for Bund futures, the ExpiryOffset is 6; the contract notionally expires on day 1+6 = 7th of the month. The RollOffsetDays is -5, so we roll 5 days before this. So we'd normally roll on the 1+6-5 = 2nd day of the month.
 
-Let's take a more extreme example, Eurodollar. The ExpiryOffset is 18, and the roll offset is -1100 (no not a typo!). We'd roll this product 1100 days before it expired on the 19th day of the month.
+Let's take a more extreme example, SOFR. The ExpiryOffset is 18, and the roll offset is -1100 (no not a typo!). We'd roll this product 1100 days before it expired on the 19th day of the month.
 
 <a name="carry-offset"></a>
 'CarryOffset': Whether we take carry from an earlier dated contract (-1, which is preferable) or a later dated contract (+1, which isn't ideal but if we hold the front contract we have no choice). This calculation is done based on the *priced* roll cycle, so for example for winter crude where the *hold* roll cycle is just 'Z' (we hold December), and the carry offset is -1 we take the previous month in the *priced* roll cycle (which is a full year FGHJKMNQUVXZ) i.e. November (whose code is 'X'). You read more in Appendix B of [my first book](https://www.systematicmoney.org/systematic-trading).
@@ -297,7 +297,7 @@ The objects `csvFuturesContractPriceData` and `arcticFuturesContractPriceData` a
 
 We're now ready to set up a *roll calendar*. A roll calendar is the series of dates on which we roll from one futures contract to the next. It might be helpful to read [my blog post](https://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html) on rolling futures contracts (though bear in mind some of the details relate to my original defunct trading system and do not reflect how pysystemtrade works).
 
-You can see a roll calendar for Eurodollar futures, [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). On each date we roll from the current_contract shown to the next_contract. We also see the current carry_contract; we use the differential between this and the current_contract to calculate forecasts for carry trading rules. The key thing is that on each roll date we *MUST* have prices for both the price and forward contract (we don't need carry). Here is a snippet from another roll calendar. This particular contract rolls quarterly on IMM dates (HMUZ), trades the first contract, and uses the second contract for carry. 
+You can see a roll calendar for SOFR futures, [here](/data/futures/roll_calendars_csv/SOFR.csv). On each date we roll from the current_contract shown to the next_contract. We also see the current carry_contract; we use the differential between this and the current_contract to calculate forecasts for carry trading rules. The key thing is that on each roll date we *MUST* have prices for both the price and forward contract (we don't need carry). Here is a snippet from another roll calendar. This particular contract rolls quarterly on IMM dates (HMUZ), trades the first contract, and uses the second contract for carry. 
 
 ```
 DATE_TIME,current_contract,next_contract,carry_contract
@@ -387,7 +387,7 @@ A *valid* roll calendar will have current and next contract prices on the roll d
 
 #### Manually editing roll calendars
 
-Roll calendars are stored in .csv format [and here is an example](/data/futures/roll_calendars_csv/EDOLLAR.csv). Of course you could put these into Mongo DB, or Arctic, but I like the ability to hack them if required; plus we only use them when starting the system up from scratch. If you have to manually edit your .csv roll calendars, you can easily load them up and check they are monotonic and valid. The function [`check_saved_roll_calendar`](/sysinit/futures/rollcalendars_from_arcticprices_to_csv.py) is your friend. Just make sure you are using the right datapath.
+Roll calendars are stored in .csv format [and here is an example](/data/futures/roll_calendars_csv/SOFR.csv). Of course you could put these into Mongo DB, or Arctic, but I like the ability to hack them if required; plus we only use them when starting the system up from scratch. If you have to manually edit your .csv roll calendars, you can easily load them up and check they are monotonic and valid. The function [`check_saved_roll_calendar`](/sysinit/futures/rollcalendars_from_arcticprices_to_csv.py) is your friend. Just make sure you are using the right datapath.
 
 
 <a name="roll_calendars_from_multiple"></a>
@@ -405,7 +405,7 @@ The downside is that I don't keep the data constantly updated, and thus you migh
 <a name="roll_calendars_from_provided"></a>
 ### Roll calendars shipped in .csv files
 
-If you are too lazy even to do the previous step, I've done it for you and you can just use the calendars provided [here](/data/futures/roll_calendars_csv/EDOLLAR.csv). Of course they could also be out of date, and again you'll need to fix this manually.
+If you are too lazy even to do the previous step, I've done it for you and you can just use the calendars provided [here](/data/futures/roll_calendars_csv/SOFR.csv). Of course they could also be out of date, and again you'll need to fix this manually.
 
 
 <a name="create_multiple_prices"></a>
@@ -706,7 +706,7 @@ Simulation interface layer:
 <a name="futuresInstrument"></a>
 ### [Instruments](/sysobjects/instruments.py): futuresInstrument() 
 
-Futures instruments are the things we actually trade, eg Eurodollar futures, but not specific contracts. Apart from the instrument code we can store *metadata* about them. This isn't hard wired into the class, but currently includes things like the asset class, cost parameters, and so on.
+Futures instruments are the things we actually trade, eg SOFR futures, but not specific contracts. Apart from the instrument code we can store *metadata* about them. This isn't hard wired into the class, but currently includes things like the asset class, cost parameters, and so on.
 
 <a name="contractDate"></a>
 ### [Contract dates and expiries](/sysobjects/contract_dates_and_expiries.py): singleContractDate(), contractDate(), listOfContractDateStr(), and expiryDate()
@@ -734,7 +734,7 @@ Roll cycles are the mechanism by which we know how to move forwards and backward
 The roll parameters include all the information we need about how a given instrument rolls:
 
 - `hold_rollcycle` and `priced_rollcycle`. The 'priced' contracts are those that we can get prices for, whereas the 'hold' cycle contracts are those we actually hold. We may hold all the priced contracts (like for equities), or only only some because of liquidity issues (eg Gold), or to keep a consistent seasonal position (i.e. CRUDE_W is Winter Crude, so we only hold December).
-- `roll_offset_day`: This indicates how many calendar days before a contract expires that we'd normally like to roll it. These vary from zero (Korean bonds KR3 and KR10 which you can't roll until the expiry date) up to -1100 (Eurodollar where I like to stay several years out on the curve).
+- `roll_offset_day`: This indicates how many calendar days before a contract expires that we'd normally like to roll it. These vary from zero (Korean bonds KR3 and KR10 which you can't roll until the expiry date) up to -1100 (SOFR where I like to stay several years out on the curve).
 - `carry_offset`: Whether we take carry from an earlier dated contract (-1, which is preferable) or a later dated contract (+1, which isn't ideal but if we hold the front contract we have no choice). This calculation is done based on the *priced* roll cycle, so for example for winter crude where the *hold* roll cycle is just 'Z' (we hold December), and the carry offset is -1 we take the previous month in the *priced* roll cycle (which is a full year FGHJKMNQUVXZ) i.e. November (whose code is 'X'). You read more in Appendix B of [my first book](https://www.systematicmoney.org/systematic-trading) and in [my blog post](https://qoppac.blogspot.co.uk/2015/05/systems-building-futures-rolling.html).
 - `approx_expiry_offset`: How many days to shift the expiry date in a month, eg (the day of the month that a contract expires)-1. These values are just here so we can build roughly correct roll calendars (of which more later). In live trading you'd get the actual expiry date for each contract.
 
@@ -807,7 +807,7 @@ from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesDat
 
 # assuming we have some multiple prices
 arctic_multiple_prices = arcticFuturesMultiplePricesData()
-multiple_prices = arctic_multiple_prices.get_multiple_prices("EDOLLAR")
+multiple_prices = arctic_multiple_prices.get_multiple_prices("SOFR")
 
 adjusted_prices = futuresAdjustedPrices.stitch_multiple_prices(multiple_prices)
 ```
@@ -955,7 +955,7 @@ data.add_class_object(arcticFuturesAdjustedPricesData)
 Library created, but couldn't enable sharding: ...
 
 data.db_futures_adjusted_prices.get_list_of_instruments()
-['EDOLLAR', 'CAC', 'KR3', 'SMI', 'V2X', 'JPY', ....]
+['SOFR', 'CAC', 'KR3', 'SMI', 'V2X', 'JPY', ....]
 ```
 
 OK, why does it say `db_futures_adjusted_prices` here? It's because dataBlob knows we don't really care where our data is stored. It dynamically creates an instance of any valid data storage class that is passed to it, renaming it by replacing the source with `db` (or `broker` if it's an interface to the broker), stripping off the 'Data' at the end, and replacing the CamelCase in the middle with `_` separated strings (since this is an instance now not a class).
@@ -971,7 +971,7 @@ data.add_class_list([csvFuturesAdjustedPricesData]) # see we can pass a list of 
 2020-11-30:1535.48 {'type': ''} [Warning] No datapaths provided for .csv, will use defaults  (may break in production, should be fine in sim)
 
 data.db_futures_adjusted_prices.get_list_of_instruments()
-['EDOLLAR', 'CAC', 'KR3', 'SMI', 'V2X', 'JPY', ....]
+['SOFR', 'CAC', 'KR3', 'SMI', 'V2X', 'JPY', ....]
 ```
 
 A .csv is just another type of database as far as dataBlob is concerned. It's replaced the attribute we had before with a new one that now links to .csv files. 

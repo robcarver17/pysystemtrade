@@ -152,8 +152,8 @@ from sysdata.data_blob import dataBlob
 ibfuturesdata = ibFuturesContractPriceData(conn, dataBlob())
 
 ibfuturesdata.get_list_of_instrument_codes_with_merged_price_data() # returns list of instruments defined in [futures config file](/sysbrokers/IB/ibConfigFutures.csv)
-ibfuturesdata.contract_dates_with_price_data_for_instrument_code("EDOLLAR") # returns list of contract dates
-ibfuturesdata.get_prices_for_contract_object(futuresContract("EDOLLAR", "201203")) # returns OHLC price and volume data
+ibfuturesdata.contract_dates_with_price_data_for_instrument_code("SOFR") # returns list of contract dates
+ibfuturesdata.get_prices_for_contract_object(futuresContract("SOFR", "201203")) # returns OHLC price and volume data
 ```
 
 ### Capital data
@@ -170,7 +170,7 @@ ib_capital_data.get_account_value_across_currency()
 
 ```
 from sysobjects.contracts import futuresContract
-contract = futuresContract("EDOLLAR", "202306")
+contract = futuresContract("SOFR", "202306")
 
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 ib_futures_contract_data = ibFuturesContractData(conn)
@@ -187,8 +187,8 @@ ib_futures_contract_data.get_trading_hours_for_contract(contract)
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 ib_futures_instrument_data = ibFuturesInstrumentData(conn)
 ib_futures_instrument_data.get_list_of_instruments()
-ib_futures_instrument_data.get_futures_instrument_object_with_IB_data("EDOLLAR") # again used by other functions to get the 'metadata' to map into IB instruments
-ib_futures_instrument_data.get_brokers_instrument_code("EDOLLAR") # reverse of next function
+ib_futures_instrument_data.get_futures_instrument_object_with_IB_data("SOFR") # again used by other functions to get the 'metadata' to map into IB instruments
+ib_futures_instrument_data.get_brokers_instrument_code("SOFR") # reverse of next function
 ib_futures_instrument_data.get_instrument_code_from_broker_contract_object("GE") # reverse of previous function
 ```
 
