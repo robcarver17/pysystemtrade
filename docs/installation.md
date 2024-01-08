@@ -139,7 +139,7 @@ And now install the dependencies
 If you're running MacOS on one of the new ARM chips, the process is more complex. You'll need Homebrew and the Apple XCode Commandline Development Tools, configured for ARM. Doing that is beyond the scope of this document, type `homebrew apple xcode command line tools` into your favourite search engine. Once installed and configured, run installation script:
 
 ```
-chmod u+x install install_dependencies_apple_silicon.sh
+chmod u+x install_dependencies_apple_silicon.sh
 ./install_dependencies_apple_silicon.sh
 ```
 Note: this may (unfortunately) become out of date and require some tweaking.
