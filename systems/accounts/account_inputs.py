@@ -116,7 +116,7 @@ class accountInputs(SystemStage):
         return rolls_per_year
 
     def get_value_of_block_price_move(self, instrument_code: str) -> float:
-        return self.parent.data.get_value_of_block_price_move(instrument_code)
+        return self.parent.rawdata.get_value_of_block_price_move(instrument_code)
 
     def get_fx_rate(self, instrument_code: str) -> pd.Series:
         return self.parent.positionSize.get_fx_rate(instrument_code)

@@ -45,6 +45,10 @@ class RawData(SystemStage):
     def get_raw_cost_data(self, instrument_code: str):
         return self.data_stage.get_raw_cost_data(instrument_code)
 
+    def get_value_of_block_price_move(self, instrument_code: str) -> float:
+        return self.data_stage.get_value_of_block_price_move(instrument_code)
+
+
     @input
     def get_daily_prices(self, instrument_code) -> pd.Series:
         """
