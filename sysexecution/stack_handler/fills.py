@@ -93,10 +93,11 @@ class stackHandlerForFills(stackHandlerForCompletions):
         contract_order_id = broker_order.parent
 
         if contract_order_id is no_parent:
-            log = broker_order.log_with_attributes(self.log)
-            log.error(
+            self.log.error(
                 "No parent for broker order %s %d"
-                % (str(broker_order), broker_order_id)
+                % (str(broker_order), broker_order_id),
+                **broker_order.log_attributes(),
+                method="temp",
             )
         else:
             # pass broker fills upwards

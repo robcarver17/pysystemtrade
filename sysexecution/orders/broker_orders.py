@@ -337,29 +337,6 @@ class brokerOrder(Order):
 
         return order
 
-    def log_with_attributes(self, log):
-        """
-        Returns a new log object with broker_order attributes added
-
-        :param log: logger
-        :return: log
-        """
-        broker_order = self
-        new_log = log.setup(
-            **{
-                STRATEGY_NAME_LOG_LABEL: broker_order.strategy_name,
-                INSTRUMENT_CODE_LOG_LABEL: broker_order.instrument_code,
-                CONTRACT_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
-                    broker_order.parent, no_parent
-                ),
-                BROKER_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
-                    broker_order.order_id, no_order_id
-                ),
-            }
-        )
-
-        return new_log
-
     def log_attributes(self):
         """
         Returns a dict of broker_order log attributes

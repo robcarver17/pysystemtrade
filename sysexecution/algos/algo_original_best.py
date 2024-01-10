@@ -1,24 +1,25 @@
 """
 This is the original 'best execution' algo I used in my legacy system
 """
-from typing import Union
+
 import time
-from syscore.exceptions import missingData, marketClosed
+from syscore.exceptions import missingData, marketClosed, orderCannotBeModified
 from sysexecution.orders.named_order_objects import missing_order
 
-from sysdata.data_blob import dataBlob
-from sysexecution.algos.algo import Algo, limit_price_from_offside_price
+from sysexecution.algos.algo import (
+    Algo,
+    limit_price_from_offside_price,
+)
 from sysexecution.algos.common_functions import (
     post_trade_processing,
     MESSAGING_FREQUENCY,
     cancel_order,
-    set_limit_price,
     check_current_limit_price_at_inside_spread,
-    file_log_report_market_order,
     limit_price_is_at_inside_spread,
 )
 from sysexecution.tick_data import tickerObject, analysisTick
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
+from sysexecution.orders.base_orders import Order
 from sysexecution.orders.broker_orders import (
     market_order_type,
     limit_order_type,
@@ -28,7 +29,6 @@ from sysexecution.orders.contract_orders import best_order_type, contractOrder
 
 from syslogging.logger import *
 
-from sysproduction.data.broker import dataBroker
 
 # Here are the algo parameters
 # Hard coded; if you want to try different parameters make a hard copy and
@@ -42,13 +42,15 @@ TOTAL_TIME_OUT = 600
 HOURS_BEFORE_MARKET_CLOSE_TO_SWITCH_TO_MARKET = 0.5
 
 # imbalance
-# if more than 5 times on the bid (if we're buying) than the offer, AND less than three times our quantity on the offer,
-# then go aggressive
+# if more than 5 times on the bid (if we're buying) than the offer, AND less than
+# three times our quantity on the offer, then go aggressive
 IMBALANCE_THRESHOLD = 5
 IMBALANCE_ADJ_FACTOR = 3
 
 # we only do one contract at a time
 SIZE_LIMIT = 1
+
+no_need_to_switch = "_NO_NEED_TO_SWITCH"
 
 
 class algoOriginalBest(Algo):
@@ -82,14 +84,14 @@ class algoOriginalBest(Algo):
     def prepare_and_submit_trade(self) -> orderWithControls:
         data = self.data
         contract_order = self.contract_order
-        # TODO log_with_attributes
-        log = contract_order.log_with_attributes(data.log)
+        log_attrs = {**contract_order.log_attributes(), "method": "temp"}
 
         ## check order type is 'best' not 'limit' or 'market'
         if not contract_order.order_type == best_order_type:
-            log.critical(
+            data.log.critical(
                 "Order has been allocated to algo 'original-best' but order type is %s"
-                % str(contract_order.order_type)
+                % str(contract_order.order_type),
+                **log_attrs,
             )
             return missing_order
 
@@ -99,20 +101,19 @@ class algoOriginalBest(Algo):
             )
         )
         if cut_down_contract_order.trade != contract_order.trade:
-            log.debug(
+            data.log.debug(
                 "Cut down order to size %s from %s because of algo size limit"
-                % (str(contract_order.trade), str(cut_down_contract_order.trade))
+                % (str(contract_order.trade), str(cut_down_contract_order.trade)),
+                **log_attrs,
             )
 
         ticker_object = self.data_broker.get_ticker_object_for_order(
             cut_down_contract_order
         )
         try:
-            okay_to_do_limit_trade = limit_trade_viable(
+            okay_to_do_limit_trade = self.limit_trade_viable(
                 ticker_object=ticker_object,
-                data_broker=self.data_broker,
                 order=cut_down_contract_order,
-                log=log,
             )
         except missingData:
             ## Safer not to trade at all
@@ -130,8 +131,9 @@ class algoOriginalBest(Algo):
             )
         else:
             # do a market order
-            log.debug(
-                "Conditions are wrong so doing market trade instead of limit trade"
+            data.log.debug(
+                "Conditions are wrong so doing market trade instead of limit trade",
+                **log_attrs,
             )
             broker_order_with_controls = (
                 self.get_and_submit_broker_order_for_contract_order(
@@ -141,296 +143,338 @@ class algoOriginalBest(Algo):
 
         return broker_order_with_controls
 
-    def manage_live_trade(
-        self, broker_order_with_controls_and_order_id: orderWithControls
-    ) -> orderWithControls:
+    def manage_live_trade(self, order_control: orderWithControls) -> orderWithControls:
         data = self.data
-        # TODO log_with_attributes
-        log = broker_order_with_controls_and_order_id.order.log_with_attributes(
-            data.log
-        )
+        log_attrs = {
+            **order_control.order.log_attributes(),
+            "method": "temp",
+        }
 
         trade_open = True
         is_aggressive = False
-        log.debug(
-            "Managing trade %s with algo 'original-best'"
-            % str(broker_order_with_controls_and_order_id.order)
+        data.log.debug(
+            "Managing trade %s with algo 'original-best'" % str(order_control.order),
+            **log_attrs,
         )
 
-        is_limit_trade = (
-            broker_order_with_controls_and_order_id.order.order_type == limit_order_type
-        )
+        is_limit_trade = order_control.order.order_type == limit_order_type
 
         while trade_open:
             time.sleep(0.001)
-            if broker_order_with_controls_and_order_id.message_required(
+            if order_control.message_required(
                 messaging_frequency_seconds=MESSAGING_FREQUENCY
             ):
-                file_log_report(
-                    log, is_aggressive, broker_order_with_controls_and_order_id
-                )
+                self.file_log_report(is_aggressive, order_control)
 
             if is_limit_trade:
                 if is_aggressive:
                     ## aggressive keep limit price in line
-                    set_aggressive_limit_price(
-                        data_broker=self.data_broker,
-                        broker_order_with_controls=broker_order_with_controls_and_order_id,
+                    self.set_aggressive_limit_price(
+                        broker_order_with_controls=order_control,
                     )
                 else:
                     # passive limit trade
-                    reason_to_switch = reason_to_switch_to_aggressive(
-                        data_broker=self.data_broker,
-                        broker_order_with_controls=broker_order_with_controls_and_order_id,
-                        log=log,
+                    reason_to_switch = self.reason_to_switch_to_aggressive(
+                        broker_order_with_controls=order_control,
                     )
-                    need_to_switch = required_to_switch_to_aggressive(reason_to_switch)
+                    need_to_switch = self.required_to_switch_to_aggressive(
+                        reason_to_switch
+                    )
 
                     if need_to_switch:
-                        log.debug("Switch to aggressive because %s" % reason_to_switch)
+                        data.log.debug(
+                            "Switch to aggressive because %s" % reason_to_switch,
+                            **log_attrs,
+                        )
                         is_aggressive = True
             else:
                 # market trade nothing to do
                 pass
 
-            order_completed = broker_order_with_controls_and_order_id.completed()
+            order_completed = order_control.completed()
             if order_completed:
-                log.debug("Trade completed")
+                data.log.debug("Trade completed", **log_attrs)
                 break
 
-            order_timeout = (
-                broker_order_with_controls_and_order_id.seconds_since_submission()
-                > TOTAL_TIME_OUT
-            )
+            order_timeout = order_control.seconds_since_submission() > TOTAL_TIME_OUT
             if order_timeout:
-                log.debug("Run out of time: cancelling")
-                broker_order_with_controls_and_order_id = cancel_order(
-                    data, broker_order_with_controls_and_order_id
+                data.log.debug(
+                    "Run out of time: cancelling",
+                    **log_attrs,
                 )
+                order_control = cancel_order(data, order_control)
                 break
 
             order_cancelled = (
                 self.data_broker.check_order_is_cancelled_given_control_object(
-                    broker_order_with_controls_and_order_id
+                    order_control
                 )
             )
             if order_cancelled:
-                log.warning("Order has been cancelled: not by algo")
+                data.log.warning("Order has been cancelled: not by algo", **log_attrs)
                 break
 
-        return broker_order_with_controls_and_order_id
+        return order_control
 
+    def limit_trade_viable(
+        self,
+        order: contractOrder,
+        ticker_object: tickerObject,
+    ) -> bool:
+        log_attrs = {**order.log_attributes(), "method": "temp"}
 
-def limit_trade_viable(  # TODO passed logger instance
-    data_broker: dataBroker,
-    order: contractOrder,
-    ticker_object: tickerObject,
-    log,
-) -> bool:
-    # no point doing limit order if we've got imbalanced size issues, as we'd
-    # switch to aggressive immediately
-    raise_adverse_size_issue = adverse_size_issue(
-        ticker_object, wait_for_valid_tick=True, log=log
-    )
-
-    if raise_adverse_size_issue:
-        log.debug("Limit trade not viable")
-        return False
-
-    # or if not enough time left
-    if is_market_about_to_close(data_broker=data_broker, order=order, log=log):
-        log.debug(
-            "Market about to close or stack handler nearly close - doing market order"
-        )
-        return False
-
-    return True
-
-
-no_need_to_switch = "_NO_NEED_TO_SWITCH"
-
-
-def file_log_report(  # TODO passed logger instance
-    log, is_aggressive: bool, broker_order_with_controls: orderWithControls
-):
-    limit_trade = broker_order_with_controls.order.order_type == limit_order_type
-    if limit_trade:
-        file_log_report_limit_order(log, is_aggressive, broker_order_with_controls)
-    else:
-        file_log_report_market_order(log, broker_order_with_controls)
-
-
-def file_log_report_limit_order(
-    log, is_aggressive: bool, broker_order_with_controls: orderWithControls
-):
-    if is_aggressive:
-        agg_txt = "Aggressive"
-    else:
-        agg_txt = "Passive"
-
-    limit_price = broker_order_with_controls.order.limit_price
-    broker_limit_price = broker_order_with_controls.broker_limit_price()
-
-    ticker_object = broker_order_with_controls.ticker
-    current_tick = str(ticker_object.current_tick())
-
-    log_report = "%s execution with limit price desired:%f actual:%f last tick %s" % (
-        agg_txt,
-        limit_price,
-        broker_limit_price,
-        current_tick,
-    )
-
-    log.debug(log_report)
-
-
-def reason_to_switch_to_aggressive(
-    data_broker: dataBroker,
-    broker_order_with_controls: orderWithControls,
-    log,
-) -> str:
-    ticker_object = broker_order_with_controls.ticker
-
-    too_much_time = (
-        broker_order_with_controls.seconds_since_submission() > PASSIVE_TIME_OUT
-    )
-    if too_much_time:
-        return (
-            "Time out after %f seconds"
-            % broker_order_with_controls.seconds_since_submission()
+        # no point doing limit order if we've got imbalanced size issues, as we'd
+        # switch to aggressive immediately
+        raise_adverse_size_issue = self.adverse_size_issue(
+            ticker_object, order, wait_for_valid_tick=True
         )
 
-    market_about_to_close = is_market_about_to_close(
-        data_broker=data_broker, order=broker_order_with_controls, log=log
-    )
-    if market_about_to_close:
-        return "Market is closing soon or stack handler will end soon"
+        if raise_adverse_size_issue:
+            self.data.log.debug("Limit trade not viable", **log_attrs)
+            return False
 
-    try:
-        adverse_price = ticker_object.adverse_price_movement_vs_reference()
-        if adverse_price:
-            return "Adverse price movement"
-
-        adverse_size = adverse_size_issue(
-            ticker_object, wait_for_valid_tick=False, log=log
-        )
-        if adverse_size:
-            return (
-                "Imbalance ratio of %f exceeds threshold"
-                % ticker_object.latest_imbalance_ratio()
+        # or if not enough time left
+        if self.is_market_about_to_close(order=order):
+            self.data.log.debug(
+                "Market about to close or stack handler nearly close - "
+                "doing market order",
+                **log_attrs,
             )
+            return False
 
-        ## everything is fine, stay with aggressive
-        return no_need_to_switch
-
-    except:
-        return "Problem with data, switch to aggressive"
-
-
-def is_market_about_to_close(
-    data_broker: dataBroker,
-    order: Union[brokerOrder, contractOrder, orderWithControls],
-    log,
-) -> bool:
-    try:
-        short_of_time = data_broker.less_than_N_hours_of_trading_left_for_contract(
-            order.futures_contract,
-            N_hours=HOURS_BEFORE_MARKET_CLOSE_TO_SWITCH_TO_MARKET,
-        )
-    except marketClosed:
-        log.warning("Market has closed for active limit order %s!" % str(order))
         return True
 
-    return short_of_time
+    def file_log_report(
+        self, is_aggressive: bool, broker_order_with_controls: orderWithControls
+    ):
+        limit_trade = broker_order_with_controls.order.order_type == limit_order_type
+        if limit_trade:
+            self.file_log_report_limit_order(is_aggressive, broker_order_with_controls)
+        else:
+            self.file_log_report_market_order(broker_order_with_controls)
 
+    def file_log_report_limit_order(
+        self, is_aggressive: bool, broker_order_with_controls: orderWithControls
+    ):
+        if is_aggressive:
+            agg_txt = "Aggressive"
+        else:
+            agg_txt = "Passive"
 
-def required_to_switch_to_aggressive(reason: str) -> bool:
-    if reason == no_need_to_switch:
-        return False
-    else:
-        return True
+        limit_price = broker_order_with_controls.order.limit_price
+        broker_limit_price = broker_order_with_controls.broker_limit_price()
 
+        ticker_object = broker_order_with_controls.ticker
+        current_tick = str(ticker_object.current_tick())
 
-def adverse_size_issue(
-    ticker_object: tickerObject, log, wait_for_valid_tick=False
-) -> bool:
-    if wait_for_valid_tick:
-        current_tick_analysis = (
-            ticker_object.wait_for_valid_bid_and_ask_and_analyse_current_tick()
-        )
-    else:
-        current_tick_analysis = ticker_object.current_tick_analysis
-
-    latest_imbalance_ratio_exceeded = _is_imbalance_ratio_exceeded(
-        current_tick_analysis, log=log
-    )
-    insufficient_size_on_our_preferred_side = (
-        _is_insufficient_size_on_our_preferred_side(
-            ticker_object, current_tick_analysis, log=log
-        )
-    )
-
-    if latest_imbalance_ratio_exceeded and insufficient_size_on_our_preferred_side:
-        return True
-    else:
-        return False
-
-
-def _is_imbalance_ratio_exceeded(current_tick_analysis: analysisTick, log) -> bool:
-    latest_imbalance_ratio = current_tick_analysis.imbalance_ratio
-    latest_imbalance_ratio_exceeded = latest_imbalance_ratio > IMBALANCE_THRESHOLD
-
-    if latest_imbalance_ratio_exceeded:
-        log.debug(
-            "Imbalance ratio for ticker %s %f exceeds threshold %f"
-            % (str(current_tick_analysis), latest_imbalance_ratio, IMBALANCE_THRESHOLD)
-        )
-
-    return latest_imbalance_ratio_exceeded
-
-
-def _is_insufficient_size_on_our_preferred_side(
-    ticker_object: tickerObject, current_tick_analysis: analysisTick, log
-) -> bool:
-    abs_size_we_wish_to_trade = abs(ticker_object.qty)
-    size_we_require_to_trade_limit = IMBALANCE_ADJ_FACTOR * abs_size_we_wish_to_trade
-    available_size_on_our_preferred_side = abs(current_tick_analysis.side_qty)
-
-    insufficient_size_on_our_preferred_side = (
-        available_size_on_our_preferred_side < size_we_require_to_trade_limit
-    )
-
-    if insufficient_size_on_our_preferred_side:
-        log.debug(
-            "On ticker %s we require size of %f (our trade %f * adjustment %f) for a limit order but only %f available"
+        log_report = (
+            "%s execution with limit price desired:%f actual:%f last tick %s"
             % (
-                str(current_tick_analysis),
-                size_we_require_to_trade_limit,
-                abs_size_we_wish_to_trade,
-                IMBALANCE_ADJ_FACTOR,
-                available_size_on_our_preferred_side,
+                agg_txt,
+                limit_price,
+                broker_limit_price,
+                current_tick,
             )
         )
 
-    return insufficient_size_on_our_preferred_side
+        self.data.log.debug(
+            log_report,
+            **broker_order_with_controls.order.log_attributes(),
+            method="temp",
+        )
 
+    def reason_to_switch_to_aggressive(
+        self,
+        broker_order_with_controls: orderWithControls,
+    ) -> str:
+        ticker_object = broker_order_with_controls.ticker
 
-def set_aggressive_limit_price(
-    data_broker: dataBroker, broker_order_with_controls: orderWithControls
-) -> orderWithControls:
-    limit_trade = broker_order_with_controls.order.order_type == limit_order_type
-    if not limit_trade:
-        # market trade, don't bother
+        too_much_time = (
+            broker_order_with_controls.seconds_since_submission() > PASSIVE_TIME_OUT
+        )
+        if too_much_time:
+            return (
+                "Time out after %f seconds"
+                % broker_order_with_controls.seconds_since_submission()
+            )
+
+        market_about_to_close = self.is_market_about_to_close(
+            order=broker_order_with_controls.order,
+        )
+        if market_about_to_close:
+            return "Market is closing soon or stack handler will end soon"
+
+        try:
+            adverse_price = ticker_object.adverse_price_movement_vs_reference()
+            if adverse_price:
+                return "Adverse price movement"
+
+            adverse_size = self.adverse_size_issue(
+                ticker_object,
+                broker_order_with_controls.order,
+                wait_for_valid_tick=False,
+            )
+            if adverse_size:
+                return (
+                    "Imbalance ratio of %f exceeds threshold"
+                    % ticker_object.latest_imbalance_ratio()
+                )
+
+            ## everything is fine, stay with aggressive
+            return no_need_to_switch
+
+        except:
+            return "Problem with data, switch to aggressive"
+
+    def is_market_about_to_close(
+        self,
+        order: Union[brokerOrder, contractOrder],
+    ) -> bool:
+        try:
+            short_of_time = (
+                self.data_broker.less_than_N_hours_of_trading_left_for_contract(
+                    order.futures_contract,
+                    N_hours=HOURS_BEFORE_MARKET_CLOSE_TO_SWITCH_TO_MARKET,
+                )
+            )
+        except marketClosed:
+            self.data.log.warning(
+                "Market has closed for active limit order %s!" % str(order),
+                **order.log_attributes(),
+                method="temp",
+            )
+            return True
+
+        return short_of_time
+
+    @staticmethod
+    def required_to_switch_to_aggressive(reason: str) -> bool:
+        if reason == no_need_to_switch:
+            return False
+        else:
+            return True
+
+    def adverse_size_issue(
+        self, ticker_object: tickerObject, order: Order, wait_for_valid_tick=False
+    ) -> bool:
+        if wait_for_valid_tick:
+            current_tick_analysis = (
+                ticker_object.wait_for_valid_bid_and_ask_and_analyse_current_tick()
+            )
+        else:
+            current_tick_analysis = ticker_object.current_tick_analysis
+
+        latest_imbalance_ratio_exceeded = self._is_imbalance_ratio_exceeded(
+            current_tick_analysis, order
+        )
+        insufficient_size_on_our_preferred_side = (
+            self._is_insufficient_size_on_our_preferred_side(
+                ticker_object, current_tick_analysis, order
+            )
+        )
+
+        if latest_imbalance_ratio_exceeded and insufficient_size_on_our_preferred_side:
+            return True
+        else:
+            return False
+
+    def _is_imbalance_ratio_exceeded(
+        self, current_tick_analysis: analysisTick, order: Order
+    ) -> bool:
+        latest_imbalance_ratio = current_tick_analysis.imbalance_ratio
+        latest_imbalance_ratio_exceeded = latest_imbalance_ratio > IMBALANCE_THRESHOLD
+
+        if latest_imbalance_ratio_exceeded:
+            self.data.log.debug(
+                "Imbalance ratio for ticker %s %f exceeds threshold %f"
+                % (
+                    str(current_tick_analysis),
+                    latest_imbalance_ratio,
+                    IMBALANCE_THRESHOLD,
+                ),
+                **order.log_attributes(),
+                method="temp",
+            )
+
+        return latest_imbalance_ratio_exceeded
+
+    def _is_insufficient_size_on_our_preferred_side(
+        self,
+        ticker_object: tickerObject,
+        current_tick_analysis: analysisTick,
+        order: Order,
+    ) -> bool:
+        abs_size_we_wish_to_trade = abs(ticker_object.qty)
+        size_we_require_to_trade_limit = (
+            IMBALANCE_ADJ_FACTOR * abs_size_we_wish_to_trade
+        )
+        available_size_on_our_preferred_side = abs(current_tick_analysis.side_qty)
+
+        insufficient_size_on_our_preferred_side = (
+            available_size_on_our_preferred_side < size_we_require_to_trade_limit
+        )
+
+        if insufficient_size_on_our_preferred_side:
+            self.data.log.debug(
+                "On ticker %s we require size of %f (our trade %f * adjustment %f) "
+                "for a limit order but only %f available"
+                % (
+                    str(current_tick_analysis),
+                    size_we_require_to_trade_limit,
+                    abs_size_we_wish_to_trade,
+                    IMBALANCE_ADJ_FACTOR,
+                    available_size_on_our_preferred_side,
+                ),
+                **order.log_attributes(),
+                method="temp",
+            )
+
+        return insufficient_size_on_our_preferred_side
+
+    def set_aggressive_limit_price(
+        self, broker_order_with_controls: orderWithControls
+    ) -> orderWithControls:
+        limit_trade = broker_order_with_controls.order.order_type == limit_order_type
+        if not limit_trade:
+            # market trade, don't bother
+            return broker_order_with_controls
+
+        new_limit_price = check_current_limit_price_at_inside_spread(
+            broker_order_with_controls
+        )
+        if new_limit_price is limit_price_is_at_inside_spread:
+            pass
+        else:
+            broker_order_with_controls = self.set_best_limit_price(
+                broker_order_with_controls, new_limit_price
+            )
+
         return broker_order_with_controls
 
-    new_limit_price = check_current_limit_price_at_inside_spread(
-        broker_order_with_controls
-    )
-    if new_limit_price is limit_price_is_at_inside_spread:
-        pass
-    else:
-        broker_order_with_controls = set_limit_price(
-            data_broker, broker_order_with_controls, new_limit_price
-        )
+    def set_best_limit_price(
+        self,
+        broker_order_with_controls: orderWithControls,
+        new_limit_price: float,
+    ):
+        log_attrs = {
+            **broker_order_with_controls.order.log_attributes(),
+            "method": "temp",
+        }
 
-    return broker_order_with_controls
+        try:
+            broker_order_with_controls = (
+                self.data_broker.modify_limit_price_given_control_object(
+                    broker_order_with_controls, new_limit_price
+                )
+            )
+            self.data.log.debug(
+                "Tried to change limit price to %f" % new_limit_price,
+                **log_attrs,
+            )
+        except orderCannotBeModified as error:
+            self.data.log.debug(
+                "Can't modify limit price for order, error %s" % str(error),
+                **log_attrs,
+            )
+
+        return broker_order_with_controls

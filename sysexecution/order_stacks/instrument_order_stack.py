@@ -121,8 +121,7 @@ class instrumentOrderStackData(orderStackData):
         :param new_order:
         :return:
         """
-        # TODO log_with_attributes
-        log = new_order.log_with_attributes(self.log)
+        log_attrs = {**new_order.log_attributes(), "method": "temp"}
 
         existing_orders = listOfOrders(
             [
@@ -131,8 +130,8 @@ class instrumentOrderStackData(orderStackData):
             ]
         )
 
-        adjusted_order = calculate_adjusted_order_given_existing_orders(
-            new_order, existing_orders, log
+        adjusted_order = self.calculate_adjusted_order_given_existing_orders(
+            new_order, existing_orders
         )
 
         if adjusted_order.is_zero_trade() and not allow_zero_orders:
@@ -140,43 +139,45 @@ class instrumentOrderStackData(orderStackData):
             error_msg = "Adjusted order %s is zero, zero orders not allowed" % str(
                 adjusted_order
             )
-            log.warning(error_msg)
+            self.log.warning(error_msg, **log_attrs)
             raise zeroOrderException(error_msg)
 
         order_id = self._put_order_on_stack_and_get_order_id(adjusted_order)
 
         return order_id
 
+    def calculate_adjusted_order_given_existing_orders(
+        self, new_order: instrumentOrder, existing_orders: listOfOrders
+    ):
+        log_attrs = {**new_order.log_attributes(), "method": "temp"}
 
-def calculate_adjusted_order_given_existing_orders(  # TODO passed logger instance
-    new_order: instrumentOrder, existing_orders: listOfOrders, log
-):
-    desired_new_trade = new_order.trade
-    (
-        existing_trades,
-        net_existing_trades_to_execute,
-    ) = calculate_existing_trades_and_remainder(existing_orders)
+        desired_new_trade = new_order.trade
+        (
+            existing_trades,
+            net_existing_trades_to_execute,
+        ) = calculate_existing_trades_and_remainder(existing_orders)
 
-    # can change sign
-    residual_trade = desired_new_trade - net_existing_trades_to_execute
+        # can change sign
+        residual_trade = desired_new_trade - net_existing_trades_to_execute
 
-    adjusted_order = (
-        new_order.replace_required_trade_size_only_use_for_unsubmitted_trades(
-            residual_trade
+        adjusted_order = (
+            new_order.replace_required_trade_size_only_use_for_unsubmitted_trades(
+                residual_trade
+            )
         )
-    )
 
-    log.debug(
-        "Already have orders %s wanted %s so putting on order for %s (%s)"
-        % (
-            str(existing_trades),
-            str(desired_new_trade),
-            str(residual_trade),
-            str(adjusted_order),
+        self.log.debug(
+            "Already have orders %s wanted %s so putting on order for %s (%s)"
+            % (
+                str(existing_trades),
+                str(desired_new_trade),
+                str(residual_trade),
+                str(adjusted_order),
+            ),
+            **log_attrs,
         )
-    )
 
-    return adjusted_order
+        return adjusted_order
 
 
 def calculate_existing_trades_and_remainder(

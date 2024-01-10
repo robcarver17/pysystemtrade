@@ -441,16 +441,6 @@ class Order(object):
 
         return same_tradeable_object and same_trade
 
-    def log_with_attributes(self, log):
-        """
-        Returns a new log object with order attributes added
-
-        :param log: logger
-        :return: log
-        """
-
-        return log
-
     def log_attributes(self):
         """
         Returns a dict of order log attributes

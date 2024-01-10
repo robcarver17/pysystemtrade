@@ -59,32 +59,6 @@ def cancel_order(
     return broker_order_with_controls
 
 
-def set_limit_price(
-    data_broker: dataBroker,
-    broker_order_with_controls: orderWithControls,
-    new_limit_price: float,
-):
-    log_attrs = {**broker_order_with_controls.order.log_attributes(), "method": "temp"}
-
-    try:
-        broker_order_with_controls = (
-            data_broker.modify_limit_price_given_control_object(
-                broker_order_with_controls, new_limit_price
-            )
-        )
-        data_broker.data.log.debug(
-            "Tried to change limit price to %f" % new_limit_price,
-            **log_attrs,
-        )
-    except orderCannotBeModified as error:
-        data_broker.data.log.debug(
-            "Can't modify limit price for order, error %s" % str(error),
-            **log_attrs,
-        )
-
-    return broker_order_with_controls
-
-
 limit_price_is_at_inside_spread = -99999999999999.99
 
 
@@ -110,13 +84,3 @@ def check_current_limit_price_at_inside_spread(
     new_limit_price = current_side_price
 
     return new_limit_price
-
-
-# TODO passed logger instance
-def file_log_report_market_order(log, broker_order_with_controls: orderWithControls):
-    ticker_object = broker_order_with_controls.ticker
-    current_tick = str(ticker_object.current_tick())
-
-    log_report = "Market order execution current tick %s" % current_tick
-
-    log.debug(log_report)

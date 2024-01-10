@@ -49,23 +49,27 @@ class ibPriceClient(ibContractsClient):
         :param freq: str; one of D, H, 5M, M, 10S, S
         :return: futuresContractPriceData
         """
-        # TODO specific_log
-        specific_log = contract_object_with_ib_broker_config.specific_log(self.log)
+        self.log.debug(
+            "Updating log attributes",
+            **contract_object_with_ib_broker_config.log_attributes(),
+        )
 
         try:
             ibcontract = self.ib_futures_contract(
                 contract_object_with_ib_broker_config, allow_expired=allow_expired
             )
         except missingContract:
-            specific_log.warning(
+            self.log.warning(
                 "Can't resolve IB contract %s"
                 % str(contract_object_with_ib_broker_config)
             )
             raise missingData
 
         price_data = self._get_generic_data_for_contract(
-            ibcontract, log=specific_log, bar_freq=bar_freq, whatToShow=whatToShow
+            ibcontract, bar_freq=bar_freq, whatToShow=whatToShow
         )
+
+        self.log.debug("Log attributes reset", method="clear")
 
         return price_data
 
@@ -173,10 +177,9 @@ class ibPriceClient(ibContractsClient):
 
         return tick_data
 
-    def _get_generic_data_for_contract(  # TODO passed logger instance
+    def _get_generic_data_for_contract(
         self,
         ibcontract: ibContract,
-        log=None,
         bar_freq: Frequency = DAILY_PRICE_FREQ,
         whatToShow: str = "TRADES",
     ) -> pd.DataFrame:
@@ -187,15 +190,13 @@ class ibPriceClient(ibContractsClient):
         :param freq: str; one of D, H, 5M, M, 10S, S
         :return: futuresContractPriceData
         """
-        if log is None:
-            log = self.log
 
         try:
-            barSizeSetting, durationStr = _get_barsize_and_duration_from_frequency(
+            barSizeSetting, durationStr = self._get_barsize_and_duration_from_frequency(
                 bar_freq
             )
         except Exception as exception:
-            log.warning(exception)
+            self.log.warning(exception)
             raise missingData
 
         price_data_raw = self._ib_get_historical_data_of_duration_and_barSize(
@@ -203,18 +204,17 @@ class ibPriceClient(ibContractsClient):
             durationStr=durationStr,
             barSizeSetting=barSizeSetting,
             whatToShow=whatToShow,
-            log=log,
         )
 
         price_data_as_df = self._raw_ib_data_to_df(
-            price_data_raw=price_data_raw, log=log
+            price_data_raw=price_data_raw,
         )
 
         return price_data_as_df
 
-    def _raw_ib_data_to_df(self, price_data_raw: pd.DataFrame, log) -> pd.DataFrame:
+    def _raw_ib_data_to_df(self, price_data_raw: pd.DataFrame) -> pd.DataFrame:
         if price_data_raw is None:
-            log.warning("No price data from IB")
+            self.log.warning("No price data from IB")
             raise missingData
 
         price_data_as_df = price_data_raw[["open", "high", "low", "close", "volume"]]
@@ -265,7 +265,6 @@ class ibPriceClient(ibContractsClient):
         durationStr: str = "1 Y",
         barSizeSetting: str = "1 day",
         whatToShow="TRADES",
-        log=None,
     ) -> pd.DataFrame:
         """
         Returns historical prices for a contract, up to today
@@ -273,11 +272,8 @@ class ibPriceClient(ibContractsClient):
         :returns list of prices in 4 tuples: Open high low close volume
         """
 
-        if log is None:
-            log = self.log
-
         last_call = self.last_historic_price_calltime
-        _avoid_pacing_violation(last_call, log=log)
+        self._avoid_pacing_violation(last_call)
 
         ## If live data is available a request for delayed data would be ignored by TWS.
         self.ib.reqMarketDataType(3)
@@ -297,65 +293,64 @@ class ibPriceClient(ibContractsClient):
 
         return df
 
-
-def _get_barsize_and_duration_from_frequency(bar_freq: Frequency) -> (str, str):
-    barsize_lookup = dict(
-        [
-            (Frequency.Day, "1 day"),
-            (Frequency.Hour, "1 hour"),
-            (Frequency.Minutes_15, "15 mins"),
-            (Frequency.Minutes_5, "5 mins"),
-            (Frequency.Minute, "1 min"),
-            (Frequency.Seconds_10, "10 secs"),
-            (Frequency.Second, "1 secs"),
-        ]
-    )
-
-    duration_lookup = dict(
-        [
-            (Frequency.Day, "1 Y"),
-            (Frequency.Hour, "1 M"),
-            (Frequency.Minutes_15, "1 W"),
-            (Frequency.Minutes_5, "1 W"),
-            (Frequency.Minute, "1 D"),
-            (Frequency.Seconds_10, "14400 S"),
-            (Frequency.Second, "1800 S"),
-        ]
-    )
-    try:
-        assert bar_freq in barsize_lookup.keys()
-        assert bar_freq in duration_lookup.keys()
-    except:
-        raise Exception(
-            "Barsize %s not recognised should be one of %s"
-            % (str(bar_freq), str(barsize_lookup.keys()))
+    @staticmethod
+    def _get_barsize_and_duration_from_frequency(bar_freq: Frequency) -> (str, str):
+        barsize_lookup = dict(
+            [
+                (Frequency.Day, "1 day"),
+                (Frequency.Hour, "1 hour"),
+                (Frequency.Minutes_15, "15 mins"),
+                (Frequency.Minutes_5, "5 mins"),
+                (Frequency.Minute, "1 min"),
+                (Frequency.Seconds_10, "10 secs"),
+                (Frequency.Second, "1 secs"),
+            ]
         )
 
-    ib_barsize = barsize_lookup[bar_freq]
-    ib_duration = duration_lookup[bar_freq]
-
-    return ib_barsize, ib_duration
-
-
-def _avoid_pacing_violation(last_call_datetime: datetime.datetime, log=get_logger("")):
-    printed_warning_already = False
-    while _pause_for_pacing(last_call_datetime):
-        if not printed_warning_already:
-            log.debug(
-                "Pausing %f seconds to avoid pacing violation"
-                % (
-                    last_call_datetime
-                    + datetime.timedelta(seconds=PACING_INTERVAL_SECONDS)
-                    - datetime.datetime.now()
-                ).total_seconds()
+        duration_lookup = dict(
+            [
+                (Frequency.Day, "1 Y"),
+                (Frequency.Hour, "1 M"),
+                (Frequency.Minutes_15, "1 W"),
+                (Frequency.Minutes_5, "1 W"),
+                (Frequency.Minute, "1 D"),
+                (Frequency.Seconds_10, "14400 S"),
+                (Frequency.Second, "1800 S"),
+            ]
+        )
+        try:
+            assert bar_freq in barsize_lookup.keys()
+            assert bar_freq in duration_lookup.keys()
+        except:
+            raise Exception(
+                "Barsize %s not recognised should be one of %s"
+                % (str(bar_freq), str(barsize_lookup.keys()))
             )
-            printed_warning_already = True
-        pass
 
+        ib_barsize = barsize_lookup[bar_freq]
+        ib_duration = duration_lookup[bar_freq]
 
-def _pause_for_pacing(last_call_datetime: datetime.datetime):
-    time_since_last_call = datetime.datetime.now() - last_call_datetime
-    seconds_since_last_call = time_since_last_call.total_seconds()
-    should_pause = seconds_since_last_call < PACING_INTERVAL_SECONDS
+        return ib_barsize, ib_duration
 
-    return should_pause
+    def _avoid_pacing_violation(self, last_call_datetime: datetime.datetime):
+        printed_warning_already = False
+        while self._pause_for_pacing(last_call_datetime):
+            if not printed_warning_already:
+                self.log.debug(
+                    "Pausing %f seconds to avoid pacing violation"
+                    % (
+                        last_call_datetime
+                        + datetime.timedelta(seconds=PACING_INTERVAL_SECONDS)
+                        - datetime.datetime.now()
+                    ).total_seconds()
+                )
+                printed_warning_already = True
+            pass
+
+    @staticmethod
+    def _pause_for_pacing(last_call_datetime: datetime.datetime):
+        time_since_last_call = datetime.datetime.now() - last_call_datetime
+        seconds_since_last_call = time_since_last_call.total_seconds()
+        should_pause = seconds_since_last_call < PACING_INTERVAL_SECONDS
+
+        return should_pause
