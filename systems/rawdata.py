@@ -42,6 +42,9 @@ class RawData(SystemStage):
     def config(self) -> Config:
         return self.parent.config
 
+    def get_raw_cost_data(self, instrument_code: str):
+        return self.data_stage.get_raw_cost_data(instrument_code)
+
     @input
     def get_daily_prices(self, instrument_code) -> pd.Series:
         """

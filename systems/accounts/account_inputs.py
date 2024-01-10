@@ -58,10 +58,10 @@ class accountInputs(SystemStage):
         return instrument_prices
 
     def get_daily_prices(self, instrument_code: str) -> pd.Series:
-        return self.parent.data.daily_prices(instrument_code)
+        return self.parent.rawdata.get_daily_prices(instrument_code)
 
     def get_hourly_prices(self, instrument_code: str) -> pd.Series:
-        return self.parent.data.hourly_prices(instrument_code)
+        return self.parent.rawdata.get_hourly_prices(instrument_code)
 
     def get_capped_forecast(
         self, instrument_code: str, rule_variation_name: str
@@ -108,7 +108,7 @@ class accountInputs(SystemStage):
         return self.config.forecast_cap
 
     def get_raw_cost_data(self, instrument_code: str) -> instrumentCosts:
-        return self.parent.data.get_raw_cost_data(instrument_code)
+        return self.parent.rawdata.get_raw_cost_data(instrument_code)
 
     def get_rolls_per_year(self, instrument_code: str) -> int:
         rolls_per_year = self.parent.rawdata.rolls_per_year(instrument_code)
