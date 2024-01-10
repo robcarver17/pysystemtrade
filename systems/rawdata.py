@@ -48,10 +48,10 @@ class RawData(SystemStage):
     def get_value_of_block_price_move(self, instrument_code: str) -> float:
         return self.data_stage.get_value_of_block_price_move(instrument_code)
 
-    def get_fx_for_instrument(
-        self, instrument_code: str, base_currency: str
-    ):
-        return self.data_stage.get_fx_for_instrument(instrument_code=instrument_code, base_currency=base_currency)
+    def get_fx_for_instrument(self, instrument_code: str, base_currency: str):
+        return self.data_stage.get_fx_for_instrument(
+            instrument_code=instrument_code, base_currency=base_currency
+        )
 
     @input
     def get_daily_prices(self, instrument_code) -> pd.Series:

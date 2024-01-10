@@ -535,7 +535,9 @@ class PositionSizing(SystemStage):
         """
 
         base_currency = self.get_base_currency()
-        fx_rate = self.rawdata_stage.get_fx_for_instrument(instrument_code, base_currency)
+        fx_rate = self.rawdata_stage.get_fx_for_instrument(
+            instrument_code, base_currency
+        )
 
         return fx_rate
 
