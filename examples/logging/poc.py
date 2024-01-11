@@ -83,13 +83,6 @@ level.setLevel(logging.WARNING)
 level.info("does not print")
 level.warning("does print")
 
-
-# alias 'setup'
-setup = get_logger("Setup", {"stage": "one", "type": "first"})
-setup.info("stage one, type first")
-setup = setup.setup(stage="two")
-setup.info("stage two, no type")
-
 # replacing log.label() - we want to update the log attributes permanently - same as
 # overwrite
 label = get_logger("label", {"stage": "whatever"})
