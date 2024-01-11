@@ -659,7 +659,7 @@ Note: the configuration variable echo_extension will need changing in `private_c
 
 ### Logging
 
-pysystemtrade uses the [Python logging module](https://docs.python.org/3.10/library/logging.html). See the [user guide for more detail](/docs/backtesting.md#logging) about logging in sim. Python logging is powerful and flexible, and log messages can be [formatted as you like, and sent virtually anywhere](https://docs.python.org/3.8/howto/logging.html#logging-advanced-tutorial) by providing your own config. But this section describes the default provided production setup. 
+pysystemtrade uses the [Python logging module](https://docs.python.org/3.10/library/logging.html). See the [user guide for more detail](/docs/backtesting.md#logging) about logging in sim. Python logging is powerful and flexible, and log messages can be [formatted as you like, and sent virtually anywhere](https://docs.python.org/3.10/howto/logging.html#logging-advanced-tutorial) by providing your own config. But this section describes the default provided production setup. 
 
 In production, the requirements are more complex than in sim. As well as the context relevant attributes (that we have with sim), we also need
 - ability to log to the same file from different processes
