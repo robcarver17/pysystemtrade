@@ -1718,7 +1718,7 @@ system.cache.get_cache_refs_for_instrument("EDOLLAR")
 ## if we change the config
 system.config.forecast_div_multiplier=100.0
 
-## ... then the result will be different without neeting to create a new system
+## ... then the result will be different without needing to create a new system
 system.combForecast.get_combined_forecast("EDOLLAR")
 ```
 
