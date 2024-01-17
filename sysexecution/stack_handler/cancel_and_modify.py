@@ -105,7 +105,7 @@ class stackHandlerCancelAndModify(stackHandlerCore):
             if order_is_cancelled:
                 new_list_of_orders.remove(broker_order)
                 self.log.debug(
-                    "Order %s succesfully cancelled" % broker_order,
+                    "Order %s successfully cancelled" % broker_order,
                     **broker_order.log_attributes(),
                     method="temp",
                 )
