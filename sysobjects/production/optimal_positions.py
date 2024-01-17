@@ -236,7 +236,7 @@ def _check_append_positions_okay(
         )
 
 
-## IMPORTANT NOTE: if you create a new kind of optimal position which does not inherite from
+## IMPORTANT NOTE: if you create a new kind of optimal position which does not inherit from
 ##    baseOptimalPosition directly, need to manually add it here
 
 MASTER_LIST_OF_OPTIMAL_POSITION_CLASSES = baseOptimalPosition.__subclasses__()
