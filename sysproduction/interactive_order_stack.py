@@ -429,7 +429,7 @@ def create_manual_trade(data):
         )
 
     print(
-        "For instant execution, you may want to do menu [1] create orders, menu [13] create broker orders"
+        "For instant execution, you may want to do menu [1] create orders, menu [12] create broker orders"
     )
 
     return None
