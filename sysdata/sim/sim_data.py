@@ -174,7 +174,7 @@ class simData(baseData):
         """
         Default method to get instrument price at 'natural' frequency
 
-        Will usually be overriden when inherited with specific data source
+        Will usually be overridden when inherited with specific data source
 
         :param instrument_code: instrument to get prices for
         :type instrument_code: str
@@ -194,7 +194,7 @@ class simData(baseData):
         """
         Default method to get instrument price at 'natural' frequency
 
-        Will usually be overriden when inherited with specific data source
+        Will usually be overridden when inherited with specific data source
 
         :param instrument_code: instrument to get prices for
         :type instrument_code: str
