@@ -1719,7 +1719,7 @@ Linux script:
 
 Called by: `run_systems`
 
-The code to run each strategies backtest is defined in the configuration parameter in the control_config.yaml file (or overridden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
+The code to run each strategy's backtest is defined in the configuration parameter in the control_config.yaml file (or overridden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
 
 ```
 process_configuration_methods:
