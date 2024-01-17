@@ -81,7 +81,7 @@ def interactive_diagnostics():
 top_level_menu_of_options = {
     0: "backtest objects",
     1: "View instrument configuration",
-    2: "logs, emails, and errors",
+    2: "Emails",
     3: "View prices",
     4: "View capital",
     5: "View positions & orders",

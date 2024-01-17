@@ -110,7 +110,7 @@ def check_if_sent_in_last_day(last_time_email_sent: datetime.datetime):
 
 
 def send_warning_email(data, subject):
-    body = "To reduce email load, won't send any more emails with this subject today. Use 'interactive_diagnostics', 'logs, emails, and errors' to see stored messages"
+    body = "To reduce email load, won't send any more emails with this subject today. Use 'interactive_diagnostics', 'Emails' to see stored messages"
     send_email_and_record_date_or_store_on_fail(data, body, subject)
 
 
