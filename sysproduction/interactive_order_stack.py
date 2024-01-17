@@ -212,7 +212,7 @@ def create_balance_trade(data):
 
 def get_broker_order_details_for_balance_trade(data: dataBlob) -> brokerOrder:
     ans = true_if_answer_is_yes(
-        "Auto close an existing position (if not, manually enter details?"
+        "Auto close an existing position (if not, manually enter details)?"
     )
     if ans:
         (
