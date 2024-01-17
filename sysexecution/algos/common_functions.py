@@ -37,7 +37,7 @@ def cancel_order(
     data_broker = dataBroker(data)
     data_broker.cancel_order_given_control_object(broker_order_with_controls)
 
-    # Wait for cancel. It's vitual we do this since if a fill comes in before we finish it will screw
+    # Wait for cancel. It's vital we do this since if a fill comes in before we finish it will screw
     #   everything up...
     timer = quickTimer(seconds=CANCEL_WAIT_TIME)
     not_cancelled = True
