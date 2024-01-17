@@ -1492,7 +1492,7 @@ def _get_fixed_fdm_scalar_value_from_config(
         )
     else:
         log.critical(error_msg, instrument_code=instrument_code)
-        raise (error_msg)
+        raise Exception(error_msg)
 
     return fixed_div_mult
 
