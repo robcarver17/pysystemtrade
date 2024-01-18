@@ -86,7 +86,6 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
         futures_price_data: futuresContractPrices,
         frequency: Frequency,
     ):
-        log = futures_contract_object.log(self.log)
         ident = from_contract_and_freq_to_key(
             futures_contract_object, frequency=frequency
         )
@@ -98,14 +97,15 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
             data_to_write=futures_price_data_as_pd,
         )
 
-        log.debug(
+        self.log.debug(
             "Wrote %s lines of prices for %s at %s to %s"
             % (
                 len(futures_price_data),
                 str(futures_contract_object.key),
                 str(frequency),
                 str(self),
-            )
+            ),
+            **futures_contract_object.log_attributes()
         )
 
     def get_contracts_with_merged_price_data(self) -> listOfFuturesContracts:
