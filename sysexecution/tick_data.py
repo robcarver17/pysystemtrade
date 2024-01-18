@@ -9,21 +9,16 @@ from syscore.exceptions import missingData
 from syscore.constants import arg_not_supplied
 
 TICK_REQUIRED_COLUMNS = ["bid_price", "ask_price", "bid_size", "ask_size"]
-TICK_REQUIRED_COLUMNS.sort()
 
 
 class dataFrameOfRecentTicks(pd.DataFrame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         columns = self.columns
-        sorted_columns = sorted(columns)
 
-        try:
-            assert all([x == y for x, y in zip(sorted_columns, TICK_REQUIRED_COLUMNS)])
-        except:
-            raise Exception(
-                "historical ticks should have columns %s" % str(TICK_REQUIRED_COLUMNS)
-            )
+        assert set(TICK_REQUIRED_COLUMNS).issubset(
+            columns
+        ), "historical ticks should have columns %s" % str(TICK_REQUIRED_COLUMNS)
 
     def average_bid_offer_spread(self, remove_negative=True) -> float:
         return average_bid_offer_spread(self, remove_negative=remove_negative)

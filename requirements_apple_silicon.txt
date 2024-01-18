@@ -1,0 +1,9 @@
+matplotlib>=3.0.0
+pymongo==3.11.3
+arctic==1.79.2
+ib-insync==0.9.86
+psutil==5.6.6
+pytest>6.2
+Flask>=2.0.1
+Werkzeug>=2.0.1
+PyPDF2>=2.5.0

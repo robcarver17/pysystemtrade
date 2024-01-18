@@ -454,6 +454,7 @@ def create_instrument_roll_order_closing_priced_contract(
     return instrument_order
 
 
+
 def get_strategy_name_with_largest_position_for_instrument(
     data: dataBlob, instrument_code: str
 ) -> str:
