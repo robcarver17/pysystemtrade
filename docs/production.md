@@ -1678,7 +1678,7 @@ Linux script:
 
 Called by: `run_systems`
 
-The code to run each strategies backtest is defined in the configuration parameter in the control_config.yaml file (or overriden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
+The code to run each strategy's backtest is defined in the configuration parameter in the control_config.yaml file (or overridden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
 
 ```
 process_configuration_methods:
@@ -1722,7 +1722,7 @@ Linux script:
 Called by: `run_strategy_order_generator`
 
 
-The code to run each strategy's backtest is defined in the configuration parameter in the control_config.yaml file (or overriden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
+The code to run each strategy's backtest is defined in the configuration parameter in the control_config.yaml file (or overridden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
 
 
 ```
@@ -2555,7 +2555,7 @@ Useful things to note about the crontab:
 
 #### Process configuration
 
-Process configuration is governed by the following config parameters (in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), or these will be overriden by /private/private_control_config.yaml):
+Process configuration is governed by the following config parameters (in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), or these will be overridden by /private/private_control_config.yaml):
 
 -  `process_configuration_start_time`: when the process starts (default 00:01)
 - `process_configuration_stop_time`: when the process ends, regardless of any method configuration (default 23:50)
@@ -2784,7 +2784,7 @@ The following are configuration options that are not in defaults.yaml and *may* 
 - `email_server`: this is the outgoing server
 
 
-The following are configuration options that are in defaults.yaml and can be overriden in private_config.yaml:
+The following are configuration options that are in defaults.yaml and can be overridden in private_config.yaml:
 
 [Backup paths](#data-backup)
 - `backtest_store_directory` parent directory, backtests are stored under strategy_name subdirectory
@@ -2823,7 +2823,7 @@ Outside of the backtest code, in production configuration options are pulled in 
 
 ### Control config files
 
-As discussed above, these are used purely for control and monitoring purposes in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), overriden by /private/private_control_config.yaml).
+As discussed above, these are used purely for control and monitoring purposes in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), overridden by /private/private_control_config.yaml).
 
 ### Broker and data source specific configuration files
 
@@ -2901,7 +2901,7 @@ You can also change other values in the interactive tool, but be careful and mak
 
 ## Strategies
 
-Each strategy is defined in the config parameter `strategy_list`, found either in the defaults.yaml file or overriden in private yaml configuration. The following shows the parameters for an example strategy, named (appropriately enough) `example`.
+Each strategy is defined in the config parameter `strategy_list`, found either in the defaults.yaml file or overridden in private yaml configuration. The following shows the parameters for an example strategy, named (appropriately enough) `example`.
 
 ```
 strategy_list:
@@ -2915,7 +2915,7 @@ strategy_list:
 
 ### Strategy capital
 
-Strategy capital is allocated from [total capital](#capital). This is done by the scripted function, [update strategy capital](#allocate-capital-to-strategies). It is controlled by the configuration element below (in the defaults.yaml file, or overriden in private_config.yaml).
+Strategy capital is allocated from [total capital](#capital). This is done by the scripted function, [update strategy capital](#allocate-capital-to-strategies). It is controlled by the configuration element below (in the defaults.yaml file, or overridden in private_config.yaml).
 
 ```
 strategy_capital_allocation:
@@ -2929,7 +2929,7 @@ The allocation calls the function specified, with any other parameters passed as
 
 #### Risk target
 
-The actual risk a strategy will take depends on both it's capital and it's risk target. The risk target is set in the configuration option, `percentage_vol_target`, in the backtest configuration .yaml file for the relevant strategy (if not supplied, the defaults.yaml value is used; this is *not* overriden by private_config.yaml). Risk targets can be different across strategies.
+The actual risk a strategy will take depends on both it's capital and it's risk target. The risk target is set in the configuration option, `percentage_vol_target`, in the backtest configuration .yaml file for the relevant strategy (if not supplied, the defaults.yaml value is used; this is *not* overridden by private_config.yaml). Risk targets can be different across strategies.
 
 #### Changing risk targets and/or capital
 
@@ -3652,7 +3652,7 @@ V2X                            [20201118, 20201216] 2020-10-15 09:43:30  (1, -1)
 
 The strategy report is bespoke to a strategy; it will load the last backtest file generated and report diagnostics from it. On a daily basis it runs for all strategies. On an ad hoc basis, it can be run for all or a single strategy.
 
-The strategy reporting is determined by the parameter `strategy_list/strategy_name/reporting_code/function` in default.yaml or overriden in the private config .yaml file. The 'classic' reporting function is `sysproduction.strategy_code.report_system_classic.report_system_classic`
+The strategy reporting is determined by the parameter `strategy_list/strategy_name/reporting_code/function` in default.yaml or overridden in the private config .yaml file. The 'classic' reporting function is `sysproduction.strategy_code.report_system_classic.report_system_classic`
 
 Here is an example, with annotations added in quotes (""):
 
