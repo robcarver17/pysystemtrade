@@ -14,7 +14,7 @@ class LogRecordSocketReceiver(socketserver.ThreadingTCPServer):
     """
     Simple TCP socket-based logging receiver
 
-    https://docs.python.org/3.8/howto/logging-cookbook.html#sending-and-receiving-logging-events-across-a-network
+    https://docs.python.org/3.10/howto/logging-cookbook.html#sending-and-receiving-logging-events-across-a-network
     """
 
     allow_reuse_address = True

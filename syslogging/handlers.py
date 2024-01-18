@@ -50,7 +50,7 @@ class LogRecordStreamHandler(socketserver.StreamRequestHandler):
 
     This basically logs the record using whatever logging policy is configured locally.
 
-    https://docs.python.org/3.8/howto/logging-cookbook.html#sending-and-receiving-logging-events-across-a-network
+    https://docs.python.org/3.10/howto/logging-cookbook.html#sending-and-receiving-logging-events-across-a-network
     """
 
     def handle(self):

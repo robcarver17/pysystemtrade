@@ -1,6 +1,4 @@
-import logging
 import logging.config
-import warnings
 
 from syslogdiag.pst_logger import *
 
@@ -55,18 +53,6 @@ class DynamicAttributeLogger(logging.LoggerAdapter):
             merged = {**self.extra, **attributes}
 
         return merged
-
-    def setup(self, **kwargs):
-        # Create a copy of me with different attributes
-        warnings.warn(
-            "The 'setup' function is deprecated; instead, "
-            "update attributes with method=clear/preserve/overwrite/temp",
-            DeprecationWarning,
-            2,
-        )
-        attributes = {**kwargs}
-        self._check_attributes(attributes)
-        return DynamicAttributeLogger(logging.getLogger(self.name), attributes)
 
     def _check_attributes(self, attributes: dict):
         if attributes:
