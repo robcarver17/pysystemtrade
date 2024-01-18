@@ -67,7 +67,7 @@ class parquetFuturesContractPriceData(futuresContractPriceData):
     ):
         """
         Write prices
-        CHECK prices are overriden on second write
+        CHECK prices are overridden on second write
 
         :param futures_contract_object: futuresContract
         :param futures_price_data: futuresContractPriceData

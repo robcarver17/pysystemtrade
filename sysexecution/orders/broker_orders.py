@@ -416,7 +416,7 @@ def create_new_broker_order_from_contract_order(
 ## Not very pretty but only used for diagnostic TCA
 class brokerOrderWithParentInformation(brokerOrder):
     @classmethod
-    def create_augemented_order(
+    def create_augmented_order(
         self,
         order: brokerOrder,
         instrument_order: instrumentOrder,

@@ -61,7 +61,7 @@ class mongoGenericHistoricOrdersData(genericOrdersData):
         return "%s (%s)" % (self._name, str(self.mongo_data))
 
     def add_order_to_data(self, order: Order, ignore_duplication: bool = False):
-        # Duplicates will be overriden, so be careful
+        # Duplicates will be overridden, so be careful
         order_id = order.order_id
         no_existing_order = self.get_order_with_orderid(order_id) is missing_order
         if no_existing_order:
@@ -76,7 +76,7 @@ class mongoGenericHistoricOrdersData(genericOrdersData):
                 )
 
     def _add_order_to_data_no_checking(self, order: Order):
-        # Duplicates will be overriden, so be careful
+        # Duplicates will be overridden, so be careful
         mongo_record = order.as_dict()
 
         self.mongo_data.add_data(order.order_id, mongo_record, allow_overwrite=True)

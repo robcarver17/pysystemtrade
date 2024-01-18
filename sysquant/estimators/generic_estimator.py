@@ -88,7 +88,7 @@ class exponentialEstimator(object):
         return estimate
 
     def get_estimate_for_fitperiod_with_data(self, fit_period: fitDates) -> Estimate:
-        raise NotImplementedError("Have to inherite from base class")
+        raise NotImplementedError("Have to inherit from base class")
 
 
 class genericEstimator(object):

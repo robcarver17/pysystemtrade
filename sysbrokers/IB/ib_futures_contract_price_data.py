@@ -94,7 +94,7 @@ class ibFuturesContractPriceData(brokerFuturesContractPriceData):
         """
         Does IB have data for a given contract?
 
-        Overriden because we will have a problem matching expiry dates to nominal yyyymm dates
+        Overridden because we will have a problem matching expiry dates to nominal yyyymm dates
         :param contract_object:
         :return: bool
         """
