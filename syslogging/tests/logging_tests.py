@@ -156,18 +156,3 @@ class TestLogging:
             logging.INFO,
             "no contract attributes",
         )
-
-    def test_setup(self):
-        logger = get_logger("my_type", {"stage": "bar"})
-        logger = logger.setup(stage="left")
-        assert logger.name == "my_type"
-        assert logger.extra["stage"] == "left"
-
-        no_attrs = get_logger("no_attrs")
-        no_attrs = no_attrs.setup(instrument_code="XYZ")
-        assert no_attrs.extra["instrument_code"] == "XYZ"
-
-    def test_setup_bad(self):
-        logger = get_logger("my_type", {"stage": "bar"})
-        with pytest.raises(Exception):
-            logger.setup(foo="bar")

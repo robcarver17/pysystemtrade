@@ -34,11 +34,9 @@ class dataBlob(object):
 
         .... sets up the following equivalencies:
 
-            data.broker_contract_price  = ibFuturesContractPriceData(ib_conn, log=log.setup(component="IB-price-data"))
-            data.db_futures_contract_price = arcticFuturesContractPriceData(mongo_db=mongo_db,
-                                                      log=log.setup(component="arcticFuturesContractPriceData"))
-            data.db_futures_contract = mongoFuturesContractData(mongo_db=mongo_db,
-                                                   log = log.setup(component="mongoFuturesContractData"))
+            data.broker_contract_price  = ibFuturesContractPriceData(ib_conn)
+            data.db_futures_contract_price = arcticFuturesContractPriceData(mongo_db=mongo_db)
+            data.db_futures_contract = mongoFuturesContractData(mongo_db=mongo_db)
 
         This abstracts the precise data source
 
@@ -50,11 +48,9 @@ class dataBlob(object):
 
         .... sets up the following equivalencies. This is useful if you are copying from one source to another
 
-            data.ib_contract_price  = ibFuturesContractPriceData(ib_conn, log=log.setup(component="IB-price-data"))
-            data.arctic_futures_contract_price = arcticFuturesContractPriceData(mongo_db=mongo_db,
-                                                      log=log.setup(component="arcticFuturesContractPriceData"))
-            data.mongo_futures_contract = mongoFuturesContractData(mongo_db=mongo_db,
-                                                   log = log.setup(component="mongoFuturesContractData"))
+            data.ib_contract_price  = ibFuturesContractPriceData(ib_conn)
+            data.arctic_futures_contract_price = arcticFuturesContractPriceData(mongo_db=mongo_db)
+            data.mongo_futures_contract = mongoFuturesContractData(mongo_db=mongo_db)
 
 
 
@@ -133,9 +129,9 @@ class dataBlob(object):
         except Exception as e:
             class_name = get_class_name(class_object)
             msg = (
-                "Error %s couldn't evaluate %s(self.ib_conn, self, log = self.log.setup(component = %s)) This might be because (a) IB gateway not running, or (b) import is missing\
+                "Error %s couldn't evaluate %s(self.ib_conn, self) This might be because (a) IB gateway not running, or (b) import is missing\
                          or (c) arguments don't follow pattern"
-                % (str(e), class_name, class_name)
+                % (str(e), class_name)
             )
             self._raise_and_log_error(msg)
 
@@ -148,10 +144,10 @@ class dataBlob(object):
         except Exception as e:
             class_name = get_class_name(class_object)
             msg = (
-                "Error '%s' couldn't evaluate %s(mongo_db=self.mongo_db, log = self.log.setup(component = %s)) \
+                "Error '%s' couldn't evaluate %s(mongo_db=self.mongo_db) \
                         This might be because import is missing\
                          or arguments don't follow pattern"
-                % (str(e), class_name, class_name)
+                % (str(e), class_name)
             )
             self._raise_and_log_error(msg)
 
@@ -164,10 +160,10 @@ class dataBlob(object):
         except Exception as e:
             class_name = get_class_name(class_object)
             msg = (
-                "Error %s couldn't evaluate %s(mongo_db=self.mongo_db, log = self.log.setup(component = %s)) \
+                "Error %s couldn't evaluate %s(mongo_db=self.mongo_db) \
                         This might be because import is missing\
                          or arguments don't follow pattern"
-                % (str(e), class_name, class_name)
+                % (str(e), class_name)
             )
             self._raise_and_log_error(msg)
 
@@ -182,10 +178,10 @@ class dataBlob(object):
         except Exception as e:
             class_name = get_class_name(class_object)
             msg = (
-                "Error '%s' couldn't evaluate %s(parquet_access = self.parquet_access, log = self.log.setup(component = %s)) \
+                "Error '%s' couldn't evaluate %s(parquet_access = self.parquet_access) \
                         This might be because import is missing\
                          or arguments don't follow pattern or parquet_store is undefined"
-                % (str(e), class_name, class_name)
+                % (str(e), class_name)
             )
             self._raise_and_log_error(msg)
 
@@ -200,10 +196,10 @@ class dataBlob(object):
         except Exception as e:
             class_name = get_class_name(class_object)
             msg = (
-                "Error %s couldn't evaluate %s(datapath = datapath, log = self.log.setup(component = %s)) \
+                "Error %s couldn't evaluate %s(datapath = datapath) \
                         This might be because import is missing\
                          or arguments don't follow pattern"
-                % (str(e), class_name, class_name)
+                % (str(e), class_name)
             )
             self._raise_and_log_error(msg)
 

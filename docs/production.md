@@ -659,7 +659,7 @@ Note: the configuration variable echo_extension will need changing in `private_c
 
 ### Logging
 
-pysystemtrade uses the [Python logging module](https://docs.python.org/3.8/library/logging.html). See the [user guide for more detail](/docs/backtesting.md#logging) about logging in sim. Python logging is powerful and flexible, and log messages can be [formatted as you like, and sent virtually anywhere](https://docs.python.org/3.8/howto/logging.html#logging-advanced-tutorial) by providing your own config. But this section describes the default provided production setup. 
+pysystemtrade uses the [Python logging module](https://docs.python.org/3.10/library/logging.html). See the [user guide for more detail](/docs/backtesting.md#logging) about logging in sim. Python logging is powerful and flexible, and log messages can be [formatted as you like, and sent virtually anywhere](https://docs.python.org/3.10/howto/logging.html#logging-advanced-tutorial) by providing your own config. But this section describes the default provided production setup. 
 
 In production, the requirements are more complex than in sim. As well as the context relevant attributes (that we have with sim), we also need
 - ability to log to the same file from different processes
@@ -752,88 +752,47 @@ There is a special SMTP handler, for CRITICAL log messages only. This handler us
 
 #### Adding logging to your code
 
-Here is an example of logging code (needs to adjusted for new style logging):
+See the [logging docs](https://docs.python.org/3.10/library/logging.html) for usage examples. There are four ways to manage context attributes: 
+* *overwrite* - passed attributes are merged with any existing, overwriting duplicates (the default)
+* *preserve* - passed attributes are merged with any existing, preserving duplicates
+* *clear* - existing attributes are cleared, passed ones added
+* *temp* - passed attributes will only be used for one invocation
 
-```python
-from syslogging.logger import *
-
-
-def top_level_function():
-    """
-    This is a function that's called as the top level of a process
-    """
-
-    # logger setup
-    log = get_logger("top-level-function")
-
-    # note use of log.setup when passing log to other components, this creates a copy of the existing log with an additional attribute set - TODO transition to sysloggging
-    conn = connectionIB(client=100, log=log.setup(component="IB-connection"))
-
-    #  - TODO transition to sysloggging
-    ibfxpricedata = ibFxPricesData(conn, log=log.setup(component="ibFxPricesData"))
-
-    #  - TODO transition to sysloggging
-    arcticfxdata = arcticFxPricesData(log=log.setup(component="arcticFxPricesData"))
-
-    list_of_codes_all = ibfxpricedata.get_list_of_fxcodes()  # codes must be in .csv file /sysbrokers/IB/ibConfigSpotFx.csv
-    log.debug("FX Codes: %s" % str(list_of_codes_all))
-    for fx_code in list_of_codes_all:
-
-        # Using log.label permanently adds the labelled attribute (although in this case it will be replaced on each iteration of the loop - TODO transition to sysloggging
-        log.label(currency_code=fx_code)
-        new_fx_prices = ibfxpricedata.get_fx_prices(fx_code)
-
-        if len(new_fx_prices) == 0:
-            log.error("Error trying to get data for %s" % fx_code)
-            continue
-```
-
-#### Refactoring logging
-
-There is an ongoing project (June 2023) to migrate [legacy logging](/syslogdiag/pst_logger.py)  to the built-in Python logging module. Currently, lots of methods are marked as deprecated - they will be refactored away in time. But if you are working on some code and want to make a change now:
-- `log.msg()` - > `log.debug()`
-- `log.terse()` - > `log.info()`
-- `log.warn()` - > `log.warning()`
-
-For other methods, like `label()`, `setup()`, each should be taken on a case by case basis. Under the hood, a call to `get_logger()` creates an instance of `DynamicAttributeLogger` which has an instance of a [Python logger](https://docs.python.org/3.8/library/logging.html#logging.Logger). From the docs:
-
-> Multiple calls to getLogger() with the same name will always return a reference to the same Logger object.
-
-So our outer object handles the context attributes, and the inner `logging.Logger` object does the rest. We cannot copy logger instances as we did with the legacy system. Instead, we can manage the attributes with four ways to merge: *overwrite* (the default), *preserve*, *clear*, and *temp*.
+#### Examples
 
 ```python
 # merging attributes: method 'overwrite' (default if no method supplied)
-    overwrite = get_logger("Overwrite", {"type": "first"})
-    overwrite.info("overwrite, type 'first'")
-    overwrite.info(
-        "overwrite, type 'second', stage 'one'",
-        method="overwrite",
-        type="second",
-        stage="one",
-    )
+overwrite = get_logger("Overwrite", {"type": "first"})
+overwrite.info("overwrite, type 'first'")
+overwrite.info(
+    "overwrite, type 'second', stage 'one'",
+    method="overwrite",
+    type="second",
+    stage="one",
+)
 
-    # merging attributes: method 'preserve'
-    preserve = get_logger("Preserve", {"type": "first"})
-    preserve.info("preserve, type 'first'")
-    preserve.info(
-        "preserve, type 'first', stage 'one'", method="preserve", type="second", stage="one"
-    )
+# merging attributes: method 'preserve'
+preserve = get_logger("Preserve", {"type": "first"})
+preserve.info("preserve, type 'first'")
+preserve.info(
+    "preserve, type 'first', stage 'one'", method="preserve", type="second", stage="one"
+)
 
-    # merging attributes: method 'clear'
-    clear = get_logger("Clear", {"type": "first", "stage": "one"})
-    clear.info("clear, type 'first', stage 'one'")
-    clear.info("clear, type 'second', no stage", method="clear", type="second")
-    clear.info("clear, no attributes", method="clear")
-    
-    # merging attributes: method 'temp'
-    temp = get_logger("temp", {"type": "first"})
-    temp.info("type should be 'first'")
-    temp.info(
-        "type should be 'second' temporarily",
-        method="temp",
-        type="second",
-    )
-    temp.info("type should be back to 'first'")
+# merging attributes: method 'clear'
+clear = get_logger("Clear", {"type": "first", "stage": "one"})
+clear.info("clear, type 'first', stage 'one'")
+clear.info("clear, type 'second', no stage", method="clear", type="second")
+clear.info("clear, no attributes", method="clear")
+
+# merging attributes: method 'temp'
+temp = get_logger("temp", {"type": "first"})
+temp.info("type should be 'first'")
+temp.info(
+    "type should be 'second' temporarily",
+    method="temp",
+    type="second",
+)
+temp.info("type should be back to 'first'")
 ```
 
 #### Cleaning old logs
