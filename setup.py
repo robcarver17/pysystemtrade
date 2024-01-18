@@ -103,7 +103,7 @@ setup(
         "statsmodels==0.14.0",
         "PyPDF2>=2.5.0",
         "pyarrow>=14.0.1",
-        "scikit-learn>1.3.0"
+        "scikit-learn>1.3.0",
     ],
     tests_require=["nose", "flake8"],
     extras_require=dict(),

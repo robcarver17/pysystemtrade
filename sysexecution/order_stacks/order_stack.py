@@ -526,29 +526,29 @@ class orderStackData(object):
     # LOW LEVEL OPERATIONS to include in specific implementation
 
     def _get_list_of_all_order_ids(self) -> list:
-        # probably will be overriden in data implementation
+        # probably will be overridden in data implementation
         raise NotImplementedError
 
     # deleting
 
     def _remove_order_with_id_from_stack_no_checking(self, order_id: int):
-        # probably will be overriden in data implementation
+        # probably will be overridden in data implementation
 
         raise NotImplementedError
 
     def _change_order_on_stack_no_checking(self, order_id: int, order: Order):
         #
-        # probably will be overriden in data implementation
+        # probably will be overridden in data implementation
 
         raise NotImplementedError
 
     def get_order_with_id_from_stack(self, order_id: int) -> Order:
-        # probably will be overriden in data implementation
+        # probably will be overridden in data implementation
         # return missing_order if not found
         raise NotImplementedError
 
     def _put_order_on_stack_no_checking(self, order: Order):
-        # probably will be overriden in data implementation
+        # probably will be overridden in data implementation
 
         raise NotImplementedError
 

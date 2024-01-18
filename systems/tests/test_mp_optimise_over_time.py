@@ -28,7 +28,7 @@ class Test(unittest.TestCase):
         # pickle
         net_returns_pkl_s = pkl.dumps(self.net_returns)
 
-        # unplickle
+        # unpickle
         net_returns = pkl.loads(net_returns_pkl_s)
 
         # attributes after unpicking

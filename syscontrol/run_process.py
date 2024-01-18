@@ -2,7 +2,7 @@
 General class for 'running' processes
 
 We kick them all off in the crontab at a specific time (midnight is easiest), but their subsequent behaviour will
- depend on various rules, as defined in ... attribute of defaults.yaml or overriden in private_config
+ depend on various rules, as defined in ... attribute of defaults.yaml or overridden in private_config
 
 - is my process marked as NO OPEN in process control  (check database)
 - is it too early for me to run? (defined in .yaml)

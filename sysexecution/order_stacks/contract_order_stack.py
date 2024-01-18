@@ -24,7 +24,9 @@ class contractOrderStackData(orderStackData):
 
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
-            error_msg = "Can't add controlling ago as order %d doesn't exist" % order_id
+            error_msg = (
+                "Can't add controlling algo as order %d doesn't exist" % order_id
+            )
             self.log.warning(error_msg)
             raise missingOrder(error_msg)
 
@@ -48,7 +50,9 @@ class contractOrderStackData(orderStackData):
     def release_order_from_algo_control(self, order_id: int):
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
-            error_msg = "Can't add controlling ago as order %d doesn't exist" % order_id
+            error_msg = (
+                "Can't add controlling algo as order %d doesn't exist" % order_id
+            )
             self.log.warning(error_msg)
             raise missingOrder(error_msg)
 
@@ -74,7 +78,7 @@ class contractOrderStackData(orderStackData):
             raise Exception(error_msg)
 
     def get_order_with_id_from_stack(self, order_id: int) -> contractOrder:
-        # probably will be overriden in data implementation
+        # probably will be overridden in data implementation
         # only here so the appropriate type is shown as being returned
 
         order = self.stack.get(order_id, missing_order)

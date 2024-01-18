@@ -11,7 +11,7 @@ class tradeableObject(object):
     """
 
     def __init__(self, object_name):
-        # probably overriden with nicer entry
+        # probably overridden with nicer entry
         self._key = object_name
 
     def __repr__(self):
@@ -26,7 +26,7 @@ class tradeableObject(object):
 
     @property
     def key(self):
-        # probably overriden
+        # probably overridden
         return self._key
 
 

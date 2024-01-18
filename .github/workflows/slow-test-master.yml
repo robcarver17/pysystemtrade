@@ -1,4 +1,4 @@
-name: Slow test
+name: Slow test (master)
 
 on:
   schedule:

@@ -31,7 +31,7 @@ class brokerOrderStackData(orderStackData):
         return missing_order
 
     def get_order_with_id_from_stack(self, order_id: int) -> brokerOrder:
-        # probably will be overriden in data implementation
+        # probably will be overridden in data implementation
         # only here so the appropriate type is shown as being returned
 
         order = self.stack.get(order_id, missing_order)

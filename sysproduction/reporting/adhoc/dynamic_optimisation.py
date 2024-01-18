@@ -35,7 +35,7 @@ from sysdata.config.production_config import get_production_config
 
 
 def get_notional_risk_target():
-    ## might be overriden by strategy but we don't have the backtest .yaml here
+    ## might be overridden by strategy but we don't have the backtest .yaml here
     return 25.0
 
 
