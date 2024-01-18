@@ -294,7 +294,7 @@ def make_df_from_list_of_named_tuple(
     field_name_for_index: str = arg_not_supplied,
 ):
     """
-    Turn a list of named tuplies into a dataframe
+    Turn a list of named tuples into a dataframe
     The first element in the tuple will become the index
 
     >>> T = namedtuple('T', 'name value_a value_b')

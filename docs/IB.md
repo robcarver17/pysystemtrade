@@ -297,7 +297,7 @@ You can use this directly if you are familiar with ib_insync eg `conn.ib.positio
 
 ### Make multiple connections
 
-It's possible to have multiple connections to the IB Gateway, each from it's own process, but each connection must have a unique clientid. Used clientid's are stored in a the active database (usually mongoDB) to ensure we don't re-use active clientids.
+It's possible to have multiple connections to the IB Gateway, each from its own process, but each connection must have a unique clientid. Used clientids are stored in the active database (usually mongoDB) to ensure we don't re-use active clientids. 
 
 
 

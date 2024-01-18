@@ -120,7 +120,7 @@ class TradingRule(object):
         """
 
         # Following is a list of additional kwargs to pass to the data functions. Can be empty dicts
-        # Use copy as can be overriden
+        # Use copy as can be overridden
 
         list_of_data_str_references = self.data
         list_of_args_to_pass_to_data_calls = copy(self.data_args)

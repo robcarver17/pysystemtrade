@@ -189,7 +189,7 @@ class dataOrders(object):
             self.get_parent_instrument_order_for_historic_broker_order_id(order_id)
         )
 
-        augmented_order = brokerOrderWithParentInformation.create_augemented_order(
+        augmented_order = brokerOrderWithParentInformation.create_augmented_order(
             order, contract_order=contract_order, instrument_order=instrument_order
         )
 

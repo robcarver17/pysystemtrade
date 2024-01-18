@@ -45,7 +45,7 @@ class stackHandlerChecks(stackHandlerCore):
         instrument_code = contract.instrument_code
         data_locks = dataLocks(self.data)
         if data_locks.is_instrument_locked(instrument_code):
-            # alread locked
+            # already locked
             return None
         else:
             self.log.critical("Break for %s: locking instrument" % (str(contract)))

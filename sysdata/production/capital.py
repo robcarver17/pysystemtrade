@@ -309,7 +309,7 @@ class totalCapitalCalculationData(object):
     def get_current_accumulated_pandl(self) -> float:
         return self.capital_data.get_current_pandl_account()
 
-    def get_profit_and_loss_account(self) -> pd.Series():
+    def get_profit_and_loss_account(self) -> pd.Series:
         return self.capital_data.get_profit_and_loss_account_pd_series()
 
     def get_maximum_account(self) -> pd.Series:

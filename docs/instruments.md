@@ -348,9 +348,9 @@ Operating in the production environment is a bit more complex, due to the intera
 
 ## A note about configuration
 
-When you're running in simulation things are relatively simple; configuration items are defined in defaults_yaml, but can be overriden by your private_config.yaml, and then also by your own backtest.yaml file.
+When you're running in simulation things are relatively simple; configuration items are defined in defaults_yaml, but can be overridden by your private_config.yaml, and then also by your own backtest.yaml file.
 
-Importantly, once we're out of the 'backtesting'' part of a production system, we can't see the backtest configuration (which after all is system specific, whereas generally in the production environment we're working with global parameters). So the priority order is `defaults.yaml`, overriden by `private_config.yaml`. The downstream code that produces strategy orders once the production backtest has generated optimal positions, and then trades those orders, will operate only on the configuration in `private_config.yaml` and `defaults.yaml`. 
+Importantly, once we're out of the 'backtesting'' part of a production system, we can't see the backtest configuration (which after all is system specific, whereas generally in the production environment we're working with global parameters). So the priority order is `defaults.yaml`, overridden by `private_config.yaml`. The downstream code that produces strategy orders once the production backtest has generated optimal positions, and then trades those orders, will operate only on the configuration in `private_config.yaml` and `defaults.yaml`. 
 
 ## Reduce only and other constraints in static systems
 
