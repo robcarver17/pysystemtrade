@@ -9,7 +9,7 @@ AMERIBOR-1M,CBOE One-Month AMERIBOR Average Rate Index,50,USD,STIR,0,0,0,US
 AMERIBOR-3M,CBOE AMERIBOR Term-90,25,USD,STIR,0,0,0,US
 AMERIBOR-T30,Cboe AMERIBOR Term-30 Futures Index,25,USD,STIR,0,0,0,US
 AMX,AMX INDEX,50,EUR,Equity,0,0,0,EMEA
-ASX,Australian equity index ASX200,25,AUD,Equity,0,0,0,ASIA
+ASX,Australian equity index ASX200,25,AUD,Equity,5,0,0,ASIA
 ATX,ATX - Austrian Traded Index - DTB,10,EUR,Equity,0,0,0,EMEA
 AUD,AUDUSD currency,100000,USD,FX,2.47,0,0,US
 AUD-ICE,AUD.USD,100000,USD,FX,0,0,0,US
@@ -18,10 +18,7 @@ AUDCAD,Australlian dollar CAD,200000,CAD,FX,0,0,0,US
 AUDJPY,Australlian dollar Yen CME,200000,JPY,FX,85,0,0,US
 AUDJPY-SGX,SGX Australian Dollar in Japanese Yen Futures,25000,JPY,FX,285,0,0,ASIA
 AUD_micro,AUDUSD micro,10000,USD,FX,0.85,0,0,US
-AUS10,10 Year Treasury Bond 6%,9110,AUD,Bond,0,0,0,ASIA
-AUS3,3 Year Treasury Bond 6%,2936,AUD,Bond,0,0,0,ASIA
 AUSCASH,30 Day Interbank Cash Rate,2466,AUD,STIR,4.5,0,0,ASIA
-AUSSTIR,90 Day Bills,2415,AUD,STIR,0,0,0,ASIA
 BARLEY,Barley Futures (ASX),20,AUD,Ags,0,0,0,ASIA
 BB3M,Three-Month Bloomberg Short-Term Bank Yield,2500,USD,Bond,2.85,0,0,US
 BBCOMM,Bloomberg Commodity Index,100,USD,Ags,1.5,0,0,US
