@@ -1,29 +1,26 @@
-name: Slow test
+name: Slow test (develop)
 
 on:
   schedule:
-    - cron: '0 1 * * *'
+    - cron: '0 2 * * *'
 
   workflow_dispatch:
 
 jobs:
   build:
 
-    runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        python-version: [ 3.8, 3.7 ]
+    runs-on: ubuntu-latest
 
     steps:
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         ref: "develop"
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: '3.10'
 
     - name: Install dependencies
       run: |
