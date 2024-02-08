@@ -5,6 +5,7 @@ Related documents:
 - [Storing futures and spot FX data](/docs/data.md)
 - [Using pysystemtrade as a production trading environment](/docs/production.md)
 - [Connecting pysystemtrade to interactive brokers](/docs/IB.md)
+- [Recent undocumented changes](/docs/recent_changes.md)
 
 
 This guide is divided into four parts. The first ['How do I?'](#how_do_i)
