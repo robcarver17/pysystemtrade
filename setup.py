@@ -84,8 +84,13 @@ setup(
     package_data=package_data,
     long_description=read("README.md"),
     install_requires=[
+<<<<<<< HEAD
         "pandas==2.1.3",
         "matplotlib>=3.0.0",
+=======
+        "pandas==1.0.5",
+        "matplotlib>=3.0.0,<3.8.0",
+>>>>>>> bcfd9668056ff6748edd37538e079dbf22c657e4
         "ib-insync==0.9.86",
         "PyYAML>=5.3",
         "numpy>=1.24.0",
