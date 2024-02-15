@@ -26,11 +26,15 @@ from syslogging.logger import *
 
 class dbFuturesSimData(genericBlobUsingFuturesSimData):
     def __init__(
-        self, data: dataBlob = arg_not_supplied, log=get_logger("dbFuturesSimData")
+        self,
+        data: dataBlob = arg_not_supplied,
+        csv_data_paths=arg_not_supplied,
+        log=get_logger("dbFuturesSimData"),
     ):
         if data is arg_not_supplied:
             data = dataBlob(
                 log=log,
+                csv_data_paths=csv_data_paths,
                 class_list=[
                     get_class_for_data_type(FUTURES_ADJUSTED_PRICE_DATA),
                     get_class_for_data_type(FUTURES_MULTIPLE_PRICE_DATA),
