@@ -1,5 +1,6 @@
 from syscore.constants import arg_not_supplied
 from syscore.dateutils import MIXED_FREQ, HOURLY_FREQ, DAILY_PRICE_FREQ
+from syscore.pandas.frequency import merge_data_with_different_freq
 from sysdata.csv.csv_futures_contract_prices import csvFuturesContractPriceData
 from sysproduction.data.prices import diagPrices
 from sysobjects.contracts import futuresContract
@@ -63,6 +64,36 @@ def init_db_with_csv_futures_contract_prices_for_code(
             contract, frequency=frequency
         )
         print("Read back prices are \n %s" % str(written_prices))
+
+        # if we're importing hourly or daily, we need to also generate MIXED
+        if frequency != MIXED_FREQ:
+            create_merged_prices(contract)
+
+
+def create_merged_prices(contract):
+    db_prices = diag_prices.db_futures_contract_price_data
+    if db_prices.has_price_data_for_contract_at_frequency(
+        contract, DAILY_PRICE_FREQ
+    ) and db_prices.has_price_data_for_contract_at_frequency(contract, HOURLY_FREQ):
+        print(f"DB has hourly and daily prices for {contract}, creating merged prices")
+        list_of_data = [
+            diag_prices.get_prices_at_frequency_for_contract_object(
+                contract,
+                frequency=frequency,
+            )
+            for frequency in [HOURLY_FREQ, DAILY_PRICE_FREQ]
+        ]
+        merged_prices = merge_data_with_different_freq(list_of_data)
+        print("Writing to db")
+        db_prices.write_prices_at_frequency_for_contract_object(
+            contract, merged_prices, frequency=MIXED_FREQ, ignore_duplication=True
+        )
+        print("Reading back prices from db to check")
+        written_merged_prices = db_prices.get_prices_at_frequency_for_contract_object(
+            contract, frequency=MIXED_FREQ
+        )
+
+        print(f"Read back prices (MIXED) are \n{str(written_merged_prices)}")
 
 
 if __name__ == "__main__":
