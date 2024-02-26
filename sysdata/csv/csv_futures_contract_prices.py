@@ -223,7 +223,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         if frequency is MIXED_FREQ:
             frequency_str = ""
         else:
-            frequency_str = frequency.name + "/"
+            frequency_str = frequency.name + "_"
 
         instrument_str = str(futures_contract_object.instrument)
         date_str = str(futures_contract_object.date_str)
@@ -239,11 +239,11 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         :param keyname: str
         :return: tuple instrument_code, contract_date
         """
-        first_split_keyname_as_list = keyname.split("/")
-        if len(first_split_keyname_as_list) == 2:
+        if keyname.startswith("Day") or keyname.startswith("Hour"):
             ## has frequency
-            frequency = Frequency[first_split_keyname_as_list[0]]
-            residual_keyname = first_split_keyname_as_list[1]
+            index = keyname.find("_")
+            frequency = Frequency[keyname[:index]]
+            residual_keyname = keyname[index + 1 :]
         else:
             ## no frequency, mixed data
             frequency = MIXED_FREQ
