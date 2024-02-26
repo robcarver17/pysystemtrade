@@ -42,6 +42,17 @@ class RawData(SystemStage):
     def config(self) -> Config:
         return self.parent.config
 
+    def get_raw_cost_data(self, instrument_code: str):
+        return self.data_stage.get_raw_cost_data(instrument_code)
+
+    def get_value_of_block_price_move(self, instrument_code: str) -> float:
+        return self.data_stage.get_value_of_block_price_move(instrument_code)
+
+    def get_fx_for_instrument(self, instrument_code: str, base_currency: str):
+        return self.data_stage.get_fx_for_instrument(
+            instrument_code=instrument_code, base_currency=base_currency
+        )
+
     @input
     def get_daily_prices(self, instrument_code) -> pd.Series:
         """
@@ -345,7 +356,6 @@ class RawData(SystemStage):
     def _daily_vol_normalised_price_for_list_of_instruments(
         self, list_of_instruments: list
     ) -> pd.Series:
-
         norm_returns = (
             self._aggregate_daily_vol_normalised_returns_for_list_of_instruments(
                 list_of_instruments
@@ -373,6 +383,35 @@ class RawData(SystemStage):
         )
 
         return norm_price
+
+    @diagnostic()
+    def daily_vol_normalised_price_for_asset_class_with_redundant_instrument_code(
+        self, instrument_code: str, asset_class: str
+    ) -> pd.Series:
+        """
+        Price for an asset class, built up from cumulative returns
+
+        :param asset_class: str
+        :return: pd.Series
+        """
+
+        return self._by_asset_class_daily_vol_normalised_price_for_asset_class(
+            asset_class
+        )
+
+    @diagnostic()
+    def system_with_redundant_instrument_code_passed(
+        self, instrument_code: str, asset_class: str
+    ):
+        ## allows ultimate flexibility when creating trading rules but be careful!
+
+        return self.parent
+
+    @diagnostic()
+    def instrument_code(self, instrument_code: str) -> pd.Series:
+        ## allows ultimate flexibility when creating trading rules
+
+        return instrument_code
 
     @output()
     def normalised_price_for_asset_class(self, instrument_code: str) -> pd.Series:

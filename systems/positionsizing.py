@@ -68,7 +68,6 @@ class PositionSizing(SystemStage):
 
     @diagnostic()
     def get_subsystem_buffers(self, instrument_code: str) -> pd.Series:
-
         position = self.get_subsystem_position(instrument_code)
 
         vol_scalar = self.get_average_position_at_subsystem_level(instrument_code)
@@ -319,7 +318,7 @@ class PositionSizing(SystemStage):
         """
 
         underlying_price = self.get_underlying_price(instrument_code)
-        value_of_price_move = self.parent.data.get_value_of_block_price_move(
+        value_of_price_move = self.rawdata_stage.get_value_of_block_price_move(
             instrument_code
         )
 
@@ -536,7 +535,9 @@ class PositionSizing(SystemStage):
         """
 
         base_currency = self.get_base_currency()
-        fx_rate = self.data.get_fx_for_instrument(instrument_code, base_currency)
+        fx_rate = self.rawdata_stage.get_fx_for_instrument(
+            instrument_code, base_currency
+        )
 
         return fx_rate
 

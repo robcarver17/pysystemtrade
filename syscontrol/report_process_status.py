@@ -10,7 +10,7 @@ FREQUENCY_TO_CHECK_LOG_MINUTES = 10
 
 class reportStatus(object):
     ## Report on status when waiting and paused, ensures we don't spam the log
-    def __init__(self, log: pst_logger = arg_not_supplied):
+    def __init__(self, log=arg_not_supplied):
         if log is arg_not_supplied:
             log = get_logger("")
         self._log = log

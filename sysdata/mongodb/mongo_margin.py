@@ -21,7 +21,6 @@ class mongoMarginData(marginData):
         mongo_db=arg_not_supplied,
         log=get_logger("mongoMarginData"),
     ):
-
         self._mongo_data = mongoDataWithSingleKey(
             MARGIN_COLLECTION, STRATEGY_REF, mongo_db
         )

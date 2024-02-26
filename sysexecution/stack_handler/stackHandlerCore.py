@@ -94,109 +94,114 @@ class stackHandlerCore(object):
 
         return update_prices
 
+    def put_children_on_stack(
+        self,
+        child_stack: orderStackData,
+        parent_order: Order,
+        list_of_child_orders: listOfOrders,
+    ) -> list:
+        log_attrs = {**parent_order.log_attributes(), "method": "temp"}
 
-def put_children_on_stack(
-    child_stack: orderStackData,
-    parent_order: Order,
-    list_of_child_orders: listOfOrders,
-    parent_log,
-) -> list:
-
-    try:
-        list_of_child_ids = child_stack.put_list_of_orders_on_stack(
-            list_of_child_orders
-        )
-    except failureWithRollback as e:
-        parent_log.warning(
-            "Tried to add child orders but %s; rolled back so can try again (parent %s)"
-            % (str(e), str(parent_order))
-        )
-        return []
-
-    except Exception as e:
-        parent_log.critical(
-            "Tried to add child orders, error %s and couldn't roll back! Order stack may well be corrupted!"
-            % str(e)
-        )
-        return []
-
-    return list_of_child_ids
-
-
-def add_children_to_parent_or_rollback_children(
-    parent_order: Order,
-    list_of_child_ids: list,
-    parent_stack: orderStackData,
-    child_stack: orderStackData,
-    parent_log,
-):
-    try:
-        parent_stack.add_children_to_order_without_existing_children(
-            parent_order.order_id, list_of_child_ids
-        )
-    except Exception as e:
         try:
-            child_stack.rollback_list_of_orders_on_stack(list_of_child_ids)
-            parent_log.warning(
-                "Tried to add child orders to parent but %s; rolled back so can try again (parent %s)"
-                % (str(e), str(parent_order))
+            list_of_child_ids = child_stack.put_list_of_orders_on_stack(
+                list_of_child_orders
             )
-            return failure
-        except:
-            parent_log.critical(
+        except failureWithRollback as e:
+            self.log.warning(
+                "Tried to add child orders but %s; rolled back so can try again (parent %s)"
+                % (str(e), str(parent_order)),
+                **log_attrs,
+            )
+            return []
+
+        except Exception as e:
+            self.log.critical(
                 "Tried to add child orders, error %s and couldn't roll back! Order stack may well be corrupted!"
-                % str(e)
+                % str(e),
+                **log_attrs,
             )
-            return failure
+            return []
 
-    return success
+        return list_of_child_ids
 
+    def add_children_to_parent_or_rollback_children(
+        self,
+        parent_order: Order,
+        list_of_child_ids: list,
+        parent_stack: orderStackData,
+        child_stack: orderStackData,
+    ):
+        log_attrs = {**parent_order.log_attributes(), "method": "temp"}
 
-def log_successful_adding(
-    list_of_child_orders: listOfOrders,
-    list_of_child_ids: list,
-    parent_order: Order,
-    parent_log,
-):
+        try:
+            parent_stack.add_children_to_order_without_existing_children(
+                parent_order.order_id, list_of_child_ids
+            )
+        except Exception as e:
+            try:
+                child_stack.rollback_list_of_orders_on_stack(list_of_child_ids)
+                self.log.warning(
+                    "Tried to add child orders to parent but %s; rolled back so can try again (parent %s)"
+                    % (str(e), str(parent_order)),
+                    **log_attrs,
+                )
+                return failure
+            except:
+                self.log.critical(
+                    "Tried to add child orders, error %s and couldn't roll back! Order stack may well be corrupted!"
+                    % str(e),
+                    **log_attrs,
+                )
+                return failure
 
-    for child_order, child_id in zip(list_of_child_orders, list_of_child_ids):
-        child_log = child_order.log_with_attributes(parent_log)
-        child_log.debug(
-            "Put child order %s on stack with ID %d from parent order %s"
-            % (str(child_order), child_id, str(parent_order))
-        )
+        return success
 
+    def log_successful_adding(
+        self,
+        list_of_child_orders: listOfOrders,
+        list_of_child_ids: list,
+        parent_order: Order,
+    ):
+        for child_order, child_id in zip(list_of_child_orders, list_of_child_ids):
+            self.log.debug(
+                "Put child order %s on stack with ID %d from parent order %s"
+                % (str(child_order), child_id, str(parent_order)),
+                **child_order.log_attributes(),
+                method="temp",
+            )
 
-def rollback_parents_and_children_and_handle_exceptions(
-    parent_stack: orderStackData,
-    child_stack: orderStackData,
-    parent_order_id: int,
-    list_of_child_order_ids: list,
-    parent_log,
-    error_from_adding_child_orders: Exception,
-):
+    def rollback_parents_and_children_and_handle_exceptions(
+        self,
+        parent_stack: orderStackData,
+        child_stack: orderStackData,
+        parent_order: Order,
+        list_of_child_order_ids: list,
+        error_from_adding_child_orders: Exception,
+    ):
+        ##
+        log_attrs = {**parent_order.log_attributes(), "method": "temp"}
+        try:
+            rollback_parents_and_children(
+                child_stack=child_stack,
+                parent_stack=parent_stack,
+                list_of_child_order_ids=list_of_child_order_ids,
+                parent_order_id=parent_order.order_id,
+            )
+            self.log.warning(
+                "Error %s when adding a set of parents and children but managed to rollback"
+                % str(error_from_adding_child_orders),
+                **log_attrs,
+            )
+            return None
 
-    ##
-    try:
-        rollback_parents_and_children(
-            child_stack=child_stack,
-            parent_stack=parent_stack,
-            list_of_child_order_ids=list_of_child_order_ids,
-            parent_order_id=parent_order_id,
-        )
-        parent_log.warning(
-            "Error %s when adding a set of parents and children but managed to rollback"
-            % str(error_from_adding_child_orders)
-        )
-        return None
-
-    except Exception as rollback_exception:
-        ## bloody hell even the rollback has failed, throw everything out of the pram
-        parent_log.critical(
-            "Error %s when adding a set of parents and children and couldn't rollback got error %s! Stack may be corrupted"
-            % (str(error_from_adding_child_orders), str(rollback_exception))
-        )
-        return None
+        except Exception as rollback_exception:
+            ## bloody hell even the rollback has failed, throw everything out of the pram
+            self.log.critical(
+                "Error %s when adding a set of parents and children and couldn't rollback got error %s! Stack may be corrupted"
+                % (str(error_from_adding_child_orders), str(rollback_exception)),
+                **log_attrs,
+            )
+            return None
 
 
 def rollback_parents_and_children(
@@ -205,7 +210,6 @@ def rollback_parents_and_children(
     parent_order_id: int,
     list_of_child_order_ids: list,
 ):
-
     ## parent order might be locked
     parent_stack.unlock_order_on_stack(parent_order_id)
     parent_stack.deactivate_order(parent_order_id)

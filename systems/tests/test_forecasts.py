@@ -20,7 +20,6 @@ from systems.tests.testdata import get_test_object
 class Test(unittest.TestCase):
     @unittest.SkipTest
     def testRules(self):
-
         # config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.rules.ewmac.ewmac_forecast_with_defaults"))))
         NOTUSEDrawdata, data, NOTUSEDconfig = get_test_object()
 
@@ -141,7 +140,6 @@ class Test(unittest.TestCase):
 
     @unittest.SkipTest
     def testCallingTradingRule(self):
-
         # config=Config(dict(trading_rules=dict(ewmac=dict(function="systems.provided.rules.ewmac..ewmac_forecast_with_defaults"))))
         NOTUSEDrawdata, data, NOTUSEDconfig = get_test_object()
 
@@ -194,7 +192,6 @@ class Test(unittest.TestCase):
         self.assertAlmostEqual(ans.tail(1).values[0], 0.138302, 5)
 
     def testProcessTradingRuleSpec(self):
-
         ruleA = TradingRule(ewmac_forecast_with_defaults)
         ruleB = TradingRule(
             dict(

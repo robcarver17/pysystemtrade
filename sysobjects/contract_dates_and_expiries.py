@@ -49,10 +49,10 @@ class expiryDate(datetime.datetime):
             as_date = datetime.datetime.strptime(date_as_str, EXPIRY_DATE_FORMAT)
         except:
             raise Exception(
-                "Expiry date %s not in format %s" % date_as_str, EXPIRY_DATE_FORMAT
+                "Expiry date %s not in format %s" % (date_as_str, EXPIRY_DATE_FORMAT)
             )
 
-        return expiryDate(as_date.year, as_date.month, as_date.day)
+        return expiryDate(year=as_date.year, month=as_date.month, day=as_date.day)
 
     def as_str(self) -> str:
         return self.strftime(EXPIRY_DATE_FORMAT)
@@ -237,7 +237,6 @@ class singleContractDate(object):
         return current_year_int, current_month_str
 
     def as_date(self):
-
         tuple_of_dates = self._as_date_tuple()
 
         return datetime.datetime(*tuple_of_dates)
@@ -368,7 +367,6 @@ class contractDate(object):
         return list_of_date_str
 
     def index_of_sorted_contract_dates(self) -> list:
-
         clist = self.list_of_date_str
         return sorted(range(len(clist)), key=lambda k: clist[k])
 

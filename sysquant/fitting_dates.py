@@ -151,7 +151,6 @@ def _get_start_and_end_date(data):
 
 
 def _in_sample_dates(start_date: datetime.datetime, end_date: datetime.datetime):
-
     return listOfFittingDates([fitDates(start_date, end_date, start_date, end_date)])
 
 
@@ -186,7 +185,6 @@ def _fit_dates_for_period_index(
     date_method: str = "expanding",
     rollyears=20,
 ):
-
     period_start = list_of_starting_dates_per_period[period_index]
     period_end = list_of_starting_dates_per_period[period_index + 1]
 

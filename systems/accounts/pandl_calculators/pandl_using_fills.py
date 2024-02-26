@@ -41,7 +41,6 @@ class pandlCalculationWithFills(pandlCalculation):
         fills: ListOfFills,
         **kwargs,
     ):
-
         merged_prices = merge_fill_prices_with_prices(price, fills)
 
         return pandlCalculation(price=merged_prices, positions=positions, **kwargs)
@@ -60,7 +59,6 @@ class pandlCalculationWithFills(pandlCalculation):
         return fills
 
     def _infer_fills_from_position(self) -> ListOfFills:
-
         # positions will have delayfill and round applied to them already
         positions = self.positions
         if positions is arg_not_supplied:
@@ -105,7 +103,7 @@ def merge_fill_prices_with_prices(
     prices_to_use.columns = ["price", "fill_price"]
 
     # Where no fill price available, use price
-    prices_to_use = prices_to_use.fillna(axis=1, method="ffill")
+    prices_to_use = prices_to_use.ffill(axis=1)
 
     prices_to_use = prices_to_use.fill_price
 

@@ -10,7 +10,6 @@ from sysexecution.algos.common_functions import (
     post_trade_processing,
     MESSAGING_FREQUENCY,
     cancel_order,
-    file_log_report_market_order,
 )
 from sysdata.data_blob import dataBlob
 from sysexecution.orders.contract_orders import contractOrder

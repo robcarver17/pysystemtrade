@@ -2,7 +2,7 @@
 General class for 'running' processes
 
 We kick them all off in the crontab at a specific time (midnight is easiest), but their subsequent behaviour will
- depend on various rules, as defined in ... attribute of defaults.yaml or overriden in private_config
+ depend on various rules, as defined in ... attribute of defaults.yaml or overridden in private_config
 
 - is my process marked as NO OPEN in process control  (check database)
 - is it too early for me to run? (defined in .yaml)
@@ -70,7 +70,6 @@ class processToRun(object):
         return self._list_of_timer_functions
 
     def _setup(self):
-        self.data.log.setup(type=self.process_name)
         self._log = self.data.log
         data_control = dataControlProcess(self.data)
         self._data_control = data_control
@@ -367,7 +366,6 @@ def check_for_pause_and_log(process_to_run: processToRun) -> bool:
 
 ## FINISH CODE
 def _check_for_stop(process_to_run: processToRun) -> bool:
-
     """
     - is my process marked as STOP in process control (check database)
 

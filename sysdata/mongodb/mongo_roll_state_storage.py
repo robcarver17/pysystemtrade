@@ -15,7 +15,6 @@ class mongoRollStateData(rollStateData):
     """
 
     def __init__(self, mongo_db=None, log=get_logger("mongoRollStateData")):
-
         super().__init__(log=log)
 
         self._mongo_data = mongoDataWithSingleKey(

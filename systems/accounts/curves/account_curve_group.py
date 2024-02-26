@@ -15,7 +15,6 @@ from systems.accounts.curves.stats_dict import statsDict
 
 class accountCurveGroup(accountCurve):
     def __init__(self, dict_of_account_curves: dictOfAccountCurves, capital, **kwargs):
-
         total_pandl_calculator = dict_of_account_curves.summed_pandl_calculator(
             capital=capital
         )
@@ -46,7 +45,6 @@ class accountCurveGroup(accountCurve):
     def get_stats(
         self, stat_name: str, curve_type: str = "net", freq: str = "daily"
     ) -> statsDict:
-
         return statsDict(self, item=stat_name, freq=freq, curve_type=curve_type)
 
     ## TO RETURN A 'NEW' ACCOUNT CURVE GROUP

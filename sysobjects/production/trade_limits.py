@@ -16,7 +16,6 @@ class tradeLimit(object):
         trades_since_last_reset: int = 0,
         last_reset_time: datetime.datetime = arg_not_supplied,
     ):
-
         self._trade_limit = int(trade_limit)
         self._period_days = period_days
         self._timedelta = datetime.timedelta(days=period_days)

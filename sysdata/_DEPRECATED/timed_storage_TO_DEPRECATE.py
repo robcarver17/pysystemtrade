@@ -40,7 +40,6 @@ class classStrWithListOfEntriesAsListOfDicts(object):
         self.list_of_entries_as_list_of_dicts = list_of_entries_as_list_of_dicts
 
     def with_class_object(self):
-
         class_of_entry_list = resolve_function(self.class_of_entry_list_as_str)
 
         return classWithListOfEntriesAsListOfDicts(
@@ -82,13 +81,11 @@ class listOfEntriesData(baseData):
         return empty_entry_series
 
     def __init__(self, log=logtoscreen("listOfEntriesData")):
-
         super().__init__(log=log)
 
     def _delete_all_data_for_args_dict(
         self, args_dict: dict, are_you_really_sure: bool = False
     ):
-
         if not are_you_really_sure:
             self.log.warn("To delete all data, need to set are_you_really_sure=True")
             return failure
@@ -97,7 +94,6 @@ class listOfEntriesData(baseData):
         self._write_series_for_args_dict(args_dict, empty_entry_series)
 
     def _update_entry_for_args_dict(self, new_entry: timedEntry, args_dict: dict):
-
         existing_series = self._get_series_for_args_dict(args_dict)
         if len(existing_series) > 0:
             # Check types match
@@ -131,7 +127,6 @@ class listOfEntriesData(baseData):
     def _check_class_name_matches_for_new_entry(
         self, args_dict: dict, new_entry: timedEntry
     ):
-
         entry_class_name_new_entry = new_entry.containing_data_class_name
         entry_class_name_existing = self._get_class_of_entry_list_as_str(args_dict)
 
@@ -184,7 +179,6 @@ class listOfEntriesData(baseData):
     def _get_series_dict_and_class_for_args_dict(
         self, args_dict: dict
     ) -> classWithListOfEntriesAsListOfDicts:
-
         class_str_with_series_as_list_of_dicts = (
             self._get_series_dict_with_data_class_for_args_dict(args_dict)
         )
@@ -220,7 +214,6 @@ class listOfEntriesData(baseData):
         self,
         args_dict: dict,
     ) -> str:
-
         ## Use existing data, or if not available use the default for this object
         try:
             class_str_with_series_as_list_of_dicts = (
@@ -234,7 +227,6 @@ class listOfEntriesData(baseData):
     def _get_series_dict_with_data_class_for_args_dict(
         self, args_dict: dict
     ) -> classStrWithListOfEntriesAsListOfDicts:
-
         # return data_class, series_as_list_of_dicts
         ## return missing_data if unvailable
         raise NotImplementedError("Need to use child class")

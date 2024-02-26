@@ -16,7 +16,6 @@ class accountForecast(accountCosts):
     def pandl_for_instrument_forecast_weighted_within_trading_rule(
         self, instrument_code: str, rule_variation_name: str, delayfill: bool = True
     ) -> accountCurve:
-
         pandl_for_instrument_forecast = self.pandl_for_instrument_forecast(
             instrument_code, rule_variation_name, delayfill=delayfill
         )
@@ -35,7 +34,6 @@ class accountForecast(accountCosts):
     def pandl_for_instrument_forecast_weighted(
         self, instrument_code: str, rule_variation_name: str, delayfill: bool = True
     ) -> accountCurve:
-
         pandl_for_instrument_forecast = self.pandl_for_instrument_forecast(
             instrument_code, rule_variation_name, delayfill=delayfill
         )
@@ -88,7 +86,6 @@ class accountForecast(accountCosts):
     def _normalised_weight_for_forecast_and_instrument(
         self, instrument_code: str, rule_variation_name: str
     ) -> pd.Series:
-
         weight = self._unnormalised_weight_for_forecast_and_instrument(
             instrument_code=instrument_code, rule_variation_name=rule_variation_name
         )
@@ -135,7 +132,6 @@ class accountForecast(accountCosts):
     def _unnormalised_weight_for_forecast_and_instrument(
         self, instrument_code: str, rule_variation_name: str
     ) -> pd.Series:
-
         idm = self.instrument_diversification_multiplier()
         fdm = self.forecast_diversification_multiplier(instrument_code)
         instrument_weight = self.specific_instrument_weight(instrument_code)
@@ -240,7 +236,6 @@ def pandl_for_instrument_forecast(
     delayfill=True,
     value_per_point=ARBITRARY_VALUE_OF_PRICE_POINT,
 ) -> accountCurve:
-
     if daily_returns_volatility is arg_not_supplied:
         daily_returns_volatility = robust_daily_vol_given_price(price)
 
@@ -279,7 +274,6 @@ def pandl_for_instrument_forecast(
 def _get_notional_position_for_forecast(
     normalised_forecast: pd.Series, average_notional_position: pd.Series
 ) -> pd.Series:
-
     aligned_average = average_notional_position.reindex(
         normalised_forecast.index, method="ffill"
     )
@@ -293,7 +287,6 @@ def _get_average_notional_position(
     risk_target: float = ARBITRARY_FORECAST_ANNUAL_RISK_TARGET_PERCENTAGE,
     value_per_point=ARBITRARY_VALUE_OF_PRICE_POINT,
 ) -> pd.Series:
-
     daily_risk_target = risk_target / ROOT_BDAYS_INYEAR
     daily_cash_vol_target = capital * daily_risk_target
 
@@ -306,7 +299,6 @@ def _get_average_notional_position(
 def _get_normalised_forecast(
     forecast: pd.Series, target_abs_forecast: float = 10.0
 ) -> pd.Series:
-
     normalised_forecast = forecast / target_abs_forecast
 
     return normalised_forecast

@@ -73,7 +73,6 @@ class accountBufferingSubSystemLevel(accountCosts):
         pos_buffers: pd.DataFrame,
         roundpositions: bool = True,
     ) -> pd.Series:
-
         self.log.debug("Calculating buffered subsystem positions")
         trade_to_edge = self.config.buffer_trade_to_edge
 

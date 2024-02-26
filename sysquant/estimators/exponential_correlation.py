@@ -24,7 +24,6 @@ class exponentialCorrelation(exponentialEstimator):
         offdiag: float = 0.99,
         **_ignored_kwargs,
     ):
-
         super().__init__(
             data_for_correlation,
             ew_lookback=ew_lookback,
@@ -44,7 +43,6 @@ class exponentialCorrelation(exponentialEstimator):
         adjusted_min_periods=20,
         **other_kwargs,
     ):
-
         correlation_calculations = exponentialCorrelationResults(
             data_for_correlation,
             ew_lookback=adjusted_lookback,
@@ -85,7 +83,6 @@ class exponentialCorrelation(exponentialEstimator):
     def get_estimate_for_fitperiod_with_data(
         self, fit_period: fitDates = arg_not_supplied
     ) -> correlationEstimate:
-
         if fit_period is arg_not_supplied:
             fit_period = self._get_default_fit_period_cover_all_data()
 
@@ -148,13 +145,12 @@ class exponentialCorrelationResults(object):
         min_periods: int = 20,
         **_ignored_kwargs,
     ):
-
         columns = data_for_correlation.columns
         self._columns = columns
 
         raw_correlations = data_for_correlation.ewm(
             span=ew_lookback, min_periods=min_periods, ignore_na=True
-        ).corr(pairwise=True, ignore_na=True)
+        ).corr(pairwise=True)
 
         self._raw_correlations = raw_correlations
 
@@ -184,7 +180,6 @@ class exponentialCorrelationResults(object):
 def last_valid_cor_matrix_for_date(
     raw_correlations: pd.DataFrame, columns: list, date_point: datetime.datetime
 ) -> correlationEstimate:
-
     size_of_matrix = len(columns)
     corr_matrix_values = (
         raw_correlations[raw_correlations.index.get_level_values(0) < date_point]

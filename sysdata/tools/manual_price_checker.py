@@ -54,7 +54,6 @@ def manual_price_checker(
     data_iterating = True
 
     while data_iterating:
-
         if only_add_rows:
             merged_data_with_status = merge_newer_data_no_checks(old_data, new_data)
         else:

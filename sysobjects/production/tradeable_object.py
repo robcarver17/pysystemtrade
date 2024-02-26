@@ -11,7 +11,7 @@ class tradeableObject(object):
     """
 
     def __init__(self, object_name):
-        # probably overriden with nicer entry
+        # probably overridden with nicer entry
         self._key = object_name
 
     def __repr__(self):
@@ -26,7 +26,7 @@ class tradeableObject(object):
 
     @property
     def key(self):
-        # probably overriden
+        # probably overridden
         return self._key
 
 
@@ -162,7 +162,6 @@ class futuresContractStrategy(tradeableObject):
     def from_strategy_name_and_contract_object(
         futuresContractStrategy, strategy_name: str, futures_contract: futuresContract
     ):
-
         return futuresContractStrategy(
             strategy_name=strategy_name,
             contract_id=futures_contract.date_str,

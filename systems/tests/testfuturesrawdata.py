@@ -18,7 +18,6 @@ def get_test_object_futures():
 
 class Test(unittest.TestCase):
     def setUp(self):
-
         (rawdata, data, config) = get_test_object_futures()
 
         system = System([rawdata], data, config)

@@ -5,6 +5,7 @@ Related documents:
 - [Storing futures and spot FX data](/docs/data.md)
 - [Using pysystemtrade as a production trading environment](/docs/production.md)
 - [Connecting pysystemtrade to interactive brokers](/docs/IB.md)
+- [Recent undocumented changes](/docs/recent_changes.md)
 
 
 This guide is divided into four parts. The first ['How do I?'](#how_do_i)
@@ -1718,7 +1719,7 @@ system.cache.get_cache_refs_for_instrument("EDOLLAR")
 ## if we change the config
 system.config.forecast_div_multiplier=100.0
 
-## ... then the result will be different without neeting to create a new system
+## ... then the result will be different without needing to create a new system
 system.combForecast.get_combined_forecast("EDOLLAR")
 ```
 
@@ -3851,7 +3852,7 @@ These functions are used internally whenever a file name is passed in, so feel f
 
 ### Basic logging
 
-pysystemtrade uses the [Python logging module](https://docs.python.org/3.8/library/logging.html). The system, data, config and each stage object all have a .log attribute, to allow the system to report to the user; as do the functions provided to estimate correlations and do optimisations.
+pysystemtrade uses the [Python logging module](https://docs.python.org/3.10/library/logging.html). The system, data, config and each stage object all have a .log attribute, to allow the system to report to the user; as do the functions provided to estimate correlations and do optimisations.
 
 By default, log messages will print out to the console (`std.out`) at level DEBUG. This what you get in sim. This is configured by function `_configure_sim()` in `syslogging.logger.py`.
 
@@ -3888,7 +3889,7 @@ I strongly encourage the use of logging, rather than printing, since printing on
 
 ### Advanced logging
 
-In my experience wading through long log files is a rather time-consuming experience. On the other hand it's often more useful to use a logging approach to monitor system behaviour than to try and create quantitative diagnostics. For this reason I'm a big fan of logging with *attributes*. This project uses a custom version of [logging.LoggerAdapter](https://docs.python.org/3.8/library/logging.html#loggeradapter-objects) for that purpose:
+In my experience wading through long log files is a rather time-consuming experience. On the other hand it's often more useful to use a logging approach to monitor system behaviour than to try and create quantitative diagnostics. For this reason I'm a big fan of logging with *attributes*. This project uses a custom version of [logging.LoggerAdapter](https://docs.python.org/3.10/library/logging.html#loggeradapter-objects) for that purpose:
 
 ```python
 from syslogging.logger import *

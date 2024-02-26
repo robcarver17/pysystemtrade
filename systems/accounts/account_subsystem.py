@@ -14,7 +14,6 @@ class accountSubsystem(accountBufferingSubSystemLevel):
     def pandl_across_subsystems(
         self, delayfill=True, roundpositions=False
     ) -> accountCurveGroup:
-
         instrument_list = self.get_instrument_list()
 
         pandl_across_subsystems = self.pandl_across_subsystems_given_instrument_list(
@@ -27,7 +26,6 @@ class accountSubsystem(accountBufferingSubSystemLevel):
     def pandl_across_subsystems_given_instrument_list(
         self, instrument_list: list, delayfill=True, roundpositions=False
     ) -> accountCurveGroup:
-
         dict_of_pandl_across_subsystems = dict(
             [
                 (
@@ -104,7 +102,6 @@ class accountSubsystem(accountBufferingSubSystemLevel):
     def _pandl_for_subsystem_with_SR_costs(
         self, instrument_code, delayfill=True, roundpositions=False
     ) -> accountCurve:
-
         pandl_calculator = self._pandl_calculator_for_subsystem_with_SR_costs(
             instrument_code=instrument_code,
             delayfill=delayfill,
@@ -119,7 +116,6 @@ class accountSubsystem(accountBufferingSubSystemLevel):
     def _pandl_calculator_for_subsystem_with_SR_costs(
         self, instrument_code, delayfill=True, roundpositions=False
     ) -> pandlCalculationWithSRCosts:
-
         positions = self.get_buffered_subsystem_position(instrument_code)
         price = self.get_instrument_prices_for_position_or_forecast(
             instrument_code, position_or_forecast=positions
@@ -159,7 +155,6 @@ class accountSubsystem(accountBufferingSubSystemLevel):
     def _pandl_for_subsystem_with_cash_costs(
         self, instrument_code, delayfill=True, roundpositions=True
     ) -> accountCurve:
-
         pandl_calculator = self._pandl_calculator_for_subsystem_with_cash_costs(
             instrument_code=instrument_code,
             delayfill=delayfill,
@@ -174,7 +169,6 @@ class accountSubsystem(accountBufferingSubSystemLevel):
     def _pandl_calculator_for_subsystem_with_cash_costs(
         self, instrument_code, delayfill=True, roundpositions=True
     ) -> pandlCalculationWithCashCostsAndFills:
-
         raw_costs = self.get_raw_cost_data(instrument_code)
         positions = self.get_buffered_subsystem_position(instrument_code)
         price = self.get_instrument_prices_for_position_or_forecast(

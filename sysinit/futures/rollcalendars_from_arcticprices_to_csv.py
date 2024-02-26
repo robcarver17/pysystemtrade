@@ -1,15 +1,22 @@
 from syscore.interactive.input import true_if_answer_is_yes
 from syscore.constants import arg_not_supplied
 
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
 from sysobjects.rolls import rollParameters
 from sysobjects.roll_calendars import rollCalendar
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
 from sysdata.csv.csv_roll_parameters import csvRollParametersData
 from sysdata.futures.rolls_parameters import rollParametersData
-from sysproduction.data.prices import get_valid_instrument_code_from_user
+from sysproduction.data.prices import get_valid_instrument_code_from_user, diagPrices
+from sysproduction.data.production_data_objects import (
+    get_class_for_data_type,
+    FUTURES_CONTRACT_PRICE_DATA,
+)
+
+from sysdata.data_blob import dataBlob
+
+diag_prices = diagPrices()
+
+parquet_futures_contract_price_data = diag_prices.db_futures_contract_price_data
 
 """
 Generate a 'best guess' roll calendar based on some price data for individual contracts
@@ -26,7 +33,6 @@ def build_and_write_roll_calendar(
     roll_parameters_data: rollParametersData = arg_not_supplied,
     roll_parameters: rollParameters = arg_not_supplied,
 ):
-
     if output_datapath is arg_not_supplied:
         print(
             "*** WARNING *** This will overwrite the provided roll calendar. Might be better to use a temporary directory!"
@@ -35,7 +41,7 @@ def build_and_write_roll_calendar(
         print("Writing to %s" % output_datapath)
 
     if input_prices is arg_not_supplied:
-        prices = arcticFuturesContractPriceData()
+        prices = parquet_futures_contract_price_data
     else:
         prices = input_prices
 
@@ -88,7 +94,6 @@ def build_and_write_roll_calendar(
 def check_saved_roll_calendar(
     instrument_code, input_datapath=arg_not_supplied, input_prices=arg_not_supplied
 ):
-
     if input_datapath is None:
         print(
             "This will check the roll calendar in the default directory : are you are that's what you want to do?"
@@ -99,7 +104,7 @@ def check_saved_roll_calendar(
     roll_calendar = csv_roll_calendars.get_roll_calendar(instrument_code)
 
     if input_prices is arg_not_supplied:
-        prices = arcticFuturesContractPriceData()
+        prices = parquet_futures_contract_price_data
     else:
         prices = input_prices
 

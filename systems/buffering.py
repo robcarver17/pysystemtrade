@@ -41,7 +41,6 @@ def calculate_buffers(
     idm: pd.Series = arg_not_supplied,
     log=get_logger(""),
 ) -> pd.Series:
-
     log.debug(
         "Calculating buffers for %s" % instrument_code,
         instrument_code=instrument_code,
@@ -138,7 +137,6 @@ def get_position_method_buffer(
 
 
 def get_buffer_if_not_buffering(position: pd.Series) -> pd.Series:
-
     EPSILON_POSITION = 0.001
     buffer = pd.Series([EPSILON_POSITION] * position.shape[0], index=position.index)
 
@@ -152,7 +150,6 @@ def _calculate_forecast_buffer_method(
     idm: pd.Series = arg_not_supplied,
     instr_weight_this_code: pd.Series = arg_not_supplied,
 ):
-
     if instr_weight_this_code is arg_not_supplied:
         instr_weight_this_code_indexed = 1.0
     else:

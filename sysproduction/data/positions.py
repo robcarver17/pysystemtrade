@@ -7,10 +7,6 @@ from syscore.constants import arg_not_supplied, success, failure
 from syscore.exceptions import ContractNotFound
 from sysexecution.orders.named_order_objects import missing_order
 
-from sysdata.mongodb.mongo_roll_state_storage import mongoRollStateData
-from sysdata.arctic.arctic_historic_contract_positions import arcticContractPositionData
-from sysdata.arctic.arctic_historic_strategy_positions import arcticStrategyPositionData
-
 
 from sysdata.production.roll_state import rollStateData
 from sysdata.production.historic_contract_positions import contractPositionData
@@ -18,8 +14,6 @@ from sysdata.production.historic_strategy_positions import (
     strategyPositionData,
     listOfInstrumentStrategyPositions,
 )
-from sysproduction.data.contracts import dataContracts
-
 
 from sysdata.data_blob import dataBlob
 
@@ -43,12 +37,22 @@ from sysobjects.contracts import futuresContract
 
 from sysproduction.data.generic_production_data import productionDataLayerGeneric
 from sysproduction.data.contracts import dataContracts
+from sysproduction.data.production_data_objects import (
+    get_class_for_data_type,
+    ROLL_STATE_DATA,
+    STRATEGY_POSITION_DATA,
+    CONTRACT_POSITION_DATA,
+)
 
 
 class diagPositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
-            [mongoRollStateData, arcticStrategyPositionData, arcticContractPositionData]
+            [
+                get_class_for_data_type(ROLL_STATE_DATA),
+                get_class_for_data_type(STRATEGY_POSITION_DATA),
+                get_class_for_data_type(CONTRACT_POSITION_DATA),
+            ]
         )
         return data
 
@@ -165,7 +169,6 @@ class diagPositions(productionDataLayerGeneric):
         return actual_positions
 
     def get_position_series_for_contract(self, contract: futuresContract) -> pd.Series:
-
         df_object = (
             self.db_contract_position_data.get_position_as_series_for_contract_object(
                 contract
@@ -177,7 +180,6 @@ class diagPositions(productionDataLayerGeneric):
     def get_position_series_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> pd.Series:
-
         position_series = self.db_strategy_position_data.get_position_as_series_for_instrument_strategy_object(
             instrument_strategy
         )
@@ -187,7 +189,6 @@ class diagPositions(productionDataLayerGeneric):
     def get_positions_for_instrument_and_contract_list(
         self, instrument_code: str, list_of_contract_date_str: list
     ) -> list:
-
         list_of_contracts = [
             futuresContract(instrument_code, contract_date_str)
             for contract_date_str in list_of_contract_date_str
@@ -200,7 +201,6 @@ class diagPositions(productionDataLayerGeneric):
         return list_of_positions
 
     def get_position_for_contract(self, contract: futuresContract) -> float:
-
         position = (
             self.db_contract_position_data.get_current_position_for_contract_object(
                 contract
@@ -212,7 +212,6 @@ class diagPositions(productionDataLayerGeneric):
     def get_current_position_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> int:
-
         position = self.db_strategy_position_data.get_current_position_for_instrument_strategy_object(
             instrument_strategy
         )
@@ -222,7 +221,6 @@ class diagPositions(productionDataLayerGeneric):
     def get_list_of_instruments_for_strategy_with_position(
         self, strategy_name: str, ignore_zero_positions=True
     ) -> List[str]:
-
         instrument_list = self.db_strategy_position_data.get_list_of_instruments_for_strategy_with_position(
             strategy_name, ignore_zero_positions=ignore_zero_positions
         )
@@ -278,7 +276,6 @@ class diagPositions(productionDataLayerGeneric):
     def update_expiries_for_position_list(
         self, original_position_list: listOfContractPositions
     ) -> listOfContractPositions:
-
         new_position_list = listOfContractPositions()
         for position_entry in original_position_list:
             new_position_entry = self.update_expiry_for_single_position(position_entry)
@@ -306,10 +303,11 @@ class diagPositions(productionDataLayerGeneric):
                 original_contract.instrument_code, original_contract.contract_date
             )
         except ContractNotFound:
-            log = original_contract.specific_log(self.data.log)
-            log.warning(
+            self.data.log.warning(
                 "Contract %s is missing from database - expiry not found and will mismatch"
-                % str(original_contract)
+                % str(original_contract),
+                **original_contract.log_attributes(),
+                method="temp",
             )
             new_contract = copy(original_contract)
         else:
@@ -369,7 +367,6 @@ class diagPositions(productionDataLayerGeneric):
         start_date: datetime.datetime,
         end_date: datetime.datetime = arg_not_supplied,
     ) -> list:
-
         if end_date is arg_not_supplied:
             end_date = datetime.datetime.now()
 
@@ -393,7 +390,11 @@ class diagPositions(productionDataLayerGeneric):
 class updatePositions(productionDataLayerGeneric):
     def _add_required_classes_to_data(self, data) -> dataBlob:
         data.add_class_list(
-            [mongoRollStateData, arcticStrategyPositionData, arcticContractPositionData]
+            [
+                get_class_for_data_type(ROLL_STATE_DATA),
+                get_class_for_data_type(STRATEGY_POSITION_DATA),
+                get_class_for_data_type(CONTRACT_POSITION_DATA),
+            ]
         )
         return data
 
@@ -465,8 +466,7 @@ class updatePositions(productionDataLayerGeneric):
             instrument_strategy, new_position_as_int
         )
 
-        log = original_instrument_order.log_with_attributes(self.log)
-        log.debug(
+        self.log.debug(
             "Updated position of %s from %d to %d because of trade %s %d fill %s"
             % (
                 str(instrument_strategy),
@@ -475,7 +475,9 @@ class updatePositions(productionDataLayerGeneric):
                 str(original_instrument_order),
                 original_instrument_order.order_id,
                 str(new_fill),
-            )
+            ),
+            **original_instrument_order.log_attributes(),
+            method="temp",
         )
 
         return success
@@ -496,26 +498,25 @@ class updatePositions(productionDataLayerGeneric):
 
         time_date = datetime.datetime.now()
 
-        log = contract_order_before_fills.log_with_attributes(self.log)
-
         for contract, trade_done in zip(list_of_individual_contracts, fill_list):
             self._update_positions_for_individual_contract_leg(
                 contract=contract, trade_done=trade_done, time_date=time_date
             )
-            log.debug(
+            self.log.debug(
                 "Updated position of %s because of trade %s ID:%d with fills %d"
                 % (
                     str(contract),
                     str(contract_order_before_fills),
                     contract_order_before_fills.order_id,
                     trade_done,
-                )
+                ),
+                **contract_order_before_fills.log_attributes(),
+                method="temp",
             )
 
     def _update_positions_for_individual_contract_leg(
         self, contract: futuresContract, trade_done: int, time_date: datetime.datetime
     ):
-
         current_position = self.diag_positions.get_position_for_contract(contract)
 
         new_position = current_position + trade_done
@@ -526,15 +527,16 @@ class updatePositions(productionDataLayerGeneric):
         # check
         new_position_db = self.diag_positions.get_position_for_contract(contract)
 
-        log = contract.specific_log(self.log)
-        log.debug(
+        self.log.debug(
             "Updated position of %s from %d to %d; new position in db is %d"
             % (
                 str(contract),
                 current_position,
                 new_position,
                 new_position_db,
-            )
+            ),
+            **contract.log_attributes(),
+            method="temp",
         )
 
 

@@ -11,7 +11,6 @@ class pandlCalculationWithoutPositions(pandlCalculationWithGenericCosts):
         costs_pandl_in_base_currency: pd.Series,
         capital: pd.Series,
     ):
-
         super().__init__(price=pd.Series(dtype="float64"), capital=capital)
 
         self._pandl_in_base_currency = pandl_in_base_currency
@@ -65,7 +64,6 @@ class pandlCalculationWithoutPositions(pandlCalculationWithGenericCosts):
 
 class dictOfPandlCalculatorsWithGenericCosts(dict):
     def sum(self, capital) -> pandlCalculationWithoutPositions:
-
         pandl_in_base_currency = self.sum_of_pandl_in_base_currency()
         costs_pandl_in_base_currency = self.sum_of_costs_pandl_in_base_currency()
 

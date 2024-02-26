@@ -16,7 +16,6 @@ class stackHandlerChecks(stackHandlerCore):
     # We do these regularly, but also at the end of the day (daily reporting)
 
     def check_internal_position_break(self):
-
         diag_positions = diagPositions(self.data)
         breaks = (
             diag_positions.get_list_of_breaks_between_contract_and_strategy_positions()
@@ -46,7 +45,7 @@ class stackHandlerChecks(stackHandlerCore):
         instrument_code = contract.instrument_code
         data_locks = dataLocks(self.data)
         if data_locks.is_instrument_locked(instrument_code):
-            # alread locked
+            # already locked
             return None
         else:
             self.log.critical("Break for %s: locking instrument" % (str(contract)))

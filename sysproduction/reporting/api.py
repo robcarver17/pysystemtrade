@@ -102,7 +102,6 @@ class reportingApi(object):
         start_period: str = arg_not_supplied,
         end_period: str = arg_not_supplied,
     ):
-
         self._data = data
         self._calendar_days_back = calendar_days_back
         self._passed_start_date = start_date
@@ -175,7 +174,6 @@ class reportingApi(object):
     def table_of_market_moves_using_dates(
         self, sortby: str, truncate: bool = True
     ) -> table:
-
         # sort by one of ['name', 'change', 'vol_adjusted']
         raw_df = self.market_moves_for_dates()
         sorted_df = raw_df.sort_values(sortby)
@@ -193,7 +191,6 @@ class reportingApi(object):
     def table_of_market_moves_given_period(
         self, period: str, sortby: str, truncate: bool = True
     ) -> table:
-
         # sort by one of ['name', 'change', 'vol_adjusted']
         # period eg ['1B', '7D', '1M', '3M', '6M', 'YTD', '12M']
         raw_df = self.market_moves_for_period(period)
@@ -334,7 +331,6 @@ class reportingApi(object):
         return body_text("Total p&l is %.3f%%" % total_capital_pandl)
 
     def table_pandl_for_instruments_across_strategies(self):
-
         pandl_for_instruments_across_strategies_df = (
             self.pandl_for_instruments_across_strategies()
         )
@@ -378,7 +374,6 @@ class reportingApi(object):
         return pandl_for_instruments_across_strategies
 
     def _get_pandl_for_instruments_across_strategies(self) -> pd.DataFrame:
-
         pandl_for_instruments_across_strategies_df = (
             self.pandl_calculator.get_ranked_list_of_pandl_by_instrument_all_strategies_in_date_range()
         )
@@ -402,12 +397,10 @@ class reportingApi(object):
         return total_capital_pandl
 
     def body_text_residual_pandl(self):
-
         residual = self.total_capital_pandl() - self.total_pandl_for_futures()
         return body_text("Residual p&l is %.3f%%" % residual)
 
     def table_strategy_pandl_and_residual(self):
-
         strategies_pandl_df = self.pandl_calculator.get_strategy_pandl_and_residual()
         strategies_pandl_df = strategies_pandl_df.round(2)
 
@@ -865,7 +858,6 @@ class reportingApi(object):
     def table_of_sr_costs(
         self, include_commission: bool = True, include_spreads: bool = True
     ) -> table:
-
         if not include_commission and not include_spreads:
             raise Exception("Must include commission or spreads!")
         elif not include_spreads:
@@ -899,7 +891,6 @@ class reportingApi(object):
     def _SR_costs(
         self, include_commission: bool = True, include_spread: bool = True
     ) -> pd.DataFrame:
-
         SR_costs = get_table_of_SR_costs(
             self.data,
             include_commission=include_commission,
@@ -1130,7 +1121,6 @@ def filter_data_for_delays_and_return_table(
     table_header="Only delayed data",
     max_delay_in_days=3,
 ):
-
     filtered_data = filter_data_for_delays(
         data_with_datetime,
         datetime_colum=datetime_colum,
@@ -1145,7 +1135,6 @@ def filter_data_for_delays_and_return_table(
 def filter_data_for_delays(
     data_with_datetime, datetime_colum="last_start", max_delay_in_days=3
 ) -> pd.DataFrame:
-
     max_delay_in_seconds = max_delay_in_days * SECONDS_PER_DAY
     time_delays = datetime.datetime.now() - data_with_datetime[datetime_colum]
     delayed = [
@@ -1159,7 +1148,6 @@ def filter_data_for_delays(
 def filter_data_for_max_value_and_return_table(
     data_with_field, field_column="field", max_value=0, table_header=""
 ):
-
     filtered_data = filter_data_for_max_value(
         data_with_field, field_column=field_column, max_value=max_value
     )
@@ -1172,7 +1160,6 @@ def filter_data_for_max_value_and_return_table(
 def filter_data_for_max_value(
     data_with_field, field_column="field", max_value=0
 ) -> pd.DataFrame:
-
     field_values = data_with_field[field_column]
     filtered = [value <= max_value for value in field_values]
 

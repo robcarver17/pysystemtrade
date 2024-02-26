@@ -3,7 +3,6 @@ from sysdata.mongodb.mongo_connection import clean_mongo_host
 
 class TestMongoDB:
     def test_hide_password(self):
-
         # url examples from https://docs.mongodb.com/manual/reference/connection-string/
 
         ip = "mongodb://127.0.0.1/production"

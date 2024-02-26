@@ -21,7 +21,7 @@ strategy_capital_allocation:
 #    example: 100.0
 #
 ## Where do we save backtests
-backtest_store_directory: 'private'
+backtest_store_directory: 'private.backtests'
 #
 # And backups
 csv_backup_directory: 'data.backups_csv'
@@ -42,6 +42,9 @@ mongo_db: 'production'
 # DO NOT CHANGE THIS VALUE!!!! IT WILL SCREW UP ARCTIC. If you need to use a port other than 27017, use the url
 # format for mongo_host, eg mongodb://127.0.0.1:27018
 mongo_port: 27017
+#
+# Parquet store
+parquet_store: '/home/me/data/parquet'
 #
 # Needs to be consistent with what you are using in crontab
 echo_extension: '.txt'

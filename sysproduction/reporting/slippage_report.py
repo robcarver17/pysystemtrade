@@ -29,7 +29,6 @@ def slippage_report(
     end_date: datetime.datetime = arg_not_supplied,
     start_date: datetime.datetime = arg_not_supplied,
 ):
-
     if data is arg_not_supplied:
         data = dataBlob()
 

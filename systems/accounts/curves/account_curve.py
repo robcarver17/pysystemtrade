@@ -26,7 +26,6 @@ class accountCurve(pd.Series):
         is_percentage: bool = False,
         weighted=False,
     ):
-
         as_pd_series = pandl_calculator_with_costs.as_pd_series_for_frequency(
             percent=is_percentage, curve_type=curve_type, frequency=frequency
         )
@@ -278,7 +277,7 @@ class accountCurve(pd.Series):
         return sortino
 
     def vals(self):
-        vals = self.values[~np.isnan(self.values)]
+        vals = pd.to_numeric(self.values[~pd.isnull(self.values)], errors="coerce")
 
         return vals
 
@@ -351,7 +350,6 @@ class accountCurve(pd.Series):
         return demeaned_remove_zeros(x)
 
     def stats(self):
-
         stats_list = [
             "min",
             "max",

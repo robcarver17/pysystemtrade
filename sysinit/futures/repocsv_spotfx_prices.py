@@ -3,13 +3,14 @@ Get FX prices from csv repo files and write to arctic
 
 WARNING WILL OVERWRITE EXISTING!
 """
-from sysdata.arctic.arctic_spotfx_prices import arcticFxPricesData
 from sysdata.csv.csv_spot_fx import csvFxPricesData
+from sysproduction.data.currency_data import fxPricesData
+
+db_fx_price_data = fxPricesData()
 
 if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")
 
-    arctic_fx_prices = arcticFxPricesData()
     csv_fx_prices = csvFxPricesData()
 
     currency_code = input("Currency code? <return for ALL currencies> ")
@@ -22,6 +23,6 @@ if __name__ == "__main__":
         fx_prices = csv_fx_prices.get_fx_prices(currency_code)
         print(fx_prices)
 
-        arctic_fx_prices.add_fx_prices(
-            currency_code, fx_prices, ignore_duplication=True
+        db_fx_price_data.add_fx_prices(
+            code=currency_code, fx_price_data=fx_prices, ignore_duplication=True
         )

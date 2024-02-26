@@ -13,7 +13,6 @@ COSTS_CURVE = "costs"
 
 class pandlCalculationWithGenericCosts(pandlCalculation):
     def weight(self, weight: pd.Series):
-
         weighted_capital = apply_weighting(weight, self.capital)
         weighted_positions = apply_weighting(weight, self.positions)
 

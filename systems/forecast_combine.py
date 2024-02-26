@@ -110,7 +110,6 @@ class ForecastCombine(SystemStage):
     def get_raw_combined_forecast_before_mapping(
         self, instrument_code: str
     ) -> pd.Series:
-
         # sum
         raw_combined_forecast = self.get_combined_forecast_without_multiplier(
             instrument_code
@@ -524,7 +523,6 @@ class ForecastCombine(SystemStage):
     def _remove_expensive_rules_from_weights(
         self, instrument_code, monthly_forecast_weights: pd.DataFrame
     ) -> pd.DataFrame:
-
         cheap_rules = self.cheap_trading_rules_post_processing(instrument_code)
         if len(cheap_rules) == 0:
             ## special case all zeros
@@ -662,7 +660,6 @@ class ForecastCombine(SystemStage):
     def get_turnover_for_list_of_rules(
         self, codes_to_use: list, list_of_rules: list
     ) -> turnoverDataAcrossTradingRules:
-
         turnover_dict = dict(
             [
                 (rule_name, self.get_turnover_for_forecast(codes_to_use, rule_name))
@@ -861,7 +858,6 @@ class ForecastCombine(SystemStage):
 
     @property
     def accounts_stage(self):
-
         if not hasattr(self.parent, "accounts"):
             raise missingData
 
@@ -1376,7 +1372,6 @@ def _cap_combined_forecast(
     forecast_cap: float = 20.0,
     forecast_floor: float = -20,
 ) -> pd.Series:
-
     capped_combined_forecast = raw_multiplied_combined_forecast.clip(
         lower=forecast_floor, upper=forecast_cap
     )
@@ -1468,7 +1463,6 @@ def _get_forecast_weights_for_instrument_with_autogrouping(
 def _get_fixed_fdm_scalar_value_from_config(
     forecast_div_multiplier_config: dict, instrument_code: str, log
 ) -> float:
-
     error_msg = ""
     fixed_div_mult = None
 
@@ -1498,7 +1492,7 @@ def _get_fixed_fdm_scalar_value_from_config(
         )
     else:
         log.critical(error_msg, instrument_code=instrument_code)
-        raise (error_msg)
+        raise Exception(error_msg)
 
     return fixed_div_mult
 

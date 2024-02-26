@@ -27,7 +27,6 @@ class covarianceEstimate(correlationEstimate):
 def covariance_from_stdev_and_correlation(
     correlation_estimate: correlationEstimate, stdev_estimate: stdevEstimates
 ) -> covarianceEstimate:
-
     all_assets = set(list(correlation_estimate.columns) + stdev_estimate.list_of_keys())
     list_of_assets_with_data = list(
         set(correlation_estimate.assets_with_data()).intersection(
@@ -50,7 +49,6 @@ def covariance_from_stdev_and_correlation(
 def get_annualised_risk(
     std_dev: stdevEstimates, cmatrix: correlationEstimate, weights: portfolioWeights
 ) -> float:
-
     weights_as_np = weights.as_np()
     std_dev_as_np = std_dev.as_np()
     cmatrix_as_np = cmatrix.as_np()
@@ -67,7 +65,6 @@ def get_annualised_risk(
 
 
 def clean_values(std_dev: np.array, cmatrix: np.array, weights: np.array):
-
     cmatrix[np.isnan(cmatrix)] = 1.0
     weights[np.isnan(weights)] = 0.0
     std_dev[np.isnan(std_dev)] = 100.0

@@ -29,7 +29,6 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
         datapath: str = arg_not_supplied,
         log=get_logger("csvFuturesMultiplePricesData"),
     ):
-
         super().__init__(log=log)
 
         if datapath is arg_not_supplied:
@@ -50,7 +49,6 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
     def _get_multiple_prices_without_checking(
         self, instrument_code: str
     ) -> futuresMultiplePrices:
-
         instr_all_price_data = self._read_instrument_prices(instrument_code)
         for contract_col_name in list_of_contract_column_names:
             instr_all_price_data[contract_col_name] = instr_all_price_data[
@@ -69,7 +67,6 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
     def _add_multiple_prices_without_checking_for_existing_entry(
         self, instrument_code: str, multiple_price_data: futuresMultiplePrices
     ):
-
         filename = self._filename_given_instrument_code(instrument_code)
         multiple_price_data.to_csv(filename, index_label=DATE_INDEX_NAME)
 

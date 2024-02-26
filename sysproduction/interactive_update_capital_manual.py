@@ -22,7 +22,6 @@ def interactive_update_capital_manual():
     :return: Nothing
     """
     with dataBlob(log_name="Interactive-Update-Capital-Manual") as data:
-
         still_running = True
         while still_running:
             # display capital and get input
@@ -140,7 +139,6 @@ A_VERY_LARGE_NUMBER = 999999999
 
 
 def update_capital_from_ib(data: dataBlob):
-
     data_capital = dataCapital(data)
     broker_account_value = get_broker_account_value(data)
     try:

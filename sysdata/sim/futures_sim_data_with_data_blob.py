@@ -13,6 +13,7 @@ from sysobjects.instruments import (
     assetClassesAndInstruments,
     futuresInstrumentWithMetaData,
 )
+from syscore.exceptions import missingData
 from sysobjects.spot_fx_prices import fxPrices
 from sysobjects.adjusted_prices import futuresAdjustedPrices
 from sysobjects.multiple_prices import futuresMultiplePrices
@@ -70,6 +71,11 @@ class genericBlobUsingFuturesSimData(futuresSimData):
         self, instrument_code: str, start_date
     ) -> futuresMultiplePrices:
         data = self.db_futures_multiple_prices_data.get_multiple_prices(instrument_code)
+        if len(data) == 0:
+            raise missingData(
+                "Data for %s not found! Remove from instrument list, or add to config.ignore_instruments"
+                % instrument_code
+            )
 
         return data[start_date:]
 

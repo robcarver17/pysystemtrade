@@ -22,12 +22,10 @@ class timerClassWithFunction(object):
         parameters: timerClassParameters,
         log=get_logger(""),
     ):
-
         self._function = function_to_execute  # class.method to run
         self._data = data
         self._parameters = parameters
 
-        log.setup(type=self.process_name)
         self._log = log
         self._report_status = reportStatus(log)
 
@@ -164,7 +162,6 @@ class timerClassWithFunction(object):
         return okay_to_run
 
     def check_if_okay_to_run_normal_run_if_not_last_run(self) -> bool:
-
         exceeded_max = self.completed_max_runs()
         if exceeded_max:
             return False
@@ -179,7 +176,6 @@ class timerClassWithFunction(object):
             return False
 
     def check_if_enough_time_has_passed_and_report_status(self) -> bool:
-
         enough_time_has_passed = self.check_if_enough_time_has_elapsed_since_last_run()
         enough_time_has_passed_status = (
             "Not enough time has passed since last run of %s in %s"
@@ -215,7 +211,6 @@ class timerClassWithFunction(object):
         return remaining_minutes
 
     def log_heartbeat_if_required(self):
-
         time_since_heartbeat = self.minutes_since_last_heartbeat()
         if time_since_heartbeat > self.minutes_between_heartbeats:
             self.log_heartbeat()
@@ -342,7 +337,6 @@ def get_list_of_timer_functions(
     process_name: str,
     list_of_timer_names_and_functions_as_strings: list,
 ) -> listOfTimerFunctions:
-
     list_of_timer_functions_as_list = [
         _get_timer_class(data, process_name, entry)
         for entry in list_of_timer_names_and_functions_as_strings

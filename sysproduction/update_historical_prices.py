@@ -19,6 +19,7 @@ from sysdata.tools.manual_price_checker import manual_price_checker
 from sysdata.tools.cleaner import priceFilterConfig, get_config_for_price_filtering
 
 from syslogdiag.email_via_db_interface import send_production_mail_msg
+from syslogging.logger import *
 
 from sysobjects.contracts import futuresContract
 from sysobjects.futures_per_contract_prices import futuresContractPrices
@@ -282,7 +283,11 @@ def update_historical_prices_for_list_of_instrument_codes(
     cleaning_config = get_config_for_price_filtering(data)
 
     for instrument_code in list_of_instrument_codes:
-        data.log.label(instrument_code=instrument_code)
+        data.log.debug(
+            "Updating log attributes",
+            method="clear",
+            instrument_code=instrument_code,
+        )
         update_historical_prices_for_instrument(
             instrument_code,
             data,
@@ -316,7 +321,7 @@ def update_historical_prices_for_instrument(
         return failure
 
     for contract_object in contract_list:
-        data.update_log(contract_object.specific_log(data.log))
+        data.update_log(get_logger(data.log.name, contract_object.log_attributes()))
         update_historical_prices_for_instrument_and_contract(
             contract_object,
             data,
@@ -333,7 +338,6 @@ def update_historical_prices_for_instrument_and_contract(
     cleaning_config: priceFilterConfig = arg_not_supplied,
     interactive_mode: bool = False,
 ):
-
     diag_prices = diagPrices(data)
     intraday_frequency = diag_prices.get_intraday_frequency_for_historical_download()
     daily_frequency = DAILY_PRICE_FREQ
@@ -429,7 +433,6 @@ def price_updating_or_errors(
     cleaning_config: priceFilterConfig,
     check_for_spike: bool = True,
 ):
-
     price_updater = updatePrices(data)
 
     try:
@@ -472,7 +475,6 @@ def report_price_spike(data: dataBlob, contract_object: futuresContract):
 def write_merged_prices_for_contract(
     data: dataBlob, contract_object: futuresContract, list_of_frequencies: list
 ):
-
     ## note list of frequencies must have daily as last or groupby won't work with volume
 
     assert list_of_frequencies[-1] == DAILY_PRICE_FREQ

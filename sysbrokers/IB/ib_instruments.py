@@ -89,7 +89,6 @@ def ib_futures_instrument(
     if ib_data.ibMultiplier is NOT_REQUIRED_FOR_IB:
         pass
     else:
-
         ibcontract.multiplier = _resolve_multiplier(ib_data.ibMultiplier)
 
     if ib_data.currency is NOT_REQUIRED_FOR_IB:

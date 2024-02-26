@@ -12,7 +12,6 @@ from systems.system_cache import output, dont_cache
 class accountForOptimisedStage(Account):
     @output(not_pickable=True)
     def optimised_portfolio(self, delayfill=True):
-
         self.log.info("Calculating pandl for portfolio")
         capital = self.get_notional_capital()
         instruments = self.get_instrument_list()
@@ -40,7 +39,6 @@ class accountForOptimisedStage(Account):
     def pandl_for_optimised_instrument(
         self, instrument_code: str, delayfill: bool = True
     ) -> accountCurve:
-
         self.log.debug(
             "Calculating pandl for instrument for %s" % instrument_code,
             instrument_code=instrument_code,
@@ -69,7 +67,6 @@ class accountForOptimisedStage(Account):
         self,
         instrument_code: str,
     ) -> float:
-
         ## assumes we use all capital
         average_position_for_turnover = self.get_average_position_at_subsystem_level(
             instrument_code

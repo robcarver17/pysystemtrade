@@ -24,7 +24,9 @@ class contractOrderStackData(orderStackData):
 
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
-            error_msg = "Can't add controlling ago as order %d doesn't exist" % order_id
+            error_msg = (
+                "Can't add controlling algo as order %d doesn't exist" % order_id
+            )
             self.log.warning(error_msg)
             raise missingOrder(error_msg)
 
@@ -33,20 +35,24 @@ class contractOrderStackData(orderStackData):
             modified_order.add_controlling_algo_ref(control_algo_ref)
             self._change_order_on_stack(order_id, modified_order)
         except Exception as e:
-            log = existing_order.log_with_attributes(self.log)
             error_msg = "%s couldn't add controlling algo %s to order %d" % (
                 str(e),
                 control_algo_ref,
                 order_id,
             )
-            log.warning(error_msg)
+            self.log.warning(
+                error_msg,
+                **existing_order.log_attributes(),
+                method="temp",
+            )
             raise Exception(error_msg)
 
     def release_order_from_algo_control(self, order_id: int):
-
         existing_order = self.get_order_with_id_from_stack(order_id)
         if existing_order is missing_order:
-            error_msg = "Can't add controlling ago as order %d doesn't exist" % order_id
+            error_msg = (
+                "Can't add controlling algo as order %d doesn't exist" % order_id
+            )
             self.log.warning(error_msg)
             raise missingOrder(error_msg)
 
@@ -60,16 +66,19 @@ class contractOrderStackData(orderStackData):
             modified_order.release_order_from_algo_control()
             self._change_order_on_stack(order_id, modified_order)
         except Exception as e:
-            log = existing_order.log_with_attributes(self.log)
             error_msg = "%s couldn't remove controlling algo from order %d" % (
                 str(e),
                 order_id,
             )
-            log.warning(error_msg)
+            self.log.warning(
+                error_msg,
+                **existing_order.log_attributes(),
+                method="temp",
+            )
             raise Exception(error_msg)
 
     def get_order_with_id_from_stack(self, order_id: int) -> contractOrder:
-        # probably will be overriden in data implementation
+        # probably will be overridden in data implementation
         # only here so the appropriate type is shown as being returned
 
         order = self.stack.get(order_id, missing_order)
@@ -87,7 +96,7 @@ class contractOrderStackData(orderStackData):
         list_of_orders = [
             order
             for order in list_of_orders
-            if order.instrument_code is instrument_code
+            if order.instrument_code == instrument_code
         ]
 
         return list_of_orders

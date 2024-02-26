@@ -19,6 +19,13 @@ def get_csv_backup_directory():
     return ans
 
 
+def get_parquet_backup_directory():
+    main_backup = get_main_backup_directory()
+    ans = os.path.join(main_backup, "parquet")
+
+    return ans
+
+
 def get_csv_dump_dir():
     ans = production_config.get_element("csv_backup_directory")
     return get_resolved_pathname(ans)

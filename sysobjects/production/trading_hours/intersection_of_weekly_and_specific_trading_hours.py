@@ -15,7 +15,6 @@ def intersection_of_any_weekly_and_list_of_normal_trading_hours(
     list_of_trading_hours: listOfTradingHours,
     weekly_any_trading_hours: weekdayDictOfListOfTradingHoursAnyDay,
 ) -> listOfTradingHours:
-
     list_of_intersecting_trading_hours = []
     for trading_hours in list_of_trading_hours:
         intersected_trading_hours = intersection_of_any_weekly_and_trading_hours(
@@ -33,7 +32,6 @@ def intersection_of_any_weekly_and_trading_hours(
     trading_hours: tradingHours,
     weekly_any_trading_hours: weekdayDictOfListOfTradingHoursAnyDay,
 ) -> listOfTradingHours:
-
     trading_hours_open_weekday = trading_hours.opening_time.weekday()
     trading_hours_close_weekday = trading_hours.closing_time.weekday()
 
@@ -57,7 +55,6 @@ def intersection_of_any_weekly_and_trading_hours_spanning_days(
     trading_hours: tradingHours,
     weekly_any_trading_hours: weekdayDictOfListOfTradingHoursAnyDay,
 ) -> listOfTradingHours:
-
     list_of_split_hours = split_trading_hours_across_two_weekdays(trading_hours)
     list_of_trading_hours = []
     for one_day_trading_hours in list_of_split_hours:
@@ -74,7 +71,6 @@ def intersection_of_any_weekly_and_trading_hours_spanning_days(
 def intersect_trading_hours_with_hours_for_weekday(
     trading_hours: tradingHours, trading_hours_for_weekday: listOfTradingHoursAnyDay
 ) -> listOfTradingHours:
-
     ## at this point the open and close date will be the same
     opening_date = trading_hours.opening_time.date()
     list_of_weekday_trading_hours_with_this_date = trading_hours_for_weekday.add_date(

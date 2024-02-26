@@ -53,7 +53,6 @@ class mongoPositionLimitData(positionLimitData):
         return list_of_instruments
 
     def get_all_instrument_strategies_with_limits(self) -> listOfInstrumentStrategies:
-
         dict_of_keys = {MARKER_KEY: MARKER_STRATEGY_INSTRUMENT}
         list_of_dicts = self.mongo_data.get_list_of_result_dicts_for_dict_keys(
             dict_of_keys
@@ -92,7 +91,6 @@ class mongoPositionLimitData(positionLimitData):
     def _get_abs_position_limit_for_instrument_strategy(
         self, instrument_strategy: instrumentStrategy
     ) -> int:
-
         dict_of_keys = {
             MARKER_KEY: MARKER_STRATEGY_INSTRUMENT,
             STRATEGY_KEY: instrument_strategy.strategy_name,

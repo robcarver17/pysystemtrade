@@ -19,12 +19,7 @@ from sysproduction.data.contracts import dataContracts
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.positions import updatePositions
 
-from sysexecution.stack_handler.stackHandlerCore import (
-    stackHandlerCore,
-    put_children_on_stack,
-    rollback_parents_and_children_and_handle_exceptions,
-    log_successful_adding,
-)
+from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysexecution.orders.contract_orders import contractOrder, best_order_type
 from sysexecution.orders.instrument_orders import zero_roll_order_type
 
@@ -75,7 +70,6 @@ class stackHandlerForRolls(stackHandlerCore):
         )
 
     def check_roll_required_and_safe(self, instrument_code: str) -> bool:
-
         roll_orders_required_from_positions = (
             self.check_if_positions_require_order_generation(instrument_code)
         )
@@ -139,7 +133,6 @@ class stackHandlerForRolls(stackHandlerCore):
         return order_generation_is_appropriate
 
     def check_if_order_required_in_double_sided_roll_state(self, instrument_code: str):
-
         ## Double sided, so we will only do if there is no reducing order on the stack
         has_reducing_order = has_reducing_instrument_order_on_stack(
             data=self.data,
@@ -202,10 +195,9 @@ class stackHandlerForRolls(stackHandlerCore):
     def add_instrument_and_list_of_contract_orders_to_stack(
         self, instrument_order: instrumentOrder, list_of_contract_orders: listOfOrders
     ):
-
         instrument_stack = self.instrument_stack
         contract_stack = self.contract_stack
-        parent_log = instrument_order.log_with_attributes(self.log)
+        log_attrs = {**instrument_order.log_attributes(), "method": "temp"}
 
         # Do as a transaction: if everything doesn't go to plan can roll back
         # We lock now, and
@@ -216,9 +208,10 @@ class stackHandlerForRolls(stackHandlerCore):
             )
 
         except Exception as parent_order_error:
-            parent_log.warning(
+            self.log.warning(
                 "Couldn't put parent order %s on instrument order stack error %s"
-                % (str(instrument_order), str(parent_order_error))
+                % (str(instrument_order), str(parent_order_error)),
+                **log_attrs,
             )
             instrument_order.unlock_order()
             return None
@@ -240,9 +233,8 @@ class stackHandlerForRolls(stackHandlerCore):
             #     - a list of order IDS if all went well
             #     - an empty list if error and rolled back,
             #      - or an error something went wrong and couldn't rollback (the outer catch will try and rollback)
-            list_of_child_order_ids = put_children_on_stack(
+            list_of_child_order_ids = self.put_children_on_stack(
                 child_stack=contract_stack,
-                parent_log=parent_log,
                 list_of_child_orders=list_of_contract_orders,
                 parent_order=instrument_order,
             )
@@ -268,25 +260,24 @@ class stackHandlerForRolls(stackHandlerCore):
             # Roll back parent order and possibly children
             # At this point list_of_child_order_ids will either be empty (if succesful rollback) or contain child ids
 
-            rollback_parents_and_children_and_handle_exceptions(
+            self.rollback_parents_and_children_and_handle_exceptions(
                 child_stack=contract_stack,
                 parent_stack=instrument_stack,
                 list_of_child_order_ids=list_of_child_order_ids,
-                parent_order_id=parent_order_id,
+                parent_order=instrument_order,
                 error_from_adding_child_orders=error_from_adding_child_orders,
-                parent_log=parent_log,
             )
 
         # phew got there
-        parent_log.debug(
+        self.log.debug(
             "Added parent order with ID %d %s to stack"
-            % (parent_order_id, str(instrument_order))
+            % (parent_order_id, str(instrument_order)),
+            **log_attrs,
         )
-        log_successful_adding(
+        self.log_successful_adding(
             list_of_child_orders=list_of_contract_orders,
             list_of_child_ids=list_of_child_order_ids,
             parent_order=instrument_order,
-            parent_log=parent_log,
         )
 
 
@@ -511,9 +502,12 @@ def create_contract_roll_orders(
         contract_orders = create_contract_orders_outright(roll_spread_info)
 
     else:
-        log = instrument_order.log_with_attributes(data.log)
         roll_state = diag_positions.get_roll_state(instrument_code)
-        log.warning("Roll state %s is unexpected, might have changed" % str(roll_state))
+        data.log.warning(
+            "Roll state %s is unexpected, might have changed" % str(roll_state),
+            **instrument_order.log_attributes(),
+            method="temp",
+        )
         return missing_order
 
     contract_orders = allocate_algo_to_list_of_contract_orders(
@@ -544,7 +538,6 @@ def create_contract_orders_close_first_contract(
 def create_contract_orders_outright(
     roll_spread_info: rollSpreadInformation,
 ) -> listOfOrders:
-
     strategy = ROLL_PSEUDO_STRATEGY
 
     first_order = contractOrder(
@@ -572,7 +565,6 @@ def create_contract_orders_outright(
 def create_contract_orders_spread(
     roll_spread_info: rollSpreadInformation,
 ) -> listOfOrders:
-
     strategy = ROLL_PSEUDO_STRATEGY
     contract_id_list = [
         roll_spread_info.priced_contract_id,

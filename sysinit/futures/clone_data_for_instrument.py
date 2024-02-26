@@ -1,22 +1,18 @@
-from sysdata.arctic.arctic_futures_per_contract_prices import (
-    arcticFuturesContractPriceData,
-)
-from sysdata.arctic.arctic_multiple_prices import arcticFuturesMultiplePricesData
-from sysdata.arctic.arctic_adjusted_prices import arcticFuturesAdjustedPricesData
+from sysproduction.data.prices import diagPrices
 
 from sysdata.csv.csv_roll_calendars import csvRollCalendarData
 from sysdata.csv.csv_multiple_prices import csvFuturesMultiplePricesData
 from sysdata.csv.csv_adjusted_prices import csvFuturesAdjustedPricesData
 
+
 from sysobjects.contracts import futuresContract
 from syscore.dateutils import DAILY_PRICE_FREQ, HOURLY_FREQ
-from sysobjects.multiple_prices import futuresMultiplePrices
 from sysobjects.adjusted_prices import futuresAdjustedPrices
 
-
-db_data_individual_prices = arcticFuturesContractPriceData()
-db_data_multiple_prices = arcticFuturesMultiplePricesData()
-db_data_adjusted_prices = arcticFuturesAdjustedPricesData()
+diag_prices = diagPrices()
+db_data_individual_prices = diag_prices.db_futures_contract_price_data
+db_data_multiple_prices = diag_prices.db_futures_multiple_prices_data
+db_data_adjusted_prices = diag_prices.db_futures_adjusted_prices_data
 
 csv_roll_calendar = csvRollCalendarData()
 csv_multiple = csvFuturesMultiplePricesData()
@@ -31,7 +27,6 @@ def clone_data_for_instrument(
     offset: float = 0.0,
     ignore_duplication: bool = False,
 ):
-
     clone_prices_per_contract(
         instrument_from,
         instrument_to,
@@ -67,7 +62,6 @@ def clone_prices_per_contract(
     multiplier: float = 1.0,
     offset: float = 0.0,
 ):
-
     if list_of_contract_dates is None:
         list_of_contract_dates = db_data_individual_prices.contract_dates_with_merged_price_data_for_instrument_code(
             instrument_from
@@ -96,7 +90,6 @@ def clone_single_contract(
     multiplier: float = 1.0,
     offset: float = 0.0,
 ):
-
     futures_contract_from = futuresContract(instrument_from, contract_date)
     futures_contract_to = futuresContract(instrument_to, contract_date)
 
@@ -162,7 +155,6 @@ def clone_single_contract(
 
 
 def clone_roll_calendar(instrument_from: str, instrument_to: str):
-
     roll_calendar = csv_roll_calendar.get_roll_calendar(instrument_from)
     csv_roll_calendar.add_roll_calendar(instrument_to, roll_calendar=roll_calendar)
 
@@ -175,7 +167,6 @@ def clone_multiple_prices(
     inverse: bool = False,
     offset: float = 0.0,
 ):
-
     prices = db_data_multiple_prices.get_multiple_prices(instrument_from)
     if inverse:
         prices = prices.inverse()
@@ -199,7 +190,6 @@ def clone_adjusted_prices(
     inverse: bool = False,
     offset: float = 0.0,
 ):
-
     prices = db_data_adjusted_prices.get_adjusted_prices(instrument_from)
     if inverse:
         prices = futuresAdjustedPrices(1 / prices)

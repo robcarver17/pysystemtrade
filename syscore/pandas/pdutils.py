@@ -11,12 +11,14 @@ import numpy as np
 from syscore.constants import named_object, arg_not_supplied
 
 DEFAULT_DATE_FORMAT_FOR_CSV = "%Y-%m-%d %H:%M:%S"
+EXPECTED_LENGTH_OF_DATE = 19
+
+FALLBACK_DATE_FORMAT_FOR_CSV = "%Y-%m-%d"
 
 
 def rolling_pairwise_correlation(
     x: pd.DataFrame, periods: int, min_periods: int = 3
 ) -> pd.Series:
-
     assert len(x.columns) == 2
 
     rolling_corr_df = x.rolling(periods, min_periods=min_periods).corr()
@@ -85,6 +87,7 @@ def pd_readcsv(
     filename: str,
     date_index_name: str = "DATETIME",
     date_format: str = DEFAULT_DATE_FORMAT_FOR_CSV,
+    fallback_date_format: str = FALLBACK_DATE_FORMAT_FOR_CSV,
     input_column_mapping: Union[dict, named_object] = arg_not_supplied,
     skiprows: int = 0,
     skipfooter: int = 0,
@@ -106,12 +109,37 @@ def pd_readcsv(
     df = pd.read_csv(filename, skiprows=skiprows, skipfooter=skipfooter)
 
     ## Add time index as index
-    df.index = pd.to_datetime(df[date_index_name], format=date_format).values
-    del df[date_index_name]
-    df.index.name = None
+    try:
+        df = add_datetime_index(
+            df=df, date_index_name=date_index_name, date_format=date_format
+        )
+    except:
+        df = add_datetime_index(
+            df=df, date_index_name=date_index_name, date_format=fallback_date_format
+        )
 
     if input_column_mapping is not arg_not_supplied:
         df = remap_columns_in_pd(df, input_column_mapping)
+
+    return df
+
+
+def add_datetime_index(
+    df: pd.DataFrame,
+    date_index_name: str,
+    date_format: str = DEFAULT_DATE_FORMAT_FOR_CSV,
+    expected_length_of_date: int = EXPECTED_LENGTH_OF_DATE,
+) -> pd.DataFrame:
+    date_index = df[date_index_name]
+    date_index = date_index.astype(str)
+
+    def left(x: str, n):
+        return x[:n]
+
+    date_index = date_index.apply(left, n=expected_length_of_date)
+    df.index = pd.to_datetime(date_index, format=date_format).values
+    del df[date_index_name]
+    df.index.name = None
 
     return df
 
@@ -266,7 +294,7 @@ def make_df_from_list_of_named_tuple(
     field_name_for_index: str = arg_not_supplied,
 ):
     """
-    Turn a list of named tuplies into a dataframe
+    Turn a list of named tuples into a dataframe
     The first element in the tuple will become the index
 
     >>> T = namedtuple('T', 'name value_a value_b')
@@ -312,7 +340,6 @@ def apply_with_min_periods(
     not_nan = sum(~np.isnan(xcol))
 
     if not_nan >= min_periods:
-
         return my_func(xcol)
     else:
         return np.nan
@@ -332,7 +359,6 @@ def from_series_to_matching_df_frame(
 def from_series_to_df_with_column_names(
     pd_series: pd.Series, list_of_columns: list
 ) -> pd.DataFrame:
-
     new_df = pd.concat([pd_series] * len(list_of_columns), axis=1)
     new_df.columns = list_of_columns
 

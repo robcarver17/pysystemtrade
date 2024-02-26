@@ -35,7 +35,6 @@ def config_info_for_code(config_data: pd.DataFrame, currency_code) -> ibFXConfig
 
 
 def get_list_of_codes(config_data: pd.DataFrame) -> list:
-
     list_of_codes = list(config_data.CODE)
 
     return list_of_codes

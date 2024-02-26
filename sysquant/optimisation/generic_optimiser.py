@@ -14,7 +14,6 @@ class genericOptimiser(object):
         log=get_logger("optimiser"),
         **weighting_params,
     ):
-
         net_returns = returns_pre_processor.get_net_returns(asset_name)
 
         self._net_returns = net_returns
@@ -28,7 +27,7 @@ class genericOptimiser(object):
         return self._net_returns
 
     @property
-    def log(self) -> pst_logger:
+    def log(self):
         return self._log
 
     @property

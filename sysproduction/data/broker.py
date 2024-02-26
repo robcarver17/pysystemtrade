@@ -45,8 +45,11 @@ from sysproduction.data.generic_production_data import productionDataLayerGeneri
 
 
 class dataBroker(productionDataLayerGeneric):
-    def _add_required_classes_to_data(self, data) -> dataBlob:
+    def __init__(self, data: dataBlob = arg_not_supplied):
+        super().__init__(data)
+        self._diag_controls = diagControlProcess()
 
+    def _add_required_classes_to_data(self, data) -> dataBlob:
         # Add a list of broker specific classes that will be aliased as self.data.broker_fx_prices,
         # self.data.broker_futures_contract_price ... and so on
 
@@ -90,6 +93,10 @@ class dataBroker(productionDataLayerGeneric):
     def broker_static_data(self) -> brokerStaticData:
         return self.data.broker_static
 
+    @property
+    def diag_controls(self) -> diagControlProcess:
+        return self._diag_controls
+
     ## Methods
 
     def get_list_of_contract_dates_for_instrument_code(
@@ -129,7 +136,6 @@ class dataBroker(productionDataLayerGeneric):
         frequency: Frequency,
         cleaning_config=arg_not_supplied,
     ) -> futuresContractPrices:
-
         broker_prices_raw = self.get_prices_at_frequency_for_contract_object(
             contract_object=contract_object, frequency=frequency
         )
@@ -147,7 +153,6 @@ class dataBroker(productionDataLayerGeneric):
     def get_prices_at_frequency_for_potentially_expired_contract_object(
         self, contract_object: futuresContract, frequency: Frequency
     ) -> futuresContractPrices:
-
         return self.broker_futures_contract_price_data.get_prices_at_frequency_for_potentially_expired_contract_object(
             contract=contract_object, freq=frequency
         )
@@ -155,7 +160,6 @@ class dataBroker(productionDataLayerGeneric):
     def get_prices_at_frequency_for_contract_object(
         self, contract_object: futuresContract, frequency: Frequency
     ) -> futuresContractPrices:
-
         return self.broker_futures_contract_price_data.get_prices_at_frequency_for_contract_object(
             contract_object, frequency, return_empty=False
         )
@@ -163,7 +167,6 @@ class dataBroker(productionDataLayerGeneric):
     def get_recent_bid_ask_tick_data_for_contract_object(
         self, contract: futuresContract
     ) -> dataFrameOfRecentTicks:
-
         ticker = self.get_ticker_object_for_contract(contract)
         ticker_df = get_df_of_ticks_from_ticker_object(ticker)
         self.cancel_market_data_for_contract(contract)
@@ -190,10 +193,8 @@ class dataBroker(productionDataLayerGeneric):
     def less_than_N_hours_of_trading_left_for_contract(
         self, contract: futuresContract, N_hours: float = 1.0
     ) -> bool:
-
-        diag_controls = diagControlProcess()
         hours_left_before_process_finishes = (
-            diag_controls.how_long_in_hours_before_trading_process_finishes()
+            self.diag_controls.how_long_in_hours_before_trading_process_finishes()
         )
 
         if hours_left_before_process_finishes < N_hours:
@@ -227,9 +228,9 @@ class dataBroker(productionDataLayerGeneric):
         return result
 
     def get_all_current_contract_positions(self) -> listOfContractPositions:
-
-        list_of_positions = (
-            self.broker_contract_position_data.get_all_current_positions_as_list_with_contract_objects()
+        broker_account_id = self.get_broker_account()
+        list_of_positions = self.broker_contract_position_data.get_all_current_positions_as_list_with_contract_objects(
+            broker_account_id
         )
 
         return list_of_positions
@@ -321,7 +322,6 @@ class dataBroker(productionDataLayerGeneric):
             contract_order.futures_contract.as_list_of_individual_contracts()
         )
         for contract, qty in zip(list_of_contracts, list_of_trade_qty):
-
             market_conditions_this_contract = (
                 self.check_market_conditions_for_single_legged_contract_and_qty(
                     contract, qty

@@ -17,7 +17,6 @@ class csvContractPositionData(contractPositionData):
     def __init__(
         self, datapath=arg_not_supplied, log=get_logger("csvContractPositionData")
     ):
-
         super().__init__(log=log)
 
         if datapath is None:

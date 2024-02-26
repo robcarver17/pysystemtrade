@@ -57,7 +57,6 @@ class ibFxClient(ibPriceClient):
     def _create_fx_market_order_for_submission(
         self, trade: float, account_id: str = arg_not_supplied
     ) -> MarketOrder:
-
         ib_BS_str, ib_qty = resolveBS(trade)
         ib_order = MarketOrder(ib_BS_str, ib_qty)
         if account_id is not arg_not_supplied:
@@ -77,23 +76,24 @@ class ibFxClient(ibPriceClient):
         """
 
         ccy_code = ccy1 + ccy2
-        log = self.log.setup(currency_code=ccy_code)
+        self.log.debug("Updating log attributes", currency_code=ccy_code)
 
         try:
             ibcontract = self.ib_spotfx_contract(ccy1, ccy2=ccy2)
         except missingContract:
-            log.warning("Can't find IB contract for %s%s" % (ccy1, ccy2))
+            self.log.warning("Can't find IB contract for %s%s" % (ccy1, ccy2))
             raise missingData
 
         # uses parent class ibClientPrices
         fx_data = self._get_generic_data_for_contract(
-            ibcontract, log=log, bar_freq=bar_freq, whatToShow="MIDPOINT"
+            ibcontract, bar_freq=bar_freq, whatToShow="MIDPOINT"
         )
+
+        self.log.debug("Log attributes reset", method="clear")
 
         return fx_data
 
     def ib_spotfx_contract(self, ccy1, ccy2="USD") -> Forex:
-
         ibcontract = Forex(ccy1 + ccy2)
         ibcontract = self.ib_resolve_unique_contract(ibcontract)
 

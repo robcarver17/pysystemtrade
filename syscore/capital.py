@@ -33,7 +33,6 @@ def full_compounding(system: System, **ignored_args) -> pd.Series:
 
 
 def half_compounding(system: System, **ignored_args) -> pd.Series:
-
     ## remove any nans
     pandl = system.accounts.portfolio().percent.curve().ffill().diff()
     multiplier = 1.0

@@ -90,15 +90,16 @@ class futuresContract(object):
         self._contract_date = contract_date_object
         self._params = parameter_object
 
-    def specific_log(self, log):
-        new_log = log.setup(
-            **{
-                INSTRUMENT_CODE_LOG_LABEL: self.instrument_code,
-                CONTRACT_DATE_LOG_LABEL: self.date_str,
-            }
-        )
+    def log_attributes(self):
+        """
+        Returns a dict of futuresContract log attributes
 
-        return new_log
+        :return: dict
+        """
+        return {
+            INSTRUMENT_CODE_LOG_LABEL: self.instrument_code,
+            CONTRACT_DATE_LOG_LABEL: self.date_str,
+        }
 
     @property
     def instrument(self):
@@ -145,11 +146,6 @@ class futuresContract(object):
 
     def sampling_off(self):
         self.params.sampling = False
-
-    def log(self, log: pst_logger):
-        return log.setup(
-            instrument_code=self.instrument_code, contract_date=self.date_str
-        )
 
     def as_dict(self):
         """
@@ -241,7 +237,6 @@ class futuresContract(object):
         )
 
     def update_expiry_dates_one_at_a_time_with_method(self, method, **kwargs):
-
         as_list_of_individual_contracts = self.as_list_of_individual_contracts()
         new_expiries = [
             method(single_contract, **kwargs)
@@ -289,7 +284,6 @@ class futuresContract(object):
 def _resolve_args_for_futures_contract(
     instrument_object, contract_date_object
 ) -> tuple:
-
     if isinstance(instrument_object, str):
         instrument_object = futuresInstrument(instrument_object)
 
@@ -372,7 +366,6 @@ class listOfFuturesContracts(list):
         return contract_dict
 
     def difference(self, another_contract_list):
-
         self_contract_dates = set(self.list_of_dates())
         another_contract_list_dates = set(another_contract_list.list_of_dates())
 

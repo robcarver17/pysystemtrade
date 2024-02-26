@@ -35,12 +35,11 @@ from sysdata.config.production_config import get_production_config
 
 
 def get_notional_risk_target():
-    ## might be overriden by strategy but we don't have the backtest .yaml here
+    ## might be overridden by strategy but we don't have the backtest .yaml here
     return 25.0
 
 
 def dynamic_optimisation_graphical(data: dataBlob, strategy_name: str):
-
     report_config = reportConfig(
         title="Dynamic Optimisation Graphical", function="not_used", output="file"
     )
@@ -55,7 +54,6 @@ def dynamic_optimisation_graphical(data: dataBlob, strategy_name: str):
 
 
 def get_figures_for_DO(data: dataBlob, strategy_name: str):
-
     df_results = get_data_for_scatter_plot(data, strategy_name)
     all_results = []
     index_risk = get_notional_risk_target()
@@ -96,7 +94,6 @@ def get_figures_for_DO(data: dataBlob, strategy_name: str):
 
 
 def get_data_for_scatter_plot(data: dataBlob, strategy_name: str) -> pd.DataFrame:
-
     optimal_position_objects_as_list = get_optimal_position_objects_as_list(
         data=data, strategy_name=strategy_name
     )
@@ -128,7 +125,6 @@ def get_data_for_scatter_plot(data: dataBlob, strategy_name: str) -> pd.DataFram
 
 
 def plot_scatter_for_asset_class(results: pd.DataFrame, asset_class: str):
-
     subset_results = results[results.asset_classes == asset_class]
     plot_scatter_names_only(subset_results)
 
@@ -178,7 +174,6 @@ def get_optimised_weights(optimal_positions_as_list) -> portfolioWeights:
 def get_item_from_optimised_weights_list(
     optimal_positions_as_list: list, item_name: str
 ) -> dict:
-
     optimal_weights_as_dict = dict(
         [
             (
@@ -209,7 +204,6 @@ def instrument_codes_from_optimal_positions_as_list(optimal_positions_as_list) -
 def get_standard_deviations_for_instrument_list(
     data: dataBlob, instrument_list: list
 ) -> stdevEstimates:
-
     stdev_dict = dict(
         [
             (
@@ -226,7 +220,6 @@ def get_standard_deviations_for_instrument_list(
 def get_pd_df_of_betas_to_plot(
     data: dataBlob, strategy_name: str, index_risk: float
 ) -> tuple:
-
     optimal_position_objects_as_list = get_optimal_position_objects_as_list(
         data=data, strategy_name=strategy_name
     )
@@ -271,7 +264,6 @@ def get_pd_df_of_beta_loadings(
     dict_of_betas: dict,
     dict_of_asset_classes: dict,
 ):
-
     beta_loadings_unrounded = (
         calculate_dict_of_beta_loadings_by_asset_class_given_weights(
             unrounded_weights, dict_of_betas, dict_of_asset_classes
@@ -295,7 +287,6 @@ def get_pd_df_of_beta_loadings(
 
 
 def dynamic_optimisation_text(data: dataBlob, strategy_name: str):
-
     report_config = reportConfig(
         title="Dynamic Optimisation Text", function="not_used", output="file"
     )

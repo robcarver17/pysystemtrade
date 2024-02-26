@@ -13,7 +13,6 @@ class brokerClientIdData(baseData):
         idoffset: int = 0,
         log=get_logger("brokerClientIdTracker"),
     ):
-
         super().__init__(log=log)
 
         self._idoffset = idoffset
@@ -121,7 +120,6 @@ def get_next_id_from_current_list(current_list_of_ids: list, id_offset: int = 0)
 def get_next_id_from_current_list_and_full_set(
     current_list_of_ids: list, full_set_of_available_ids: set
 ) -> int:
-
     unused_values = full_set_of_available_ids - set(current_list_of_ids)
     if len(unused_values) == 0:
         # no gaps, return the higest number plus 1

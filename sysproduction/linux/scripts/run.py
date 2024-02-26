@@ -48,7 +48,6 @@ def resolve_func(func_reference_name):
 
 
 if __name__ == "__main__":
-
     if len(sys.argv) == 1:
         print(
             "Enter the name of a function with full pathname eg systems.basesystem.System"

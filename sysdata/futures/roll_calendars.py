@@ -33,7 +33,7 @@ class rollCalendarData(baseData):
             raise Exception("Calendar for %s not found!" % instrument_code)
 
     def delete_roll_calendar(self, instrument_code: str, are_you_sure=False):
-        self.log.label(instrument_code=instrument_code)
+        self.log.debug("Updating log attributes", instrument_code=instrument_code)
 
         if are_you_sure:
             if self.is_code_in_data(instrument_code):
@@ -59,8 +59,7 @@ class rollCalendarData(baseData):
         roll_calendar: rollCalendar,
         ignore_duplication: bool = False,
     ):
-
-        self.log.label(instrument_code=instrument_code)
+        self.log.debug("Updating log attributes", instrument_code=instrument_code)
 
         if self.is_code_in_data(instrument_code):
             if ignore_duplication:

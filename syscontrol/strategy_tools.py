@@ -44,7 +44,6 @@ class strategyRunner:
 def get_strategy_method(
     data: dataBlob, strategy_name: str, process_name: str, function_name: str
 ):
-
     strategy_class_instance = get_strategy_class_instance(
         data=data, strategy_name=strategy_name, process_name=process_name
     )
@@ -61,7 +60,9 @@ def get_strategy_class_instance(data: dataBlob, strategy_name: str, process_name
     )
 
     strategy_data = dataBlob(log_name=process_name)
-    strategy_data.log.label(**{STRATEGY_NAME_LOG_LABEL: strategy_name})
+    strategy_data.log.debug(
+        "Updating log attributes", **{STRATEGY_NAME_LOG_LABEL: strategy_name}
+    )
 
     strategy_class_instance = strategy_class_object(
         strategy_data, strategy_name, **other_args

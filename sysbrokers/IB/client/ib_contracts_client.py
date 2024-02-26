@@ -44,10 +44,6 @@ class ibContractsClient(ibClient):
     ) -> list:
         ## Returns list of contract date strings YYYYMMDD
 
-        specific_log = self.log.setup(
-            instrument_code=futures_instrument_with_ib_data.instrument_code
-        )
-
         ibcontract_pattern = ib_futures_instrument(futures_instrument_with_ib_data)
         contract_list = self.ib_get_contract_chain(
             ibcontract_pattern, allow_expired=allow_expired
@@ -72,9 +68,11 @@ class ibContractsClient(ibClient):
         :param futures_contract_with_ib_data:  contract where instrument has ib metadata
         :return: YYYYMMDD str
         """
-        specific_log = futures_contract_with_ib_data.specific_log(self.log)
+        log_attrs = {**futures_contract_with_ib_data.log_attributes(), "method": "temp"}
         if futures_contract_with_ib_data.is_spread_contract():
-            specific_log.warning("Can only find expiry for single leg contract!")
+            self.log.warning(
+                "Can only find expiry for single leg contract!", **log_attrs
+            )
             raise missingContract
 
         try:
@@ -84,10 +82,11 @@ class ibContractsClient(ibClient):
                 always_return_single_leg=True,
             )
         except missingContract:
-            specific_log.warning("Contract is missing can't get expiry")
+            self.log.warning("Contract is missing can't get expiry", **log_attrs)
             raise missingContract
 
         expiry_date = ibcontract.lastTradeDateOrContractMonth
+        expiry_date = expiry_date[:8]  ## in case of weird '... GB format'
 
         return expiry_date
 
@@ -102,17 +101,16 @@ class ibContractsClient(ibClient):
     def _ib_get_uncached_trading_hours(
         self, contract_object_with_ib_data: futuresContract
     ) -> listOfTradingHours:
-
-        specific_log = contract_object_with_ib_data.specific_log(self.log)
-
         try:
             trading_hours_from_ib = self.ib_get_trading_hours_from_IB(
                 contract_object_with_ib_data
             )
         except Exception as e:
-            specific_log.warning(
+            self.log.warning(
                 "%s when getting trading hours from %s!"
-                % (str(e), str(contract_object_with_ib_data))
+                % (str(e), str(contract_object_with_ib_data)),
+                **contract_object_with_ib_data.log_attributes(),
+                method="temp",
             )
             raise missingData
 
@@ -136,8 +134,6 @@ class ibContractsClient(ibClient):
     def ib_get_trading_hours_from_IB(
         self, contract_object_with_ib_data: futuresContract
     ) -> listOfTradingHours:
-        specific_log = contract_object_with_ib_data.specific_log(self.log)
-
         try:
             ib_contract_details = self.ib_get_contract_details(
                 contract_object_with_ib_data
@@ -146,9 +142,11 @@ class ibContractsClient(ibClient):
                 ib_contract_details
             )
         except Exception as e:
-            specific_log.warning(
+            self.log.warning(
                 "%s when getting trading hours from %s!"
-                % (str(e), str(contract_object_with_ib_data))
+                % (str(e), str(contract_object_with_ib_data)),
+                **contract_object_with_ib_data.log_attributes(),
+                method="temp",
             )
             raise missingData
 
@@ -157,7 +155,6 @@ class ibContractsClient(ibClient):
     def ib_get_saved_weekly_trading_hours_for_contract(
         self, contract_object_with_ib_data: futuresContract
     ) -> weekdayDictOfListOfTradingHoursAnyDay:
-
         try:
             weekly_hours_for_timezone = (
                 self.ib_get_saved_weekly_trading_hours_for_timezone_of_contract(
@@ -197,7 +194,6 @@ class ibContractsClient(ibClient):
     def ib_get_saved_weekly_trading_hours_custom_for_contract(
         self, contract_object_with_ib_data: futuresContract
     ) -> weekdayDictOfListOfTradingHoursAnyDay:
-
         instrument_code = contract_object_with_ib_data.instrument_code
         all_saved_trading_hours = self.get_all_saved_weekly_trading_hours()
         specific_weekly_hours_for_contract = all_saved_trading_hours.get(
@@ -214,15 +210,16 @@ class ibContractsClient(ibClient):
     def ib_get_saved_weekly_trading_hours_for_timezone_of_contract(
         self, contract_object_with_ib_data: futuresContract
     ) -> weekdayDictOfListOfTradingHoursAnyDay:
-        specific_log = contract_object_with_ib_data.log(self.log)
+        log_attrs = {**contract_object_with_ib_data.log_attributes(), "method": "temp"}
 
         try:
             time_zone_id = self.ib_get_timezoneid(contract_object_with_ib_data)
         except missingData:
             # problem getting timezoneid
-            specific_log.warning(
+            self.log.warning(
                 "No time zone ID, can't get trading hours for timezone for %s"
-                % str(contract_object_with_ib_data)
+                % str(contract_object_with_ib_data),
+                **log_attrs,
             )
             raise missingData
 
@@ -235,22 +232,23 @@ class ibContractsClient(ibClient):
                 "Check ib_config_trading_hours in sysbrokers/IB or private directory, hours for timezone %s not found!"
                 % time_zone_id
             )
-            specific_log.log.critical(error_msg)
+            self.log.critical(error_msg, **log_attrs)
             raise missingData
 
         return weekly_hours_for_timezone
 
     def ib_get_timezoneid(self, contract_object_with_ib_data: futuresContract) -> str:
-        specific_log = contract_object_with_ib_data.specific_log(self.log)
         try:
             ib_contract_details = self.ib_get_contract_details(
                 contract_object_with_ib_data
             )
             time_zone_id = ib_contract_details.timeZoneId
         except Exception as e:
-            specific_log.warning(
+            self.log.warning(
                 "%s when getting time zone from %s!"
-                % (str(e), str(contract_object_with_ib_data))
+                % (str(e), str(contract_object_with_ib_data)),
+                **contract_object_with_ib_data.log_attributes(),
+                method="temp",
             )
             raise missingData
 
@@ -273,13 +271,16 @@ class ibContractsClient(ibClient):
     def ib_get_min_tick_size(
         self, contract_object_with_ib_data: futuresContract
     ) -> float:
-        specific_log = contract_object_with_ib_data.specific_log(self.log)
+        log_attrs = {**contract_object_with_ib_data.log_attributes(), "method": "temp"}
         try:
             ib_contract = self.ib_futures_contract(
                 contract_object_with_ib_data, always_return_single_leg=True
             )
         except missingContract:
-            specific_log.warning("Can't get tick size as contract missing")
+            self.log.warning(
+                "Can't get tick size as contract missing",
+                **log_attrs,
+            )
             raise
 
         ib_contract_details = self.ib.reqContractDetails(ib_contract)[0]
@@ -287,9 +288,10 @@ class ibContractsClient(ibClient):
         try:
             min_tick = ib_contract_details.minTick
         except Exception as e:
-            specific_log.warning(
+            self.log.warning(
                 "%s when getting min tick size from %s!"
-                % (str(e), str(ib_contract_details))
+                % (str(e), str(ib_contract_details)),
+                **log_attrs,
             )
             raise missingContract
 
@@ -298,13 +300,15 @@ class ibContractsClient(ibClient):
     def ib_get_price_magnifier(
         self, contract_object_with_ib_data: futuresContract
     ) -> float:
-        specific_log = contract_object_with_ib_data.specific_log(self.log)
+        log_attrs = {**contract_object_with_ib_data.log_attributes(), "method": "temp"}
         try:
             ib_contract = self.ib_futures_contract(
                 contract_object_with_ib_data, always_return_single_leg=True
             )
         except missingContract:
-            specific_log.warning("Can't get price magnifier as contract missing")
+            self.log.warning(
+                "Can't get price magnifier as contract missing", **log_attrs
+            )
             raise
 
         ib_contract_details = self.ib.reqContractDetails(ib_contract)[0]
@@ -312,22 +316,26 @@ class ibContractsClient(ibClient):
         try:
             price_magnifier = ib_contract_details.priceMagnifier
         except Exception as e:
-            specific_log.warning(
+            self.log.warning(
                 "%s when getting price magnifier from %s!"
-                % (str(e), str(ib_contract_details))
+                % (str(e), str(ib_contract_details)),
+                **log_attrs,
             )
             raise missingContract
 
         return price_magnifier
 
     def ib_get_contract_details(self, contract_object_with_ib_data: futuresContract):
-        specific_log = contract_object_with_ib_data.specific_log(self.log)
         try:
             ib_contract = self.ib_futures_contract(
                 contract_object_with_ib_data, always_return_single_leg=True
             )
         except missingContract:
-            specific_log.warning("Can't get trading hours as contract is missing")
+            self.log.warning(
+                "Can't get trading hours as contract is missing",
+                **contract_object_with_ib_data.log_attributes(),
+                method="temp",
+            )
             raise
 
         # returns a list but should only have one element
@@ -343,7 +351,6 @@ class ibContractsClient(ibClient):
         always_return_single_leg=False,
         trade_list_for_multiple_legs: tradeQuantity = None,
     ) -> Contract:
-
         ibcontract_with_legs = self.ib_futures_contract_with_legs(
             futures_contract_with_ib_data=futures_contract_with_ib_data,
             allow_expired=allow_expired,
@@ -386,7 +393,6 @@ class ibContractsClient(ibClient):
         trade_list_for_multiple_legs: tradeQuantity = None,
         allow_expired: bool = False,
     ):
-
         ibcontract_with_legs = self.cache.get(
             self._get_ib_futures_contract_from_broker,
             contract_object_to_use,
@@ -445,7 +451,6 @@ class ibContractsClient(ibClient):
         contract_date: contractDate,
         allow_expired: bool = False,
     ) -> ibcontractWithLegs:
-
         ibcontract = self._get_vanilla_ib_futures_contract(
             futures_instrument_with_ib_data, contract_date, allow_expired=allow_expired
         )
@@ -531,7 +536,7 @@ class ibContractsClient(ibClient):
 
         return resolved_contract
 
-    def ib_resolve_unique_contract(self, ibcontract_pattern, log: pst_logger = None):
+    def ib_resolve_unique_contract(self, ibcontract_pattern, log=None):
         """
         Returns the 'resolved' IB contract based on a pattern. We expect a unique contract.
 

@@ -74,7 +74,7 @@ class Config(object):
 
         """
 
-        # this will normally be overriden by the base system
+        # this will normally be overridden by the base system
         self.log = get_logger(
             "config", {TYPE_LOG_LABEL: "config", STAGE_LOG_LABEL: "config"}
         )
@@ -188,9 +188,6 @@ class Config(object):
         :param base_system
         :return: nothing
         """
-
-        # inherit the log
-        setattr(self, "log", base_system.log.setup(stage="config"))
 
         # fill with defaults
         self.fill_with_defaults()

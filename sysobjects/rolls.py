@@ -17,7 +17,6 @@ class rollCycle(object):
     """
 
     def __init__(self, cyclestring: str):
-
         assert isinstance(cyclestring, str)
 
         self._cyclestring = "".join(sorted(cyclestring))
@@ -260,13 +259,11 @@ class rollParameters(object):
 
     @classmethod
     def create_from_dict(rollData, roll_data_dict: dict):
-
         futures_instrument_roll_data = rollData(**roll_data_dict)
 
         return futures_instrument_roll_data
 
     def as_dict(self) -> dict:
-
         return dict(
             hold_rollcycle=self.hold_rollcycle.cyclestring,
             priced_rollcycle=self.priced_rollcycle.cyclestring,
@@ -404,7 +401,6 @@ class contractDateWithRollParameters(object):
         return self._valid_date_in_named_rollcycle("hold_rollcycle")
 
     def _valid_date_in_named_rollcycle(self, rollcycle_name: str) -> bool:
-
         relevant_rollcycle = getattr(self.roll_parameters, rollcycle_name)
         current_month = self.contract_date.letter_month()
 

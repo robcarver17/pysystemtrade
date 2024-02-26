@@ -21,7 +21,6 @@ from sysproduction.reporting.report_configs import reportConfig
 def static_system_adhoc_report(
     system_function, list_of_capital_and_estimate_instrument_count_tuples: list
 ):
-
     data = dataBlob()
     report_config = reportConfig(
         title="Static selection of instruments", function="not_used", output="file"
@@ -40,7 +39,7 @@ def static_system_adhoc_report(
         capital,
         est_number_of_instruments,
     ) in list_of_capital_and_estimate_instrument_count_tuples:
-        system = futures_system()
+        system = system_function()
         instrument_list = static_system_results_for_capital(
             system,
             corr_matrix=corr_matrix,
@@ -71,7 +70,6 @@ def static_system_results_for_capital(
     est_number_of_instruments: int,
     capital: float,
 ):
-
     notional_starting_IDM = est_number_of_instruments**0.25
     max_instrument_weight = 1.0 / est_number_of_instruments
 

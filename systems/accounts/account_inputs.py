@@ -17,7 +17,6 @@ class accountInputs(SystemStage):
     def get_instrument_prices_for_position_or_forecast(
         self, instrument_code: str, position_or_forecast: pd.Series = arg_not_supplied
     ) -> pd.Series:
-
         if position_or_forecast is arg_not_supplied:
             return self.get_daily_prices(instrument_code)
 
@@ -36,25 +35,33 @@ class accountInputs(SystemStage):
     def instrument_prices_for_position_or_forecast_infer_frequency(
         self, instrument_code: str, position_or_forecast: pd.Series = arg_not_supplied
     ) -> pd.Series:
-
-        frequency = infer_frequency(position_or_forecast)
-        if frequency is BUSINESS_DAY_FREQ:
-            instrument_prices = self.get_daily_prices(instrument_code)
-        elif frequency is HOURLY_FREQ:
-            instrument_prices = self.get_hourly_prices(instrument_code)
-        else:
-            raise Exception(
-                "Frequency %s does not have prices for %s should be hourly or daily"
-                % (str(frequency), instrument_code)
+        try:
+            frequency = infer_frequency(position_or_forecast)
+            if frequency is BUSINESS_DAY_FREQ:
+                instrument_prices = self.get_daily_prices(instrument_code)
+            elif frequency is HOURLY_FREQ:
+                instrument_prices = self.get_hourly_prices(instrument_code)
+            else:
+                raise Exception(
+                    "Frequency %s does not have prices for %s should be hourly or daily"
+                    % (str(frequency), instrument_code)
+                )
+        except:
+            self.log.warning(
+                "Going to index hourly prices for %s to position_or_forecast might result in phantoms"
+                % instrument_code
             )
+            hourly_prices = self.get_hourly_prices(instrument_code)
+
+            instrument_prices = hourly_prices.reindex(position_or_forecast.index)
 
         return instrument_prices
 
     def get_daily_prices(self, instrument_code: str) -> pd.Series:
-        return self.parent.data.daily_prices(instrument_code)
+        return self.parent.rawdata.get_daily_prices(instrument_code)
 
     def get_hourly_prices(self, instrument_code: str) -> pd.Series:
-        return self.parent.data.hourly_prices(instrument_code)
+        return self.parent.rawdata.get_hourly_prices(instrument_code)
 
     def get_capped_forecast(
         self, instrument_code: str, rule_variation_name: str
@@ -65,7 +72,6 @@ class accountInputs(SystemStage):
 
     @diagnostic()
     def get_daily_returns_volatility(self, instrument_code: str) -> pd.Series:
-
         system = self.parent
         returns_vol = system.rawdata.daily_returns_volatility(instrument_code)
 
@@ -102,7 +108,7 @@ class accountInputs(SystemStage):
         return self.config.forecast_cap
 
     def get_raw_cost_data(self, instrument_code: str) -> instrumentCosts:
-        return self.parent.data.get_raw_cost_data(instrument_code)
+        return self.parent.rawdata.get_raw_cost_data(instrument_code)
 
     def get_rolls_per_year(self, instrument_code: str) -> int:
         rolls_per_year = self.parent.rawdata.rolls_per_year(instrument_code)
@@ -110,7 +116,7 @@ class accountInputs(SystemStage):
         return rolls_per_year
 
     def get_value_of_block_price_move(self, instrument_code: str) -> float:
-        return self.parent.data.get_value_of_block_price_move(instrument_code)
+        return self.parent.rawdata.get_value_of_block_price_move(instrument_code)
 
     def get_fx_rate(self, instrument_code: str) -> pd.Series:
         return self.parent.positionSize.get_fx_rate(instrument_code)

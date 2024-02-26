@@ -26,7 +26,6 @@ def interactive_manual_check_historical_prices():
     :return: Nothing
     """
     with dataBlob(log_name="Update-Historical-prices-manually") as data:
-
         cleaning_config = interactively_get_config_overrides_for_cleaning(data=data)
 
         do_another = True
@@ -39,7 +38,11 @@ def interactive_manual_check_historical_prices():
                 do_another = False
             else:
                 check_instrument_ok_for_broker(data, instrument_code)
-                data.log.label(instrument_code=instrument_code)
+                data.log.debug(
+                    "Updating log attributes",
+                    method="clear",
+                    instrument_code=instrument_code,
+                )
                 update_historical_prices_for_instrument(
                     instrument_code=instrument_code,
                     cleaning_config=cleaning_config,

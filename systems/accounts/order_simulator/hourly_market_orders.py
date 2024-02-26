@@ -25,7 +25,6 @@ def _build_hourly_series_data_for_order_simulator(
     instrument_code: str,
     is_subsystem: bool = False,
 ) -> OrdersSeriesData:
-
     price_series = system_accounts_stage.get_hourly_prices(instrument_code)
     if is_subsystem:
         unrounded_positions = (

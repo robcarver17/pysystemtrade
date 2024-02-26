@@ -34,7 +34,6 @@ def futures_system(
     use_vanilla_accounting: bool = False,
     config_filename="systems.provided.example.hourly_with_order_simulator.yaml",
 ):
-
     if sim_data is arg_not_supplied:
         sim_data = dbFuturesSimData()
 

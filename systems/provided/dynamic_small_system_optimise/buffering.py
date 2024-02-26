@@ -15,7 +15,6 @@ VERY_SMALL_NUMBER = 0.00001
 def calculate_adjustment_factor(
     speed_control: speedControlForDynamicOpt, tracking_error_of_prior: float
 ) -> np.array:
-
     ## returns 1.0 if we do an entire trade (ok never happens)
     ## returns 0.0 if we do none of it
     if tracking_error_of_prior <= 0:
@@ -37,7 +36,6 @@ def adjust_weights_with_factor(
     per_contract_value_as_np: np.array,
     adj_factor: float,
 ):
-
     desired_trades_weight_space = optimised_weights_as_np - prior_weights_as_np
     adjusted_trades_weight_space = adj_factor * desired_trades_weight_space
 
@@ -56,7 +54,6 @@ def adjust_weights_with_factor(
 def calculate_adjusting_trades_rounding_in_contract_space(
     adjusted_trades_weight_space: np.array, per_contract_value_as_np: np.array
 ) -> np.array:
-
     adjusted_trades_in_contracts = (
         adjusted_trades_weight_space / per_contract_value_as_np
     )

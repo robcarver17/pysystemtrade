@@ -192,7 +192,6 @@ def add_optimal_position_entry_row_to_positions_as_df(
     existing_optimal_positions_as_df: pd.DataFrame,
     position_entry: simpleOptimalPosition,
 ) -> pd.DataFrame:
-
     _check_append_positions_okay(
         existing_optimal_positions_as_df=existing_optimal_positions_as_df,
         position_entry=position_entry,
@@ -237,7 +236,7 @@ def _check_append_positions_okay(
         )
 
 
-## IMPORTANT NOTE: if you create a new kind of optimal position which does not inherite from
+## IMPORTANT NOTE: if you create a new kind of optimal position which does not inherit from
 ##    baseOptimalPosition directly, need to manually add it here
 
 MASTER_LIST_OF_OPTIMAL_POSITION_CLASSES = baseOptimalPosition.__subclasses__()
@@ -279,7 +278,6 @@ class instrumentStrategyAndOptimalPosition(object):
         instrument_strategy: instrumentStrategy,
         optimal_position_object: simpleOptimalPosition,
     ):
-
         self.instrument_strategy = instrument_strategy
         self.optimal_position = optimal_position_object
 
@@ -424,7 +422,6 @@ class listOfOptimalPositionsAcrossInstrumentStrategies(list):
     def add_positions(
         self, position_list: listOfInstrumentStrategyPositions
     ) -> listOfOptimalAndCurrentPositionsAcrossInstrumentStrategies:
-
         list_of_optimal_and_current = []
         for opt_pos_object in self:
             instrument_strategy = opt_pos_object.instrument_strategy

@@ -80,7 +80,6 @@ class instrumentMetaData(object):
         PerTrade: float = 0.0,
         Region: str = "",
     ):
-
         self.Description = Description
         self.Currency = Currency
         self.Pointsize = _zero_if_nan(Pointsize)
@@ -223,7 +222,6 @@ class assetClassesAndInstruments(dict):
     def all_instruments_in_asset_class(
         self, asset_class: str, must_be_in=arg_not_supplied
     ) -> list:
-
         asset_class_instrument_list = [
             instrument
             for instrument, item_asset_class in self.items()
@@ -351,7 +349,6 @@ class instrumentCosts(object):
         price: float,
         include_slippage: bool = True,
     ) -> float:
-
         value_per_block = price * block_price_multiplier
         if include_slippage:
             slippage = self.calculate_slippage_instrument_currency(
@@ -389,7 +386,7 @@ class instrumentCosts(object):
 
     def calculate_percentage_commission(self, blocks_traded, price_per_block):
         trade_value = self.calculate_trade_value(blocks_traded, price_per_block)
-        return self._percentage_cost * trade_value
+        return self.percentage_cost * trade_value
 
     def calculate_trade_value(self, blocks_traded, value_per_block):
         return abs(blocks_traded) * value_per_block

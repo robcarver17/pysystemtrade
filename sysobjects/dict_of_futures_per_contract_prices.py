@@ -37,13 +37,11 @@ class dictFuturesContractFinalPrices(dict):
         return all_contract_date_str_sorted
 
     def last_contract_date_str(self):
-
         all_contract_date_str_sorted = self.sorted_contract_date_str()
 
         return all_contract_date_str_sorted.final_date_str()
 
     def joint_data(self):
-
         joint_data = [
             pd.Series(prices, name=contractid) for contractid, prices in self.items()
         ]

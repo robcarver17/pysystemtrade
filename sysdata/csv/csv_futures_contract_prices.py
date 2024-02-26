@@ -36,7 +36,6 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         log=get_logger("csvFuturesContractPriceData"),
         config: ConfigCsvFuturesPrices = arg_not_supplied,
     ):
-
         super().__init__(log=log)
         if datapath is arg_not_supplied:
             raise Exception("Need to pass datapath")
@@ -66,7 +65,6 @@ class csvFuturesContractPriceData(futuresContractPriceData):
     def _get_prices_at_frequency_for_contract_object_no_checking(
         self, futures_contract_object: futuresContract, frequency: Frequency
     ) -> futuresContractPrices:
-
         keyname = self._keyname_given_contract_object_and_freq(
             futures_contract_object, frequency=frequency
         )
@@ -91,8 +89,11 @@ class csvFuturesContractPriceData(futuresContractPriceData):
                 skipfooter=skipfooter,
             )
         except OSError:
-            log = futures_contract_object.log(self.log)
-            log.warning("Can't find adjusted price file %s" % filename)
+            self.log.warning(
+                "Can't find adjusted price file %s" % filename,
+                **futures_contract_object.log_attributes(),
+                method="temp",
+            )
             return futuresContractPrices.create_empty()
 
         instrpricedata = instrpricedata.groupby(level=0).last()
@@ -113,7 +114,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
     ):
         """
         Write prices
-        CHECK prices are overriden on second write
+        CHECK prices are overridden on second write
 
         :param futures_contract_object: futuresContract
         :param futures_price_data: futuresContractPriceData
@@ -131,7 +132,6 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         futures_price_data: futuresContractPrices,
         frequency: Frequency,
     ):
-
         keyname = self._keyname_given_contract_object_and_freq(
             futures_contract_object, frequency=frequency
         )
@@ -183,7 +183,6 @@ class csvFuturesContractPriceData(futuresContractPriceData):
     def get_contracts_with_price_data_for_frequency(
         self, frequency: Frequency
     ) -> listOfFuturesContracts:
-
         list_of_contract_and_freq_tuples = (
             self._get_contract_freq_tuples_with_price_data()
         )
@@ -224,7 +223,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         if frequency is MIXED_FREQ:
             frequency_str = ""
         else:
-            frequency_str = frequency.name + "/"
+            frequency_str = frequency.name + "_"
 
         instrument_str = str(futures_contract_object.instrument)
         date_str = str(futures_contract_object.date_str)
@@ -240,11 +239,11 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         :param keyname: str
         :return: tuple instrument_code, contract_date
         """
-        first_split_keyname_as_list = keyname.split("/")
-        if len(first_split_keyname_as_list) == 2:
+        if keyname.startswith("Day") or keyname.startswith("Hour"):
             ## has frequency
-            frequency = Frequency[first_split_keyname_as_list[0]]
-            residual_keyname = first_split_keyname_as_list[1]
+            index = keyname.find("_")
+            frequency = Frequency[keyname[:index]]
+            residual_keyname = keyname[index + 1 :]
         else:
             ## no frequency, mixed data
             frequency = MIXED_FREQ

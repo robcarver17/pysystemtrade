@@ -80,7 +80,6 @@ class optimisedPositions(SystemStage):
         previous_positions: portfolioWeights = arg_not_supplied,
         maximum_positions: portfolioWeights = arg_not_supplied,
     ) -> portfolioWeights:
-
         obj_instance = self._get_optimal_positions_objective_instance(
             relevant_date=relevant_date,
             previous_positions=previous_positions,
@@ -106,7 +105,6 @@ class optimisedPositions(SystemStage):
         previous_positions: portfolioWeights = arg_not_supplied,
         maximum_positions: portfolioWeights = arg_not_supplied,
     ) -> objectiveFunctionForGreedy:
-
         covariance_matrix = self.get_covariance_matrix(relevant_date=relevant_date)
 
         per_contract_value = self.get_per_contract_value(relevant_date)
@@ -137,14 +135,21 @@ class optimisedPositions(SystemStage):
         ## 'reduce only' is as good as do not trade in backtesting
         ## but we use this rather than 'don't trade' for consistency with production
         reduce_only_keys = self.get_reduce_only_instruments()
+        long_only_keys = self.get_long_only_instruments()
 
-        return constraintsForDynamicOpt(reduce_only_keys=reduce_only_keys)
+        return constraintsForDynamicOpt(
+            reduce_only_keys=reduce_only_keys, long_only_keys=long_only_keys
+        )
 
-    @diagnostic()
     def get_reduce_only_instruments(self) -> list:
         reduce_only_keys = self.parent.get_list_of_markets_not_trading_but_with_data()
 
         return reduce_only_keys
+
+    def get_long_only_instruments(self) -> list:
+        long_only_keys = self.config.get_element_or_default("long_only_instruments_DO_ONLY", [])  # fmt: skip
+
+        return long_only_keys
 
     def get_speed_control(self):
         small_config = self.config.small_system
@@ -260,7 +265,6 @@ class optimisedPositions(SystemStage):
     def get_covariance_matrix(
         self, relevant_date: datetime.datetime = arg_not_supplied
     ) -> covarianceEstimate:
-
         correlation_estimate = self.get_correlation_matrix(relevant_date=relevant_date)
 
         stdev_estimate = self.get_stdev_estimate(relevant_date=relevant_date)
@@ -274,7 +278,6 @@ class optimisedPositions(SystemStage):
     def get_correlation_matrix(
         self, relevant_date: datetime.datetime = arg_not_supplied
     ) -> correlationEstimate:
-
         corr_matrix = self.portfolio_stage.get_correlation_matrix(
             relevant_date=relevant_date
         )
@@ -296,7 +299,6 @@ class optimisedPositions(SystemStage):
     def get_stdev_estimate(
         self, relevant_date: datetime.datetime = arg_not_supplied
     ) -> stdevEstimates:
-
         return self.portfolio_stage.get_stdev_estimate(relevant_date=relevant_date)
 
     def get_per_contract_value(
@@ -307,7 +309,6 @@ class optimisedPositions(SystemStage):
     def get_current_contract_value_as_proportion_of_capital_for_instrument(
         self, instrument_code: str
     ) -> float:
-
         value_as_ts = (
             self.get_contract_ts_value_as_proportion_of_capital_for_instrument(
                 instrument_code
@@ -318,7 +319,6 @@ class optimisedPositions(SystemStage):
     def get_contract_ts_value_as_proportion_of_capital_for_instrument(
         self, instrument_code: str
     ) -> pd.Series:
-
         return self.portfolio_stage.get_per_contract_value_as_proportion_of_capital(
             instrument_code
         )
@@ -388,7 +388,6 @@ def calculate_cost_per_notional_weight_as_proportion_of_capital(
     capital: float,
     cost_multiplier: float = 1.0,
 ) -> float:
-
     dollar_cost = (
         cost_multiplier
         * cost_per_contract

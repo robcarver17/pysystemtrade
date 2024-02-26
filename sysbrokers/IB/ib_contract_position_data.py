@@ -51,7 +51,6 @@ class ibContractPositionData(brokerContractPositionData):
     def get_all_current_positions_as_list_with_contract_objects(
         self, account_id=arg_not_supplied
     ) -> listOfContractPositions:
-
         all_positions = self._get_all_futures_positions_as_raw_list(
             account_id=account_id
         )
@@ -90,7 +89,6 @@ class ibContractPositionData(brokerContractPositionData):
         return contract_position_object
 
     def _get_instrument_code_from_ib_position_entry(self, position_entry) -> str:
-
         ib_contract = position_entry["ib_contract"]
         instrument_code = self.futures_instrument_data.get_instrument_code_from_broker_contract_object(
             ib_contract

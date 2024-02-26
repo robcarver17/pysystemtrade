@@ -62,7 +62,6 @@ def calculate_start_and_end_dates(
     start_period: str = arg_not_supplied,
     end_period: str = arg_not_supplied,
 ) -> Tuple[datetime.datetime, datetime.datetime]:
-
     resolved_end_date = _resolve_end_date_given_period_and_explicit_end_date(
         end_date=end_date, end_period=end_period
     )
@@ -653,7 +652,6 @@ def check_time_matches_closing_time_to_second(
         and index_entry.minute == closing_time.minutes
         and index_entry.second == closing_time.seconds
     ):
-
         return True
     else:
         return False
@@ -675,7 +673,6 @@ def strip_timezone_fromdatetime(timestamp_with_tz_info) -> datetime.datetime:
 def generate_equal_dates_within_year(
     year: int, number_of_dates: int, force_start_year_align: bool = False
 ) -> List[datetime.datetime]:
-
     """
     Generate equally spaced datetimes within a given year
     >>> generate_equal_dates_within_year(2022,3)
@@ -705,7 +702,6 @@ def generate_equal_dates_within_year(
 def _calculate_first_date_for_equal_dates(
     year: int, days_between_periods: int, force_start_year_align: bool = False
 ) -> datetime.datetime:
-
     start_of_year = datetime.datetime(year, 1, 1)
 
     if force_start_year_align:

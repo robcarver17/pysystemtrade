@@ -25,7 +25,6 @@ def basic_futures_system(
     config=arg_not_supplied,
     trading_rules=arg_not_supplied,
 ):
-
     if config is arg_not_supplied:
         config = Config()
 
@@ -53,7 +52,6 @@ def basic_csv_futures_system(
     config=arg_not_supplied,
     trading_rules=arg_not_supplied,
 ):
-
     if data is arg_not_supplied:
         data = csvFuturesSimData()
 
@@ -66,7 +64,6 @@ def basic_db_futures_system(
     config=arg_not_supplied,
     trading_rules=arg_not_supplied,
 ):
-
     if data is arg_not_supplied:
         data = dbFuturesSimData()
 

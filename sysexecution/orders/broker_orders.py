@@ -337,28 +337,23 @@ class brokerOrder(Order):
 
         return order
 
-    def log_with_attributes(self, log):
+    def log_attributes(self):
         """
-        Returns a new log object with broker_order attributes added
+        Returns a dict of broker_order log attributes
 
-        :param log: pst_logger
-        :return: log
+        :return: dict
         """
         broker_order = self
-        new_log = log.setup(
-            **{
-                STRATEGY_NAME_LOG_LABEL: broker_order.strategy_name,
-                INSTRUMENT_CODE_LOG_LABEL: broker_order.instrument_code,
-                CONTRACT_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
-                    broker_order.parent, no_parent
-                ),
-                BROKER_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
-                    broker_order.order_id, no_order_id
-                ),
-            }
-        )
-
-        return new_log
+        return {
+            STRATEGY_NAME_LOG_LABEL: broker_order.strategy_name,
+            INSTRUMENT_CODE_LOG_LABEL: broker_order.instrument_code,
+            CONTRACT_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
+                broker_order.parent, no_parent
+            ),
+            BROKER_ORDER_ID_LOG_LABEL: if_object_matches_return_empty_string(
+                broker_order.order_id, no_order_id
+            ),
+        }
 
     def add_execution_details_from_matched_broker_order(self, matched_broker_order):
         fill_qty_okay = self.trade.fill_less_than_or_equal_to_desired_trade(
@@ -394,7 +389,6 @@ def create_new_broker_order_from_contract_order(
     broker_permid: str = "",
     broker_tempid: str = "",
 ) -> brokerOrder:
-
     broker_order = brokerOrder(
         contract_order.key,
         contract_order.trade,
@@ -422,13 +416,12 @@ def create_new_broker_order_from_contract_order(
 ## Not very pretty but only used for diagnostic TCA
 class brokerOrderWithParentInformation(brokerOrder):
     @classmethod
-    def create_augemented_order(
+    def create_augmented_order(
         self,
         order: brokerOrder,
         instrument_order: instrumentOrder,
         contract_order: contractOrder,
     ):
-
         # Price when the trade was generated. We use the contract order price since
         #  the instrument order price may refer to a different contract
         order.parent_reference_price = contract_order.reference_price

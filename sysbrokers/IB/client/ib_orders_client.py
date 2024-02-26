@@ -134,7 +134,6 @@ class ibOrdersClient(ibContractsClient):
         order_type: brokerOrderType = market_order_type,
         limit_price: float = None,
     ) -> ibOrder:
-
         ib_BS_str, ib_qty = resolveBS_for_list(trade_list)
 
         if order_type is market_order_type:
@@ -199,7 +198,6 @@ class ibOrdersClient(ibContractsClient):
         original_contract_object_with_legs: ibcontractWithLegs,
         new_limit_price: float,
     ) -> tradeWithContract:
-
         original_contract_object = original_contract_object_with_legs.ibcontract
         original_order_object.lmtPrice = new_limit_price
 

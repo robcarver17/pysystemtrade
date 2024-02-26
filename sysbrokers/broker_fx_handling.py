@@ -22,7 +22,6 @@ class brokerFxHandlingData(baseData):
         account_id: str = arg_not_supplied,
         ccy2: str = "USD",
     ) -> brokerTrade:
-
         raise NotImplementedError
 
     @property

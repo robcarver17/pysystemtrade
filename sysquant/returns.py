@@ -105,7 +105,6 @@ class dictOfReturnsForOptimisation(dict):
     def adjust_returns_for_SR_costs(
         self, dict_of_SR_costs: dictOfSR
     ) -> "dictOfReturnsForOptimisation":
-
         net_returns_dict = dict(
             [
                 (
@@ -120,7 +119,6 @@ class dictOfReturnsForOptimisation(dict):
         return net_returns_dict
 
     def single_resampled_set_of_returns(self, frequency: str) -> returnsForOptimisation:
-
         returns_as_list = listOfDataFrames(self.values())
         pooled_length = len(returns_as_list)
 
@@ -140,7 +138,6 @@ class dictOfReturnsForOptimisation(dict):
 
 
 def _adjust_df_for_SR_costs(gross_returns: pd.DataFrame, dict_of_SR_costs: dictOfSR):
-
     net_returns_as_dict = dict(
         [
             (
@@ -161,7 +158,6 @@ def _adjust_df_for_SR_costs(gross_returns: pd.DataFrame, dict_of_SR_costs: dictO
 def _adjust_df_column_for_SR_costs(
     gross_returns: pd.DataFrame, dict_of_SR_costs: dictOfSR, column_name: str
 ):
-
     # Returns always business days
 
     daily_gross_returns_for_column = gross_returns[column_name]
@@ -183,7 +179,6 @@ def _adjust_df_column_for_SR_costs(
 def _get_average_return_in_dict_for_column(
     returns_dict: dictOfReturnsForOptimisation, column: str
 ) -> float:
-
     ## all daily data so can take an average
     series_of_returns = [
         returns_series[column].values for returns_series in returns_dict.values()

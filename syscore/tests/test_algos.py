@@ -16,7 +16,7 @@ def get_data(path):
     """
     returns: DataFrame or Series if 1 col
     """
-    df = pd_readcsv(resolve_path_and_filename_for_package(path))
+    df = pd_readcsv(resolve_path_and_filename_for_package(path), date_format="%Y-%m-%d")
     if len(df.columns) == 1:
         return df[df.columns[0]]
     return df

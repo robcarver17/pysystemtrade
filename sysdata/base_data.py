@@ -51,7 +51,7 @@ class baseData(object):
         """
 
         raise Exception(
-            "__getitem__ not defined for baseData class: use a class where it has been overriden"
+            "__getitem__ not defined for baseData class: use a class where it has been overridden"
         )
 
     def keys(self):
@@ -66,7 +66,7 @@ class baseData(object):
         """
 
         raise Exception(
-            "keys() not defined for baseData class: use a class where it has been overriden"
+            "keys() not defined for baseData class: use a class where it has been overridden"
         )
 
 

@@ -106,11 +106,15 @@ def update_multiple_adjusted_prices_for_instrument(
 
     :param instrument_code:
     :param data: dataBlob
-    :param log: pst_logger
+    :param log: logger
     :return: None
     """
 
-    data.log.label(instrument_code=instrument_code)
+    data.log.debug(
+        "Updating log attributes",
+        method="clear",
+        instrument_code=instrument_code,
+    )
     updated_multiple_prices = calc_updated_multiple_prices(data, instrument_code)
     updated_adjusted_prices = calc_update_adjusted_prices(
         data, instrument_code, updated_multiple_prices
@@ -147,7 +151,6 @@ def calc_updated_multiple_prices(
 def calc_update_adjusted_prices(
     data: dataBlob, instrument_code: str, updated_multiple_prices: futuresMultiplePrices
 ) -> futuresAdjustedPrices:
-
     diag_prices = diagPrices(data)
     existing_adjusted_prices = diag_prices.get_adjusted_prices(instrument_code)
 
@@ -206,7 +209,6 @@ def update_with_new_prices(
     updated_multiple_prices: futuresMultiplePrices,
     updated_adjusted_prices: futuresAdjustedPrices,
 ):
-
     update_prices = updatePrices(data)
 
     update_prices.add_multiple_prices(

@@ -26,7 +26,6 @@ INDEX_CONFIG = {
 
 class mongoEmailControlData(emailControlData):
     def __init__(self, mongo_db=None, log=get_logger("mongoEmailControlData")):
-
         super().__init__(log=log)
         self._mongo_data = mongoDataWithMultipleKeys(
             EMAIL_CONTROL_COLLECTION,
@@ -66,7 +65,6 @@ class mongoEmailControlData(emailControlData):
         return result_as_datetime
 
     def record_date_of_email_send(self, subject):
-
         self._record_date_of_email_type_send(subject, type=LAST_EMAIL_SENT)
 
     def record_date_of_email_warning_send(self, subject):
