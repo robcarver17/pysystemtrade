@@ -6,7 +6,7 @@ big load of instruments in one go as is my wont
 import pandas as pd
 from syscore.interactive.progress_bar import progressBar
 from sysproduction.data.prices import diagPrices
-
+from sysproduction.data.instruments import diagInstruments
 
 diag_prices = diagPrices()
 
@@ -53,3 +53,14 @@ def weekly_perc_returns_last_year(instrument_code):
     weekly_prices = diag_prices.get_adjusted_prices(instrument_code).resample("1W").ffill()
     weekly_prices_last_year=weekly_prices[-52:]
     return (weekly_prices_last_year/ weekly_prices_last_year.shift(1))-1
+
+def check_for_zero_commission():
+    diag_instruments = diagInstruments()
+    zero_warnings = []
+
+    for instrument_code in all_instruments_with_prices:
+        commission = diag_instruments.get_cost_object(instrument_code).value_of_block_commission
+        if commission==0:
+            zero_warnings.append(instrument_code)
+
+    return zero_warnings
