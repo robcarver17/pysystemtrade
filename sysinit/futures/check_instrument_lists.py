@@ -7,6 +7,7 @@ import pandas as pd
 from syscore.interactive.progress_bar import progressBar
 from sysproduction.data.prices import diagPrices
 from sysproduction.data.instruments import diagInstruments
+from systems.provided.rob_system.run_system import futures_system ## replace with your own
 
 diag_prices = diagPrices()
 
@@ -64,3 +65,18 @@ def check_for_zero_commission():
             zero_warnings.append(instrument_code)
 
     return zero_warnings
+
+def print_missing_and_no_trade_markets():
+    system =futures_system()
+    all_instruments =system.data.get_instrument_list()
+    duplicates = system.get_list_of_duplicate_instruments_to_remove()
+    ignored = system.get_list_of_ignored_instruments_to_remove()
+    all_instruments_without_duplicates = [instrument_code for instrument_code in all_instruments if instrument_code not in duplicates and instrument_code not in ignored]
+
+    configured_in_system = list(system.config.instrument_weights.keys()) ## not all will be traded
+
+    missing= [instrument_code for instrument_code in all_instruments_without_duplicates if instrument_code not in configured_in_system]
+    missing.sort()
+
+    print("Missing: %s" % missing)
+    print("No trade: %s" % system.get_list_of_markets_with_trading_restrictions())
