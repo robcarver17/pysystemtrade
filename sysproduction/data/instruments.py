@@ -57,15 +57,31 @@ class diagInstruments(productionDataLayerGeneric):
                                                            for instrument_code in all_instruments
                                                            if not self.has_percentage_commission(instrument_code)]
         all_block_commissions = pd.Series([
-            self.get_block_commission_for_instrument(instrument_code)
+            self.get_block_commission_for_instrument_in_base_currency(instrument_code)
             for instrument_code in all_instruments_excluding_percentage_commission
         ], index=all_instruments_excluding_percentage_commission)
 
         return all_block_commissions
 
-    def get_block_commission_for_instrument(self, instrument_code: str) -> float:
+    def get_block_commission_for_instrument_in_base_currency(self, instrument_code: str) -> float:
+        ccy_value = self.get_block_commission_for_instrument_as_currency_value(instrument_code)
+        currency_data = dataCurrency(self.data)
+        base_value = currency_data.currency_value_in_base(ccy_value)
+
+        return base_value
+
+    def get_block_commission_for_instrument_as_currency_value(self, instrument_code: str) -> currencyValue:
+        currency = self.get_currency(instrument_code)
+        block_commission = self.get_block_commission_for_instrument_as_in_instrument_currency(instrument_code)
+        ccy_value = currencyValue(currency=currency, value=block_commission)
+
+        return ccy_value
+
+    def get_block_commission_for_instrument_as_in_instrument_currency(self, instrument_code: str) -> float:
         costs = self.get_cost_object(instrument_code)
-        return costs.value_of_block_commission
+        block_commission = costs.value_of_block_commission
+
+        return block_commission
 
     def has_percentage_commission(self, instrument_code: str) -> float:
         costs = self.get_cost_object(instrument_code)
