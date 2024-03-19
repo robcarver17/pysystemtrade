@@ -138,12 +138,15 @@ class orderStackData(object):
         """
         Put an order on the stack
 
+        ARgs and Kwargs in case of overwriting
+
         :param new_order: Order
         :return: order_id or failure condition: duplicate_order, failure
         """
         order_id = self._put_order_on_stack_and_get_order_id(new_order)
 
         return order_id
+
 
     # FIND AND LIST ORDERS
 

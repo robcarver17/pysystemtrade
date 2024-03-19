@@ -1,4 +1,3 @@
-from copy import copy
 
 from sysbrokers.broker_factory import get_broker_class_list
 from sysbrokers.broker_fx_handling import brokerFxHandlingData
@@ -10,10 +9,10 @@ from sysbrokers.broker_capital_data import brokerCapitalData
 from sysbrokers.broker_contract_position_data import brokerContractPositionData
 from sysbrokers.broker_fx_prices_data import brokerFxPricesData
 from sysbrokers.broker_instrument_data import brokerFuturesInstrumentData
+from sysbrokers.broker_commissions import brokerFuturesContractCommissionData
 from syscore.exceptions import missingData
 
 from syscore.constants import arg_not_supplied
-from syscore.exceptions import orderCannotBeModified
 from sysexecution.orders.named_order_objects import missing_order
 from syscore.dateutils import Frequency, DAILY_PRICE_FREQ
 from sysobjects.production.trading_hours.trading_hours import listOfTradingHours
@@ -35,7 +34,7 @@ from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysobjects.contract_dates_and_expiries import expiryDate
 from sysobjects.contracts import futuresContract
 from sysobjects.instruments import futuresInstrumentWithMetaData
-from sysobjects.production.positions import contractPosition, listOfContractPositions
+from sysobjects.production.positions import  listOfContractPositions
 from sysobjects.spot_fx_prices import fxPrices
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysproduction.data.positions import diagPositions
@@ -56,6 +55,10 @@ class dataBroker(productionDataLayerGeneric):
         broker_class_list = get_broker_class_list(data)
         data.add_class_list(broker_class_list)
         return data
+
+    @property
+    def broker_futures_contract_commission(self) -> brokerFuturesContractCommissionData:
+        return self.data.broker_futures_contract_commission
 
     @property
     def broker_fx_price_data(self) -> brokerFxPricesData:
@@ -98,6 +101,8 @@ class dataBroker(productionDataLayerGeneric):
         return self._diag_controls
 
     ## Methods
+    def get_commission_for_contract(self, contract: futuresContract) -> float:
+        return self.broker_futures_contract_commission.get_commission_for_contract(contract)
 
     def get_list_of_contract_dates_for_instrument_code(
         self, instrument_code: str, allow_expired: bool = False
@@ -335,19 +340,6 @@ class dataBroker(productionDataLayerGeneric):
     def check_market_conditions_for_single_legged_contract_and_qty(
         self, contract: futuresContract, qty: int
     ) -> analysisTick:
-        """
-        Get current prices
-
-        :param contract_order:
-        :return: tuple: side_price, mid_price OR missing_data
-        """
-
-        """
-        Get current prices
-
-        :param contract_order:
-        :return: tuple: side_price, mid_price OR missing_data
-        """
 
         tick_data = self.get_recent_bid_ask_tick_data_for_contract_object(contract)
 
@@ -357,7 +349,7 @@ class dataBroker(productionDataLayerGeneric):
 
         return analysis_of_tick_data
 
-    def submit_broker_order(self, broker_order: brokerOrder) -> orderWithControls:
+    def submit_broker_order(self, broker_order: brokerOrder, *args, **kwargs) -> orderWithControls:
         """
 
         :param broker_order: a broker_order

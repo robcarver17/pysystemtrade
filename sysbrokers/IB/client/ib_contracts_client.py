@@ -37,6 +37,7 @@ from sysexecution.trade_qty import tradeQuantity
 
 
 class ibContractsClient(ibClient):
+
     def broker_get_futures_contract_list(
         self,
         futures_instrument_with_ib_data: futuresInstrumentWithIBConfigData,
