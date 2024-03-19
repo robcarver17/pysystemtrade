@@ -1,3 +1,5 @@
+import datetime
+
 from sysdata.data_blob import dataBlob
 
 from syscore.constants import arg_not_supplied
@@ -17,6 +19,7 @@ def commissions_report(
 
     reporting_api = reportingApi(
         data,
+        start_date=datetime.datetime.now() ## not required for this report
     )
 
     formatted_output = []
