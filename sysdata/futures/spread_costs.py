@@ -24,6 +24,7 @@ class spreadCostData(baseData):
     def get_spread_costs_as_series(self) -> pd.Series:
         raise NotImplementedError
 
+
     def _get_spread_cost_if_series_provided(self, instrument_code: str) -> float:
         all_data = self.get_spread_costs_as_series()
         return all_data[instrument_code]

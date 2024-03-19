@@ -8,6 +8,8 @@ from sysobjects.contracts import futuresContract
 
 from syslogging.logger import *
 from syscore.genutils import quickTimer
+from sysobjects.spot_fx_prices import currencyValue
+
 
 class ibFuturesContractCommissionData(brokerFuturesContractCommissionData):
     """
@@ -38,29 +40,27 @@ class ibFuturesContractCommissionData(brokerFuturesContractCommissionData):
     def execution_stack(self) -> ibExecutionStackData:
         return self.data.broker_execution_stack
 
-    def get_commission_for_contract(self, futures_contract: futuresContract) -> float:
-        ## FOR NOW DO NOT RUN IF ANYTHING ELSE IS RUNNING
-        ## NEEDS CODE TO TAKE THE TEST STRATEGY OFF THE STACK WHEN RETURNING ORDERS
-        size_of_test_trade = 10
+    def get_commission_for_contract(self, futures_contract: futuresContract) -> currencyValue:
         instrument_code = futures_contract.instrument_code
         contract_date = futures_contract.contract_date.list_of_date_str[0]
 
         broker_order =brokerOrder(test_commission_strategy, instrument_code, contract_date,
                     size_of_test_trade)
 
-        order = self.execution_stack.put_what_if_order_on_stack(broker_order)
+        order = self.execution_stack.what_if_order(broker_order)
 
         timer = quickTimer(5)
+        comm_currency_value = currencyValue(currency='', value=0)
         while timer.unfinished:
-            ## could last forever!
             try:
-                commission, commission_ccy = get_commission_and_currency_from_ib_order(order)
+                comm_currency_value = get_commission_and_currency_from_ib_order(order)
             except:
                 continue
 
-        return commission_ccy, commission / 10.0
+        return comm_currency_value
 
-def get_commission_and_currency_from_ib_order(ib_order: tradeWithContract):
-    return (ib_order.trade.commission, ib_order.trade.commissionCurrency)
+def get_commission_and_currency_from_ib_order(ib_order: tradeWithContract) -> currencyValue:
+    return currencyValue(value=ib_order.trade.commission / size_of_test_trade, currency=ib_order.trade.commissionCurrency)
 
-test_commission_strategy = "testCommmission"
+test_commission_strategy = "testCommmission" ## whatever not put on stack
+size_of_test_trade = 10  ## arbitrary

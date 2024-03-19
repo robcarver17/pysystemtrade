@@ -37,7 +37,7 @@ from sysobjects.contract_dates_and_expiries import expiryDate
 from sysobjects.contracts import futuresContract
 from sysobjects.instruments import futuresInstrumentWithMetaData
 from sysobjects.production.positions import contractPosition, listOfContractPositions
-from sysobjects.spot_fx_prices import fxPrices
+from sysobjects.spot_fx_prices import fxPrices, currencyValue
 from sysobjects.futures_per_contract_prices import futuresContractPrices
 from sysproduction.data.positions import diagPositions
 from sysproduction.data.currency_data import dataCurrency
@@ -102,8 +102,16 @@ class dataBroker(productionDataLayerGeneric):
     def diag_controls(self) -> diagControlProcess:
         return self._diag_controls
 
+    def get_commission_for_contract_in_base(self, contract: futuresContract) -> float:
+        currency_data = dataCurrency(self.data)
+        ccy_value =  self.broker_futures_contract_commission.get_commission_for_contract(contract)
+        base_value = currency_data.currency_value_in_base(ccy_value)
+        
+        return base_value
+
     ## Methods
-    def get_commission_for_contract(self, contract: futuresContract) -> float:
+    def get_commission_for_contract(self, contract: futuresContract) -> currencyValue:
+
         return self.broker_futures_contract_commission.get_commission_for_contract(contract)
 
     def get_list_of_contract_dates_for_instrument_code(
