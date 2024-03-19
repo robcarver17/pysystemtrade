@@ -52,7 +52,7 @@ class diagInstruments(productionDataLayerGeneric):
         return self.db_spread_cost_data.get_spread_costs_as_series()
 
     def get_block_commissions_as_series(self) -> pd.Series:
-        all_instruments = self.db_futures_instrument_data.get_list_of_instruments()
+        all_instruments = self.get_list_of_instruments()
         all_instruments_excluding_percentage_commission = [instrument_code
                                                            for instrument_code in all_instruments
                                                            if not self.has_percentage_commission(instrument_code)]
