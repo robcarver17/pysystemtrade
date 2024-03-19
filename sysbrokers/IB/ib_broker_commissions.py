@@ -6,6 +6,7 @@ from sysexecution.orders.broker_orders import brokerOrder
 from sysobjects.contracts import futuresContract
 
 from syslogging.logger import *
+from syscore.genutils import quickTimer
 
 class ibFuturesContractCommissionData(brokerFuturesContractCommissionData):
     """
@@ -48,11 +49,15 @@ class ibFuturesContractCommissionData(brokerFuturesContractCommissionData):
 
         order = self.execution_stack.put_what_if_order_on_stack(broker_order)
 
-        while not self.execution_stack.is_completed(order.order.order_id):
+        timer = quickTimer(5)
+        while timer.unfinished:
             ## could last forever!
-            continue
+            commission = order.order.commission
+            commission_ccy = order.order.trade_with_contract_from_ib
 
-        order_from_stack = self.execution_stack.get_order_with_id_from_stack(order_id=order.order.order_id)
-        return order_from_stack.commission / 10.0
+            print(commission)
+            print(commission_ccy)
+
+        return commission / 10.0
 
 test_commission_strategy = "testCommmission"
