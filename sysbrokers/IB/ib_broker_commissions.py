@@ -1,5 +1,6 @@
 from sysbrokers.IB.ib_connection import connectionIB
 from sysbrokers.IB.ib_orders import ibExecutionStackData
+from sysbrokers.IB.ib_translate_broker_order_objects import tradeWithContract
 from sysbrokers.broker_contract_commission_data import brokerFuturesContractCommissionData
 from sysdata.data_blob import dataBlob
 from sysexecution.orders.broker_orders import brokerOrder
@@ -52,12 +53,14 @@ class ibFuturesContractCommissionData(brokerFuturesContractCommissionData):
         timer = quickTimer(5)
         while timer.unfinished:
             ## could last forever!
-            commission = order.order.commission
-            commission_ccy = order.order.trade_with_contract_from_ib
+            try:
+                commission, commission_ccy = get_commission_and_currency_from_ib_order(order)
+            except:
+                continue
 
-            print(commission)
-            print(commission_ccy)
+        return commission_ccy, commission / 10.0
 
-        return commission / 10.0
+def get_commission_and_currency_from_ib_order(ib_order: tradeWithContract):
+    return (ib_order.trade.commission, ib_order.trade.commissionCurrency)
 
 test_commission_strategy = "testCommmission"

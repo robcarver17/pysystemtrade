@@ -273,7 +273,7 @@ class ibExecutionStackData(brokerExecutionStackData):
 
         return placed_broker_order_with_controls
 
-    def put_what_if_order_on_stack(self, broker_order: brokerOrder) -> ibOrderWithControls:
+    def put_what_if_order_on_stack(self, broker_order: brokerOrder) -> tradeWithContract:
         """
 
         :param broker_order: key properties are instrument_code, contract_id, quantity
@@ -281,11 +281,7 @@ class ibExecutionStackData(brokerExecutionStackData):
         """
         trade_with_contract_from_ib = self._send_broker_order_to_IB(broker_order, what_if=True)
 
-        placed_broker_order_with_controls = self._return_place_order_given_ib_trade_with_contract(
-            trade_with_contract_from_ib=trade_with_contract_from_ib,
-            broker_order=broker_order)
-
-        return placed_broker_order_with_controls
+        return trade_with_contract_from_ib
 
 
 
