@@ -14,6 +14,12 @@ missing_contract = 'price not collected'
 prices_not_collected = currencyValue(currency='No prices', value=0)
 percentage_commissions = currencyValue(currency='% commission ignore', value=0)
 
+def df_of_configure_and_broker_block_cost_sorted_by_index(data: dataBlob) -> pd.DataFrame:
+    both = df_of_configure_and_broker_block_cost_sorted_by_diff(data)
+    both = both.sort_index()
+
+    return both
+
 def df_of_configure_and_broker_block_cost_sorted_by_diff(data: dataBlob) -> pd.DataFrame:
     list_of_instrument_codes = get_instrument_list(data)
 
@@ -37,11 +43,6 @@ def df_of_configure_and_broker_block_cost_sorted_by_diff(data: dataBlob) -> pd.D
 
     return both
 
-def df_of_configure_and_broker_block_cost_sorted_by_index(data: dataBlob) -> pd.DataFrame:
-    both = df_of_configure_and_broker_block_cost_sorted_by_diff(data)
-    both = both.sort_index()
-
-    return both
 
 
 def update_valid_and_missing_costs_for_instrument_code(instrument_code: str,
