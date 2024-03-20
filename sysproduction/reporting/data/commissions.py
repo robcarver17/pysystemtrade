@@ -27,8 +27,8 @@ def df_of_configure_and_broker_block_cost_sorted_by_diff(data: dataBlob) -> pd.D
                                                            broker_costs=broker_costs,
                                                            configured_costs=configured_costs)
 
-    valid_costs_df = create_df_in_commission_report(valid_costs, sort=True)
-    missing_values_df = create_df_in_commission_report(missing_values, sort=False)
+    valid_costs_df = create_df_in_commission_report(valid_costs)
+    missing_values_df = create_df_in_commission_report(missing_values)
 
     both = pd.concat([valid_costs_df, missing_values_df], axis=0)
 
@@ -51,12 +51,11 @@ def update_valid_and_missing_costs_for_instrument_code(instrument_code: str,
     else:
         missing_values[instrument_code] = [configured_cost.currency, broker_cost.currency, "Currency doesn't match"]
 
-def create_df_in_commission_report(some_dict: dict, sort: bool = True):
+def create_df_in_commission_report(some_dict: dict):
     some_df = pd.DataFrame(some_dict)
     some_df = some_df.transpose()
     some_df.columns =  [CONFIGURED_COLUMN, BROKER_COLUMN, DIFF_COLUMN]
-    if sort:
-        some_df = some_df.sort_values(DIFF_COLUMN, ascending=False)
+    some_df = some_df.sort_values(DIFF_COLUMN, ascending=False)
 
     return some_df
 
