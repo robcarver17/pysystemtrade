@@ -38,7 +38,7 @@ def df_of_configure_and_broker_block_cost_sorted_by_diff(data: dataBlob) -> pd.D
     valid_costs_df = valid_costs_df.transpose()
     missing_values_df = missing_values_df.transpose()
     valid_costs_df.columns = missing_values_df.columns = [CONFIGURED_COLUMN, BROKER_COLUMN, DIFF_COLUMN]
-    valid_costs_df = valid_costs_df.sort_values(DIFF_COLUMN)
+    valid_costs_df = valid_costs_df.sort_values(DIFF_COLUMN, ascending=False)
 
     both = pd.concat([valid_costs_df, missing_values_df], axis=0)
 
