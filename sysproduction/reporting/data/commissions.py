@@ -10,7 +10,7 @@ from sysobjects.contracts import futuresContract
 from sysdata.data_blob import dataBlob
 
 error_getting_costs = currencyValue(currency='Error', value=0)
-missing_contract_id = 'price not collected'
+missing_contract = 'price not collected'
 prices_not_collected = currencyValue(currency='No prices', value=0)
 percentage_commissions = currencyValue(currency='% commission ignore', value=0)
 
@@ -34,9 +34,15 @@ def df_of_configure_and_broker_block_cost_sorted_by_diff(data: dataBlob) -> pd.D
 
     both = pd.concat([valid_costs_df, missing_values_df], axis=0)
 
+
+    return both
+
+def df_of_configure_and_broker_block_cost_sorted_by_index(data: dataBlob) -> pd.DataFrame:
+    both = df_of_configure_and_broker_block_cost_sorted_by_diff(data)
     both = both.sort_index()
 
     return both
+
 
 def update_valid_and_missing_costs_for_instrument_code(instrument_code: str,
                                                        configured_costs: Dict[str, currencyValue],
@@ -110,7 +116,7 @@ def get_current_configured_block_costs(data: dataBlob, list_of_instrument_codes:
 def get_configured_block_cost_for_instrument(data: dataBlob, instrument_code: str)-> currencyValue:
     diag_instruments = diagInstruments(data)
     if diag_instruments.has_percentage_commission(instrument_code):
-        pass
+        return percentage_commissions
     try:
         costs = diag_instruments.get_block_commission_for_instrument_as_currency_value(instrument_code)
     except:
@@ -129,9 +135,10 @@ def get_series_of_priced_contracts(data: dataBlob, list_of_instrument_codes: Lis
     for instrument_code in list_of_instrument_codes:
         try:
             contract_id = dc.get_priced_contract_id(instrument_code)
+            contract = futuresContract(instrument_code, contract_id)
         except:
-            contract_id = missing_contract_id
-        contract = futuresContract(instrument_code, contract_id)
+            contract = missing_contract
+
         list_of_priced_contracts[instrument_code] = contract
 
     return pd.Series(list_of_priced_contracts)
@@ -145,7 +152,7 @@ def get_costs_given_priced_contracts(data: dataBlob, priced_contracts: pd.Series
 
 def get_block_cost_for_single_contract(data: dataBlob, contract: futuresContract):
     db = dataBroker(data)
-    if contract is missing_contract_id:
+    if contract is missing_contract:
         return prices_not_collected
     try:
         return db.get_commission_for_contract_in_currency_value(contract)
