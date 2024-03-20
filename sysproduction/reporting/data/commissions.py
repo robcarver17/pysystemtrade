@@ -2,7 +2,6 @@ from typing import List, Dict
 
 import pandas as pd
 import numpy as np
-from syscore.genutils import list_intersection
 from sysobjects.spot_fx_prices import currencyValue
 from sysproduction.data.instruments import diagInstruments
 from sysproduction.data.broker import dataBroker
@@ -10,36 +9,44 @@ from sysproduction.data.contracts import dataContracts
 from sysobjects.contracts import futuresContract
 from sysdata.data_blob import dataBlob
 
-def df_of_configure_and_broker_block_cost_with_ratio_sorted(data: dataBlob) -> pd.DataFrame:
-    df = df_of_configure_and_broker_block_cost(data)
-    diff = df[BROKER_COLUMN] - df[CONFIGURED_COLUMN]
-    df[RATIO_COLUMN] = ratio
+missing = currencyValue(currency='missing', value=0)
 
-    df.sort_values(by=RATIO_COLUMN)
 
-    return df
-
-def df_of_configure_and_broker_block_cost(data: dataBlob) -> pd.DataFrame:
+def df_of_configure_and_broker_block_cost_sorted_by_diff(data: dataBlob) -> pd.DataFrame:
     list_of_instrument_codes = get_instrument_list(data)
 
     configured_costs = get_current_configured_block_costs(data=data, list_of_instrument_codes=list_of_instrument_codes)
     broker_costs = get_broker_block_costs(data=data, list_of_instrument_codes=list_of_instrument_codes)
 
-    both = []
+    valid_costs = {}
+    missing_values = {}
     for instrument_code in list_of_instrument_codes:
-        configured_cost = configured_costs[instrument_code]
-        broker_cost = broker_costs[instrument_code]
+        configured_cost = configured_costs.get(instrument_code, missing)
+        broker_cost = broker_costs.get(instrument_code, missing)
+        if configured_cost is missing or broker_cost is missing:
+            missing_values[instrument_code] =[configured_cost.currency, broker_cost.currency, "One or both missing"]
+        elif configured_cost.currency==broker_cost.currency:
+            configured_cost_instrument=configured_cost.value
+            broker_cost_instrument = broker_cost.value
+            diff = broker_cost_instrument -configured_cost_instrument
+            valid_costs[instrument_code]=[ configured_cost_instrument, broker_cost_instrument, diff]
+        else:
+            missing_values[instrument_code]=[configured_cost.currency, broker_cost.currency, "Currency doesn't match"]
 
-        if configured_cost.currency==broker_cost.currency:
-            both.append([configured_cost.value, broker_cost.value])
+    valid_costs_df = pd.DataFrame(valid_costs)
+    missing_values_df = pd.DataFrame(missing_values)
+    valid_costs_df = valid_costs_df.transpose()
+    missing_values_df = missing_values_df.transpose()
+    valid_costs_df.columns = missing_values_df.columns = [CONFIGURED_COLUMN, BROKER_COLUMN, DIFF_COLUMN]
+    valid_costs_df = valid_costs_df.sort_values(DIFF_COLUMN)
 
-    both = pd.DataFrame(both)
-    both.columns = [CONFIGURED_COLUMN, BROKER_COLUMN]
+    both = pd.concat([valid_costs_df, missing_values_df], axis=0)
+
     return both
 
 CONFIGURED_COLUMN = 'configured'
 BROKER_COLUMN = 'broker'
-RATIO_COLUMN = 'ratio'
+DIFF_COLUMN = 'diff'
 
 def get_instrument_list(data: dataBlob)-> list:
     db = dataBroker(data)
@@ -54,7 +61,7 @@ def get_current_configured_block_costs(data: dataBlob, list_of_instrument_codes:
         try:
             costs = diag_instruments.get_block_commission_for_instrument_as_currency_value(instrument_code)
         except:
-            costs = np.nan
+            costs = missing
         block_costs_from_config[instrument_code] = costs
 
     return block_costs_from_config
@@ -82,6 +89,7 @@ def get_costs_given_priced_contracts(data: dataBlob, priced_contracts: pd.Series
         try:
             costs = db.get_commission_for_contract_in_currency_value(contract)
         except:
-            costs = np.nan
+            costs = missing
         block_costs_from_broker[instrument_code] = costs
     return block_costs_from_broker
+
