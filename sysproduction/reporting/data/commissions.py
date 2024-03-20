@@ -11,7 +11,7 @@ from sysdata.data_blob import dataBlob
 
 def df_of_configure_and_broker_block_cost_with_ratio_sorted(data: dataBlob) -> pd.DataFrame:
     df = df_of_configure_and_broker_block_cost(data)
-    ratio = df[BROKER_COLUMN] / df[CONFIGURED_COLUMN]
+    diff = df[BROKER_COLUMN] - df[CONFIGURED_COLUMN]
     df[RATIO_COLUMN] = ratio
 
     df.sort_values(by=RATIO_COLUMN)

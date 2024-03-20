@@ -72,7 +72,7 @@ class csvSpreadCostData(spreadCostData):
 
         try:
             spread_cost_data.index = spread_cost_data[INSTRUMENT_COLUMN_NAME]
-            spread_cost_series = spread_cost_data[]
+            spread_cost_series = spread_cost_data[SPREAD_COST_COLUMN_NAME]
 
         except BaseException:
             raise Exception("Badly configured file %s" % (self._config_file))

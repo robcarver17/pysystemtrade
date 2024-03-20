@@ -102,13 +102,6 @@ class dataBroker(productionDataLayerGeneric):
     def diag_controls(self) -> diagControlProcess:
         return self._diag_controls
 
-    def get_commission_for_contract_in_base(self, contract: futuresContract) -> float:
-        currency_data = dataCurrency(self.data)
-        ccy_value =  self.broker_futures_contract_commission.get_commission_for_contract(contract)
-        base_value = currency_data.currency_value_in_base(ccy_value)
-        
-        return base_value
-
     ## Methods
     def get_commission_for_contract(self, contract: futuresContract) -> currencyValue:
 
