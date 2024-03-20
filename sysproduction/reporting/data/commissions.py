@@ -21,28 +21,44 @@ def df_of_configure_and_broker_block_cost_sorted_by_diff(data: dataBlob) -> pd.D
     valid_costs = {}
     missing_values = {}
     for instrument_code in list_of_instrument_codes:
-        configured_cost = configured_costs.get(instrument_code, missing)
-        broker_cost = broker_costs.get(instrument_code, missing)
-        if configured_cost is missing or broker_cost is missing:
-            missing_values[instrument_code] =[configured_cost.currency, broker_cost.currency, "One or both missing"]
-        elif configured_cost.currency==broker_cost.currency:
-            configured_cost_instrument=configured_cost.value
-            broker_cost_instrument = broker_cost.value
-            diff = broker_cost_instrument -configured_cost_instrument
-            valid_costs[instrument_code]=[ configured_cost_instrument, broker_cost_instrument, diff]
-        else:
-            missing_values[instrument_code]=[configured_cost.currency, broker_cost.currency, "Currency doesn't match"]
+        update_valid_and_missing_costs_for_instrument_code(instrument_code=instrument_code,
+                                                           missing_values=missing_values,
+                                                           valid_costs=valid_costs,
+                                                           broker_costs=broker_costs,
+                                                           configured_costs=configured_costs)
 
-    valid_costs_df = pd.DataFrame(valid_costs)
-    missing_values_df = pd.DataFrame(missing_values)
-    valid_costs_df = valid_costs_df.transpose()
-    missing_values_df = missing_values_df.transpose()
-    valid_costs_df.columns = missing_values_df.columns = [CONFIGURED_COLUMN, BROKER_COLUMN, DIFF_COLUMN]
-    valid_costs_df = valid_costs_df.sort_values(DIFF_COLUMN, ascending=False)
+    valid_costs_df = create_df_in_commission_report(valid_costs, sort=True)
+    missing_values_df = create_df_in_commission_report(missing_values, sort=False)
 
     both = pd.concat([valid_costs_df, missing_values_df], axis=0)
 
     return both
+
+def update_valid_and_missing_costs_for_instrument_code(instrument_code: str,
+                                                       configured_costs: Dict[str, currencyValue],
+                                                       broker_costs: dict[str, currencyValue],
+                                                    valid_costs: dict, missing_values: dict):
+    configured_cost = configured_costs.get(instrument_code, missing)
+    broker_cost = broker_costs.get(instrument_code, missing)
+
+    if configured_cost is missing or broker_cost is missing:
+        missing_values[instrument_code] = [configured_cost.currency, broker_cost.currency, "One or both missing"]
+    elif configured_cost.currency == broker_cost.currency:
+        configured_cost_instrument = configured_cost.value
+        broker_cost_instrument = broker_cost.value
+        diff = broker_cost_instrument - configured_cost_instrument
+        valid_costs[instrument_code] = [configured_cost_instrument, broker_cost_instrument, diff]
+    else:
+        missing_values[instrument_code] = [configured_cost.currency, broker_cost.currency, "Currency doesn't match"]
+
+def create_df_in_commission_report(some_dict: dict, sort: bool = True):
+    some_df = pd.DataFrame(some_dict)
+    some_df = some_df.transpose()
+    some_df.columns =  [CONFIGURED_COLUMN, BROKER_COLUMN, DIFF_COLUMN]
+    if sort:
+        some_df = some_df.sort_values(DIFF_COLUMN, ascending=False)
+
+    return some_df
 
 CONFIGURED_COLUMN = 'configured'
 BROKER_COLUMN = 'broker'
