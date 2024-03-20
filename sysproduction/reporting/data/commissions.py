@@ -12,6 +12,7 @@ from sysdata.data_blob import dataBlob
 error_getting_costs = currencyValue(currency='Error', value=0)
 missing_contract_id = 'price not collected'
 prices_not_collected = currencyValue(currency='No prices', value=0)
+percentage_commissions = currencyValue(currency='% commission ignore', value=0)
 
 def df_of_configure_and_broker_block_cost_sorted_by_diff(data: dataBlob) -> pd.DataFrame:
     list_of_instrument_codes = get_instrument_list(data)
@@ -33,6 +34,8 @@ def df_of_configure_and_broker_block_cost_sorted_by_diff(data: dataBlob) -> pd.D
 
     both = pd.concat([valid_costs_df, missing_values_df], axis=0)
 
+    both = both.sort_index()
+
     return both
 
 def update_valid_and_missing_costs_for_instrument_code(instrument_code: str,
@@ -42,7 +45,7 @@ def update_valid_and_missing_costs_for_instrument_code(instrument_code: str,
     configured_cost = configured_costs.get(instrument_code, error_getting_costs)
     broker_cost = broker_costs.get(instrument_code, error_getting_costs)
 
-    if broker_cost is prices_not_collected:
+    if broker_cost is prices_not_collected or configured_cost is percentage_commissions:
         ## skip
         return
 
@@ -98,16 +101,22 @@ def get_instrument_list(data: dataBlob)-> list:
     return list_of_instruments
 
 def get_current_configured_block_costs(data: dataBlob, list_of_instrument_codes: List[str]) -> Dict[str, currencyValue]:
-    diag_instruments = diagInstruments(data)
     block_costs_from_config = {}
     for instrument_code in list_of_instrument_codes:
-        try:
-            costs = diag_instruments.get_block_commission_for_instrument_as_currency_value(instrument_code)
-        except:
-            costs = error_getting_costs
-        block_costs_from_config[instrument_code] = costs
+        block_costs_from_config[instrument_code] = get_configured_block_cost_for_instrument(data=data, instrument_code=instrument_code)
 
     return block_costs_from_config
+
+def get_configured_block_cost_for_instrument(data: dataBlob, instrument_code: str)-> currencyValue:
+    diag_instruments = diagInstruments(data)
+    if diag_instruments.has_percentage_commission(instrument_code):
+        pass
+    try:
+        costs = diag_instruments.get_block_commission_for_instrument_as_currency_value(instrument_code)
+    except:
+        costs = error_getting_costs
+
+    return costs
 
 def get_broker_block_costs(data: dataBlob, list_of_instrument_codes: List[str]) -> Dict[str, currencyValue]:
     priced_contracts = get_series_of_priced_contracts(data=data, list_of_instrument_codes=list_of_instrument_codes)
