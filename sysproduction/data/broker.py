@@ -103,7 +103,7 @@ class dataBroker(productionDataLayerGeneric):
         return self._diag_controls
 
     ## Methods
-    def get_commission_for_contract(self, contract: futuresContract) -> currencyValue:
+    def get_commission_for_contract_in_currency_value(self, contract: futuresContract) -> currencyValue:
 
         return self.broker_futures_contract_commission.get_commission_for_contract(contract)
 

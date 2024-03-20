@@ -64,21 +64,6 @@ class csvSpreadCostData(spreadCostData):
 
         return spread_cost_series
 
-    def get_commissions_as_series(self) -> pd.Series:
-        try:
-            spread_cost_data = pd.read_csv(self.config_file)
-        except BaseException:
-            raise Exception("Can't read file %s" % self.config_file)
-
-        try:
-            spread_cost_data.index = spread_cost_data[INSTRUMENT_COLUMN_NAME]
-            spread_cost_series = spread_cost_data[SPREAD_COST_COLUMN_NAME]
-
-        except BaseException:
-            raise Exception("Badly configured file %s" % (self._config_file))
-
-        return spread_cost_series
-
 
 
     def write_all_instrument_spreads(self, spread_cost_as_series: pd.Series):

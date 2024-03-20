@@ -51,25 +51,6 @@ class diagInstruments(productionDataLayerGeneric):
     def get_spread_costs_as_series(self):
         return self.db_spread_cost_data.get_spread_costs_as_series()
 
-    def get_block_commissions_as_series(self) -> pd.Series:
-        all_instruments = self.get_list_of_instruments()
-        all_instruments_excluding_percentage_commission = [instrument_code
-                                                           for instrument_code in all_instruments
-                                                           if not self.has_percentage_commission(instrument_code)]
-        all_block_commissions = pd.Series([
-            self.get_block_commission_for_instrument_in_base_currency(instrument_code)
-            for instrument_code in all_instruments_excluding_percentage_commission
-        ], index=all_instruments_excluding_percentage_commission)
-
-        return all_block_commissions
-
-    def get_block_commission_for_instrument_in_base_currency(self, instrument_code: str) -> float:
-        ccy_value = self.get_block_commission_for_instrument_as_currency_value(instrument_code)
-        currency_data = dataCurrency(self.data)
-        base_value = currency_data.currency_value_in_base(ccy_value)
-
-        return base_value
-
     def get_block_commission_for_instrument_as_currency_value(self, instrument_code: str) -> currencyValue:
         currency = self.get_currency(instrument_code)
         block_commission = self.get_block_commission_for_instrument_as_in_instrument_currency(instrument_code)
