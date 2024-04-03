@@ -45,5 +45,5 @@ def get_ib_class_list():
         ibCapitalData,
         ibFuturesInstrumentData,
         ibFxHandlingData,
-        ibFuturesContractCommissionData
+        ibFuturesContractCommissionData,
     ]

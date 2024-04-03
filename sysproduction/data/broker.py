@@ -1,6 +1,8 @@
 from copy import copy
 
-from sysbrokers.broker_contract_commission_data import brokerFuturesContractCommissionData
+from sysbrokers.broker_contract_commission_data import (
+    brokerFuturesContractCommissionData,
+)
 from sysbrokers.broker_factory import get_broker_class_list
 from sysbrokers.broker_fx_handling import brokerFxHandlingData
 from sysbrokers.broker_static_data import brokerStaticData
@@ -103,9 +105,12 @@ class dataBroker(productionDataLayerGeneric):
         return self._diag_controls
 
     ## Methods
-    def get_commission_for_contract_in_currency_value(self, contract: futuresContract) -> currencyValue:
-
-        return self.broker_futures_contract_commission.get_commission_for_contract(contract)
+    def get_commission_for_contract_in_currency_value(
+        self, contract: futuresContract
+    ) -> currencyValue:
+        return self.broker_futures_contract_commission.get_commission_for_contract(
+            contract
+        )
 
     def get_list_of_contract_dates_for_instrument_code(
         self, instrument_code: str, allow_expired: bool = False

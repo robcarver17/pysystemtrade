@@ -9,46 +9,59 @@ from sysproduction.data.contracts import dataContracts
 from sysobjects.contracts import futuresContract
 from sysdata.data_blob import dataBlob
 
-error_getting_costs = currencyValue(currency='Error', value=0)
-missing_contract = 'price not collected'
-prices_not_collected = currencyValue(currency='No prices', value=0)
-percentage_commissions = currencyValue(currency='% commission ignore', value=0)
+error_getting_costs = currencyValue(currency="Error", value=0)
+missing_contract = "price not collected"
+prices_not_collected = currencyValue(currency="No prices", value=0)
+percentage_commissions = currencyValue(currency="% commission ignore", value=0)
 
-def df_of_configure_and_broker_block_cost_sorted_by_index(data: dataBlob) -> pd.DataFrame:
+
+def df_of_configure_and_broker_block_cost_sorted_by_index(
+    data: dataBlob,
+) -> pd.DataFrame:
     both = df_of_configure_and_broker_block_cost_sorted_by_diff(data)
     both = both.sort_index()
 
     return both
 
-def df_of_configure_and_broker_block_cost_sorted_by_diff(data: dataBlob) -> pd.DataFrame:
+
+def df_of_configure_and_broker_block_cost_sorted_by_diff(
+    data: dataBlob,
+) -> pd.DataFrame:
     list_of_instrument_codes = get_instrument_list(data)
 
-    configured_costs = get_current_configured_block_costs(data=data, list_of_instrument_codes=list_of_instrument_codes)
-    broker_costs = get_broker_block_costs(data=data, list_of_instrument_codes=list_of_instrument_codes)
+    configured_costs = get_current_configured_block_costs(
+        data=data, list_of_instrument_codes=list_of_instrument_codes
+    )
+    broker_costs = get_broker_block_costs(
+        data=data, list_of_instrument_codes=list_of_instrument_codes
+    )
 
     valid_costs = {}
     missing_values = {}
     for instrument_code in list_of_instrument_codes:
-        update_valid_and_missing_costs_for_instrument_code(instrument_code=instrument_code,
-                                                           missing_values=missing_values,
-                                                           valid_costs=valid_costs,
-                                                           broker_costs=broker_costs,
-                                                           configured_costs=configured_costs)
+        update_valid_and_missing_costs_for_instrument_code(
+            instrument_code=instrument_code,
+            missing_values=missing_values,
+            valid_costs=valid_costs,
+            broker_costs=broker_costs,
+            configured_costs=configured_costs,
+        )
 
     valid_costs_df = create_df_in_commission_report(valid_costs)
     missing_values_df = create_df_in_commission_report(missing_values)
 
     both = pd.concat([valid_costs_df, missing_values_df], axis=0)
 
-
     return both
 
 
-
-def update_valid_and_missing_costs_for_instrument_code(instrument_code: str,
-                                                       configured_costs: Dict[str, currencyValue],
-                                                       broker_costs: dict[str, currencyValue],
-                                                    valid_costs: dict, missing_values: dict):
+def update_valid_and_missing_costs_for_instrument_code(
+    instrument_code: str,
+    configured_costs: Dict[str, currencyValue],
+    broker_costs: dict[str, currencyValue],
+    valid_costs: dict,
+    missing_values: dict,
+):
     configured_cost = configured_costs.get(instrument_code, error_getting_costs)
     broker_cost = broker_costs.get(instrument_code, error_getting_costs)
 
@@ -57,80 +70,132 @@ def update_valid_and_missing_costs_for_instrument_code(instrument_code: str,
         return
 
     if configured_cost is error_getting_costs or broker_cost is error_getting_costs:
-        update_missing_values_with_currencies_and_errors(instrument_code=instrument_code,
-                                                         missing_values=missing_values,
-                                                         configured_cost=configured_cost,
-                                                         broker_cost=broker_cost,
-                                                         error_str="One or both missing")
+        update_missing_values_with_currencies_and_errors(
+            instrument_code=instrument_code,
+            missing_values=missing_values,
+            configured_cost=configured_cost,
+            broker_cost=broker_cost,
+            error_str="One or both missing",
+        )
         return
 
     currency_mismatch = not configured_cost.currency == broker_cost.currency
     if currency_mismatch:
-        update_missing_values_with_currencies_and_errors(instrument_code=instrument_code,
-                                                         missing_values=missing_values,
-                                                         configured_cost=configured_cost,
-                                                         broker_cost=broker_cost,
-                                                         error_str="Currency doesn't match")
+        update_missing_values_with_currencies_and_errors(
+            instrument_code=instrument_code,
+            missing_values=missing_values,
+            configured_cost=configured_cost,
+            broker_cost=broker_cost,
+            error_str="Currency doesn't match",
+        )
         return
 
-    update_valid_costs(valid_costs=valid_costs,
-                       instrument_code=instrument_code,
-                       configured_cost=configured_cost,
-                       broker_cost=broker_cost)
+    update_valid_costs(
+        valid_costs=valid_costs,
+        instrument_code=instrument_code,
+        configured_cost=configured_cost,
+        broker_cost=broker_cost,
+    )
 
 
-def update_missing_values_with_currencies_and_errors(missing_values: dict, configured_cost: currencyValue, broker_cost: currencyValue, instrument_code: str, error_str:str):
-    missing_values[instrument_code] = [configured_cost.currency, broker_cost.currency, error_str]
+def update_missing_values_with_currencies_and_errors(
+    missing_values: dict,
+    configured_cost: currencyValue,
+    broker_cost: currencyValue,
+    instrument_code: str,
+    error_str: str,
+):
+    missing_values[instrument_code] = [
+        configured_cost.currency,
+        broker_cost.currency,
+        error_str,
+    ]
 
-def update_valid_costs(valid_costs: dict, configured_cost: currencyValue, broker_cost: currencyValue, instrument_code: str):
+
+def update_valid_costs(
+    valid_costs: dict,
+    configured_cost: currencyValue,
+    broker_cost: currencyValue,
+    instrument_code: str,
+):
     configured_cost_instrument = configured_cost.value
     broker_cost_instrument = broker_cost.value
     diff = broker_cost_instrument - configured_cost_instrument
-    valid_costs[instrument_code] = [configured_cost_instrument, broker_cost_instrument, diff]
+    valid_costs[instrument_code] = [
+        configured_cost_instrument,
+        broker_cost_instrument,
+        diff,
+    ]
 
 
 def create_df_in_commission_report(some_dict: dict):
     some_df = pd.DataFrame(some_dict)
     some_df = some_df.transpose()
-    some_df.columns =  [CONFIGURED_COLUMN, BROKER_COLUMN, DIFF_COLUMN]
+    some_df.columns = [CONFIGURED_COLUMN, BROKER_COLUMN, DIFF_COLUMN]
     some_df = some_df.sort_values(DIFF_COLUMN, ascending=False)
 
     return some_df
 
-CONFIGURED_COLUMN = 'configured'
-BROKER_COLUMN = 'broker'
-DIFF_COLUMN = 'diff'
 
-def get_instrument_list(data: dataBlob)-> list:
+CONFIGURED_COLUMN = "configured"
+BROKER_COLUMN = "broker"
+DIFF_COLUMN = "diff"
+
+
+def get_instrument_list(data: dataBlob) -> list:
     db = dataBroker(data)
-    list_of_instruments = db.broker_futures_contract_price_data.get_list_of_instrument_codes_with_merged_price_data()
+    list_of_instruments = (
+        db.broker_futures_contract_price_data.get_list_of_instrument_codes_with_merged_price_data()
+    )
 
     return list_of_instruments
 
-def get_current_configured_block_costs(data: dataBlob, list_of_instrument_codes: List[str]) -> Dict[str, currencyValue]:
+
+def get_current_configured_block_costs(
+    data: dataBlob, list_of_instrument_codes: List[str]
+) -> Dict[str, currencyValue]:
     block_costs_from_config = {}
     for instrument_code in list_of_instrument_codes:
-        block_costs_from_config[instrument_code] = get_configured_block_cost_for_instrument(data=data, instrument_code=instrument_code)
+        block_costs_from_config[
+            instrument_code
+        ] = get_configured_block_cost_for_instrument(
+            data=data, instrument_code=instrument_code
+        )
 
     return block_costs_from_config
 
-def get_configured_block_cost_for_instrument(data: dataBlob, instrument_code: str)-> currencyValue:
+
+def get_configured_block_cost_for_instrument(
+    data: dataBlob, instrument_code: str
+) -> currencyValue:
     diag_instruments = diagInstruments(data)
     if diag_instruments.has_percentage_commission(instrument_code):
         return percentage_commissions
     try:
-        costs = diag_instruments.get_block_commission_for_instrument_as_currency_value(instrument_code)
+        costs = diag_instruments.get_block_commission_for_instrument_as_currency_value(
+            instrument_code
+        )
     except:
         costs = error_getting_costs
 
     return costs
 
-def get_broker_block_costs(data: dataBlob, list_of_instrument_codes: List[str]) -> Dict[str, currencyValue]:
-    priced_contracts = get_series_of_priced_contracts(data=data, list_of_instrument_codes=list_of_instrument_codes)
-    block_costs_from_broker = get_costs_given_priced_contracts(data=data, priced_contracts=priced_contracts)
+
+def get_broker_block_costs(
+    data: dataBlob, list_of_instrument_codes: List[str]
+) -> Dict[str, currencyValue]:
+    priced_contracts = get_series_of_priced_contracts(
+        data=data, list_of_instrument_codes=list_of_instrument_codes
+    )
+    block_costs_from_broker = get_costs_given_priced_contracts(
+        data=data, priced_contracts=priced_contracts
+    )
     return block_costs_from_broker
 
-def get_series_of_priced_contracts(data: dataBlob, list_of_instrument_codes: List[str]) -> pd.Series:
+
+def get_series_of_priced_contracts(
+    data: dataBlob, list_of_instrument_codes: List[str]
+) -> pd.Series:
     dc = dataContracts(data)
     list_of_priced_contracts = {}
     for instrument_code in list_of_instrument_codes:
@@ -144,12 +209,18 @@ def get_series_of_priced_contracts(data: dataBlob, list_of_instrument_codes: Lis
 
     return pd.Series(list_of_priced_contracts)
 
-def get_costs_given_priced_contracts(data: dataBlob, priced_contracts: pd.Series) -> Dict[str, currencyValue]:
+
+def get_costs_given_priced_contracts(
+    data: dataBlob, priced_contracts: pd.Series
+) -> Dict[str, currencyValue]:
     block_costs_from_broker = {}
     for instrument_code, contract in priced_contracts.items():
-        block_costs_from_broker[instrument_code] = get_block_cost_for_single_contract(data=data, contract=contract)
+        block_costs_from_broker[instrument_code] = get_block_cost_for_single_contract(
+            data=data, contract=contract
+        )
 
     return block_costs_from_broker
+
 
 def get_block_cost_for_single_contract(data: dataBlob, contract: futuresContract):
     db = dataBroker(data)

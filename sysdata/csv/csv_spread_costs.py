@@ -64,8 +64,6 @@ class csvSpreadCostData(spreadCostData):
 
         return spread_cost_series
 
-
-
     def write_all_instrument_spreads(self, spread_cost_as_series: pd.Series):
         spread_cost_as_df = pd.DataFrame(spread_cost_as_series)
         spread_cost_as_df.columns = [SPREAD_COST_COLUMN_NAME]

@@ -64,7 +64,7 @@ from sysproduction.reporting.report_configs import (
     remove_markets_report_config,
     market_monitor_report_config,
     account_curve_report_config,
-commission_report_config
+    commission_report_config,
 )
 
 
@@ -232,6 +232,7 @@ def slippage_report(data):
     report_config = email_or_print_or_file(slippage_report_config)
     report_config.modify_kwargs(start_date=start_date, end_date=end_date)
     run_report(report_config, data=data)
+
 
 def commission_report(data):
     report_config = email_or_print_or_file(commission_report_config)

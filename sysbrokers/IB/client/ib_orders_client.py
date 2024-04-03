@@ -91,7 +91,7 @@ class ibOrdersClient(ibContractsClient):
         account_id: str = arg_not_supplied,
         order_type: brokerOrderType = market_order_type,
         limit_price: float = None,
-        what_if: bool = False
+        what_if: bool = False,
     ) -> tradeWithContract:
         """
 
