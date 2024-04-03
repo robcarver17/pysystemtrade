@@ -1,3 +1,5 @@
+import pandas as pd
+
 from sysdata.data_blob import dataBlob
 from sysdata.futures.instruments import futuresInstrumentData
 from sysdata.futures.spread_costs import spreadCostData
@@ -48,6 +50,23 @@ class diagInstruments(productionDataLayerGeneric):
 
     def get_spread_costs_as_series(self):
         return self.db_spread_cost_data.get_spread_costs_as_series()
+
+    def get_block_commission_for_instrument_as_currency_value(self, instrument_code: str) -> currencyValue:
+        currency = self.get_currency(instrument_code)
+        block_commission = self.get_block_commission_for_instrument_as_in_instrument_currency(instrument_code)
+        ccy_value = currencyValue(currency=currency, value=block_commission)
+
+        return ccy_value
+
+    def get_block_commission_for_instrument_as_in_instrument_currency(self, instrument_code: str) -> float:
+        costs = self.get_cost_object(instrument_code)
+        block_commission = costs.value_of_block_commission
+
+        return block_commission
+
+    def has_percentage_commission(self, instrument_code: str) -> float:
+        costs = self.get_cost_object(instrument_code)
+        return costs.percentage_cost>0
 
     def get_cost_object(self, instrument_code: str) -> instrumentCosts:
         meta_data = self.get_meta_data(instrument_code)

@@ -103,6 +103,12 @@ slippage_report_config = reportConfig(
     output="email",
 )
 
+commission_report_config = reportConfig(
+    title="Commission report",
+    function="sysproduction.reporting.commissions_report.commissions_report",
+    output="email",
+)
+
 instrument_risk_report_config = reportConfig(
     title="Instrument risk report",
     function="sysproduction.reporting.instrument_risk_report.instrument_risk_report",
@@ -157,4 +163,5 @@ report_config_defaults = dict(
     remove_markets_report=remove_markets_report_config,
     market_monitor_report=market_monitor_report_config,
     account_curve_report=account_curve_report_config,
+    commission_report_config=commission_report_config
 )

@@ -91,6 +91,7 @@ class ibOrdersClient(ibContractsClient):
         account_id: str = arg_not_supplied,
         order_type: brokerOrderType = market_order_type,
         limit_price: float = None,
+        what_if: bool = False
     ) -> tradeWithContract:
         """
 
@@ -121,7 +122,10 @@ class ibOrdersClient(ibContractsClient):
             limit_price=limit_price,
         )
 
-        order_object = self.ib.placeOrder(ibcontract, ib_order)
+        if what_if:
+            order_object = self.ib.whatIfOrder(ibcontract, ib_order)
+        else:
+            order_object = self.ib.placeOrder(ibcontract, ib_order)
 
         trade_with_contract = tradeWithContract(ibcontract_with_legs, order_object)
 
@@ -136,7 +140,7 @@ class ibOrdersClient(ibContractsClient):
     ) -> ibOrder:
         ib_BS_str, ib_qty = resolveBS_for_list(trade_list)
 
-        if order_type is market_order_type:
+        if order_type == market_order_type:
             ib_order = ibMarketOrder(ib_BS_str, ib_qty)
         elif order_type is limit_order_type:
             if limit_price is None:

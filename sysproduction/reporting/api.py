@@ -88,6 +88,7 @@ from sysproduction.reporting.data.status import (
     get_position_limits_as_df,
 )
 from sysproduction.reporting.data.volume import get_liquidity_data_df
+from sysproduction.reporting.data.commissions import df_of_configure_and_broker_block_cost_sorted_by_diff
 
 REPORT_DATETIME_FORMAT = "%d/%m/%Y %H:%M"
 
@@ -938,6 +939,24 @@ class reportingApi(object):
         )
 
         return combined_df_costs
+
+    ##### COMMISSIONS ####
+    def table_of_commissions(self):
+        df = self.df_commissions()
+        df_as_formatted_table = table(
+            "Commissions in base currency, configure and from broker", df
+        )
+
+        return df_as_formatted_table
+
+    def df_commissions(self):
+        return self.cache.get(self._df_commissions)
+
+    def _df_commissions(self):
+        combined_df_costs = df_of_configure_and_broker_block_cost_sorted_by_diff(self.data)
+
+        return combined_df_costs
+
 
     ##### TRADES ######
     def table_of_orders_overview(self):

@@ -266,11 +266,30 @@ class ibExecutionStackData(brokerExecutionStackData):
         :param broker_order: key properties are instrument_code, contract_id, quantity
         :return: ibOrderWithControls or missing_order
         """
-        trade_with_contract_from_ib = self._send_broker_order_to_IB(broker_order)
-        order_time = datetime.datetime.now()
+        trade_with_contract_from_ib = self._send_broker_order_to_IB(broker_order, what_if=False)
 
+        placed_broker_order_with_controls = self._return_place_order_given_ib_trade_with_contract(trade_with_contract_from_ib=trade_with_contract_from_ib,
+                                                                                                  broker_order=broker_order)
+
+        return placed_broker_order_with_controls
+
+    def what_if_order(self, broker_order: brokerOrder) -> tradeWithContract:
+        """
+
+        :param broker_order: key properties are instrument_code, contract_id, quantity
+        :return: ibOrderWithControls or missing_order
+        """
+        trade_with_contract_from_ib = self._send_broker_order_to_IB(broker_order, what_if=True)
+
+        return trade_with_contract_from_ib
+
+
+
+    def _return_place_order_given_ib_trade_with_contract(self, trade_with_contract_from_ib: tradeWithContract, broker_order: brokerOrder) -> ibOrderWithControls:
         if trade_with_contract_from_ib is missing_order:
             return missing_order
+
+        order_time = datetime.datetime.now()
 
         placed_broker_order_with_controls = ibOrderWithControls(
             trade_with_contract_from_ib,
@@ -288,7 +307,8 @@ class ibExecutionStackData(brokerExecutionStackData):
 
         return placed_broker_order_with_controls
 
-    def _send_broker_order_to_IB(self, broker_order: brokerOrder) -> tradeWithContract:
+
+    def _send_broker_order_to_IB(self, broker_order: brokerOrder, what_if: bool = False) -> tradeWithContract:
         """
 
         :param broker_order: key properties are instrument_code, contract_id, quantity
@@ -317,6 +337,7 @@ class ibExecutionStackData(brokerExecutionStackData):
             account_id=account_id,
             order_type=order_type,
             limit_price=limit_price,
+            what_if=what_if
         )
         if placed_broker_trade_object is missing_order:
             self.log.warning("Couldn't submit order", **log_attrs)
@@ -325,6 +346,7 @@ class ibExecutionStackData(brokerExecutionStackData):
         self.log.debug("Order submitted to IB", **log_attrs)
 
         return placed_broker_trade_object
+
 
     def match_db_broker_order_to_order_from_brokers(
         self, broker_order_to_match: brokerOrder
