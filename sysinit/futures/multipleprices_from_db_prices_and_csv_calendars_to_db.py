@@ -47,10 +47,10 @@ def _get_data_inputs(csv_roll_data_path, csv_multiple_data_path):
 
 
 def process_multiple_prices_all_instruments(
-    csv_multiple_data_path=arg_not_supplied,
-    csv_roll_data_path=arg_not_supplied,
-    ADD_TO_DB=True,
-    ADD_TO_CSV=False,
+        csv_multiple_data_path=arg_not_supplied,
+        csv_roll_data_path=arg_not_supplied,
+        ADD_TO_DB=True,
+        ADD_TO_CSV=False,
 ):
     (
         _not_used1,
@@ -74,15 +74,15 @@ def process_multiple_prices_all_instruments(
 
 
 def process_multiple_prices_single_instrument(
-    instrument_code,
-    target_instrument_code=arg_not_supplied,
-    adjust_calendar_to_prices=True,
-    csv_multiple_data_path=arg_not_supplied,
-    csv_roll_data_path=arg_not_supplied,
-    roll_parameters=arg_not_supplied,
-    roll_calendar=arg_not_supplied,
-    ADD_TO_DB=True,
-    ADD_TO_CSV=False,
+        instrument_code,
+        target_instrument_code=arg_not_supplied,
+        adjust_calendar_to_prices=True,
+        csv_multiple_data_path=arg_not_supplied,
+        csv_roll_data_path=arg_not_supplied,
+        roll_parameters=arg_not_supplied,
+        roll_calendar=arg_not_supplied,
+        ADD_TO_DB=True,
+        ADD_TO_CSV=False,
 ):
     if target_instrument_code is arg_not_supplied:
         target_instrument_code = instrument_code
@@ -153,9 +153,9 @@ def adjust_roll_calendar(instrument_code, roll_calendar):
 
 
 def add_phantom_row(
-    roll_calendar,
-    dict_of_futures_contract_prices: dictFuturesContractFinalPrices,
-    roll_parameters: rollParameters,
+        roll_calendar,
+        dict_of_futures_contract_prices: dictFuturesContractFinalPrices,
+        roll_parameters: rollParameters,
 ):
     final_row = roll_calendar.iloc[-1]
     if datetime.datetime.now() < final_row.name:

@@ -48,7 +48,7 @@ from systems.trading_rules import TradingRule
 
 ewmac_rule = TradingRule(ewmac)
 my_rules = Rules(dict(ewmac=ewmac_rule))
-ewmac_rule
+print(ewmac_rule)
 """
 ... or two...
 """
@@ -64,7 +64,7 @@ my_system.rules.get_raw_forecast("SOFR", "ewmac32").tail(5)
 from sysdata.config.configdata import Config
 
 my_config = Config()
-my_config
+print(my_config)
 
 empty_rules = Rules()
 my_config.trading_rules = dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
@@ -110,8 +110,8 @@ combiner = ForecastCombine()
 raw_data = RawData()
 position_size = PositionSizing()
 
-
 my_config.forecast_weight_estimate = dict(method="one_period")
+
 my_config.use_forecast_weight_estimates = True
 my_config.use_forecast_div_mult_estimates = True
 
