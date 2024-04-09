@@ -206,7 +206,7 @@ if __name__ == "__main__":
     #
     # spotfx_from_csv_and_investing_dot_com()
 
-    from sysdata.csv.csv_spot_fx import *
-
-    data = csvFxPricesData()
-    data.get_fx_prices("GBPUSD")
+    # from sysdata.csv.csv_spot_fx import *
+    #
+    # data = csvFxPricesData()
+    # data.get_fx_prices("GBPUSD")

@@ -23,7 +23,7 @@ def _get_data_inputs(csv_adj_data_path):
 
 
 def process_adjusted_prices_all_instruments(
-    csv_adj_data_path=arg_not_supplied, ADD_TO_DB=True, ADD_TO_CSV=False
+        csv_adj_data_path=arg_not_supplied, ADD_TO_DB=True, ADD_TO_CSV=False
 ):
     db_multiple_prices, _notused, _alsonotused = _get_data_inputs(csv_adj_data_path)
     instrument_list = db_multiple_prices.get_list_of_instruments()
@@ -38,11 +38,11 @@ def process_adjusted_prices_all_instruments(
 
 
 def process_adjusted_prices_single_instrument(
-    instrument_code,
-    csv_adj_data_path=arg_not_supplied,
-    multiple_prices=arg_not_supplied,
-    ADD_TO_DB=True,
-    ADD_TO_CSV=False,
+        instrument_code,
+        csv_adj_data_path=arg_not_supplied,
+        multiple_prices=arg_not_supplied,
+        ADD_TO_DB=True,
+        ADD_TO_CSV=False,
 ):
     (
         arctic_multiple_prices,
