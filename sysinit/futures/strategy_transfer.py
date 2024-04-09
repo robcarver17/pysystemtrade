@@ -11,7 +11,7 @@ from sysdata.data_blob import dataBlob
 
 
 def transfer_positions_between_strategies(
-    old_strategy: str, new_strategy: str, instruments_to_transfer=arg_not_supplied
+        old_strategy: str, new_strategy: str, instruments_to_transfer=arg_not_supplied
 ):
     data = dataBlob()
     old_positions = get_old_strategy_positions(data, old_strategy)
@@ -40,11 +40,11 @@ def get_old_strategy_positions(data: dataBlob, old_strategy: str):
 
 
 def transfer_position_instrument(
-    data,
-    old_strategy: str,
-    new_strategy: str,
-    instrument_code: str,
-    old_positions: dict,
+        data,
+        old_strategy: str,
+        new_strategy: str,
+        instrument_code: str,
+        old_positions: dict,
 ):
     current_position = old_positions[instrument_code]
     filled_price = get_last_price(data, instrument_code)
@@ -73,7 +73,7 @@ def get_last_price(data: dataBlob, instrument_code: str):
 
 
 def balance_trade(
-    data, strategy_name: str, instrument_code: str, fill_qty: int, filled_price: float
+        data, strategy_name: str, instrument_code: str, fill_qty: int, filled_price: float
 ):
     instrument_order = instrumentOrder(
         strategy_name,
