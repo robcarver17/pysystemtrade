@@ -17,7 +17,7 @@ investing_dot_com_config = ConfigCsvFXPrices(
 
 
 def spotfx_from_csv_and_investing_dot_com(
-    datapath, ADD_TO_DB=True, ADD_TO_CSV=True, ADD_EXTRA_DATA=True
+        datapath, ADD_TO_DB=True, ADD_TO_CSV=True, ADD_EXTRA_DATA=True
 ):
     # You can adapt this for different providers by changing these parameters
     if ADD_EXTRA_DATA:

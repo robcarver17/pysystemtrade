@@ -48,7 +48,7 @@ def seed_price_data_for_contract(data: dataBlob, contract_object: futuresContrac
 
 
 def seed_price_data_for_contract_at_frequency(
-    data: dataBlob, contract_object: futuresContract, frequency: Frequency
+        data: dataBlob, contract_object: futuresContract, frequency: Frequency
 ):
     data_broker = dataBroker(data)
     update_prices = updatePrices(data)
