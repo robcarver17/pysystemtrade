@@ -172,7 +172,7 @@ print(my_system.portfolio.get_instrument_diversification_multiplier().tail(5))
 portfolio = Portfolios()
 my_config.use_instrument_weight_estimates = False
 my_config.use_instrument_div_mult_estimates = False
-my_config.instrument_weights = dict(US10=0.1, SOFR=0.4, CORN=0.3, SP500=0.2)
+my_config.instrument_weights = dict(ALUMINIUM=0.3, SOFR=0.4, CORN=0.3)
 my_config.instrument_div_multiplier = 1.5
 
 my_system = System(
@@ -201,7 +201,7 @@ Another approach is to create a config object
 my_config = Config(
     dict(
         trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32),
-        instrument_weights=dict(US10=0.1, SOFR=0.4, CORN=0.3, SP500_micro=0.2),
+        instrument_weights=dict(ALUMINIUM=0.3, SOFR=0.4, CORN=0.3),
         instrument_div_multiplier=1.5,
         forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65),
         forecast_weights=dict(ewmac8=0.5, ewmac32=0.5),
@@ -229,7 +229,7 @@ print(my_system.portfolio.get_notional_position("SOFR").tail(5))
 """
 ... or to import one
 """
-my_config = Config("systems.provided.example.simplesystemconfig.yaml")
+my_config = Config("systems.provided.example.simplesystemactualdataconfig.yaml")
 print(my_config)
 my_system = System(
     [

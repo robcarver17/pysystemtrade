@@ -8,7 +8,7 @@ clientId = 1  # Client ID, ensure it's unique if running multiple sessions
 
 # Forex symbol and duration
 currency_pair = 'EURUSD'  # Example currency pair
-duration = '2 D'  # Duration of historical data, "2 D" for 2 days as an example
+duration = '365 D'  # Duration of historical data, "2 D" for 2 days as an example
 barSize = '1 hour'  # 1-hour bars
 
 # Initialize IB and connect
