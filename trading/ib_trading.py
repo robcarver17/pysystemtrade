@@ -12,6 +12,10 @@ from sysproduction.update_sampled_contracts import update_sampled_contracts
 from sysinit.futures.rollcalendars_from_providedcsv_prices import \
     generate_roll_calendars_from_provided_multiple_csv_prices
 from sysinit.futures.adjustedprices_from_db_multiple_to_db import process_adjusted_prices_all_instruments
+from sysproduction.update_historical_prices import update_historical_prices
+from sysproduction.interactive_manual_check_historical_prices import interactive_manual_check_historical_prices
+from sysinit.futures.spotfx_from_csvAndInvestingDotCom_to_db import spotfx_from_csv_and_investing_dot_com
+from sysproduction.update_multiple_adjusted_prices import update_multiple_adjusted_prices
 
 if __name__ == "__main__":
 
@@ -59,7 +63,8 @@ if __name__ == "__main__":
 
     ####################################################################################################################
 
-    # Writing multiple prices from .csv to database
+    # Writing multiple prices from .csv to database: MIGHT NOT BE REQUIRED!!! IT GENERATES THE FOLLOWING ERROR:
+    # syscore.exceptions.ContractNotFound: Contract BBCOMM/20231200 not found
     # init_arctic_with_csv_futures_contract_prices(
     #     adj_price_datapath=arg_not_supplied, multiple_price_datapath=arg_not_supplied
     # )
@@ -73,14 +78,19 @@ if __name__ == "__main__":
     ####################################################################################################################
 
     # Updating historical prices (Daily)
-    # from sysproduction.update_historical_prices import update_historical_prices
+
     # update_historical_prices()
 
     ####################################################################################################################
 
+    # Updating multiple adjusted prices (Daily)
+
+    update_multiple_adjusted_prices()
+
+    ####################################################################################################################
+
     # Interactive manual check historical prices
-    # from sysproduction.interactive_manual_check_historical_prices import interactive_manual_check_historical_prices
-    #
+
     # interactive_manual_check_historical_prices()
 
     ####################################################################################################################
@@ -120,8 +130,8 @@ if __name__ == "__main__":
 
     # Updating multiple prices
 
-    # import os
-    #
+
+
     # from sysinit.futures.multipleprices_from_db_prices_and_csv_calendars_to_db import \
     #     process_multiple_prices_single_instrument
     #
@@ -133,7 +143,7 @@ if __name__ == "__main__":
 
     # Splicing multiple prices
 
-    # import os
+
     #
     # supplied_file = os.path.join('/Users/eonum/PycharmProjects/pysystemtrade/data', 'futures', 'multiple_prices_csv',
     #                              instrument_code + '.csv')  # repo data
@@ -202,10 +212,9 @@ if __name__ == "__main__":
 
     ####################################################################################################################
 
-    # from sysinit.futures.spotfx_from_csvAndInvestingDotCom_to_db import spotfx_from_csv_and_investing_dot_com
-    #
-    # spotfx_from_csv_and_investing_dot_com()
 
+    # spotfx_from_csv_and_investing_dot_com()
+    #
     # from sysdata.csv.csv_spot_fx import *
     #
     # data = csvFxPricesData()

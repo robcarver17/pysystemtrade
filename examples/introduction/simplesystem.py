@@ -111,7 +111,6 @@ raw_data = RawData()
 position_size = PositionSizing()
 
 my_config.forecast_weight_estimate = dict(method="one_period")
-
 my_config.use_forecast_weight_estimates = True
 my_config.use_forecast_div_mult_estimates = True
 
