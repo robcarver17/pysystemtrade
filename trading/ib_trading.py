@@ -16,9 +16,9 @@ from sysproduction.update_historical_prices import update_historical_prices
 from sysproduction.interactive_manual_check_historical_prices import interactive_manual_check_historical_prices
 from sysinit.futures.spotfx_from_csvAndInvestingDotCom_to_db import spotfx_from_csv_and_investing_dot_com
 from sysproduction.update_multiple_adjusted_prices import update_multiple_adjusted_prices
+from sysdata.csv.csv_spot_fx import *
 
 if __name__ == "__main__":
-
     # Instrument configuration and spread costs
     # ps wuax | grep mongo
     # mongod --dbpath ~/data/mongodb/
@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     # Updating multiple adjusted prices (Daily)
 
-    update_multiple_adjusted_prices()
+    # update_multiple_adjusted_prices()
 
     ####################################################################################################################
 
@@ -130,8 +130,6 @@ if __name__ == "__main__":
 
     # Updating multiple prices
 
-
-
     # from sysinit.futures.multipleprices_from_db_prices_and_csv_calendars_to_db import \
     #     process_multiple_prices_single_instrument
     #
@@ -142,7 +140,6 @@ if __name__ == "__main__":
     ####################################################################################################################
 
     # Splicing multiple prices
-
 
     #
     # supplied_file = os.path.join('/Users/eonum/PycharmProjects/pysystemtrade/data', 'futures', 'multiple_prices_csv',
@@ -212,10 +209,8 @@ if __name__ == "__main__":
 
     ####################################################################################################################
 
+    spotfx_from_csv_and_investing_dot_com('/Users/eonum/data', ADD_TO_DB=False, ADD_TO_CSV=True, ADD_EXTRA_DATA=False)
+    #
 
-    # spotfx_from_csv_and_investing_dot_com()
-    #
-    # from sysdata.csv.csv_spot_fx import *
-    #
-    # data = csvFxPricesData()
-    # data.get_fx_prices("GBPUSD")
+    data = csvFxPricesData()
+    data.get_fx_prices("GBPUSD")
