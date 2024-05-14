@@ -164,7 +164,7 @@ def _adjust_df_column_for_SR_costs(
     daily_gross_return_std = daily_gross_returns_for_column.std()
     daily_SR_cost = dict_of_SR_costs[column_name] / ROOT_BDAYS_INYEAR
 
-    daily_returns_cost = - daily_SR_cost * daily_gross_return_std
+    daily_returns_cost = -daily_SR_cost * daily_gross_return_std
 
     daily_returns_cost_as_list = [daily_returns_cost] * len(gross_returns.index)
     daily_returns_cost_as_ts = pd.Series(
