@@ -340,7 +340,7 @@ def wait_for_next_method_run_time(process_to_run: processToRun):
         )
         process_to_run.log.debug(msg)
         sys.stdout.flush()
-        time.sleep(seconds_to_next_run)
+        time.sleep(sleep_time)
 
 
 ## PAUSE CODE
