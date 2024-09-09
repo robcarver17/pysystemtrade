@@ -1,0 +1,6 @@
+carry90:
+    function: systems.provided.rules.carry.carry
+    data:
+        - "rawdata.raw_carry"
+    other_args:
+        smooth_days: 60

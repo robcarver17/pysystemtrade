@@ -1,0 +1,6 @@
+breakout20:
+    function: systems.provided.rules.breakout.breakout
+    data:
+        - "rawdata.get_daily_prices"
+    other_args:
+      lookback: 20

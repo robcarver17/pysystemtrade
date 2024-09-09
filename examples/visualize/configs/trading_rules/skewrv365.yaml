@@ -1,0 +1,9 @@
+skewrv365:
+     function: systems.provided.rules.factors.factor_trading_rule
+     data:
+          - 'rawdata.get_demeanded_factor_value'
+     other_args:
+          smooth: 90
+          _factor_name: 'neg_skew'
+          _demean_method: 'average_factor_value_in_asset_class_for_instrument'
+          _lookback_days: 365

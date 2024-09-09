@@ -1,0 +1,5 @@
+relcarry:
+     function: systems.provided.rules.carry.relative_carry
+     data:
+          - "rawdata.smoothed_carry"
+          - "rawdata.median_carry_for_asset_class"

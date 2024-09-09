@@ -1,0 +1,41 @@
+defaults:
+    - _self_
+    - trading_rules:
+        - ewmac16_64
+        - ewmac32_128
+        - ewmac64_256
+        - carry90
+
+name: simple_default
+rule_variations: ['ewmac16_64', 'ewmac32_128', 'ewmac64_256', 'carry90']
+
+# Forecast
+use_forecast_scale_estimates: True
+forecast_scale_estimate:
+    pool_instruments: True
+
+# Forecast combination:
+use_forecast_weight_estimates: True
+use_forecast_div_mult_estimates: True
+forecast_correlation_estimate:
+    pool_instruments: True
+
+# Instrument weighting:
+use_instrument_weight_estimates: True
+use_instrument_div_mult_estimates: True
+
+# Capital correction
+percentage_vol_target: 20.0
+notional_trading_capital: 250000
+base_currency: "USD"
+
+# Misc
+use_wandb: True
+log_dir: ./exp_local/${now:%Y.%m.%d}/${now:%H%M%S}
+
+# Portfolio creation
+instruments: ["SOFR", "US10", "EUROSTX", "MXP", "CORN", "V2X"]
+
+hydra:
+    run:
+        dir: ./exp_local/${now:%Y.%m.%d}

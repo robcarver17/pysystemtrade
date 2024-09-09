@@ -1,0 +1,7 @@
+relmomentum20:
+     function: systems.provided.rules.rel_mom.relative_momentum
+     data:
+         - "rawdata.get_cumulative_daily_vol_normalised_returns"
+         - "rawdata.normalised_price_for_asset_class"
+     other_args:
+       horizon: 20

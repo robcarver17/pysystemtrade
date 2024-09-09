@@ -1,0 +1,7 @@
+mrinasset1000:
+     function: systems.provided.rules.cs_mr.cross_sectional_mean_reversion
+     data:
+         - "rawdata.get_cumulative_daily_vol_normalised_returns"
+         - "rawdata.normalised_price_for_asset_class"
+     other_args:
+       horizon: 1000

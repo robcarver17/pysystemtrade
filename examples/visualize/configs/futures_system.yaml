@@ -1,0 +1,128 @@
+defaults:
+    - _self_
+    - trading_rules:
+        - accel16
+        - accel32
+        - accel64
+        - assettrend2
+        - assettrend4
+        - assettrend8
+        - assettrend16
+        - assettrend32
+        - breakout10
+        - breakout20
+        - breakout40
+        - breakout80
+        - breakout160
+        - breakout320
+        - carry10
+        - carry30
+        - carry90
+        - carry125
+        - ewmac2_8
+        - ewmac4_16
+        - ewmac8_32
+        - ewmac16_64
+        - ewmac32_128
+        - ewmac64_256
+        - momentum4
+        - momentum8
+        - momentum16
+        - momentum32
+        - momentum64
+        - mrinasset1000
+        - normnorm2
+        - normnorm4
+        - normnorm8
+        - normnorm16
+        - normnorm32
+        - normnorm64
+        - relcarry
+        - relmomentum10
+        - relmomentum20
+        - relmomentum40
+        - relmomentum80
+        - skewabs365
+        - skewrv180
+        - skewrv365
+
+name: futures_default
+# rule_variations: []
+
+# Forecast
+use_forecast_scale_estimates: True
+forecast_scale_estimates:
+    pool_instruments: True
+volatility_calculation:
+    func: "sysquant.estimators.vol.mixed_vol_calc"
+    days: 35
+    min_periods: 10
+    vol_abs_min: 0.0000000001
+    slow_vol_years: 20
+    proportion_of_slow_vol: 0.35
+    backfill: True
+
+# Forecast combination
+use_forceast_weight_estimates: True
+use_forecast_div_mult_estimates: True
+forecast_correlation_estimate:
+    pool_instruments: True
+
+use_attenuation:
+   - 'breakout10'
+   - 'breakout20'
+   - 'breakout40'
+   - 'breakout80'
+   - 'breakout160'
+   - 'breakout320'
+   - 'relmomentum10'
+   - 'relmomentum20'
+   - 'relmomentum40'
+   - 'relmomentum80'
+   - 'mrinasset1000'
+   - 'assettrend2'
+   - 'assettrend4'
+   - 'assettrend8'
+   - 'assettrend16'
+   - 'assettrend32'
+   - 'assettrend64'
+   - 'normmom2'
+   - 'normmom4'
+   - 'normmom8'
+   - 'normmom16'
+   - 'normmom32'
+   - 'normmom64'
+   - 'momentum4'
+   - 'momentum8'
+   - 'momentum16'
+   - 'momentum32'
+   - 'momentum64'
+
+# Instrument weighting
+use_instrument_weight_estimates: True
+use_instrument_div_mult_estimates: True
+instrument_div_multiplier: 2.75
+risk_overlay:
+    max_risk_fraction_normal_risk: 1.75
+    max_risk_fraction_stdev_risk: 4.0
+    max_risk_limit_sum_abs_risk: 4.0
+    max_risk_leverage: 20.0
+
+# Capital correction
+percentage_vol_target: 25.0
+notional_trading_capital: 500000
+base_currency: "USD"
+
+# Portfolio creation
+instruments: [AEX, CANOLA, GILT]
+
+# Misc
+n_threads: 40
+log_dir: ./exp_local/${now:%Y.%m.%d}/${now:%H%M%S}
+load_model: True
+save_model: False
+model_loc: private/models/futures_default/system
+
+hydra:
+    run:
+        dir: ./exp_local/${now:%Y.%m.%d}
