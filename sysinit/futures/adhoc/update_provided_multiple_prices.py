@@ -30,7 +30,7 @@ process_multiple_prices_single_instrument(instrument_code,
                                           ADD_TO_CSV=True)
 input("Review multiple prices, press Enter to continue")
 
-supplied_file = os.path.join(os.sep, 'home', 'todd', 'pysystemtrade', 'data', 'futures', 'multiple_prices_csv',
+supplied_file = os.path.join(os.sep, 'home', 'vcaldas', "aptrade", 'data', 'futures', 'multiple_prices_csv',
                              instrument_code + '.csv')  # repo data
 generated_file = os.path.join(multiple_prices_from_db, instrument_code + '.csv')
 
@@ -52,6 +52,7 @@ if first_generated == last_supplied:
 
 # check we're using the same price and forward contracts
 # (i.e. no rolls missing, which there shouldn't be if there is date overlap)
+# Note that this might cause errors because IB cannot go back that long.
 try:
     assert (supplied.iloc[-1].PRICE_CONTRACT == generated.loc[last_supplied:].iloc[0].PRICE_CONTRACT)
     assert (supplied.iloc[-1].FORWARD_CONTRACT == generated.loc[last_supplied:].iloc[0].FORWARD_CONTRACT)
