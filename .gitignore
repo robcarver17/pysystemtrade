@@ -28,3 +28,7 @@ venv/
 
 # libreoffice
 .~lock.*
+
+# Data Ignorating
+data/
+logs

@@ -22,7 +22,7 @@ from sysobjects.contracts import futuresContract
 # IB state that pacing violations only occur for bar sizes of less than 1 minute
 # See footnote at bottom of
 # https://interactivebrokers.github.io/tws-api/historical_limitations.html#pacing_violations
-PACING_INTERVAL_SECONDS = 0.5
+PACING_INTERVAL_SECONDS = 0.8
 
 
 STALE_SECONDS_ALLOWED_ACCOUNT_SUMMARY = 600

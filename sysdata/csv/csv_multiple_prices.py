@@ -44,7 +44,9 @@ class csvFuturesMultiplePricesData(futuresMultiplePricesData):
         return self._datapath
 
     def get_list_of_instruments(self):
-        return files_with_extension_in_pathname(self.datapath, ".csv")
+        my_list = files_with_extension_in_pathname(self.datapath, ".csv")
+        my_list.sort()
+        return my_list
 
     def _get_multiple_prices_without_checking(
         self, instrument_code: str
