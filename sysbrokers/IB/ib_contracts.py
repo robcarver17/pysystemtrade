@@ -72,6 +72,7 @@ def resolve_multiple_expiries_for_EUREX(ibcontract_list: list) -> ibContract:
 
     return resolved_contract
 
+
 def resolve_multiple_expiries_for_LME(ibcontract_list: list) -> ibContract:
     resolved_contract = resolve_multiple_expiries_for_generic_futures(
         ibcontract_list=ibcontract_list, is_monthly_function=_is_lme_symbol_monthly
