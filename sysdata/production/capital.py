@@ -236,8 +236,10 @@ class totalCapitalCalculationData(object):
 
     def __init__(self, capital_data: capitalData, calc_method="full"):
         """
-        Calculation methods are: full- all profits and losses go to capital, half - profits past the HWM are not added,
-           fixed - capital is unaffected by profits and losses (not reccomended!)
+        Calculation methods are:
+          - full: all profits and losses go to capital
+          - half: profits past the HWM are not added
+          - fixed: capital is unaffected by profits and losses (not recommended!)
 
         :param capital_data: strategyCapitalData instance or something that inherits from it
         :param calc_method: method for going from profits to capital allocated
