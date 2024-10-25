@@ -126,7 +126,9 @@ class RemoveMarketData:
 
         # Markets to be added back = (existing bad markets - new bad markets) - (ignored and stale instruments)
         removed_bad_markets = list(
-            set(existing_bad_markets).difference(set(bad_markets)).difference(set(exclude_markets))
+            set(existing_bad_markets)
+            .difference(set(bad_markets))
+            .difference(set(exclude_markets))
         )
 
         return removed_bad_markets
@@ -330,7 +332,7 @@ def get_remove_market_data(data) -> RemoveMarketData:
         min_volume_contracts=min_volume_contracts,
         existing_bad_markets=existing_bad_markets,
         auto_parameters=auto_parameters,
-        exclude_markets=exclude_instruments
+        exclude_markets=exclude_instruments,
     )
 
 
