@@ -196,10 +196,10 @@ class correlationEstimate(Estimate):
 
     def quantize(self, quant_factor=0.2):
         as_pd = self.as_pd()
-        multipier = 1 / quant_factor
-        multiplied_pd = as_pd * multipier
+        multiplier = 1 / quant_factor
+        multiplied_pd = as_pd * multiplier
         multiplied_pd_rounded = multiplied_pd.round()
-        pd_quantized = multiplied_pd_rounded / multipier
+        pd_quantized = multiplied_pd_rounded / multiplier
 
         return correlationEstimate(
             values=pd_quantized.values, columns=pd_quantized.columns
