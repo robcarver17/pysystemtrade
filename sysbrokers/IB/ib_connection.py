@@ -69,7 +69,9 @@ class connectionIB(object):
             # Log all exceptions generated during connection as critical error.
             # Under the default production setup this should send an email.
             # Error is reraised as we can't really continue and user intervention is required
-            self.log.critical(f"IB connection falied with exception - {e}, connection aborted.")
+            self.log.critical(
+                f"IB connection falied with exception - {e}, connection aborted."
+            )
             raise
 
     def _init_connection(
