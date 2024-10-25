@@ -21,17 +21,19 @@ EUREX_DAY_FLAG = "D"
 
 LME_CODES = [
     "ALUMINIUM_LME",
-     "COPPER_LME",
+    "COPPER_LME",
     "LEAD_LME",
     "NICKEL_LME",
     "TIN_LME",
-    "ZINC_LME"
+    "ZINC_LME",
 ]
+
 # The day of the month that the third Wednesday must fall between
 # Same for any other day of the week, but I couldn't think of a
 # good generic variable name
 EARLIEST_THIRD_WEDNESDAY = 15
 LATEST_THIRD_WEDNESDAY = 21
+
 
 def resolve_multiple_expiries(
     ibcontract_list: list,
@@ -76,6 +78,7 @@ def resolve_multiple_expiries_for_LME(ibcontract_list: list) -> ibContract:
     )
 
     return resolved_contract
+
 
 def resolve_multiple_expiries_for_VIX(ibcontract_list: list) -> ibContract:
     # Get the symbols
@@ -125,6 +128,7 @@ def _is_eurex_symbol_monthly(symbol: str):
 
     return is_monthly
 
+
 def _is_lme_symbol_monthly(symbol: str):
     # 3rd Wednesday of the month is most liquid
     try:
@@ -132,6 +136,7 @@ def _is_lme_symbol_monthly(symbol: str):
     except:
         raise Exception("IB Local Symbol %s not recognised" % symbol)
     return EARLIEST_THIRD_WEDNESDAY <= day <= LATEST_THIRD_WEDNESDAY
+
 
 def _is_eurex_symbol_daily(symbol: str):
     return symbol[-1] == EUREX_DAY_FLAG
