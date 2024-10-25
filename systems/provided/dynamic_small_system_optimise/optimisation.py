@@ -127,13 +127,14 @@ class objectiveFunctionForGreedy:
 
         if tracking_error_smaller_than_buffer:
             self.log.debug(
-                "Tracking error of current positions vs unrounded optimal is %.4f smaller than buffer %4.f, no trades needed"
+                "Tracking error of current positions vs unrounded optimal is %.4f "
+                "smaller than buffer %.4f, no trades needed"
                 % (tracking_error, tracking_error_buffer)
             )
         else:
             self.log.debug(
-                "Tracking error of current positions vs unrounded optimal is %.4f larger than buffer %.4f"
-                % (tracking_error, tracking_error_buffer)
+                "Tracking error of current positions vs unrounded optimal is %.4f "
+                "larger than buffer %.4f" % (tracking_error, tracking_error_buffer)
             )
 
         return tracking_error_smaller_than_buffer
