@@ -1,4 +1,4 @@
-from syscore.exceptions import missingData
+from syscore.exceptions import missingData, missingFile
 from sysdata.production.capital import capitalData
 
 CAPITAL_COLLECTION = "capital"
@@ -45,9 +45,15 @@ class parquetCapitalData(capitalData):
         return pd_df
 
     def _delete_all_capital_for_strategy_no_checking(self, strategy_name: str):
-        self.parquet.delete_data_given_data_type_and_identifier(
-            data_type=CAPITAL_COLLECTION, identifier=strategy_name
-        )
+        try:
+            self.parquet.delete_data_given_data_type_and_identifier(
+                data_type=CAPITAL_COLLECTION, identifier=strategy_name
+            )
+        except missingFile as mf:
+            self.log.warning(
+                f"Deleting old capital failed: {mf} - "
+                f"this is ok if setting up capital for the first time"
+            )
 
     def update_capital_pd_df_for_strategy(
         self, strategy_name: str, updated_capital_df: pd.DataFrame
