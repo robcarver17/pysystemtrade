@@ -61,9 +61,18 @@ class connectionIB(object):
 
         # You can pass a client id yourself, or let IB find one
 
-        self._init_connection(
-            ipaddress=ipaddress, port=port, client_id=client_id, account=account
-        )
+        try:
+            self._init_connection(
+                ipaddress=ipaddress, port=port, client_id=client_id, account=account
+            )
+        except Exception as e:
+            # Log all exceptions generated during connection as critical error.
+            # Under the default production setup this should send an email.
+            # Error is reraised as we can't really continue and user intervention is required
+            self.log.critical(
+                f"IB connection falied with exception - {e}, connection aborted."
+            )
+            raise
 
     def _init_connection(
         self, ipaddress: str, port: int, client_id: int, account=arg_not_supplied
