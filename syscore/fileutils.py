@@ -138,7 +138,7 @@ def resolve_path_and_filename_for_package(
     if separate_filename is None:
         (
             path_as_list,
-            seperate_filename,
+            separate_filename,
         ) = extract_filename_from_combined_path_and_filename_list(
             path_and_filename_as_list
         )
@@ -240,9 +240,9 @@ def extract_filename_from_combined_path_and_filename_list(
     extension = path_and_filename_as_list.pop()
     filename = path_and_filename_as_list.pop()
 
-    seperate_filename = ".".join([filename, extension])
+    separate_filename = ".".join([filename, extension])
 
-    return path_and_filename_as_list, seperate_filename
+    return path_and_filename_as_list, separate_filename
 
 
 def get_pathname_from_list(path_as_list: List[str]) -> str:
