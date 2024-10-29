@@ -8,7 +8,7 @@ from typing import List, Tuple
 
 from syscore.dateutils import SECONDS_PER_DAY
 
-# DO NOTE DELETE: all these are unused: but are required to get the filename padding to work
+# DO NOT DELETE: all these are unused: but are required to get the filename padding to work
 
 
 """
@@ -103,7 +103,7 @@ def get_file_or_folder_age_in_days(full_filename_with_ext: str) -> float:
 
 
 def resolve_path_and_filename_for_package(
-    path_and_filename: str, seperate_filename=None
+    path_and_filename: str, separate_filename=None
 ) -> str:
     """
     A way of resolving relative and absolute filenames, and dealing with awkward OS specific things
@@ -135,10 +135,10 @@ def resolve_path_and_filename_for_package(
     """
 
     path_and_filename_as_list = transform_path_into_list(path_and_filename)
-    if seperate_filename is None:
+    if separate_filename is None:
         (
             path_as_list,
-            seperate_filename,
+            separate_filename,
         ) = extract_filename_from_combined_path_and_filename_list(
             path_and_filename_as_list
         )
@@ -147,7 +147,7 @@ def resolve_path_and_filename_for_package(
 
     resolved_pathname = get_pathname_from_list(path_as_list)
 
-    resolved_path_and_filename = os.path.join(resolved_pathname, seperate_filename)
+    resolved_path_and_filename = os.path.join(resolved_pathname, separate_filename)
 
     return resolved_path_and_filename
 
@@ -240,9 +240,9 @@ def extract_filename_from_combined_path_and_filename_list(
     extension = path_and_filename_as_list.pop()
     filename = path_and_filename_as_list.pop()
 
-    seperate_filename = ".".join([filename, extension])
+    separate_filename = ".".join([filename, extension])
 
-    return path_and_filename_as_list, seperate_filename
+    return path_and_filename_as_list, separate_filename
 
 
 def get_pathname_from_list(path_as_list: List[str]) -> str:

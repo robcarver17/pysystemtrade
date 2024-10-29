@@ -208,7 +208,7 @@ class RawData(SystemStage):
 
         # volconfig contains 'func' and some other arguments
         # we turn func which could be a string into a function, and then
-        # call it with the other ags
+        # call it with the other args
         vol_multiplier = volconfig.pop("multiplier_to_get_daily_vol")
 
         volfunction = resolve_function(volconfig.pop("func"))

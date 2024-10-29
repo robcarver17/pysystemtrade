@@ -2,7 +2,7 @@ This document describes how to monitor pysystemtrade in a production environment
 
 It will make no sense unless you've already read:
 
-- [Using pysystemtrade in production(/docs/production.md)
+- [Using pysystemtrade in production](/docs/production.md)
 
 Table of Contents
 =================

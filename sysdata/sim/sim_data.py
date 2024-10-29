@@ -270,7 +270,7 @@ class simData(baseData):
         Get the FX rate currency1/currency2 between two currencies
         Or return None if not available
 
-        (Normally we'd over ride this with a specific source)
+        (Normally we'd override this with a specific source)
 
 
         """
@@ -287,7 +287,7 @@ class simData(baseData):
         Get the FX rate currency1/currency2 between two currencies
         Or return None if not available
 
-        (Normally we'd over ride this with a specific source)
+        (Normally we'd override this with a specific source)
 
 
         """

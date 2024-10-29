@@ -13,7 +13,7 @@ from systems.accounts.curves.account_curve import accountCurve
 
 
 class accountInstruments(accountCosts, accountBufferingSystemLevel):
-    # dont' cache: just a switch method
+    # don't cache: just a switch method
     @dont_cache
     def pandl_for_instrument(
         self, instrument_code: str, delayfill: bool = True, roundpositions: bool = True
@@ -184,7 +184,8 @@ class accountInstruments(accountCosts, accountBufferingSystemLevel):
     ) -> accountCurve:
         if not roundpositions:
             self.log.warning(
-                "Using roundpositions=False with cash costs may lead to inaccurate costs (fixed costs, eg commissions will be overstated!!!"
+                "Using roundpositions=False with cash costs may lead to inaccurate "
+                "costs (fixed costs, eg commissions will be overstated!!!)"
             )
 
         raw_costs = self.get_raw_cost_data(instrument_code)

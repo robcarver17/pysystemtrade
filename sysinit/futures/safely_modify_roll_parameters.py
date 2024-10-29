@@ -148,7 +148,7 @@ def safely_modify_roll_parameters(data: dataBlob):
 
 
 def modified_roll_parameters(data: dataBlob, instrument_code) -> rollParameters:
-    print("Existing roll parameters: Must be defined in database config")
+    print("Existing roll parameters: Must be defined in CSV config")
     data_contracts = dataContracts(data)
     roll_parameters = data_contracts.get_roll_parameters(instrument_code)
     print(str(roll_parameters))

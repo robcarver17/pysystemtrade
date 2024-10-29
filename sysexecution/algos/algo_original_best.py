@@ -102,7 +102,7 @@ class algoOriginalBest(Algo):
         )
         if cut_down_contract_order.trade != contract_order.trade:
             data.log.debug(
-                "Cut down order to size %s from %s because of algo size limit"
+                "Cut down order from size %s to %s because of algo size limit"
                 % (str(contract_order.trade), str(cut_down_contract_order.trade)),
                 **log_attrs,
             )

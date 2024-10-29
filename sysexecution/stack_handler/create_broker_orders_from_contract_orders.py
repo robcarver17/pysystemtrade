@@ -201,7 +201,7 @@ class stackHandlerCreateBrokerOrders(stackHandlerForFills):
 
         if liquid_qty != contract_order_after_trade_limits.trade:
             self.log.debug(
-                "Cut down order to size %s from %s because of liquidity"
+                "Cut down order from size %s to %s because of liquidity"
                 % (str(liquid_qty), str(contract_order_after_trade_limits.trade)),
                 **contract_order_after_trade_limits.log_attributes(),
                 method="temp",

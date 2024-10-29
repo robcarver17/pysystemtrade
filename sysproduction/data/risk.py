@@ -182,7 +182,7 @@ def get_daily_ts_stdev_of_prices(data, instrument_code):
 
     # volconfig contains 'func' and some other arguments
     # we turn func which could be a string into a function, and then
-    # call it with the other ags
+    # call it with the other args
 
     volfunction = resolve_function(volconfig.pop("func"))
     vol = volfunction(dailyreturns, **volconfig)

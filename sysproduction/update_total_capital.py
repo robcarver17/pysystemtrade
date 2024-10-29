@@ -50,7 +50,7 @@ class totalCapitalUpdate(object):
         margin_data.add_total_margin_entry(margin_in_base_currency)
         margin_series = margin_data.get_series_of_total_margin()
 
-        log.debug("Recent margin\n %s" % str(margin_series.tail(10)))
+        log.debug("Recent margin\n%s" % str(margin_series.tail(10)))
 
     def update_capital(self):
         data = self.data
