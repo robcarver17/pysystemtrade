@@ -54,7 +54,7 @@ class csvFuturesContractPriceData(futuresContractPriceData):
         """
         Read back the prices for a given contract object
 
-        :param contract_object:  futuresContract
+        :param futures_contract_object:  futuresContract
         :return: data
         """
 

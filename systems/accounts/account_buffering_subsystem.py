@@ -117,17 +117,17 @@ def apply_buffer(
 
     If we're rounding positions, then we floor and ceiling the buffers.
 
-    :param position: optimal position
-    :type position: pd.Series
+    :param optimal_position: optimal position
+    :type optimal_position: pd.Series
 
     :param pos_buffers:
     :type pos_buffers: Tx2 pd.dataframe, top_pos and bot_pos
 
-    :param trade_to_edge: Trade to the edge (TRue) or the optimal (False)
+    :param trade_to_edge: Trade to the edge (True) or the optimal (False)
     :type trade_to_edge: bool
 
-    :param round_positions: Produce rounded positions
-    :type round_positions: bool
+    :param roundpositions: Produce rounded positions
+    :type roundpositions: bool
 
     :returns: pd.Series
     """
@@ -185,7 +185,7 @@ def apply_buffer_single_period(
     :param bot_pos: bottom of buffer
     :type bot_pos: float
 
-    :param trade_to_edge: Trade to the edge (TRue) or the optimal (False)
+    :param trade_to_edge: Trade to the edge (True) or the optimal (False)
     :type trade_to_edge: bool
 
     :returns: float

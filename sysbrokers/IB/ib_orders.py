@@ -1,9 +1,5 @@
 from ib_insync import Trade as ibTrade
 
-from copy import copy
-
-import datetime
-
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 from sysbrokers.IB.ib_translate_broker_order_objects import (
@@ -456,7 +452,7 @@ class ibExecutionStackData(brokerExecutionStackData):
         """
         NOTE this does not update the internal state of orders, which will retain the original order
 
-        :param broker_orders_with_controls:
+        :param broker_order_with_controls:
         :param new_limit_price:
         :return:
         """

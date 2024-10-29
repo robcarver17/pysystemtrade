@@ -62,7 +62,7 @@ class ParquetAccess(object):
     ):
         path = self._get_pathname_given_data_type(data_type)
         return resolve_path_and_filename_for_package(
-            path, seperate_filename="%s.%s" % (identifier, EXTENSION)
+            path, separate_filename="%s.%s" % (identifier, EXTENSION)
         )
 
     def _get_pathname_given_data_type(self, data_type: str):

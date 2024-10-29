@@ -566,7 +566,8 @@ def manually_update_roll_state_for_code(
     )
     if roll_state_suggested == ASK_FOR_STATE:
         print(
-            "No specific state suggested: recommend one of Force, Force_Outright or Close)"
+            "No specific state suggested: recommend one of Force, "
+            "Force_Outright or Close"
         )
         default_state = roll_data.original_roll_status.name
     else:

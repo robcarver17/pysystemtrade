@@ -259,7 +259,7 @@ class ForecastScaleCap(SystemStage):
 
         # The config contains 'func' and some other arguments
         # we turn func which could be a string into a function, and then
-        # call it with the other ags
+        # call it with the other args
 
         cs_forecasts = self._get_cross_sectional_forecasts_for_instrument(
             instrument_code, rule_variation_name
