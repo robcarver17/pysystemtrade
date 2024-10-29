@@ -2,6 +2,7 @@ name: OS test
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   build:
