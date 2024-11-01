@@ -182,7 +182,7 @@ An easy way to bulk download data from [Barchart](https://www.barchart.com) is t
 
 Alternatively, if you are very patient, you can manually download the data from the Barchart historical data pages, such as [this one 
 for Cotton #2](https://www.barchart.com/futures/quotes/KG*0/historical-download). 
-Then, to read the data, you can use [this script](/sysinit/futures/barchart_futures_contract_prices.py), which in turn calls this [other more general script](/sysinit/futures/contract_prices_from_csv_to_arctic.py). Although it's very specific to Barchart, with some work you should be able to adapt it. You will need to call it with the directory where your Barchart .csv files are stored.
+Then, to read the data, you can use [this script](/sysinit/futures/barchart_futures_contract_prices.py), which in turn calls this [other more general script](/sysinit/futures/contract_prices_from_csv_to_db.py). Although it's very specific to Barchart, with some work you should be able to adapt it. You will need to call it with the directory where your Barchart .csv files are stored.
 
 The script does two things:
 
@@ -210,18 +210,18 @@ Here we can see that the barchart files have one initial row we can ignore, and 
 The actual reading and writing is done here:
 
 ```python
-def init_arctic_with_csv_futures_contract_prices_for_code(instrument_code: str, datapath: str,
+def init_db_with_csv_futures_contract_prices_for_code(instrument_code: str, datapath: str,
                                                           csv_config=arg_not_supplied):
     print(instrument_code)
     csv_prices = csvFuturesContractPriceData(datapath, config=csv_config)
-    arctic_prices = arcticFuturesContractPriceData()
+    db_prices = diag_prices.db_futures_contract_price_data
 
     csv_price_dict = csv_prices.get_merged_prices_for_instrument(instrument_code)
 
     for contract_date_str, prices_for_contract in csv_price_dict.items():
         print(contract_date_str)
         contract = futuresContract(instrument_code, contract_date_str)
-        arctic_prices.write_merged_prices_for_contract_object(contract, prices_for_contract, ignore_duplication=True)
+        db_prices.write_merged_prices_for_contract_object(contract, prices_for_contract, ignore_duplication=True)
 ```
 
 The objects `csvFuturesContractPriceData` and `arcticFuturesContractPriceData` are 'data pipelines', which allow us to read and write a specific type of data (in this case OHLC price data for individual futures contracts). They have the same methods (and they inherit from a more generic object, futuresContractPriceData), which allows us to write code that abstracts the actual place and way the data is stored. We'll see much more of this kind of thing later.
@@ -260,7 +260,7 @@ Then the roll calendar, plus the individual futures contract prices, can be used
 <a name="roll_calendars_from_approx"></a>
 ### Generate a roll calendar from actual futures prices
 
-This is the method you'd use if you were really starting from scratch, and you'd just got some prices for each futures contract. The relevant script is [here](/sysinit/futures/rollcalendars_from_arcticprices_to_csv.py); you should call the function `build_and_write_roll_calendar`. It is only set up to run a single instrument at a time: creating roll calendars is careful craftsmanship, not suited to a batch process.
+This is the method you'd use if you were really starting from scratch, and you'd just got some prices for each futures contract. The relevant script is [here](/sysinit/futures/rollcalendars_from_db_prices_to_csv.py); you should call the function `build_and_write_roll_calendar`. It is only set up to run a single instrument at a time: creating roll calendars is careful craftsmanship, not suited to a batch process.
 
 In this script (which you should run for each instrument in turn):
 
@@ -321,7 +321,7 @@ A *valid* roll calendar will have current and next contract prices on the roll d
 
 #### Manually editing roll calendars
 
-Roll calendars are stored in .csv format [and here is an example](/data/futures/roll_calendars_csv/EDOLLAR.csv). Of course you could put these into Mongo DB, or Arctic, but I like the ability to hack them if required; plus we only use them when starting the system up from scratch. If you have to manually edit your .csv roll calendars, you can easily load them up and check they are monotonic and valid. The function [`check_saved_roll_calendar`](/sysinit/futures/rollcalendars_from_arcticprices_to_csv.py) is your friend. Just make sure you are using the right datapath.
+Roll calendars are stored in .csv format [and here is an example](/data/futures/roll_calendars_csv/EDOLLAR.csv). Of course you could put these into Mongo DB, or Arctic, but I like the ability to hack them if required; plus we only use them when starting the system up from scratch. If you have to manually edit your .csv roll calendars, you can easily load them up and check they are monotonic and valid. The function [`check_saved_roll_calendar`](/sysinit/futures/rollcalendars_from_db_prices_to_csv.py) is your friend. Just make sure you are using the right datapath.
 
 
 <a name="roll_calendars_from_multiple"></a>
@@ -367,7 +367,7 @@ Step 5 can sometimes throw up warnings or outright errors if things don't look r
 <a name="mult_adj_csv_to_arctic"></a>
 ### Writing multiple prices from .csv to database
 
-The use case here is you are happy to use the shipped .csv data, even though it's probably out of date, but you want to use a database for backtesting. You don't want to try and find and upload individual futures prices, or create roll calendars.... the good news is you don't have to. Instead you can just use [this script](/sysinit/futures/multiple_and_adjusted_from_csv_to_arctic.py) which will just copy from .csv (default ['shipping' directory](/data/futures/multiple_prices_csv)) to Arctic.
+The use case here is you are happy to use the shipped .csv data, even though it's probably out of date, but you want to use a database for backtesting. You don't want to try and find and upload individual futures prices, or create roll calendars.... the good news is you don't have to. Instead you can just use [this script](/sysinit/futures/multiple_and_adjusted_from_csv_to_db.py) which will just copy from .csv (default ['shipping' directory](/data/futures/multiple_prices_csv)) to Arctic.
 
 This will also copy adjusted prices, so you can now skip ahead to [creating FX data](#create_fx_data).
 
@@ -399,12 +399,12 @@ spliced_multiple_prices = os.path.join('data', 'futures', 'multiple_prices_csv_s
 if not os.path.exists(spliced_multiple_prices):
     os.makedirs(spliced_multiple_prices)
 
-from sysinit.futures.rollcalendars_from_arcticprices_to_csv import build_and_write_roll_calendar
+from sysinit.futures.rollcalendars_from_db_prices_to_csv import build_and_write_roll_calendar
 instrument_code = 'GAS_US_mini' # for example
 build_and_write_roll_calendar(instrument_code, 
     output_datapath=roll_calendars_from_arctic)
 ```
-We use our updated prices and the roll calendar just built to [calculate multiple prices](#/sysinit/futures/multipleprices_from_arcticprices_and_csv_calendars_to_arctic):
+We use our updated prices and the roll calendar just built to [calculate multiple prices](#/sysinit/futures/multipleprices_from_db_prices_and_csv_calendars_to_arctic):
 
 ```python
 from sysinit.futures.multipleprices_from_db_prices_and_csv_calendars_to_db import
@@ -450,8 +450,8 @@ assert(supplied.iloc[-1].FORWARD_CONTRACT == generated.loc[last_supplied:].iloc[
 spliced = pd.concat([supplied, generated])
 spliced.to_csv(os.path.join(spliced_multiple_prices, instrument_code+'.csv'))
 
-from sysinit.futures.multiple_and_adjusted_from_csv_to_arctic import init_arctic_with_csv_prices_for_code
-init_arctic_with_csv_prices_for_code(instrument_code, multiple_price_datapath=spliced_multiple_prices)
+from sysinit.futures.multiple_and_adjusted_from_csv_to_db import init_db_with_csv_prices_for_code
+init_db_with_csv_prices_for_code(instrument_code, multiple_price_datapath=spliced_multiple_prices)
 ```
 
 <a name="back_adjusted_prices"></a>
