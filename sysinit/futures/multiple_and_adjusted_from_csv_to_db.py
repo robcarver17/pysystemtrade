@@ -33,7 +33,7 @@ def init_db_with_csv_prices_for_code(
 ):
     print(instrument_code)
     csv_mult_data = csvFuturesMultiplePricesData(multiple_price_datapath)
-    db_mult_data = diagPrices.db_futures_multiple_prices_data
+    db_mult_data = diag_prices.db_futures_multiple_prices_data
 
     mult_prices = csv_mult_data.get_multiple_prices(instrument_code)
     db_mult_data.add_multiple_prices(
@@ -41,7 +41,7 @@ def init_db_with_csv_prices_for_code(
     )
 
     csv_adj_data = csvFuturesAdjustedPricesData(adj_price_datapath)
-    db_adj_data = diagPrices.db_futures_adjusted_prices_data
+    db_adj_data = diag_prices.db_futures_adjusted_prices_data
 
     adj_prices = csv_adj_data.get_adjusted_prices(instrument_code)
     db_adj_data.add_adjusted_prices(
