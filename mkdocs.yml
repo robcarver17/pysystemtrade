@@ -1,0 +1,5 @@
+site_name: PySystemTrade
+
+site_url: https://vcaldas.github.io/aptrade
+theme:
+  name: material
