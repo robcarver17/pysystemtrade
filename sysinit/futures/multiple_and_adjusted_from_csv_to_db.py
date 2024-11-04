@@ -7,7 +7,7 @@ from sysproduction.data.prices import diagPrices
 diag_prices = diagPrices()
 
 
-def init_arctic_with_csv_futures_contract_prices(
+def init_db_with_csv_futures_contract_prices(
     multiple_price_datapath=arg_not_supplied, adj_price_datapath=arg_not_supplied
 ):
     csv_multiple_prices = csvFuturesMultiplePricesData(multiple_price_datapath)
@@ -19,21 +19,21 @@ def init_arctic_with_csv_futures_contract_prices(
 
     instrument_codes = csv_multiple_prices.get_list_of_instruments()
     for instrument_code in instrument_codes:
-        init_arctic_with_csv_prices_for_code(
+        init_db_with_csv_prices_for_code(
             instrument_code,
             multiple_price_datapath=multiple_price_datapath,
             adj_price_datapath=adj_price_datapath,
         )
 
 
-def init_arctic_with_csv_prices_for_code(
+def init_db_with_csv_prices_for_code(
     instrument_code: str,
     multiple_price_datapath=arg_not_supplied,
     adj_price_datapath=arg_not_supplied,
 ):
     print(instrument_code)
     csv_mult_data = csvFuturesMultiplePricesData(multiple_price_datapath)
-    db_mult_data = diagPrices.db_futures_multiple_prices_data
+    db_mult_data = diag_prices.db_futures_multiple_prices_data
 
     mult_prices = csv_mult_data.get_multiple_prices(instrument_code)
     db_mult_data.add_multiple_prices(
@@ -41,7 +41,7 @@ def init_arctic_with_csv_prices_for_code(
     )
 
     csv_adj_data = csvFuturesAdjustedPricesData(adj_price_datapath)
-    db_adj_data = diagPrices.db_futures_adjusted_prices_data
+    db_adj_data = diag_prices.db_futures_adjusted_prices_data
 
     adj_prices = csv_adj_data.get_adjusted_prices(instrument_code)
     db_adj_data.add_adjusted_prices(
@@ -51,6 +51,6 @@ def init_arctic_with_csv_prices_for_code(
 
 if __name__ == "__main__":
     ## modify datapaths if required
-    init_arctic_with_csv_futures_contract_prices(
+    init_db_with_csv_futures_contract_prices(
         adj_price_datapath=arg_not_supplied, multiple_price_datapath=arg_not_supplied
     )
