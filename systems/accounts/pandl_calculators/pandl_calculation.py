@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 from syscore.constants import arg_not_supplied
 from syscore.dateutils import from_config_frequency_pandas_resample

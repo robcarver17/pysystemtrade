@@ -26,9 +26,6 @@ class progressBar(object):
         show_timings=True,
         toolbar_width: int = 80,
     ):
-        if range_to_iterate_over==0:
-            range_to_iterate_over=1
-
         self._start_time = time.time()
         self._current_iteration = 0
         self._suffix = suffix

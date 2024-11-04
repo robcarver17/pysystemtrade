@@ -7,7 +7,6 @@ from sysbrokers.IB.ib_contract_position_data import ibContractPositionData
 from sysbrokers.IB.ib_orders import ibExecutionStackData
 from sysbrokers.IB.ib_static_data import ibStaticData
 from sysbrokers.IB.ib_fx_handling import ibFxHandlingData
-from sysbrokers.IB.ib_broker_commissions import ibFuturesContractCommissionData
 from syscore.objects import resolve_function
 from sysdata.data_blob import dataBlob
 
@@ -44,5 +43,4 @@ def get_ib_class_list():
         ibCapitalData,
         ibFuturesInstrumentData,
         ibFxHandlingData,
-        ibFuturesContractCommissionData
     ]

@@ -13,9 +13,6 @@ class brokerFuturesContractData(futuresContractData):
         super().__init__(log=log)
         self._data = data
 
-    def get_commission_for_contract(self, contract: futuresContract) -> float:
-        raise NotImplementedError
-
     def get_actual_expiry_date_for_single_contract(
         self, futures_contract: futuresContract
     ) -> expiryDate:

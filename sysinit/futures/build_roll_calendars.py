@@ -469,7 +469,7 @@ def _valid_dates_from_paired_prices(paired_prices: pd.DataFrame, avoid_date):
 
 def _matching_prices_from_paired_prices(paired_prices):
     paired_prices_check_match = paired_prices.apply(
-        lambda xlist: not any(pd.isnull(xlist)), axis=1
+        lambda xlist: not any(np.isnan(xlist)), axis=1
     )
     paired_prices_matching = paired_prices_check_match[paired_prices_check_match]
 

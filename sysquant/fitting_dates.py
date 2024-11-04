@@ -209,7 +209,7 @@ def _add_dummy_period_if_required(
     start_date: datetime.datetime,
     list_of_starting_dates_per_period: list,
 ):
-    if date_method in ["rolling", "expanding"] and len(list_of_starting_dates_per_period)>1:
+    if date_method in ["rolling", "expanding"]:
         # add on a dummy date for the first year, when we have no data
         periods = [
             fitDates(

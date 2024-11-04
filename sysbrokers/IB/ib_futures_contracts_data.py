@@ -54,10 +54,6 @@ class ibFuturesContractData(brokerFuturesContractData):
     def ib_futures_instrument_data(self) -> ibFuturesInstrumentData:
         return self.data.broker_futures_instrument
 
-    def get_commission_for_contract(self, futures_contract: futuresContract) -> float:
-        ib_contract = self.get_contract_object_with_IB_data(futures_contract)
-        return self.ib_client.get_commission_for_contract(ib_contract)
-
     def get_list_of_contract_dates_for_instrument_code(
         self, instrument_code: str, allow_expired: bool = False
     ) -> listOfContractDateStr:
