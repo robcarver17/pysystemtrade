@@ -91,7 +91,6 @@ class ibOrdersClient(ibContractsClient):
         account_id: str = arg_not_supplied,
         order_type: brokerOrderType = market_order_type,
         limit_price: float = None,
-        what_if: bool = False
     ) -> tradeWithContract:
         """
 
@@ -122,10 +121,7 @@ class ibOrdersClient(ibContractsClient):
             limit_price=limit_price,
         )
 
-        if what_if:
-            order_object = self.ib.whatIfOrder(ibcontract, ib_order)
-        else:
-            order_object = self.ib.placeOrder(ibcontract, ib_order)
+        order_object = self.ib.placeOrder(ibcontract, ib_order)
 
         trade_with_contract = tradeWithContract(ibcontract_with_legs, order_object)
 
