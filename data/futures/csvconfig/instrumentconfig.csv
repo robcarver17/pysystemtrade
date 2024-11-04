@@ -4,7 +4,7 @@ Instrument,Description,Pointsize,Currency,AssetClass,PerBlock,Percentage,PerTrad
 AEX,Netherlands equity index AEX,200,EUR,Equity,2.8,0,0,EMEA
 AEX_mini,AEX mini,20,EUR,Equity,0.55,0,0,EMEA
 ALUMINIUM,NYMEX Aluminum Index,25,USD,Metals,3.37,0,0,US
-ALUMINIUM_LME,High-Grade Primary Aluminium,25,USD,Metals,0,0,0,EMEA
+ALUMINIUM_LME,High-Grade Primary Aluminium,25,USD,Metals,1.05,0,0,EMEA
 AMERIBOR-1M,CBOE One-Month AMERIBOR Average Rate Index,50,USD,STIR,0,0,0,US
 AMERIBOR-3M,CBOE AMERIBOR Term-90,25,USD,STIR,0,0,0,US
 AMERIBOR-T30,Cboe AMERIBOR Term-30 Futures Index,25,USD,STIR,0,0,0,US
@@ -34,7 +34,7 @@ BOVESPA,Bovespa Index - USD,1,USD,Equity,0.85,0,0,US
 BOVESPA-HK,Brazil Bovespa Stock Index HK,5,HKD,Equity,0,0,0,ASIA
 BRE,BREUSD currency,100000,USD,FX,2.47,0,0,US
 BRENT,NYMEX Brent Financial Futures Index,1000,USD,OilGas,0.85,0,0,US
-BRENT_W,Brent crude summer,1000,USD,OilGas,0,0,0,EMEA
+BRENT_W,Brent crude summer,1000,USD,OilGas,1.05,0,0,EMEA
 BRENT-LAST,Brent Crude Oil - Last Day,1000,USD,OilGas,2.37,0,0,US
 BRR,CME CF Bitcoin Reference Rate,5,USD,Metals,0,0,0,US
 BRREUR,CME CF Bitcoin-Euro Reference Rate,5,EUR,Metals,0,0,0,US
@@ -75,11 +75,11 @@ CNH-CME_micro,CHNHUSD micro CME,10000,CNH,FX,0,0,0,US
 CNH-HK,CNHUSD on HK,100000,CNH,FX,0,0,0,ASIA
 CNH-onshore,SGX onshore Chinese Renminbi (CNY) in US Dollar Futures (CY@SGX),500000,USD,FX,1.8,0,0,ASIA
 CNHEUR,CNHEUR,1000000,EUR,FX,0,0,0,US
-COAL,ICE Rotterdam Coal,1000,USD,OilGas,0,0,0,EMEA
-COAL-GEORDIE,ICE Coals to Newcastle,1000,USD,OilGas,0,0,0,EMEA
+COAL,ICE Rotterdam Coal,1000,USD,OilGas,1.05,0,0,EMEA
+COAL-GEORDIE,ICE Coals to Newcastle,1000,USD,OilGas,1.05,0,0,EMEA
 COAL-RICH-BAY,ICE Richards Bay Coal,1000,USD,OilGas,0,0,0,EMEA
 COCOA,Cocoa NY,10,USD,Ags,2.97,0,0,US
-COCOA_LDN,Cocoa London,10,GBP,Ags,0,0,0,EMEA
+COCOA_LDN,Cocoa London,10,GBP,Ags,1,0,0,EMEA
 COFFEE,Coffee,375,USD,Ags,2.97,0,0,US
 COPPER,Copper,25000,USD,Metals,2.47,0,0,US
 COPPER_LME,Grade A Copper - LME,25,USD,Metals,0,0,0,EMEA
