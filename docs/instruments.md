@@ -2,9 +2,9 @@ This document describes how we should choose which instruments to trade, and how
 
 It will make no sense unless you've already read:
 
-- [Backtesting with pysystemtrade](/docs/backtesting.md)
-- [Storing futures and spot FX data](/docs/data.md)
-- [Using pysystemtrade in production](/docs/production.md)
+- [Backtesting with pysystemtrade](./backtesting.md)
+- [Storing futures and spot FX data](./data.md)
+- [Using pysystemtrade in production](./production.md)
 
 Table of Contents
 =================

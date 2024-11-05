@@ -2,9 +2,9 @@ This document is specifically about storing and processing *futures data*.
 
 Related documents:
 
-- [Using pysystemtrade as a production trading environment](/docs/production.md)
-- [Backtesting with pysystemtrade](/docs/backtesting.md)
-- [Connecting pysystemtrade to interactive brokers](/docs/IB.md)
+- [Using pysystemtrade as a production trading environment](./production.md)
+- [Backtesting with pysystemtrade](./backtesting.md)
+- [Connecting pysystemtrade to interactive brokers](./IB.md)
 
 It is broken into four parts. The first, [A futures data workflow](#futures_data_workflow), gives an overview of how data is typically processed. It describes how you would get some data from, store it, and create data suitable for simulation and as an initial state for trading. Reading this will also give you a feel for the data in pysystemtrade. The rest of the document goes into much more detail. In [part two](#part-2-overview-of-futures-data-in-pysystemtrade), I provide an overview of how the various data objects fit together. The third part, [storing futures data](#storing_futures_data), then describes in detail each of the components used to futures data. In the [final part](#part-4-interfaces),  you will see how we provide an interface between the data storage objects and the simulation / production code.
 
@@ -115,7 +115,7 @@ Hence there are five possible use cases:
 - You are happy to use the stale shipped .csv files data and are only backtesting. You don't need to do any of this!
 - You want to update the .csv data used for backtests that is shipped with pysystemtrade
 - You want to run backtests, but from faster databases rather than silly old .csv files, as I discuss how to do [later](#dbfuturessimdata)
-- You want to run pysystemtrade in [production](/docs/production.md), which requires database storage.
+- You want to run pysystemtrade in [production](./production.md), which requires database storage.
 - You want both database storage and updated .csv files, maybe because you want to keep a backup of your data in .csv (something that the production code does automatically, FWIW) or use that for backtesting
 
 Because of this it's possible at (almost) every stage to store data in either .csv or databases (the exception are roll calendars, which only live in .csv format).
@@ -375,9 +375,9 @@ This will also copy adjusted prices, so you can now skip ahead to [creating FX d
 <a name="update-shipped-data"></a>
 ### Updating shipped multiple prices
 
-Assuming that you have an Interactive Brokers account, you might want to update the (stale) data that you have [downloaded from the repo](/docs/backtesting.md#setting-up-your-arctic-and-mongo-db-databases) before [calculating back adjusted prices](#back_adjusted_prices).
+Assuming that you have an Interactive Brokers account, you might want to update the (stale) data that you have [downloaded from the repo](./backtesting.md#setting-up-your-arctic-and-mongo-db-databases) before [calculating back adjusted prices](#back_adjusted_prices).
 
-A first step is to [update the sampled contracts available](/docs/production.md#update-sampled-contracts-daily), and [their historical prices](/docs/production.md#update-futures-contract-historical-price-data-daily).  This might entail [manually checking](/docs/production.md#manual-check-of-futures-contract-historical-price-data) historical prices with spikes.
+A first step is to [update the sampled contracts available](./production.md#update-sampled-contracts-daily), and [their historical prices](./production.md#update-futures-contract-historical-price-data-daily).  This might entail [manually checking](./production.md#manual-check-of-futures-contract-historical-price-data) historical prices with spikes.
 
 We'll then need to splice the new data onto the end of the repo data, with a few checks along the way.
 
@@ -489,11 +489,11 @@ You can also run the script with `ADD_EXTRA_DATA = False, ADD_TO_CSV = True`. Th
 
 If you want your data to update:
 
-- [Ensure you are sampling all the contracts you want to sample](/docs/production.md#update-sampled-contracts-daily)
-- [Update the individual contract data](/docs/production.md#update-futures-contract-historical-price-data-daily)
-- [Update multiple and adjusted prices](/docs/production.md#update-multiple-and-adjusted-prices-daily)
+- [Ensure you are sampling all the contracts you want to sample](./production.md#update-sampled-contracts-daily)
+- [Update the individual contract data](./production.md#update-futures-contract-historical-price-data-daily)
+- [Update multiple and adjusted prices](./production.md#update-multiple-and-adjusted-prices-daily)
 
-These will be run daily if you're using the pysystemtrade production environment, and have set your [scheduler](/docs/production.md#scheduling) up to do `run_daily_price_updates`. But it's worth running them manually just the once (in the above order), especially after you've added data for a new market.
+These will be run daily if you're using the pysystemtrade production environment, and have set your [scheduler](./production.md#scheduling) up to do `run_daily_price_updates`. But it's worth running them manually just the once (in the above order), especially after you've added data for a new market.
 
 
 ## Finished!
@@ -597,7 +597,7 @@ Specific data sources
     - `mongoConnection`: Creates a connection (combination of database and specific collection) that is created inside object like `mongoPositionLimitData`, using a `mongoDb`
     - `mongoData`: Provides a common abstract interface to mongo, assuming the data is in dicts. Has different classes for single or multiple keys.
     - `arcticData`: Provides a common abstract interface to arctic, assuming the data is passed as pd.DataFrame
-- Interactive brokers: see [this file](/docs/IB.md)
+- Interactive brokers: see [this file](./IB.md)
 
 
 Data collection and abstraction:
@@ -829,7 +829,7 @@ afcpdata=arcticFuturesContractPriceData(mongo_db = mongoDb(database_name='anothe
 
 We don't use IB as a data store, but we do implement certain data storage methods to get futures and FX price data, as well as providing an interface to production layer services like creating orders and getting fills. 
 
-See [here](/docs/IB.md) for more information.
+See [here](./IB.md) for more information.
 
 
 ## Creating your own data storage objects for a new source
@@ -925,7 +925,7 @@ Here's a quick whistle-stop tour of dataBlob's other features:
 <a name="simData_objects"></a>
 ## simData objects
 
-The `simData` object is a compulsory part of the pysystemtrade system object which runs simulations (or in live trading generates desired positions). The API required for that is laid out in the user guide, [here](/docs/backtesting.md#using-the-standard-data-objects). It's an interface between the contents of a dataBlob, and the simulation code.
+The `simData` object is a compulsory part of the pysystemtrade system object which runs simulations (or in live trading generates desired positions). The API required for that is laid out in the user guide, [here](./backtesting.md#using-the-standard-data-objects). It's an interface between the contents of a dataBlob, and the simulation code.
 
 This modularity allows us to easily replace the data objects, so we could load our adjusted prices from mongo DB, or do 'back adjustment' of futures prices 'on the fly'.
 

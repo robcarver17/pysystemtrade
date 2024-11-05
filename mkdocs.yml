@@ -1,11 +1,15 @@
 site_name: PySystemTrade
-
+repo_url: https://github.com/robcarver17/pysystemtrade
 site_url: https://vcaldas.github.io/aptrade
+
 theme:
   name: material
+  features:
+    - search.suggest
+    - search.highlight
   palette:
 
-    # Palette toggle for automatic mode
+    # # Palette toggle for automatic mode
     - media: "(prefers-color-scheme)"
       toggle:
         icon: material/brightness-auto
@@ -24,3 +28,26 @@ theme:
       toggle:
         icon: material/brightness-4
         name: Switch to system preference
+
+markdown_extensions:
+  - pymdownx.snippets
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Introduction: introduction.md
+  - Backtesting: backtesting.md
+  - Futures data: data.md
+  - List of Futures: list_of_futures_product_pages.md
+  - Interactive Brokers: IB.md
+  - instruments: instruments.md
+  - Production: production.md
+  - Strategy changes: production_strategy_changes.md
+  - Monitoring: dashboard_and_monitoring.md
+
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+  - Recent Changes: recent_changes.md
+#   - About: about.md
