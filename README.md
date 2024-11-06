@@ -7,7 +7,7 @@ Rob Carver
 [https://qoppac.blogspot.com/p/pysystemtrade.html](https://qoppac.blogspot.com/p/pysystemtrade.html)
 
 
-Version 1.8.1
+Version 1.8.2
  
 
 2024-11-06
