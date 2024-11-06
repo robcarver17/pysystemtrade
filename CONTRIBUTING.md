@@ -12,7 +12,7 @@ For large changes, or new feature requests - please start an **Ideas** discussio
 
 > Credit to the [QuantConnect Lean project](https://github.com/QuantConnect/Lean), where most of these instructions originated
 
-* Setup a [GitHub](https://github.com/) account
+* Set up a [GitHub](https://github.com/) account
 * [Fork](https://help.github.com/articles/fork-a-repo/) the [repository](https://github.com/robcarver17/pysystemtrade) of the project
 * Clone your fork locally
 
@@ -42,7 +42,7 @@ This will checkout your local develop branch and then merge changes in from upst
 
 ## Branching model
 
-If you are not familiar with git branches, please read this [guide](https://www.atlassian.com/git/tutorials/using-branches/).
+If you are not familiar with git branches, please read this [guide](https://www.atlassian.com/git/tutorials/using-branches/). Our branching model is based on the one outlined [here](https://nvie.com/posts/a-successful-git-branching-model/) 
 
 The following names will be used to differentiate between the different repositories:
 
@@ -202,7 +202,7 @@ In general, we try and follow the original texts: [PEP 8](https://peps.python.or
 
 ### Error handling
 
-- Production code should not throw an error unless things are completely unrecoverable; if it does throw an error it must also log.critical which will email the user
+- Production code should not throw an error unless things are completely unrecoverable; if it does throw an error it must also `log.critical()` which will email the user (with the default production log config)
 
 
 ### Caching

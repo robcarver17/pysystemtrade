@@ -1,5 +1,14 @@
 # Release notes
 
+## Version 1.8.2
+
+- new Commission Report highlights where values need to be updated
+- parquet capital setup bugs fixed
+- ignore weekly GAS_US, LME contracts
+- add support for import of split frequency CSV prices
+- references to arctic updated in sysinit scripts
+- CONTRIBUTING.md updated
+- 
 ## Version 1.80
 
 - *NO LONGER REQUIRES ARCTIC* Time series data is stored in parquet, install pyarrow
