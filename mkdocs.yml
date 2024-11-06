@@ -1,6 +1,6 @@
 site_name: PySystemTrade
 repo_url: https://github.com/robcarver17/pysystemtrade
-site_url: https://vcaldas.github.io/aptrade
+site_url: https://robcarver17.github.io/pysystemtrade
 
 theme:
   name: material

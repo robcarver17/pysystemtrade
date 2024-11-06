@@ -1,10 +1,9 @@
-name: ci 
+name: docs-deploy
 on:
   push:
     branches:
       - master 
-      - main
-      - mkdocs-test
+      - develop
 permissions:
   contents: write
 jobs:
