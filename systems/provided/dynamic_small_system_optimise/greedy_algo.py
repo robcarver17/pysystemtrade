@@ -25,7 +25,7 @@ def greedy_algo_across_integer_values(
         )
 
         if new_best_value < best_value:
-            # reached a new optimium
+            # reached a new optimum
             best_value = new_best_value
             best_solution = new_solution
         else:

@@ -361,7 +361,7 @@ def get_or_infer_latest_price(new_multiple_prices, price_col: str = "PRICE"):
 
     If one can't be found, infer (There will always be a price in some column)
 
-    :param current_multiple_prices: futuresMultiplePrices
+    :param new_multiple_prices: futuresMultiplePrices
     :param price_col: one of 'PRICE','CARRY','FORWARD'
     :return: tuple: float, bool. Bool is true if the price is inferred, otherwise False
     """

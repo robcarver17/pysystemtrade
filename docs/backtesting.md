@@ -3997,13 +3997,12 @@ of forecasts.
 
 ### Working out net costs (both instrument and forecast weights)
 
-Again I recommend you check out this [blog
-post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
+Again I recommend you check out this [blog post](https://qoppac.blogspot.com/2016/05/optimising-weights-with-costs.html).
 
 ```
 forecast_weight_estimate:  ## can also be applied to instrument weights
    equalise_gross: False ## equalise gross returns so that only costs are used for optimisation
-   cost_multiplier: 0.0 ## multiply costs by this number. Zero means grosss returns used. Higher than 1 means costs will be inflated. Use zero if apply_cost_weight=True (see later)
+   cost_multiplier: 0.0 ## multiply costs by this number. Zero means gross returns used. Higher than 1 means costs will be inflated. Use zero if apply_cost_weight=True (see later)
 ```
 
 

@@ -6,8 +6,8 @@ from syscore.fileutils import (
 )
 from syscore.dateutils import month_from_contract_letter
 
-from sysinit.futures.contract_prices_from_csv_to_arctic import (
-    init_arctic_with_csv_futures_contract_prices,
+from sysinit.futures.contract_prices_from_csv_to_db import (
+    init_db_with_csv_futures_contract_prices,
 )
 
 
@@ -98,15 +98,13 @@ barchart_csv_config = ConfigCsvFuturesPrices(
 )
 
 
-def transfer_barchart_prices_to_arctic(datapath):
+def transfer_barchart_prices_to_db(datapath):
     strip_file_names(datapath)
-    init_arctic_with_csv_futures_contract_prices(
-        datapath, csv_config=barchart_csv_config
-    )
+    init_db_with_csv_futures_contract_prices(datapath, csv_config=barchart_csv_config)
 
 
 if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")
     # modify flags as required
     datapath = "*** NEED TO DEFINE A DATAPATH ***"
-    transfer_barchart_prices_to_arctic(datapath)
+    transfer_barchart_prices_to_db(datapath)

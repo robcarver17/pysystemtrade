@@ -23,7 +23,7 @@ def pooled_correlation_estimator(
     ## Will need to keep this to adjust lookbacks
     length_adjustment = len(downsampled_data)
 
-    ## We do this to ensure same frequency throughout once concatendate
+    ## We do this to ensure same frequency throughout once concatenated
     data_at_common_frequency = downsampled_data.reindex_to_common_index()
 
     # Make into one giant dataframe

@@ -29,7 +29,7 @@ class accountCosts(accountInputs):
 
         KEY OUTPUT
         """
-        ## Calculate holding and transaction seperately, as the former could be pooled
+        ## Calculate holding and transaction separately, as the former could be pooled
         transaction_cost = self.get_SR_transaction_cost_for_instrument_forecast(
             instrument_code=instrument_code, rule_variation_name=rule_variation_name
         )
@@ -184,7 +184,7 @@ class accountCosts(accountInputs):
         cost_per_trade = self.get_SR_cost_per_trade_for_instrument(instrument_code)
         hold_turnovers = self.get_rolls_per_year(instrument_code) * 2.0
 
-        ## Assumes no benefit from spread trades i.e. do two seperate trades
+        ## Assumes no benefit from spread trades i.e. do two separate trades
         SR_cost_holding = hold_turnovers * cost_per_trade
 
         return SR_cost_holding

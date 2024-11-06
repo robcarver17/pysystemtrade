@@ -8,7 +8,7 @@ from syscore.interactive.input import (
     get_input_from_user_and_convert_to_type,
 )
 from sysdata.data_blob import dataBlob
-from sysinit.futures.rollcalendars_from_arcticprices_to_csv import (
+from sysinit.futures.rollcalendars_from_db_prices_to_csv import (
     build_and_write_roll_calendar,
 )
 from sysinit.futures.multipleprices_from_db_prices_and_csv_calendars_to_db import (
@@ -148,7 +148,7 @@ def safely_modify_roll_parameters(data: dataBlob):
 
 
 def modified_roll_parameters(data: dataBlob, instrument_code) -> rollParameters:
-    print("Existing roll parameters: Must be defined in database config")
+    print("Existing roll parameters: Must be defined in CSV config")
     data_contracts = dataContracts(data)
     roll_parameters = data_contracts.get_roll_parameters(instrument_code)
     print(str(roll_parameters))

@@ -303,7 +303,7 @@ def dynamic_optimisation_text(data: dataBlob, strategy_name: str):
 
 
 if __name__ == "__main__":
-    ### Do two seperate reports, one graphical, one text
+    ### Do two separate reports, one graphical, one text
 
     data = dataBlob()
     ## interactively get backtest to use

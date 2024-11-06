@@ -64,6 +64,7 @@ from sysproduction.reporting.report_configs import (
     remove_markets_report_config,
     market_monitor_report_config,
     account_curve_report_config,
+    commission_report_config,
 )
 
 
@@ -126,13 +127,14 @@ nested_menu_of_options = {
         66: "Risk report",
         67: "Costs report",
         68: "Slippage report",
-        69: "Liquidity report",
-        70: "All instrument risk",
-        71: "Minimum capital required",
-        72: "Duplicate markets",
-        73: "Remove markets",
-        74: "Market monitor",
-        75: "P&L account curve",
+        69: "Commission report",
+        70: "Liquidity report",
+        71: "All instrument risk",
+        72: "Minimum capital required",
+        73: "Duplicate markets",
+        74: "Remove markets",
+        75: "Market monitor",
+        76: "P&L account curve",
     },
 }
 
@@ -229,6 +231,11 @@ def slippage_report(data):
     start_date, end_date = get_report_dates()
     report_config = email_or_print_or_file(slippage_report_config)
     report_config.modify_kwargs(start_date=start_date, end_date=end_date)
+    run_report(report_config, data=data)
+
+
+def commission_report(data):
+    report_config = email_or_print_or_file(commission_report_config)
     run_report(report_config, data=data)
 
 
@@ -739,13 +746,14 @@ dict_of_functions = {
     66: risk_report,
     67: cost_report,
     68: slippage_report,
-    69: liquidity_report,
-    70: instrument_risk_report,
-    71: min_capital_report,
-    72: duplicate_market_report,
-    73: remove_markets_report,
-    74: market_monitor_report,
-    75: account_curve_report,
+    69: commission_report,
+    70: liquidity_report,
+    71: instrument_risk_report,
+    72: min_capital_report,
+    73: duplicate_market_report,
+    74: remove_markets_report,
+    75: market_monitor_report,
+    76: account_curve_report,
 }
 
 if __name__ == "__main__":
