@@ -1,6 +1,6 @@
 # Release notes
 
-## Version 1.8.1
+## Version 1.8.2
 
 - new Commission Report highlights where values need to be updated
 - parquet capital setup bugs fixed
