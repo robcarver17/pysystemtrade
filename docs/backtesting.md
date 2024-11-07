@@ -1,11 +1,11 @@
-This is the user guide for using pysystemtrade as a backtesting platform. Before reading this you should have gone through the [introduction.](/docs/introduction.md)
+This is the user guide for using pysystemtrade as a backtesting platform. Before reading this you should have gone through the [introduction.](/introduction.md)
 
 Related documents:
 
-- [Storing futures and spot FX data](/docs/data.md)
-- [Using pysystemtrade as a production trading environment](/docs/production.md)
-- [Connecting pysystemtrade to interactive brokers](/docs/IB.md)
-- [Recent undocumented changes](/docs/recent_changes.md)
+- [Storing futures and spot FX data](/data.md)
+- [Using pysystemtrade as a production trading environment](/production.md)
+- [Connecting pysystemtrade to interactive brokers](/IB.md)
+- [Recent undocumented changes](/recent_changes.md)
 
 
 This guide is divided into four parts. The first ['How do I?'](#how_do_i)
@@ -402,7 +402,7 @@ you know what you're doing.
 
 ### Option 4: Create a `/private/private_config.yaml` file
 
-This makes sense if you want to make a global change to a particular parameter rather than constantly including certain things in your configuration files. Anything in this file will overwrite the system defaults, but will in turn be overwritten by the backtest configuration .yaml file. This file will also come in very handy when it comes to [using pysystemtrade as a production trading environment](/docs/production.md)
+This makes sense if you want to make a global change to a particular parameter rather than constantly including certain things in your configuration files. Anything in this file will overwrite the system defaults, but will in turn be overwritten by the backtest configuration .yaml file. This file will also come in very handy when it comes to [using pysystemtrade as a production trading environment](/production.md)
 
 
 ### Option 5: Change the project defaults (definitely not recommended)
@@ -556,11 +556,11 @@ If there are is no `instrument_weights` or `instruments` elements in the config,
 
 ## How do I.... Exclude some instruments from the backtest
 
-Refer to the [instruments document](/docs/instruments.md).
+Refer to the [instruments document](/instruments.md).
 
 ## How do I.... Exclude some instruments from having positive instrument weights
 
-Refer to the [instruments document](/docs/instruments.md).
+Refer to the [instruments document](/instruments.md).
 
 
 
@@ -787,7 +787,7 @@ There is more detail about using .csv files [here](#csv).
 
 If you want to store your data in Mongo DB databases instead you need to [use a different data object](#arctic_data).
 
-If you want to get your data from Quandl.com, then see the document [working with futures data](/docs/data.md)
+If you want to get your data from Quandl.com, then see the document [working with futures data](/data.md)
 
 If you want to get data from a different place (eg a database, yahoo finance,
 broker, quandl...) you'll need to [create your own Data object](#create_data).
@@ -795,7 +795,7 @@ broker, quandl...) you'll need to [create your own Data object](#create_data).
 If you want to use a different set of data values (eg equity EP ratios,
 interest rates...) you'll need to [create your own Data object](#create_data).
 
-If you want to delve deeper into data storage see the document [working with futures data](/docs/data.md)
+If you want to delve deeper into data storage see the document [working with futures data](/data.md)
 
 ## How do I... Save my work
 
@@ -862,7 +862,7 @@ particular **source** (for example .csv files, databases and so on).
 Two kinds of specific data object is currently provided with the system in the
 current version - `csvFuturesSimData` (.csv files) and `dbFuturesSimData` (database storage)
 
-See [working with futures data](/docs/data.md)
+See [working with futures data](/data.md)
 
 
 #### Generic data objects
@@ -966,7 +966,7 @@ the instrument_code):
 1. Static configuration and cost data- `instrument_config.csv` headings: Instrument, Pointsize,
    AssetClass, Currency. Additional headings for costs: Slippage, PerBlock,
    Percentage, PerTrade. See ['costs'](#costs) for more detail.
-2. Roll parameters data. See [storing futures and spot FX data](/docs/data.md) for more detail.
+2. Roll parameters data. See [storing futures and spot FX data](/data.md) for more detail.
 3. Adjusted price data- `code.csv` (eg SP500.csv) headings: DATETIME, PRICE
 4. Carry and forward data - `code.csv` (eg AEX.csv): headings:
    DATETIME, PRICE,CARRY,FORWARD,CARRY_CONTRACT PRICE_CONTRACT, FORWARD_CONTRACT
@@ -991,7 +991,7 @@ See data in subdirectories [pysystemtrade/data/futures](/data/futures) for files
 - [Futures specific carry and forward prices](/data/futures/multiple_prices_csv)
 - [Spot FX prices](/data/futures/fx_prices_csv)
 
-For more information see the [futures data document](/docs/data.md#csvFuturesSimData).
+For more information see the [futures data document](/data.md#csvFuturesSimData).
 
 <a name="arctic_data"> </a>
 
@@ -1002,14 +1002,14 @@ This is a simData object which gets it's data out of [Mongo DB](https://mongodb.
 For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files.
 [MongoDB](https://mongodb.com) is a no-sql database which is rather fashionable at the moment, though the main reason I selected it for this purpose is that it is used by Arctic. [Arctic](https://github.com/manahl/arctic) is a superb open source time series database which sits on top of Mongo DB) and provides straightforward and fast storage of pandas DataFrames. It was created by my former colleagues at [Man AHL](https://www.ahl.com/) (in fact I beta tested a very early version of Arctic), and then very generously released as open source.
 
-There is more detail on this in the [futures data documentation](/docs/data.md): [Mongo DB](/docs/data.md#mongoDB) and [Arctic](/docs/data.md#arctic).
+There is more detail on this in the [futures data documentation](/data.md): [Mongo DB](/data.md#mongoDB) and [Arctic](/data.md#arctic).
 
 ##### Setting up your Arctic and Mongo DB databases
 
 Obviously you will need to make sure you already have a Mongo DB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process. You also need to get [Arctic](https://github.com/manahl/arctic).
 
 Because the mongoDB data isn't included in the github repo, before using this you need to write the required data into Mongo and Arctic.
-You can do this from scratch, as per the ['futures data workflow'](/docs/data.md#a-futures-data-workflow). Alternatively you can run the following scripts which will copy the data from the existing github .csv files:
+You can do this from scratch, as per the ['futures data workflow'](/data.md#a-futures-data-workflow). Alternatively you can run the following scripts which will copy the data from the existing github .csv files:
 
 - [Instrument configuration and cost data](/sysinit/futures/repocsv_instrument_config.py)
 - [Adjusted prices](/sysinit/futures/repocsv_adjusted_prices.py)
@@ -1061,7 +1061,7 @@ This might seem a hassle, and it's tempting to skip and just inherit from
 convenient to have the possibility of multiple data sources and this process
 ensures they keep a consistent API for a given data type.
 
-It's worth reading the [documentation on futures data](/docs/data.md#modify_SimData) to understand how [csvFuturesSimData()](/sysdata/sim/csv_futures_sim_data.py) is constructed before modifying it or creating your own data objects.
+It's worth reading the [documentation on futures data](/data.md#modify_SimData) to understand how [csvFuturesSimData()](/sysdata/sim/csv_futures_sim_data.py) is constructed before modifying it or creating your own data objects.
 
 #### The Data() class
 
@@ -1634,7 +1634,7 @@ system, either from the config object if it contains instrument weights, or
 from the data object.
 
 
-These methods also get lists of instruments, see [instrument documentation](/docs/instruments.md) for more.
+These methods also get lists of instruments, see [instrument documentation](/instruments.md) for more.
 ```
 get_list_of_bad_markets
 get_list_of_markets_not_trading_but_with_data
@@ -3233,7 +3233,7 @@ system.accounts.get_buffered_position("US10", roundpositions=True) ## get the bu
 
 Note that in a live trading system buffering is done downstream of the
 system module, in a process which can also see the actual current positions we
-hold [the strategy order generation)](/docs/production.md).
+hold [the strategy order generation)](/production.md).
 
 Finally, if you set buffer_method to none there will be no buffering.
 

@@ -9,9 +9,9 @@ Although this document is about Interactive Brokers, you should read it carefull
 
 Related documents:
 
-- [Storing futures and spot FX data](/docs/data.md)
-- [Using pysystemtrade as a production trading environment](/docs/production.md)
-- [Using pysystemtrade for backtesting](/docs/backtesting.md)
+- [Storing futures and spot FX data](/data.md)
+- [Using pysystemtrade as a production trading environment](/production.md)
+- [Using pysystemtrade for backtesting](/backtesting.md)
 
 *IMPORTANT: Make sure you know what you are doing. All financial trading offers the possibility of loss. Leveraged trading, such as futures trading, may result in you losing all your money, and still owing more. Backtested results are no guarantee of future performance. No warranty is offered or implied for this software. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk.*
 
@@ -107,14 +107,14 @@ See [here](#creating-and-closing-connection-objects) for more details.
 
 There are three types of objects in the [sysbrokers/IB](/sysbrokers/IB/) area of pysystemtrade:
 
-- Data source objects: Provide the standard data object API to the rest of the code, eg getting futures contracts prices is done with the same call whether they are coming from a database or IB. They are called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface). They are instanced with a *connection object*. They make calls to *client objects*. 
+- Data source objects: Provide the standard data object API to the rest of the code, eg getting futures contracts prices is done with the same call whether they are coming from a database or IB. They are called by the `/sysproduction/data/broker/` [interface functions](/data.md#production-interface). They are instanced with a *connection object*. They make calls to *client objects*. 
 - Client objects: These make calls to the ib_insync in specific domains (getting data, placing orders and so on). They are also instanced with a *connection object*.
 - Connection objects. These contain a specific connection to an IB gateway via an ib_insync IB instance.
 
 
 ## Data source objects
 
-We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). However we can't delete or write to IB.  Normally these functions would be called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface); it's discouraged to call them directly as the interface abstracts away exactly which broker you are talking to.
+We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/data.md)). However we can't delete or write to IB.  Normally these functions would be called by the `/sysproduction/data/broker/` [interface functions](/data.md#production-interface); it's discouraged to call them directly as the interface abstracts away exactly which broker you are talking to.
 
 The data source objects all inherit from the classes in the `sysbrokers/` directory, eg `broker*data.py`. This serves a few purposes: it means we can add additional non specific IB methods that only make sense when talking to a broker rather than to a database, and it illustrates the interface you'd need to implement to connect to a different broker.
 Data source objects are instanced with and contain a *connection object* (and optionally a logger). They contain, and make calls to, *client objects*. They are in this [module](/sysbrokers/IB/)
@@ -249,7 +249,7 @@ ib_price_client.ib # live ib_inysnc.IB instance
 
 ## Connection objects
 
-You wouldn't normally open a separate IB connection in pysystemtrade since they are opened by the [dataBlob](/docs/data.md#data-blobs) objects used in production. But it's useful to know how they work under the hood.
+You wouldn't normally open a separate IB connection in pysystemtrade since they are opened by the [dataBlob](/data.md#data-blobs) objects used in production. But it's useful to know how they work under the hood.
 
 ### Creating and closing connection objects
 
@@ -280,11 +280,11 @@ conn = connectionIB(config)
 Connection objects immediately try and connect to IB. So don't create them until you are ready to do this. 
 
 
-Again in production the connection would normally be closed by the [dataBlob](/docs/data.md#data-blobs) object that encapsulates the connection, or you can do it manually with  `conn.close_connection()`.
+Again in production the connection would normally be closed by the [dataBlob](/data.md#data-blobs) object that encapsulates the connection, or you can do it manually with  `conn.close_connection()`.
 
 ### Using connections
 
-We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). Since connection objects abstract what the broker is doing, it should be possible to use these object for other brokers with minimal changes.
+We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/data.md)). Since connection objects abstract what the broker is doing, it should be possible to use these object for other brokers with minimal changes.
 
 The main service the connection provides is that it encapsulates a live ib_inysnc.IB instance:
 
