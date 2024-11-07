@@ -9,16 +9,16 @@ This includes:
 
 Related documents (which you should read before this one!):
 
-- [Backtesting with pysystemtrade](/docs/backtesting.md)
-- [Storing futures and spot FX data](/docs/data.md)
-- [Connecting pysystemtrade to interactive brokers](/docs/IB.md)
+- [Backtesting with pysystemtrade](/backtesting.md)
+- [Storing futures and spot FX data](/data.md)
+- [Connecting pysystemtrade to interactive brokers](/IB.md)
 
 And documents you should read after this one:
 
-- [Instruments](/docs/instruments.md)
-- [Dashboard and monitor](/docs/dashboard_and_monitor.md)
-- [Production strategy changes](/docs/production_strategy_changes.md)
-- [Recent undocumented changes](/docs/recent_changes.md)
+- [Instruments](/instruments.md)
+- [Dashboard and monitor](/dashboard_and_monitor.md)
+- [Production strategy changes](/production_strategy_changes.md)
+- [Recent undocumented changes](/recent_changes.md)
 
 *IMPORTANT: Make sure you know what you are doing. All financial trading offers the possibility of loss. Leveraged trading, such as futures trading, may result in you losing all your money, and still owing more. Backtested results are no guarantee of future performance. No warranty is offered or implied for this software. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk.*
 
@@ -269,10 +269,10 @@ You need to:
         - '/home/user_name/data/backtests'
         - '/home/user_name/data/reports'
     - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above). If using git clone from your home directory this should create the directory '/home/user_name/pysystemtrade/'
-    - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
+    - [Set up interactive brokers](/IB.md), download and install their python code, and get a gateway running.
     - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/). Latest v4 is recommended, as [Arctic doesn't support 5](https://github.com/man-group/arctic#requirements) yet
     - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a ['private_control_config.yaml' file in the same directory](#process-configuration) See [here for more details](#system-defaults--private-config)
-    - [check a mongodb server is running with the right data directory](/docs/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
+    - [check a mongodb server is running with the right data directory](/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
     - launch an IB gateway (this could be done automatically depending on your security setup)
 - FX data:
     - [Initialise the spot FX data in MongoDB from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
@@ -280,13 +280,13 @@ You need to:
 - Instrument configuration:
     - Set up futures instrument spread costs using this script [repocsv_spread_costs.py](/sysinit/futures/repocsv_spread_costs.py).
 - Futures contract prices:
-    - [You must have a source of individual futures prices, then backfill them into the Arctic database](/docs/data.md#get_historical_data).
+    - [You must have a source of individual futures prices, then backfill them into the Arctic database](/data.md#get_historical_data).
 - Roll calendars:
-    - [Create roll calendars for each instrument you are trading](/docs/data.md#roll-calendars)
+    - [Create roll calendars for each instrument you are trading](/data.md#roll-calendars)
 - [Ensure you are sampling all the contracts you want to sample](#update-sampled-contracts-daily)
 - Adjusted futures prices:
-    - [Create 'multiple prices' in Arctic](/docs/data.md#creating-and-storing-multiple-prices).
-    - [Create adjusted prices in Arctic](/docs/data.md#creating-and-storing-back-adjusted-prices)
+    - [Create 'multiple prices' in Arctic](/data.md#creating-and-storing-multiple-prices).
+    - [Create adjusted prices in Arctic](/data.md#creating-and-storing-back-adjusted-prices)
 - Use [interactive diagnostics](#interactive-diagnostics) to check all your prices are in place correctly
 - Live production backtest:
     - Create a yaml config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
@@ -299,7 +299,7 @@ You need to:
 
 Before trading, and each time you restart the machine you should:
 
-- [check a mongodb server is running with the right data directory](/docs/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
+- [check a mongodb server is running with the right data directory](/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/IbcAlpha/IBC) depending on your security setup)
 - ensure all processes are [marked as 'close'](#mark-as-finished)
 
@@ -544,7 +544,7 @@ You are probably going to want to link your system to a broker, to do one or mor
 
 ... although one or more of these can also be done manually.
 
-You should now read [connecting pysystemtrade to interactive brokers](/docs/IB.md). The fields `broker_account`,`ib_ipaddress`, `ib_port` and `ib_idoffset` should be set in the [private config file](/private/private_config.yaml).
+You should now read [connecting pysystemtrade to interactive brokers](/IB.md). The fields `broker_account`,`ib_ipaddress`, `ib_port` and `ib_idoffset` should be set in the [private config file](/private/private_config.yaml).
 
 
 ## Other data sources
@@ -556,7 +556,7 @@ You might get all your data from your broker, but there are good reasons to get 
 - you can't get the relevant data from your broker
 - the relevant data is cheaper elsewhere
 
-You should now read [getting and storing futures and spot FX data](/docs/data.md) for some hints on writing API layers for other data sources.
+You should now read [getting and storing futures and spot FX data](/data.md) for some hints on writing API layers for other data sources.
 
 
 ## Data storage
@@ -565,7 +565,7 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 
 - accounting (calculations of profit and loss)
 - diagnostics
-- prices (see [storing futures and spot FX data](/docs/data.md))
+- prices (see [storing futures and spot FX data](/data.md))
 - positions
 - other state and control information
 - static configuration files
@@ -660,7 +660,7 @@ Note: the configuration variable echo_extension will need changing in `private_c
 
 ### Logging
 
-pysystemtrade uses the [Python logging module](https://docs.python.org/3.10/library/logging.html). See the [user guide for more detail](/docs/backtesting.md#logging) about logging in sim. Python logging is powerful and flexible, and log messages can be [formatted as you like, and sent virtually anywhere](https://docs.python.org/3.10/howto/logging.html#logging-advanced-tutorial) by providing your own config. But this section describes the default provided production setup. 
+pysystemtrade uses the [Python logging module](https://docs.python.org/3.10/library/logging.html). See the [user guide for more detail](/backtesting.md#logging) about logging in sim. Python logging is powerful and flexible, and log messages can be [formatted as you like, and sent virtually anywhere](https://docs.python.org/3.10/howto/logging.html#logging-advanced-tutorial) by providing your own config. But this section describes the default provided production setup. 
 
 In production, the requirements are more complex than in sim. As well as the context relevant attributes (that we have with sim), we also need
 - ability to log to the same file from different processes
@@ -995,7 +995,7 @@ Roll orders aren't generated here, but by the stack handler.
 
 Overrides are applied before instrument orders are placed on the stack. They will take into account the desired trade, and the current position held.
 
-See the [instruments documentation](/docs/instruments.md) to understand more about overrides.
+See the [instruments documentation](/instruments.md) to understand more about overrides.
 
 
 ## Stack handler
@@ -1974,7 +1974,7 @@ Overrides allow us to reduce positions for a given strategy, for a given instrum
 - a flag, allowing us only to submit trades which reduce our positions
 - a flag, allowing no trading to occur in the given instrument.
 
-Overrides are also set as a result of configured information about different instruments; see the [instruments documentation](/docs/instruments.md) for more detail.
+Overrides are also set as a result of configured information about different instruments; see the [instruments documentation](/instruments.md) for more detail.
 
 Instrument trades will be modified to achieve any required override effect (this occurs when run_strategy_order_generator is run). We can:
 
@@ -2009,7 +2009,7 @@ run_cleaners                  : Last started 2020-12-08 14:51:19.380000 Last end
 run_backups                   : Last started 2020-12-08 14:54:04.856000 Last ended status 2020-12-08 00:05:48.444000 GO      PID 61604.0    is running
 ```
 
-You can use the PID to check using the Linux command line eg `ps aux | grep 86140` if a process really is running (in this case I'm checking if run_capital_update really is still going), or if it's abnormally aborted (in which case you will need to change it to 'not running' before relaunching - see below). This is also done automatically by the [system monitor and/or dashboard](/docs/dashboard_and_monitor.md), if running.
+You can use the PID to check using the Linux command line eg `ps aux | grep 86140` if a process really is running (in this case I'm checking if run_capital_update really is still going), or if it's abnormally aborted (in which case you will need to change it to 'not running' before relaunching - see below). This is also done automatically by the [system monitor and/or dashboard](/dashboard_and_monitor.md), if running.
 
 Note that processes that have launched but waiting to properly start (perhaps because it is not their scheduled start time, or because another process has not yet started) will be shown as not running and will have no PID registered. You can safely kill them.
 
@@ -2034,7 +2034,7 @@ Note that the startup script will also mark all processes as close (as there sho
 
 #####  Mark all dead processes as close
 
-This will check to see if a process PID is active, and if not it will mark a process as close, assumed crashed. This is also done periodically by the [system monitor and/or dashboard](/docs/dashboard_and_monitor.md), if running.
+This will check to see if a process PID is active, and if not it will mark a process as close, assumed crashed. This is also done periodically by the [system monitor and/or dashboard](/dashboard_and_monitor.md), if running.
 
 #####  View process configuration
 
@@ -2711,7 +2711,7 @@ arguments:
 
 ### System monitor and dashboard
 
-There is a crude monitoring tool, and a more sophisticated fancy dashboard, which you can use to monitor what the system is up to. [Read the doc file here.](/docs/dashboard_and_monitor.md)
+There is a crude monitoring tool, and a more sophisticated fancy dashboard, which you can use to monitor what the system is up to. [Read the doc file here.](/dashboard_and_monitor.md)
 
 
 ### Troubleshooting?
@@ -2815,7 +2815,7 @@ The following are configuration options that are in defaults.yaml and can be ove
 
 ### System backtest .yaml config file(s)
 
-See the [user guide for backtesting](/docs/backtesting.md).
+See the [user guide for backtesting](/backtesting.md).
 
 The interaction of system, private, and backtest configs can be a bit confusing. Inside a backtest (which can either be in production or sim mode), configuration options will be pulled in the following priority (1) specific backtest .yaml configuration, (2) private_config.yaml, (3) defaults.yaml file. 
 
@@ -3055,7 +3055,7 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 
 ## Dashboard
 
-A lot of the information in the reports described below can also be found in the [Web Dashboard](/docs/dashboard_and_monitor.md)
+A lot of the information in the reports described below can also be found in the [Web Dashboard](/dashboard_and_monitor.md)
 
 ### Roll report (Daily)
 

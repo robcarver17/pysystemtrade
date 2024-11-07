@@ -1,0 +1,54 @@
+site_name: PySystemTrade
+repo_url: https://github.com/vcaldas/aptrade
+site_url: https://vcaldas.github.io/aptrade
+site_author: Victor Caldas
+
+theme:
+  name: material
+  features:
+    - search.suggest
+    - search.highlight
+  palette:
+
+    # # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default 
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+markdown_extensions:
+  - pymdownx.snippets
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Introduction: introduction.md
+  - Backtesting: backtesting.md
+  - Futures data: data.md
+  - List of Futures: list_of_futures_product_pages.md
+  - Interactive Brokers: IB.md
+  - instruments: instruments.md
+  - Production: production.md
+  - Strategy changes: production_strategy_changes.md
+  - Monitoring: dashboard_and_monitoring.md
+
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+  - Recent Changes: recent_changes.md
+#   - About: about.md

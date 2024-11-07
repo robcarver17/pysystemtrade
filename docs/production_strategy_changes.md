@@ -1,6 +1,6 @@
 This document describes how you'd make changes to strategies in production: adding new strategies, or replacing existing ones.
 
-It is fairly 'bare bones', and you should have read and understand the [production documentation](/docs/production.md) first.
+It is fairly 'bare bones', and you should have read and understand the [production documentation](/production.md) first.
 
 # Steps to follow
 
@@ -24,12 +24,12 @@ It's important that the following steps are followed, in order.
 16. Clean up
 
 
-Not all the steps are described in detail in this document, see [the production documents](/docs/production.md) for details.
+Not all the steps are described in detail in this document, see [the production documents](/production.md) for details.
 
 
 ## Set up any new instruments and get their prices sampling
 
-If your new strategy has new instruments, [set these up first](/docs/data.md). You'll need to have their sampled data to do your backtests.
+If your new strategy has new instruments, [set these up first](/data.md). You'll need to have their sampled data to do your backtests.
 
 
 ## Create custom classes to run the strategy
