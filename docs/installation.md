@@ -1,11 +1,13 @@
 # Installation
 
-## Introduction
 
-This guide shows the quickest and easiest way to install the project in a virtual environment
+This guide shows the quickest and easiest way to install the project in a virtual environment. It is assumed that you are using a Unix-like operating system (Linux, MacOS, etc). If you are using Windows, you will need to adapt the instructions accordingly.
 
+# Setting up a development environment
 
-## pyenv
+Pysystemtrade currently requires Python 3.10, so once pyenv is installed, the first step is to get that. Get the latest 3.10.x version, at the time of writing it is 3.10.15
+
+## Option 1: pyenv + venv 
 
 pyenv allows easy installation of multiple versions of Python on the same machine. It allows the version of python used to be defined at the user and project level. It is a great tool, easy to use, and does its one job very well. It is worth reading the introduction to have an overview of how it works at a high level. It's not necessary to understand the technical internals 
 
@@ -15,10 +17,8 @@ Installation instructions for pyenv are here:
 
 https://github.com/pyenv/pyenv#installation
 
-## Python 3.10
 
-pysystemtrade currently requires Python 3.10, so once pyenv is installed, the first step is to get that. Get the latest 3.10.x version, at the time of writing it is 3.10.13
-
+### Get the python version
 ```
 $ pyenv install 3.10
 ```
@@ -38,17 +38,74 @@ $ pyenv versions
   3.9.6
   3.9.13
   3.10.4
-* 3.10.13
+* 3.10.15
 ```
 
 Your output will be different, it's just an example
 
 
-## project files
+### venv
 
-Once we have the correct version of Python, it's time to get the project files. 
+https://docs.python.org/3.10/library/venv.html
 
-If you intend to contribute to the project, or run your own instance, you will likely want to clone your own fork
+Now we want to create a virtual env (venv) for the project. Doing this will keep all the dependencies for pysystemtrade separate from your other python projects
+
+```
+$ python -m venv venv/3.10.15
+```
+
+This will create a brand new, isolated Python environment *inside the pysystemtrade project* at the directory
+`<your_path>/pysystemtrade/venv/3.10.15`. You can give your environment any name (the *venv/3.10.15* bit).
+
+Now activate the virtual environment
+
+```
+source venv/3.10.15/bin/activate
+```
+
+Once your virtual env is activated, the prompt will change. It will look something like 
+
+```
+(3.10.15) $
+```
+This reminds you that you're in a venv. (You can exit the venv at any time by running `deactivate`)
+
+
+
+## Option 2: uv
+
+uv is a python management tool that promises a simpler path to managing python versions and virtual environments. It is a newer tool than pyenv, and is not as widely used. It is worth considering if you are starting from scratch, but it is not as mature as pyenv.
+
+Installation instructions for uv are here:
+```
+# On macOS and Linux.
+$ curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# On Windows.
+$ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# With pip.
+$ pip install uv
+```
+
+then create the virtual environment
+
+```
+uv python install 3.10
+uv venv --python 3.10
+```
+
+and to activate it:
+
+```
+source .venv/bin/activate
+```
+
+
+## Project files
+
+Either choice of environment will work. Now we need to get the project files. 
+
 
 ```
 git clone https://github.com/<your_git_hub_id>/pysystemtrade.git
@@ -60,56 +117,30 @@ otherwise, you'll want the main repo
 git clone https://github.com/robcarver17/pysystemtrade.git
 ```
 
-Now we will want to let pyenv know that we want to use Python 3.10 for this project
+If you intend to contribute to the project, please take a look a the [contribution](../CONTRIBUTING.md) guide. or run your own instance, you will likely want to clone your own fork
+
 
 ```
 cd pysystemtrade
-pyenv local 3.10.13
+source .venv/bin/activate
+python --version
 ```
 
-this creates a file at the top level of the project `.python-version` that lets the Python execution environment know to use version 3.10.13. We can check this by running python
-
+you may also test the python terminal itself.
 ```
 $ python
-Python 3.10.13 (main, Nov 27 2023, 11:13:49) [Clang 14.0.0 (clang-1400.0.29.202)]
+Python 3.10.15 (main, Oct 16 2024, 04:37:23) [Clang 18.1.8 ] on linux
 Type "help", "copyright", "credits" or "license" for more information.
->>> 
 < ctrl-D to exit >
 ```
-
-## venv
-
-https://docs.python.org/3.10/library/venv.html
-
-Now we want to create a virtual env (venv) for the project. Doing this will keep all the dependencies for pysystemtrade separate from your other python projects
-
-```
-$ python -m venv venv/3.10.13
-```
-
-This will create a brand new, isolated Python environment *inside the pysystemtrade project* at the directory
-`<your_path>/pysystemtrade/venv/3.10.13`. You can give your environment any name (the *venv/3.10.13* bit).
-
-Now activate the virtual environment
-
-```
-source venv/3.10.13/bin/activate
-```
-
-Once your virtual env is activated, the prompt will change. It will look something like 
-
-```
-(3.10.13) $
-```
-This reminds you that you're in a venv. (You can exit the venv at any time by running `deactivate`)
-
 
 ## dependencies
 
 Now it's time to start setting up the venv. First check to see what is there 
 
 ```
-(3.10.13) $ pip list
+(3.10.15) $ pip list
+(venv) $ pip list # The name depends on how you set up your environment
 ```
 
 You will probably be prompted to update pip at this time. Do whatever command it suggests.
@@ -117,7 +148,7 @@ You will probably be prompted to update pip at this time. Do whatever command it
 And now install the dependencies
 
 ```
-(3.10.13) $ pip install -r requirements.txt
+(3.10.15) $ pip install -r requirements.txt
 ```
 
 ### MacOS (ARM)
@@ -136,7 +167,7 @@ Note: this may (unfortunately) become out of date and require some tweaking.
 Check what is installed, should look something like
 
 ```
-(3.10.13) % pip list
+(3.10.15) % pip list
 Package         Version
 --------------- ------------
 blinker         1.7.0
@@ -188,13 +219,13 @@ Werkzeug        3.0.1
 And finally, install the project itself
 
 ```
-(3.10.13) $ python setup.py develop
+(3.10.15) $ python setup.py develop
 ```
 
 Check stuff works
 
 ```
-(3.10.13) $ python
+(3.10.15) $ python
 >>>
 >>> from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
 Configuring sim logging
