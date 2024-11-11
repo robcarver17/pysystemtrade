@@ -1,8 +1,8 @@
-name: Slow test (master)
+name: Slow test
 
 on:
   schedule:
-    - cron: '0 1 * * 0'
+    - cron: '0 2 * * *'
 
   workflow_dispatch:
 
@@ -10,17 +10,18 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ 3.10.13 ]
 
     steps:
 
     - uses: actions/checkout@v4
-      with:
-        ref: "master"
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.8'
+        python-version: '3.10'
 
     - name: Install dependencies
       run: |

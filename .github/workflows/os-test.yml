@@ -1,0 +1,28 @@
+name: OS test
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-13, macos-14, windows-2022 ]
+        python-version: [ 3.11.9 ]
+
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements.txt

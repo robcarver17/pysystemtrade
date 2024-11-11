@@ -91,7 +91,7 @@ setup(
         "numpy>=1.24.0",
         "scipy>=1.0.0",
         "pymongo==3.11.3",
-        "psutil==5.6.6",
+        "psutil==5.6.7",
         "pytest>6.2",
         "Flask>=2.0.1",
         "Werkzeug>=2.0.1",
