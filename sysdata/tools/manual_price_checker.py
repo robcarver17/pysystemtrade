@@ -79,8 +79,10 @@ def manual_price_checker(
         position_of_spike_in_newdata = list(new_data.index).index(first_spike)
         position_of_spike_in_mergedata = list(merged_data.index).index(first_spike)
 
-        original_value = merged_data[column_to_check][position_of_spike_in_mergedata]
-        previous_value = merged_data[column_to_check][
+        original_value = merged_data[column_to_check].iloc[
+            position_of_spike_in_mergedata
+        ]
+        previous_value = merged_data[column_to_check].iloc[
             position_of_spike_in_mergedata - 1
         ]
 

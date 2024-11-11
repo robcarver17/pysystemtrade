@@ -1,6 +1,6 @@
 [project]
 name = "pysystemtrade"
-version = "1.80"
+version = "1.8.2"
 authors = [
   { name="Robert Carver", email="rob@systematicmoney.org" },
 ]
