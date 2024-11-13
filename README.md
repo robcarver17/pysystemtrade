@@ -57,31 +57,26 @@ My live production system is always on the latest release. I make, and eat, my o
 
 ## Dependencies
 
-See [requirements.txt](requirements.txt) for full details.
+See the `project.dependencies` section in [pyproject.toml](pyproject.toml) for full details.
 
-Make sure you get the python3 versions of the relevant packages, i.e. use: (in linux)
-
-```
-sudo pip3 install ....
-```
-
-(Your machine may not need pip3 if python3 is the default python on your machine)
 
 ## Installation
 
-This package isn't hosted on pip. So to get the code the easiest way is to use git:
+This package isn't hosted on pypi.org. So to get the code the easiest way is to use git:
 
 ```
-git clone https://github.com/robcarver17/pysystemtrade.git
-#
-# then one of:
-#
-python3 setup.py install # normal
-python3 setup.py develop # required if using ipython so sessions can see files inside subdirectories which would otherwise be inaccessible.
-python3 setup.py install --user # avoids use of sudo
-```
+# clone the repo to your local filesystem
+$ git clone https://github.com/robcarver17/pysystemtrade.git
 
-Again, you may be okay with python rather than python3.
+# navigate to the project directory
+$ cd pysystemtrade
+
+# either install pysystemtrade normally
+$ python -m pip .
+
+# or install in editable mode, with development dependencies 
+$ python -m pip --editable '.[dev]'
+```
 
 There is a more complete installation guide [here](docs/installation.md)
 
