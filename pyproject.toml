@@ -31,7 +31,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-arctic = ["arctic@git+ssh://git@github.com/man-group/arctic.git"]
+arctic = ["arctic @ git+https://github.com/man-group/arctic.git"]
 dev = ["pytest>6.2", "black==23.11.0"]
 
 [project.urls]
