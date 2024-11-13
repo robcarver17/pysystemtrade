@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "pysystemtrade"
 version = "1.8.2"
@@ -9,19 +13,8 @@ readme = "README.md"
 license = {file = "LICENCE"}
 requires-python = ">=3.10"
 keywords = ["systematic trading", "interactive brokers"]
-
-[project.urls]
-"Homepage" = "https://github.com/robcarver17/pysystemtrade"
-"Bug Tracker" = "https://github.com/robcarver17/pysystemtrade/issues"
-
-[build-system]
-requires = [
-    "setuptools",
-    "wheel"
-]
-build-backend = "setuptools.build_meta"
-
 dependencies = [
+    "pandas==2.1.3",
     "matplotlib>=3.0.0",
     "PyYAML==6.0.1",
     "numpy>=1.24.0",
@@ -38,29 +31,33 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-parquet = ["pandas==2.1.3", "pyarrow>=14.0.1"]
-arctic = ["pandas==1.5.3", "arctic==1.80.2"]
-dev = ["black"]
-test = ["pytest>6.2"]
+arctic = ["arctic@git+ssh://git@github.com/man-group/arctic.git"]
+dev = ["pytest>6.2", "black==23.11.0"]
 
+[project.urls]
+"Homepage" = "https://github.com/robcarver17/pysystemtrade"
+"Bug Tracker" = "https://github.com/robcarver17/pysystemtrade/issues"
+
+[tool.setuptools.packages]
+find = {}
 
 [tool.setuptools.package-data]
-'data' = ["*.csv"]
-'private' = ["*.yaml"]
-'sysbrokers' = ["*.csv", "*.yaml"]
-'syscontrol' = ["*.yaml"]
-'sysdata' = ["*.csv"]
-'sysdata.config' = ["*.yaml"]
-'sysinit' = ["*.csv"]
-'systems.provided' = ["*.yaml"]
+"data" = ["*.csv"]
+"private" = ["*.yaml"]
+"sysbrokers" = ["*.csv", "*.yaml"]
+"syscontrol" = ["*.yaml"]
+"sysdata" = ["*.csv"]
+"sysdata.config" = ["*.yaml"]
+"sysinit" = ["*.csv"]
+"systems.provided" = ["*.yaml"]
 
 [tool.pytest.ini_options]
 norecursedirs = "examples"
 addopts = "--doctest-modules --ignore=systems/provided/moretradingrules/temp.py"
 log_cli = "true"
 log_cli_level = 10
-log_format = '%(asctime)s %(levelname)s %(name)s %(message)s'
-log_date_format = '%Y-%m-%d %H:%M:%S'
+log_format = "%(asctime)s %(levelname)s %(name)s %(message)s"
+log_date_format = "%Y-%m-%d %H:%M:%S"
 doctest_optionflags = ["ELLIPSIS", "NUMBER", "NORMALIZE_WHITESPACE"]
 testpaths = [
     # "syscore",
@@ -87,5 +84,5 @@ testpaths = [
 
 [tool.black]
 line-length = 88
-target-version = ['py310']
-required-version = '23.11.0'
+target-version = ["py310"]
+required-version = "23.11.0"
