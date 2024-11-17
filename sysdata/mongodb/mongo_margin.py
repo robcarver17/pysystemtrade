@@ -70,7 +70,9 @@ def from_dict_of_entries_to_margin_series(dict_of_entries: dict) -> seriesOfMarg
     ]
     list_of_values = list(dict_of_entries.values())
 
-    pd_series = pd.Series(list_of_values, index=list_of_keys_as_datetime)
+    pd_series = pd.Series(
+        list_of_values, index=list_of_keys_as_datetime, dtype="float64"
+    )
     pd_series = pd_series.sort_index()
 
     return seriesOfMargin(pd_series)
