@@ -71,7 +71,9 @@ class pandlCalculationWithCashCostsAndFills(
             self.costs_from_trading_in_instrument_currency_as_list()
         )
         date_index = self.date_index_for_all_fills()
-        costs_as_pd_series = pd.Series(instrument_currency_costs_as_list, date_index)
+        costs_as_pd_series = pd.Series(
+            instrument_currency_costs_as_list, date_index, dtype="float64"
+        )
         costs_as_pd_series = costs_as_pd_series.sort_index()
         costs_as_pd_series = costs_as_pd_series.groupby(costs_as_pd_series.index).sum()
 
