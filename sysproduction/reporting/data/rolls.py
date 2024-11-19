@@ -458,7 +458,7 @@ def last_price_data_with_matched_contracts(df_of_col_and_col_to_use):
         ):
             row_to_copy = df_of_col_and_col_to_use[
                 ["Price_to_find", "Price_infer_from"]
-            ].iloc[data_row_idx]
+            ].iloc[[data_row_idx]]
 
             if matched_df_dict.empty:
                 matched_df_dict = row_to_copy
