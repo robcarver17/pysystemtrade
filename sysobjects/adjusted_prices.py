@@ -183,7 +183,7 @@ def _calc_new_multiple_prices(
 
     last_contract_in_price_data = prices_in_multiple_prices[price_contract_column][
         :last_date_in_current_adj
-    ][-1]
+    ].iloc[-1]
 
     new_multiple_price_data = prices_in_multiple_prices.prices_after_date(
         last_date_in_current_adj
