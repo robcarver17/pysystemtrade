@@ -72,10 +72,10 @@ $ git clone https://github.com/robcarver17/pysystemtrade.git
 $ cd pysystemtrade
 
 # either install pysystemtrade normally
-$ python -m pip .
+$ python -m pip install .
 
 # or install in editable mode, with development dependencies 
-$ python -m pip --editable '.[dev]'
+$ python -m pip install --editable '.[dev]'
 ```
 
 There is a more complete installation guide [here](docs/installation.md)
