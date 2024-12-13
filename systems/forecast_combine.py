@@ -435,7 +435,7 @@ class ForecastCombine(SystemStage):
     @diagnostic()
     def get_forecasts_given_rule_list(
         self, instrument_code: str, rule_variation_list: list
-    ) -> pd.Series:
+    ) -> pd.DataFrame:
         """
         Convenience function to get a list of forecasts
 
