@@ -30,3 +30,5 @@ venv/
 # libreoffice
 .~lock.*
 
+# Data
+data/parquet
