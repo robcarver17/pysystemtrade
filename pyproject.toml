@@ -28,6 +28,8 @@ dependencies = [
     "PyPDF2>=2.5.0",
     "scikit-learn>1.3.0",
     "pytz==2023.3",
+    "dnspython"
+
 ]
 
 [project.optional-dependencies]
