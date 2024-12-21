@@ -1,0 +1,28 @@
+# This is example of
+# sysdiag.yaml_config_with_estimated_parameters('private.this_system_name.config.yaml',
+#                                                  attr_names=['forecast_scalars',
+#                                                              'forecast_weights',
+#                                                              'forecast_div_multiplier',
+#                                                              'forecast_mapping',
+#                                                              'instrument_weights',
+#                                                              'instrument_div_multiplier'])
+
+forecast_div_multiplier:
+  CORN: 1.13
+forecast_mapping: {}
+forecast_scalars:
+  ewmac16_64: 3.75
+  ewmac2_8: 10.6
+  ewmac32_128: 2.65
+  ewmac4_16: 7.5
+  ewmac64_256: 1.87
+  ewmac8_32: 5.3
+forecast_weights:
+  CORN:
+    ewmac16_64: 0.25
+    ewmac32_128: 0.25
+    ewmac64_256: 0.25
+    ewmac8_32: 0.25
+instrument_div_multiplier: 1.0
+instrument_weights:
+  CORN: 1.0
