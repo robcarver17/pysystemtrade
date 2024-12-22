@@ -7,6 +7,6 @@
 - add "dnspython" in `pyproject.toml`
 
 2. Update paht in `default.yaml`
-- add `parquet_store: '/Users/nanthawat/PycharmProjects/pysystemtrade/data/parquet'`
+- add `parquet_store: '/Users/nanthawat/PycharmProjects/private-pysystemtrade/data/parquet'`
 
 3. Add `data/parquet` to `gitignore`

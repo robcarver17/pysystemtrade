@@ -44,7 +44,7 @@ mongo_db: 'production'
 mongo_port: 27017
 #
 # Parquet store
-parquet_store: '/Users/nanthawat/PycharmProjects/pysystemtrade/data/parquet'
+parquet_store: '/Users/nanthawat/PycharmProjects/private-pysystemtrade/data/parquet'
 
 #
 # Needs to be consistent with what you are using in crontab
