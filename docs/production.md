@@ -2446,34 +2446,24 @@ There is some housekeeping to do when a machine starts up, primarily in case it 
 
 ## Scripts under other (non-linux) operating systems
 
-There is a built-in Python mechanism for creating command line executables; it may make sense for those who want to
-have a production instance of pysystemtrade on MacOS or Windows. Or for Linux users who would prefer to use the standard 
-method than the supplied scripts. The mechanism is provided by the packaging tools, and configured in setup.py. See the 
-[docs here](https://python-packaging.readthedocs.io/en/latest/command-line-scripts.html#the-console-scripts-entry-point). 
+There is a built-in Python mechanism for creating command line executables; it may make sense for those who want to have a production instance of pysystemtrade on MacOS or Windows. Or for Linux users who would prefer to use the standard method than the supplied scripts. The mechanism is provided by the packaging tools, and configured in pyproject.toml. See the [docs here](https://setuptools.pypa.io/en/latest/userguide/entry_point.html). 
 
-You add a new *entry_points* section to `setup.py` file like:
+You add a new *entry_points* section to `pyproject.toml` file like:
 
 ```
 ...
-test_suite="nose.collector",
-include_package_data=True,
-entry_points={
-    "console_scripts": [
-        "interactive_controls = sysproduction.interactive_controls:interactive_controls",
-        "interactive_diagnostics = sysproduction.interactive_diagnostics:interactive_diagnostics",
-        "interactive_manual_check_fx_prices = sysproduction.interactive_manual_check_fx_prices:interactive_manual_check_fx_prices",
-        "interactive_manual_check_historical_prices = sysproduction.interactive_manual_check_historical_prices:interactive_manual_check_historical_prices",
-        "interactive_order_stack = sysproduction.interactive_order_stack:interactive_order_stack",
-        "interactive_update_capital_manual = sysproduction.interactive_update_capital_manual:interactive_update_capital_manual",
-        "interactive_update_roll_status = sysproduction.interactive_update_roll_status:interactive_update_roll_status",
-    ],
-},
+[project.scripts]
+interactive_controls = "sysproduction.interactive_controls:interactive_controls"
+interactive_diagnostics = "sysproduction.interactive_diagnostics:interactive_diagnostics"
+interactive_manual_check_fx_prices = "sysproduction.interactive_manual_check_fx_prices:interactive_manual_check_fx_prices"
+interactive_manual_check_historical_prices = "sysproduction.interactive_manual_check_historical_prices:interactive_manual_check_historical_prices"
+interactive_order_stack = "sysproduction.interactive_order_stack:interactive_order_stack"
+interactive_update_capital_manual = "sysproduction.interactive_update_capital_manual:interactive_update_capital_manual"
+interactive_update_roll_status = "sysproduction.interactive_update_roll_status:interactive_update_roll_status"
 ...
 ```
 
-When `setup.py install` is executed, the above config would generate executable *shims* for all the interactive scripts
-into the current python path, which when run, would execute the configured function. There are several advantages to 
-this method:
+When the project is installed, the above config would generate executable *shims* for all the interactive scripts into the current python path, which when run, would execute the configured function. There are several advantages to this method:
 - no need for additional code or scripts
 - cross-platform compatibility
 - standard Python

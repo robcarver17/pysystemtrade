@@ -215,6 +215,9 @@ def interpolate_for_a_single_day(
 
 
 def reindex_last_monthly_include_first_date(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        return df
+
     df_monthly_index = list(df.resample("1M").last().index)  ## last day in month
     df_first_date_in_index = df.index[0]
     df_monthly_index = [df_first_date_in_index] + df_monthly_index
