@@ -727,16 +727,20 @@ class Portfolios(SystemStage):
         instrument_list_to_add = (
             self.allocate_zero_instrument_weights_to_these_instruments()
         )
-        weight_index = instrument_weights.index
-        new_pd_as_dict = dict(
-            [
-                (instrument_code, pd.Series([0.0] * len(weight_index)))
-                for instrument_code in instrument_list_to_add
-            ]
-        )
-        new_pd = pd.DataFrame(new_pd_as_dict)
+        # weight_index = instrument_weights.index
+        # new_pd_as_dict = dict(
+        #     [
+        #         (instrument_code, pd.Series([0.0] * len(weight_index)))
+        #         for instrument_code in instrument_list_to_add
+        #     ]
+        # )
+        # new_pd = pd.DataFrame(new_pd_as_dict)
+        #
+        # padded_instrument_weights = pd.concat([instrument_weights, new_pd], axis=1)
 
-        padded_instrument_weights = pd.concat([instrument_weights, new_pd], axis=1)
+        padded_instrument_weights = copy(instrument_weights)
+        for zero_instr in instrument_list_to_add:
+            padded_instrument_weights[zero_instr] = 0.0
 
         return padded_instrument_weights
 
