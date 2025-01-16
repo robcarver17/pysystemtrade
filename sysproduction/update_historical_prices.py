@@ -482,14 +482,13 @@ def write_merged_prices_for_contract(
     diag_prices = diagPrices(data)
     price_updater = updatePrices(data)
 
-    list_of_data = []
-    for frequency in list_of_frequencies:
-        prices = diag_prices.get_prices_at_frequency_for_contract_object(
+    list_of_data = [
+        diag_prices.get_prices_at_frequency_for_contract_object(
             contract_object,
             frequency=frequency,
         )
-        if len(prices) > 0:
-            list_of_data.append(prices)
+        for frequency in list_of_frequencies
+    ]
 
     merged_prices = merge_data_with_different_freq(list_of_data)
 
