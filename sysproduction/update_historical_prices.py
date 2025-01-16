@@ -488,8 +488,7 @@ def write_merged_prices_for_contract(
             contract_object,
             frequency=frequency,
         )
-        if len(prices) > 0:
-            list_of_data.append(prices)
+        list_of_data.append(prices)
 
     merged_prices = merge_data_with_different_freq(list_of_data)
 
