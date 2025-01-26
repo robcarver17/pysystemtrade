@@ -113,10 +113,12 @@ def merge_data_with_different_freq(
     """
 
     filtered = [item for item in list_of_data if len(item) > 0]
-    if len(filtered) > 1:
-        list_as_concat_pd = pd.concat(filtered, axis=0)
-    else:
+    if len(filtered) == 0:
+        return pd.DataFrame()
+    elif len(filtered) == 1:
         list_as_concat_pd = filtered[0]
+    else:
+        list_as_concat_pd = pd.concat(filtered, axis=0)
     sorted_pd = list_as_concat_pd.sort_index()
     unique_pd = uniquets(sorted_pd)
 
