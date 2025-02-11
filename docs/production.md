@@ -284,13 +284,13 @@ You need to:
 - Instrument configuration:
     - Set up futures instrument spread costs using this script [repocsv_spread_costs.py](/sysinit/futures/repocsv_spread_costs.py).
 - Futures contract prices:
-    - [You must have a source of individual futures prices, then backfill them into the Arctic database](/docs/data.md#getting-historical-data-for-individual-futures-contracts).
+    - [You must have a source of individual futures prices, then backfill them into Parquet](/docs/data.md#getting-historical-data-for-individual-futures-contracts).
 - Roll calendars:
     - [Create roll calendars for each instrument you are trading](/docs/data.md#roll-calendars)
 - [Ensure you are sampling all the contracts you want to sample](#update-sampled-contracts-daily)
 - Adjusted futures prices:
-    - [Create 'multiple prices' in Arctic](/docs/data.md#creating-and-storing-multiple-prices).
-    - [Create adjusted prices in Arctic](/docs/data.md#creating-and-storing-back-adjusted-prices)
+    - [Create multiple prices in Parquet](/docs/data.md#creating-and-storing-multiple-prices).
+    - [Create adjusted prices in Parquet](/docs/data.md#creating-and-storing-back-adjusted-prices)
 - Use [interactive diagnostics](#interactive-diagnostics) to check all your prices are in place correctly
 - Live production backtest:
     - Create a yaml config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
@@ -1565,7 +1565,7 @@ Called by: `run_daily_fx_and_contract_updates`
 
 ### Update futures contract historical price data (Daily)
 
-This gets historical daily data from IB for all the futures contracts marked to sample in the mongoDB contracts database, and updates the Arctic futures price database.
+This gets historical daily data from IB for all the futures contracts marked to sample in the mongoDB contracts database, and updates the futures prices in Parquet.
 If update sampled contracts has not yet run, it may not be getting data for all the contracts you need.
 
 Python:
