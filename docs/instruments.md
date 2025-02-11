@@ -9,6 +9,8 @@ It will make no sense unless you've already read:
 Table of Contents
 =================
 
+<!--ts-->
+* [Table of Contents](#table-of-contents)
 * [Different instrument sets](#different-instrument-sets)
 * [The global superset of all instruments](#the-global-superset-of-all-instruments)
 * [The list of instruments we are sampling](#the-list-of-instruments-we-are-sampling)
@@ -21,7 +23,9 @@ Table of Contents
    * [Excluded for optimisation](#excluded-for-optimisation)
       * [Untradeable](#untradeable)
       * [Bad markets](#bad-markets)
-* [Operating in production](#operating-in-production)
+      * [Automatically excluded](#automatically-excluded)
+   * [Customising the list of 'all instruments' and 'excluded for optimisation'](#customising-the-list-of-all-instruments-and-excluded-for-optimisation)
+* [Operating in production environment](#operating-in-production-environment)
    * [A note about configuration](#a-note-about-configuration)
    * [Reduce only and other constraints in static systems](#reduce-only-and-other-constraints-in-static-systems)
    * [Reduce only and other constraints in dynamic systems](#reduce-only-and-other-constraints-in-dynamic-systems)
@@ -29,7 +33,7 @@ Table of Contents
    * [Check slippage costs are accurate](#check-slippage-costs-are-accurate)
    * [Get list of bad markets](#get-list-of-bad-markets)
 * [Deciding which duplicate instruments to use](#deciding-which-duplicate-instruments-to-use)
-
+<!--te-->
 
 
 # Different instrument sets
@@ -38,7 +42,7 @@ Different sets of instruments are used for different purposes:
 
 - The superset of all instruments we can use are defined in the instrument configuration (a .csv version of which lives [here](/data/futures/csvconfig/instrumentconfig.csv))
 - When sampling instrument prices in production, we use a subset consisting of the current list of instruments already saved with multiple prices
-- When pulling in back adjusted prices into a simulation environment or update_systems production script, we use a subset consisting of the current list of instruments that have adjusted prices saved (which may be different in a database environment, but for .csv will be the prices [here](/data/futures/adjusted_prices_csv/))
+- When pulling in back adjusted prices into a simulation environment or update_systems production script, we use a subset consisting of the current list of instruments that have adjusted prices saved (which may be different in a database environment, but for .csv will be the prices [here](/data/futures/adjusted_prices_csv))
 - Within that simulation environment we can further exclude different instruments for different reasons
 
 

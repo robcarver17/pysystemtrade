@@ -2,16 +2,6 @@
 
 There are several major changes to the application that are not fully reflected in the docs yet. See below for links to discussions or issues where covered:
 
-### Parquet / Arctic
-* Nov 2023
-* Default behaviour is now to use Parquet for persistence of timeseries data. Staying with Arctic is still possible with manual changes
-* Read more [here](https://github.com/robcarver17/pysystemtrade/discussions/1290), and [here](https://github.com/robcarver17/pysystemtrade/discussions/1291)
-
-### More recent dependency versions
-* Nov 2023
-* More recent versions of Python (3.10), Pandas (2) are supported
-* Read more [here](https://github.com/robcarver17/pysystemtrade/discussions/1293)
-
 ### Roll states, auto rolling, roll rules
 * Jul 2023
 * Contract rolling behaviour updated
@@ -31,11 +21,6 @@ There are several major changes to the application that are not fully reflected 
 * Mar 2023 
 * Persistence of instrument and roll config moved from MongoDB to CSV
 * Read more [here](https://github.com/robcarver17/pysystemtrade/discussions/1054)
-
-### Development processes
-* Mar 2023 
-* Now two branches: `master` is stable, develop work happens on `develop`. Branches for PRs should be made from `develop`
-* Read more [here](https://github.com/robcarver17/pysystemtrade/discussions/1069)
 
 ### Changes to timing of production processes 
 * Jan 2023
