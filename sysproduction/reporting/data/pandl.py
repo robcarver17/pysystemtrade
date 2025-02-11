@@ -174,7 +174,7 @@ class pandlCalculateAndStore(object):
     def get_period_perc_pandl_for_instrument_all_strategies_in_date_range(
         self, instrument_code: str
     ) -> float:
-        print("Getting p&l for %s" % instrument_code)
+        self.data.log.info("Getting p&l for %s" % instrument_code)
 
         try:
             pandl_across_contracts = self.pandl_for_instrument_across_contracts(
@@ -223,7 +223,7 @@ class pandlCalculateAndStore(object):
         return pandl_df
 
     def get_period_perc_pandl_for_strategy_in_date_range(self, strategy_name: str):
-        print("Getting p&l for %s" % strategy_name)
+        self.data.log.info("Getting p&l for %s" % strategy_name)
         try:
             pandl_df = self.get_df_of_perc_pandl_series_for_strategy_all_instruments(
                 strategy_name
@@ -285,6 +285,10 @@ class pandlCalculateAndStore(object):
                 )
             )
             strategy_pandl_store[store_key] = pandl_series
+
+        # set index type to datetime, and sort
+        pandl_series.index = pd.to_datetime(pandl_series.index)
+        pandl_series.sort_index(inplace=True)
 
         return pandl_series
 
@@ -388,7 +392,7 @@ def get_perc_pandl_series_for_contract(data, instrument_code, contract_id):
 def get_perc_pandl_series_for_strategy_instrument_vs_total_capital(
     data, instrument_strategy: instrumentStrategy
 ):
-    print("Data for %s" % (instrument_strategy))
+    data.log.info("Data for %s" % instrument_strategy)
     instrument_code = instrument_strategy.instrument_code
     strategy_name = instrument_strategy.strategy_name
 
