@@ -286,10 +286,6 @@ class pandlCalculateAndStore(object):
             )
             strategy_pandl_store[store_key] = pandl_series
 
-        # set index type to datetime, and sort
-        pandl_series.index = pd.to_datetime(pandl_series.index)
-        pandl_series.sort_index(inplace=True)
-
         return pandl_series
 
     def _get_perc_pandl_series_for_strategy_instrument_vs_total_capital(
