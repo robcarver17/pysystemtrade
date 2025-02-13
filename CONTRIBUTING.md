@@ -215,3 +215,13 @@ FIXME This is a bit of a mess - Update when a unified cache system setup
 Doc tests should be removed from class methods, since they often require a lot of setup, and make the code harder to read. Unit tests are preferable. Doc tests make more sense for separate, standalone, functions. This is especially the case when they can be used to quickly demonstrate how a function works.
 
 Test coverage is extremely sparse. 
+
+### Documentation
+
+If you update any of the docs, please make sure the Table of Contents is synced, where applicable. There is a shell script that generates the tables from the Markdown headings. Ideally, each heading should be unique within the document to avoid anchor name clashes.
+
+To generate the table of contents for the backtesting document, run:
+```shell
+$ cd pysystemtrade
+$ ./docs/gh-md-toc --insert --hide-footer docs/backtesting.md
+```

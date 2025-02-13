@@ -23,11 +23,11 @@ And documents you should read after this one:
 *IMPORTANT: Make sure you know what you are doing. All financial trading offers the possibility of loss. Leveraged trading, such as futures trading, may result in you losing all your money, and still owing more. Backtested results are no guarantee of future performance. No warranty is offered or implied for this software. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk.*
 
 
-Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
-
 Table of Contents
 =================
 
+<!--ts-->
+* [Table of Contents](#table-of-contents)
 * [Quick start guide](#quick-start-guide)
 * [Production system data flow](#production-system-data-flow)
 * [Overview of a production system](#overview-of-a-production-system)
@@ -44,8 +44,11 @@ Table of Contents
    * [Linking to a broker](#linking-to-a-broker)
    * [Other data sources](#other-data-sources)
    * [Data storage](#data-storage)
+      * [Arctic](#arctic)
+         * [Using Arctic in production instead of Parquet](#using-arctic-in-production-instead-of-parquet)
    * [Data backup](#data-backup)
       * [Mongo data](#mongo-data)
+      * [Parquet data](#parquet-data)
       * [Mongo / csv data](#mongo--csv-data)
    * [Echos, Logging, diagnostics and reporting](#echos-logging-diagnostics-and-reporting)
       * [Echos: stdout output](#echos-stdout-output)
@@ -60,7 +63,7 @@ Table of Contents
          * [Cleaning old logs](#cleaning-old-logs)
             * [Echos](#echos)
             * [Logs](#logs)
-      * [Reporting](#reporting)
+      * [psysystemtrade reports](#psysystemtrade-reports)
 * [Positions and order levels](#positions-and-order-levels)
    * [Instrument level](#instrument-level)
    * [Contract level](#contract-level)
@@ -96,7 +99,7 @@ Table of Contents
       * [Instrument order fills and position updates](#instrument-order-fills-and-position-updates)
          * [Single contract order / single leg](#single-contract-order--single-leg)
          * [Single contract order / multiple legs (eg spread trade)](#single-contract-order--multiple-legs-eg-spread-trade)
-         * [Multiple contract orders:](#multiple-contract-orders)
+         * [Multiple contract orders](#multiple-contract-orders)
       * [Order completions](#order-completions)
          * [Order deactivation](#order-deactivation)
          * [Adding to historic order databases](#adding-to-historic-order-databases)
@@ -181,7 +184,7 @@ Table of Contents
       * [Delete old pickled backtest state objects](#delete-old-pickled-backtest-state-objects)
       * [Clean up old logs](#clean-up-old-logs)
       * [Truncate echo files](#truncate-echo-files)
-      * [Backup Arctic data to .csv files](#backup-arctic-data-to-csv-files)
+      * [Backup DB to .csv files](#backup-db-to-csv-files)
       * [Backup state files](#backup-state-files)
       * [Backup mongo dump](#backup-mongo-dump)
       * [Start up script](#start-up-script)
@@ -224,7 +227,7 @@ Table of Contents
 * [Recovering from a crash - what you can save and how, and what you can't](#recovering-from-a-crash---what-you-can-save-and-how-and-what-you-cant)
    * [General advice](#general-advice)
    * [Data recovery](#data-recovery)
-* [Reports](#reports-1)
+* [Reporting](#reporting)
    * [Dashboard](#dashboard)
       * [Roll report (Daily)](#roll-report-daily)
       * [P&amp;L report](#pl-report)
@@ -235,7 +238,8 @@ Table of Contents
       * [Risk report](#risk-report)
       * [Liquidity report](#liquidity-report)
       * [Costs report](#costs-report)
-   * [Customize report generation in the run_report process](#customize-report-generation-in-the-run_report-process)
+   * [Customize scheduled report generation](#customize-scheduled-report-generation)
+<!--te-->
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -270,9 +274,9 @@ You need to:
         - '/home/user_name/data/reports'
     - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above). If using git clone from your home directory this should create the directory '/home/user_name/pysystemtrade/'
     - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
-    - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/). Latest v4 is recommended, as [Arctic doesn't support 5](https://github.com/man-group/arctic#requirements) yet
+    - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/).
     - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a ['private_control_config.yaml' file in the same directory](#process-configuration) See [here for more details](#system-defaults--private-config)
-    - [check a mongodb server is running with the right data directory](/docs/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA`
+    - [check a mongodb server is running with the right data directory](/docs/data.md#mongodb) command line: `mongod --dbpath $MONGO_DATA`
     - launch an IB gateway (this could be done automatically depending on your security setup)
 - FX data:
     - [Initialise the spot FX data in MongoDB from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
@@ -280,13 +284,13 @@ You need to:
 - Instrument configuration:
     - Set up futures instrument spread costs using this script [repocsv_spread_costs.py](/sysinit/futures/repocsv_spread_costs.py).
 - Futures contract prices:
-    - [You must have a source of individual futures prices, then backfill them into the Arctic database](/docs/data.md#get_historical_data).
+    - [You must have a source of individual futures prices, then backfill them into Parquet](/docs/data.md#getting-historical-data-for-individual-futures-contracts).
 - Roll calendars:
     - [Create roll calendars for each instrument you are trading](/docs/data.md#roll-calendars)
 - [Ensure you are sampling all the contracts you want to sample](#update-sampled-contracts-daily)
 - Adjusted futures prices:
-    - [Create 'multiple prices' in Arctic](/docs/data.md#creating-and-storing-multiple-prices).
-    - [Create adjusted prices in Arctic](/docs/data.md#creating-and-storing-back-adjusted-prices)
+    - [Create multiple prices in Parquet](/docs/data.md#creating-and-storing-multiple-prices).
+    - [Create adjusted prices in Parquet](/docs/data.md#creating-and-storing-back-adjusted-prices)
 - Use [interactive diagnostics](#interactive-diagnostics) to check all your prices are in place correctly
 - Live production backtest:
     - Create a yaml config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
@@ -299,9 +303,9 @@ You need to:
 
 Before trading, and each time you restart the machine you should:
 
-- [check a mongodb server is running with the right data directory](/docs/data.md#mongo-db) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
+- [check a mongodb server is running with the right data directory](/docs/data.md#mongodb) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/IbcAlpha/IBC) depending on your security setup)
-- ensure all processes are [marked as 'close'](#mark-as-finished)
+- ensure all processes are [marked as 'close'](#mark-as-close)
 
 Note that the system won't start trading until the next day, unless you manually launch the processes that would ordinarily have been started by the crontab or other [scheduler](#scheduling). [Linux screen](https://linuxize.com/post/how-to-use-linux-screen/) is helpful if you want to launch a process but not keep the window active (eg on a headless machine).
 
@@ -309,7 +313,7 @@ Also see [this](#recovering-from-a-crash---what-you-can-save-and-how-and-what-yo
 
 When trading you will need to do the following:
 
-- Check [reports ](#reports-1)
+- Check [reports ](#reporting)
 - [Roll instruments](#interactively-roll-adjusted-prices)
 - Ad-hoc [diagnostics and controls](#menu-driven-interactive-scripts)
 - [Manually check](#interactive-scripts-to-modify-data) large price changes
@@ -544,7 +548,7 @@ You are probably going to want to link your system to a broker, to do one or mor
 
 ... although one or more of these can also be done manually.
 
-You should now read [connecting pysystemtrade to interactive brokers](/docs/IB.md). The fields `broker_account`,`ib_ipaddress`, `ib_port` and `ib_idoffset` should be set in the [private config file](/private/private_config.yaml).
+You should now read [connecting pysystemtrade to interactive brokers](/docs/IB.md). The fields `broker_account`,`ib_ipaddress`, `ib_port` and `ib_idoffset` should be set in the private config file.
 
 
 ## Other data sources
@@ -570,7 +574,43 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 - other state and control information
 - static configuration files
 
-The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml and .csv files. Time series data is stored in [arctic](https://github.com/man-group/arctic) which also uses mongodb. Databases used will be named with the value of parameter `mongo_db` in the private config file /private/private_config.yaml. A separate Arctic database will have the same name, with the suffix `_arctic`.
+The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml and .csv files. Time series data is stored in [Parquet](https://parquet.apache.org/) files. Databases used will be named with the value of parameter `mongo_db` in private config. 
+
+### Arctic
+
+Early versions of this project used [Arctic](https://github.com/manahl/arctic) for storing time series data instead of Parquet, now deprecated. There is more detail in the [backtesting guide](/docs/backtesting.md#arctic)
+
+#### Using Arctic in production instead of Parquet
+
+It is still possible to use the older method. For production, modify the classes assigned in `sysproduction.data.production_data_objects.py` to point to the Arctic classes instead of Parquet:
+
+```python
+use_production_classes = {
+    FX_DATA: arcticFxPricesData,
+    ROLL_PARAMETERS_DATA: csvRollParametersData,
+    FUTURES_INSTRUMENT_DATA: csvFuturesInstrumentData,
+    FUTURES_CONTRACT_DATA: mongoFuturesContractData,
+    STORED_SPREAD_DATA: mongoSpreadCostData,
+    FUTURES_CONTRACT_PRICE_DATA: arcticFuturesContractPriceData,
+    FUTURES_MULTIPLE_PRICE_DATA: arcticFuturesMultiplePricesData,
+    FUTURES_ADJUSTED_PRICE_DATA: arcticFuturesAdjustedPricesData,
+    CAPITAL_DATA: arcticCapitalData,
+    CONTRACT_POSITION_DATA: arcticContractPositionData,
+    STRATEGY_POSITION_DATA: arcticStrategyPositionData,
+    OPTIMAL_POSITION_DATA: arcticOptimalPositionData,
+    HISTORIC_SPREAD_DATA: arcticSpreadsForInstrumentData,
+    STRATEGY_HISTORIC_ORDERS_DATA: mongoStrategyHistoricOrdersData,
+    CONTRACT_HISTORIC_ORDERS_DATA: mongoContractHistoricOrdersData,
+    BROKER_HISTORIC_ORDERS_DATA: mongoBrokerHistoricOrdersData,
+    INSTRUMENT_ORDER_STACK_DATA: mongoInstrumentOrderStackData,
+    CONTRACT_ORDER_STACK_DATA: mongoContractOrderStackData,
+    BROKER_ORDER_STACK_DATA: mongoBrokerOrderStackData,
+    ROLL_STATE_DATA: mongoRollStateData,
+    PROCESS_CONTROL_DATA: mongoControlProcessData,
+}
+```
+
+You would need to uncomment the Arctic imports too.
 
 ## Data backup
 
@@ -591,7 +631,7 @@ mongodump -o ~/dump/
 cp -rf ~/dump/* $MONGO_BACKUP_PATH
 ```
 
-This is done by the scheduled backup process (see [scheduling](#scheduling)), and also by [this script](#backup-files)
+This is done by the scheduled backup process (see [scheduling](#scheduling)), and also by [this script](#backup-mongo-dump)
 
 Then to restore, from a linux command line:
 ```
@@ -602,20 +642,21 @@ mongo
 # This starts a mongo client
 > show dbs
 admin              0.000GB
-arctic_production  0.083GB
 config             0.000GB
 local              0.000GB
 meta_db            0.000GB
 production         0.000GB
-# Most likely we want to remove 'production' and 'arctic_production'
+# Most likely we want to remove 'production'
 > use production
-> db.dropDatabase()
-> use arctic_production
 > db.dropDatabase()
 > exit
 # Now we run the restore (back on the linux command line)
 mongorestore
 ```
+
+### Parquet data
+
+TODO
 
 
 ### Mongo / csv data
@@ -627,7 +668,7 @@ This currently supports: FX, individual futures contract prices, multiple prices
 
 Linux script:
 ```
-. $SCRIPT_PATH/backup_arctic_to_csv
+. $SCRIPT_PATH/backup_db_to_csv
 ```
 
 ## Echos, Logging, diagnostics and reporting
@@ -813,10 +854,10 @@ It defaults to deleting anything more than 30 days old.
 
 ##### Logs
 
-With the provided production logging config, the cleaning of **log** files is managed by the Python logging server. Default config is to keep the last 5 days of production logs. To adjust this, see [syslogging/server.py](syslogging/server.py) 
+With the provided production logging config, the cleaning of **log** files is managed by the Python logging server. Default config is to keep the last 5 days of production logs. To adjust this, see [syslogging/server.py](/syslogging/server.py) 
 
 
-### Reporting
+### psysystemtrade reports
 
 Reports are run regularly to allow you to monitor the system and decide if any action should be taken. You can choose to have them emailed to you. To do this the email address, server and password *must* be set in `private_config.yaml`, as well as the address the email is being sent to (which can be the same as the sending email account):
 
@@ -845,7 +886,7 @@ email_to: "youraddress@gmail.com"
 
 Reports are run automatically every day by the [run reports](#run-all-reports) process, but you can also run ad-hoc reports in the [interactive diagnostics](#reports) tool. Ad hoc reports can be emailed or displayed on screen.
 
-Full details of reports are given [here](#reports-1).
+Full details of reports are given [here](#reporting).
 
 
 # Positions and order levels
@@ -1321,7 +1362,7 @@ Two possible cases:
 
 
 
-#### Multiple contract orders: 
+#### Multiple contract orders
 
 Three cases:
 
@@ -1465,13 +1506,13 @@ Normally it's possible to call a process directly (eg _backup_files) on an ad-ho
 
 These are listed here for convenience, but more documentation is given below in the relevant section for each script
 
-- run_backups: Runs [backup_arctic_to_csv](#backup-arctic-data-to-csv-files), [backup state files](#backup-files): [mongo dump backup](#mongo-dump-backup)
+- run_backups: Runs [backup_db_to_csv](#backup-db-to-csv-files), [backup state files](#backup-state-files): [mongo dump backup](#backup-mongo-dump)
 - run_capital_updates: Runs [update_strategy_capital](#allocate-capital-to-strategies), [update_total_capital](#update-capital-and-pl-by-polling-brokerage-account): update capital
 - run_cleaners: Runs [clean_truncate_backtest_states](#delete-old-pickled-backtest-state-objects), [clean_truncate_echo_files](#truncate-echo-files), [clean_truncate_log_files](#clean-up-old-logs): Clean up
 - run_daily_price_updates: Runs [update_fx_prices](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily), [update_sampled_contracts](#update-sampled-contracts-daily), [update_historical_prices](#update-futures-contract-historical-price-data-daily), [update_multiple_adjusted_prices](#update-multiple-and-adjusted-prices-daily): daily price and contract data updates
 - run_daily_fx_and_contract_updates: Runs [update_fx_prices](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily), [update_sampled_contracts](#update-sampled-contracts-daily).
 - run_daily_update_multiple_adjusted_prices: Runs [update_multiple_adjusted_prices](#update-multiple-and-adjusted-prices-daily): daily price and contract data updates
-- run_reports: Runs [all reports](#reports-1)
+- run_reports: Runs [all reports](#reporting)
 - run_systems: Runs [update_system_backtests](#run-updated-backtest-systems-for-one-or-more-strategies): Runs a backtest to decide what optimal positions are required
 - run_strategy_order_generator: Runs [update_strategy_orders](#generate-orders-for-each-strategy): Creates trades based on the output of run_systems
 - [run_stack_handler](#execute-orders): Executes trades placed on the stack by run_strategy_order_generator
@@ -1524,7 +1565,7 @@ Called by: `run_daily_fx_and_contract_updates`
 
 ### Update futures contract historical price data (Daily)
 
-This gets historical daily data from IB for all the futures contracts marked to sample in the mongoDB contracts database, and updates the Arctic futures price database.
+This gets historical daily data from IB for all the futures contracts marked to sample in the mongoDB contracts database, and updates the futures prices in Parquet.
 If update sampled contracts has not yet run, it may not be getting data for all the contracts you need.
 
 Python:
@@ -1778,7 +1819,7 @@ In addition the stack handler will:
 
 That's quite a list, hence the use of the [interactive_order_stack](#interactive-order-stack) to keep it in check!
 
-The stack handler will also periodically sample the bid/ask spread on all instruments. This is used to help with cost analysis (see the relevant [reports](#reports-1) section).
+The stack handler will also periodically sample the bid/ask spread on all instruments. This is used to help with cost analysis (see the relevant [reports](#reporting) section).
 
 ## Interactive scripts to modify data
 
@@ -2099,7 +2140,7 @@ system = backtest.system
 
 #### Reports
 
-Allows you to run any of the [reports](#reports-1) on an ad-hoc basis.
+Allows you to run any of the [reports](#reporting) on an ad-hoc basis.
 
 #### Logs, errors, emails
 
@@ -2296,7 +2337,7 @@ Linux script:
 . $SCRIPT_PATH/run_reports
 ```
 
-See [reporting](#reports-1) for details on individual reports.
+See [reporting](#reporting) for details on individual reports.
 
 
 ### Delete old pickled backtest state objects
@@ -2358,27 +2399,27 @@ Called by: `run_cleaners`
 Every day we generate echo files with extension .txt; this process renames ones from yesterday and before with a date suffix, and then deletes anything more than 30 days old.
 
 
-### Backup Arctic data to .csv files
+### Backup DB to .csv files
 
 Python:
 
 ```python
-from sysproduction.backup_db_to_csv import backup_arctic_to_csv
+from sysproduction.backup_db_to_csv import backup_db_to_csv
 
-backup_arctic_to_csv()
+backup_db_to_csv()
 ```
 
 Linux script:
 ```
-. $SCRIPT_PATH/backup_arctic_to_csv
+. $SCRIPT_PATH/backup_db_to_csv
 ```
 
 Called by: `run_backups`
 
 See [backups](#mongo--csv-data).
 
-- It copies data out of mongo and Arctic into a temporary .csv directory
-- It then copies the .csv files  to the backup directory,  "offsystem_backup_directory", subdirectory /csv
+- It copies data from MongoDB and Parquet into a temporary .csv directory
+- It then copies the .csv files to the backup directory, "offsystem_backup_directory", subdirectory /csv
 
 
 
@@ -2653,7 +2694,7 @@ process_configuration_methods:
     trade_report:
       max_executions: 1
   run_backups:
-    backup_arctic_to_csv:
+    backup_db_to_csv:
       max_executions: 1
     backup_files:
       max_executions: 1
@@ -2842,7 +2883,7 @@ The following are used when initialising the database with its initial configura
 
 ## Capital
 
-*Capital* is how much we have 'at risk' in our trading account. This total capital is then allocated to trading strategies; see [strategy-capital](#strategy-capital) on a [daily basis](#update-capital-and-p&l-by-polling-brokerage-account).
+*Capital* is how much we have 'at risk' in our trading account. This total capital is then allocated to trading strategies; see [strategy-capital](#strategy-capital) on a [daily basis](#update-capital-and-pl-by-polling-brokerage-account).
 
 The simplest possible case is that your capital at risk is equal to what is in your trading account. If you do nothing else, that is how the system will behave. For all other cases, the behaviour of capital will depend on the interaction between stored capital values and the parameter value `production_capital_method` (defaults to *full* unless set in private yaml config). If you want to do things differently, you should consider modifying that parameter and/or using the [interactive tool](#interactively-modify-capital-values) to modify or initialise capital.
 
@@ -2855,7 +2896,7 @@ On initialising capital you can choose what the following values are:
 
 If you don't initialise capital deliberately, then the first time that is run it will populate the fields with the defaults (which will effectively mean your capital will be equal to your current trading account value).
 
-After initialising the capital is updated [daily](#update-capital-and-p&l-by-polling-brokerage-account). First the valuation of the brokerage account is captured, and compared to the previous valuation. The difference between the valuations is your profit (or loss) since the capital was last checked, and this is written to the p&l accumulation account.
+After initialising the capital is updated [daily](#update-capital-and-pl-by-polling-brokerage-account). First the valuation of the brokerage account is captured, and compared to the previous valuation. The difference between the valuations is your profit (or loss) since the capital was last checked, and this is written to the p&l accumulation account.
 
 What will happen next will depend on `production_capital_method`. Read [this first](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html):
 
@@ -2931,7 +2972,7 @@ We do not store a history of the risk target of a strategy, so if you change the
 
 ### System runner
 
-System runners run overnight backtests for each of the strategies you are running (see [here](#run-updated-backtest-systems-for-one-or-more-strateges) for more details.)
+System runners run overnight backtests for each of the strategies you are running (see [here](#run-updated-backtest-systems-for-one-or-more-strategies) for more details.)
 
 The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you must specify your own personal strategy configuration in private_control_config.yaml).
 
@@ -3041,7 +3082,7 @@ The better case is when the mongo DB is fine. In this case (once you've [restore
 
 
 
-# Reports
+# Reporting
 
 ## Dashboard
 
@@ -3223,7 +3264,7 @@ process_fills_stack                                   run_stack_handler         
 "....truncated for space...."
 
 status_report                                               run_reports           10/19 23:00
-backup_arctic_to_csv                                        run_backups           10/19 23:00
+backup_db_to_csv                                            run_backups           10/19 23:00
 
 
 "Here's a list of all adjusted prices we've generated and FX rates. Again, listed oldest first.
@@ -3950,7 +3991,7 @@ KOSPI                     NaN           NaN              NaN        NaN    0.025
 ....
 ```
 
-## Customize report generation in the run_report process
+## Customize scheduled report generation
 
 It is possible to setup a custom report configuration. Say for example that you would like to push reports to a git repo 
 [like this](https://github.com/robcarver17/reports). In that case you would need to change the default behaviour, sending reports

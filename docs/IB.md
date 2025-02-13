@@ -19,6 +19,7 @@ Related documents:
 Table of Contents
 =================
 
+<!--ts-->
 * [Preliminaries](#preliminaries)
    * [Getting started with interactive brokers](#getting-started-with-interactive-brokers)
       * [Gateway / TWS](#gateway--tws)
@@ -41,6 +42,7 @@ Table of Contents
       * [Creating and closing connection objects](#creating-and-closing-connection-objects)
       * [Using connections](#using-connections)
       * [Make multiple connections](#make-multiple-connections)
+<!--te-->
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
@@ -105,7 +107,7 @@ See [here](#creating-and-closing-connection-objects) for more details.
 ## Classes and object references
 
 
-There are three types of objects in the [sysbrokers/IB](/sysbrokers/IB/) area of pysystemtrade:
+There are three types of objects in the [sysbrokers/IB](/sysbrokers/IB) area of pysystemtrade:
 
 - Data source objects: Provide the standard data object API to the rest of the code, eg getting futures contracts prices is done with the same call whether they are coming from a database or IB. They are called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface). They are instanced with a *connection object*. They make calls to *client objects*. 
 - Client objects: These make calls to the ib_insync in specific domains (getting data, placing orders and so on). They are also instanced with a *connection object*.
@@ -117,7 +119,7 @@ There are three types of objects in the [sysbrokers/IB](/sysbrokers/IB/) area of
 We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). However we can't delete or write to IB.  Normally these functions would be called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface); it's discouraged to call them directly as the interface abstracts away exactly which broker you are talking to.
 
 The data source objects all inherit from the classes in the `sysbrokers/` directory, eg `broker*data.py`. This serves a few purposes: it means we can add additional non specific IB methods that only make sense when talking to a broker rather than to a database, and it illustrates the interface you'd need to implement to connect to a different broker.
-Data source objects are instanced with and contain a *connection object* (and optionally a logger). They contain, and make calls to, *client objects*. They are in this [module](/sysbrokers/IB/)
+Data source objects are instanced with and contain a *connection object* (and optionally a logger). They contain, and make calls to, *client objects*. They are in this [module](/sysbrokers/IB)
 
 You can access the client object and connection used by a particular data source, for example:
 
@@ -226,7 +228,7 @@ ib_contract_position_data.get_all_current_positions_as_list_with_contract_object
 
 Client objects make calls and requests to the broker via ib_insync. They are usually initialised by a broker data source object, which passes them a connection (and optionally a log).
 
-They are located in this [module](/sysbrokers/IB/client/). They are tied together with a weird inheritance tree:
+They are located in this [module](/sysbrokers/IB/client). They are tied together with a weird inheritance tree:
 
 - base ibClient
    - ibAccountingClient(ibClient)
@@ -265,7 +267,7 @@ If values for account, ib_ipaddress and ib_port are not passed here, they will d
 1- values supplied in file 'private_config.yaml' (see below)
 2- values supplied in the ['defaults.yaml' file](/sysdata/config/defaults.yaml)
 
-You should first create a file 'private_config.yaml' in the private directory of [pysystemtrade](#/private). Then add one or more of these line:
+You should first create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private). Then add one or more of these line:
 
 ```
 ib_ipaddress: 192.168.0.10

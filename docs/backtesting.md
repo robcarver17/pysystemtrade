@@ -8,7 +8,7 @@ Related documents:
 - [Recent undocumented changes](/docs/recent_changes.md)
 
 
-This guide is divided into four parts. The first ['How do I?'](#how_do_i)
+This guide is divided into four parts. The first ['How do I?'](#how-do-i)
 explains how to do many common tasks. The second part ['Guide'](#guide) details
 the relevant parts of the code, and explains how to modify or create new parts.
 The third part ['Processes'](#Processes) discusses certain processes that cut
@@ -18,6 +18,8 @@ across multiple parts of the code in more detail. The final part
 Table of Contents
 =================
 
+<!--ts-->
+* [Table of Contents](#table-of-contents)
 * [How do I?](#how-do-i)
    * [How do I.... Experiment with a single trading rule and instrument](#how-do-i-experiment-with-a-single-trading-rule-and-instrument)
    * [How do I....Create a standard futures backtest](#how-do-icreate-a-standard-futures-backtest)
@@ -28,7 +30,8 @@ Table of Contents
       * [Option 1: Change the configuration file](#option-1-change-the-configuration-file)
       * [Option 2: Change the configuration object; create a new system](#option-2-change-the-configuration-object-create-a-new-system)
       * [Option 3: Change the configuration object within an existing system (not recommended - advanced)](#option-3-change-the-configuration-object-within-an-existing-system-not-recommended---advanced)
-      * [Option 4: Change the project defaults (definitely not recommended)](#option-4-change-the-project-defaults-definitely-not-recommended)
+      * [Option 4: Create a private config file](#option-4-create-a-private-config-file)
+      * [Option 5: Change the project defaults (definitely not recommended)](#option-5-change-the-project-defaults-definitely-not-recommended)
    * [How do I....Run a backtest on a different set of instruments](#how-do-irun-a-backtest-on-a-different-set-of-instruments)
       * [Change instruments: Change the configuration file](#change-instruments-change-the-configuration-file)
       * [Change instruments: Change the configuration object](#change-instruments-change-the-configuration-object)
@@ -46,9 +49,11 @@ Table of Contents
       * [Using the standard data objects](#using-the-standard-data-objects)
          * [Generic data objects](#generic-data-objects)
          * [The csvFuturesSimData object](#the-csvfuturessimdata-object)
-         * [The arcticSimData object](#the-arcticsimdata-object)
-            * [Setting up your Arctic and Mongo DB databases](#setting-up-your-arctic-and-mongo-db-databases)
+         * [The dbFuturesSimData object](#the-dbfuturessimdata-object)
+            * [Setting up MongoDB and Parquet](#setting-up-mongodb-and-parquet)
             * [Using dbFuturesSimData](#using-dbfuturessimdata)
+         * [Arctic](#arctic)
+            * [Backtesting with Arctic instead of Parquet](#backtesting-with-arctic-instead-of-parquet)
       * [Creating your own data objects](#creating-your-own-data-objects)
          * [The Data() class](#the-data-class)
    * [Configuration](#configuration)
@@ -58,9 +63,9 @@ Table of Contents
          * [3) Creating a configuration object from a pre-baked system](#3-creating-a-configuration-object-from-a-pre-baked-system)
          * [4) Creating a configuration object from a list](#4-creating-a-configuration-object-from-a-list)
          * [5) Creating configuration files from .csv files](#5-creating-configuration-files-from-csv-files)
-      * [Project defaults](#project-defaults)
+      * [Project defaults and private configuration](#project-defaults-and-private-configuration)
          * [Handling defaults when you change certain functions](#handling-defaults-when-you-change-certain-functions)
-         * [How the defaults work](#how-the-defaults-work)
+         * [How the defaults and private configuration work](#how-the-defaults-and-private-configuration-work)
       * [Viewing configuration parameters](#viewing-configuration-parameters)
       * [Modifying configuration parameters](#modifying-configuration-parameters)
       * [Using configuration in a system](#using-configuration-in-a-system)
@@ -69,8 +74,8 @@ Table of Contents
       * [Modifying the configuration class](#modifying-the-configuration-class)
    * [System](#system)
       * [Pre-baked systems](#pre-baked-systems)
-         * [<a href="/systems/provided/futures_chapter15/basesystem.py">Futures system for chapter 15</a>](#futures-system-for-chapter-15)
-         * [<a href="/systems/provided/futures_chapter15/estimatedsystem.py">Estimated system for chapter 15</a>](#estimated-system-for-chapter-15)
+         * [Futures system for chapter 15](#futures-system-for-chapter-15)
+         * [Estimated system for chapter 15](#estimated-system-for-chapter-15)
       * [Using the system object](#using-the-system-object)
          * [Accessing child stages, data, and config within a system](#accessing-child-stages-data-and-config-within-a-system)
          * [System methods](#system-methods)
@@ -87,11 +92,10 @@ Table of Contents
       * [Writing new stages](#writing-new-stages)
       * [Specific stages](#specific-stages)
       * [Stage: Raw data](#stage-raw-data)
-         * [Using the standard <a href="/systems/rawdata.py">RawData class</a>](#using-the-standard-rawdata-class)
+         * [Using the standard RawData class](#using-the-standard-rawdata-class)
             * [Volatility calculation](#volatility-calculation)
          * [New or modified raw data classes](#new-or-modified-raw-data-classes)
       * [Stage: Rules](#stage-rules)
-      * [Trading rules](#trading-rules)
          * [Data and data arguments](#data-and-data-arguments)
       * [The Rules class, and specifying lists of trading rules](#the-rules-class-and-specifying-lists-of-trading-rules)
          * [Creating lists of rules from a configuration object](#creating-lists-of-rules-from-a-configuration-object)
@@ -100,31 +104,30 @@ Table of Contents
          * [Using a newly created Rules() instance](#using-a-newly-created-rules-instance)
          * [Passing trading rules to a pre-baked system function](#passing-trading-rules-to-a-pre-baked-system-function)
          * [Changing the trading rules in a system on the fly (advanced)](#changing-the-trading-rules-in-a-system-on-the-fly-advanced)
-      * [Stage: Forecast scale and cap <a href="/systems/forecast_scale_cap.py">ForecastScaleCap class</a>](#stage-forecast-scale-and-cap-forecastscalecap-class)
-         * [Using fixed weights (/systems/forecast_scale_cap.py)](#using-fixed-weights-systemsforecast_scale_cappy)
-         * [Calculating estimated forecasting scaling on the fly(/systems/forecast_scale_cap.py)](#calculating-estimated-forecasting-scaling-on-the-flysystemsforecast_scale_cappy)
+      * [Stage: Forecast scale and cap](#stage-forecast-scale-and-cap)
+         * [Using fixed weights](#using-fixed-weights)
+         * [Calculating estimated forecasting scaling on the fly](#calculating-estimated-forecasting-scaling-on-the-fly)
             * [Pooled forecast scale estimate (default)](#pooled-forecast-scale-estimate-default)
             * [Individual instrument forecast scale estimate](#individual-instrument-forecast-scale-estimate)
-      * [Stage: Forecast combine <a href="/systems/forecast_combine.py">ForecastCombine class</a>](#stage-forecast-combine-forecastcombine-class)
-         * [Using fixed weights and multipliers(/systems/forecast_combine.py)](#using-fixed-weights-and-multiplierssystemsforecast_combinepy)
-         * [Using estimated weights and diversification multiplier(/systems/forecast_combine.py)](#using-estimated-weights-and-diversification-multipliersystemsforecast_combinepy)
+      * [Stage: Forecast combine](#stage-forecast-combine)
+         * [Using fixed weights and multipliers](#using-fixed-weights-and-multipliers)
+         * [Using estimated weights and diversification multiplier](#using-estimated-weights-and-diversification-multiplier)
             * [Estimating the forecast weights](#estimating-the-forecast-weights)
             * [Removing expensive trading rules](#removing-expensive-trading-rules)
             * [Estimating the forecast diversification multiplier](#estimating-the-forecast-diversification-multiplier)
          * [Forecast mapping](#forecast-mapping)
       * [Stage: Position scaling](#stage-position-scaling)
-         * [Using the standard <a href="/systems/positionsizing.py">PositionSizing class</a>](#using-the-standard-positionsizing-class)
-      * [Stage: Creating portfolios <a href="/systems/portfolio.py">Portfolios class</a>](#stage-creating-portfolios-portfolios-class)
+         * [Using the standard PositionSizing class](#using-the-standard-positionsizing-class)
+      * [Stage: Creating portfolios](#stage-creating-portfolios)
          * [Using fixed weights and instrument diversification multiplier(/systems/portfolio.py)](#using-fixed-weights-and-instrument-diversification-multipliersystemsportfoliopy)
          * [Using estimated weights and instrument diversification multiplier(/systems/portfolio.py)](#using-estimated-weights-and-instrument-diversification-multipliersystemsportfoliopy)
             * [Estimating the instrument weights](#estimating-the-instrument-weights)
-            * [Estimating the forecast diversification multiplier](#estimating-the-forecast-diversification-multiplier-1)
+            * [Using an estimated forecast diversification multiplier](#using-an-estimated-forecast-diversification-multiplier)
          * [Buffering and position inertia](#buffering-and-position-inertia)
          * [Capital correction](#capital-correction)
       * [Stage: Accounting](#stage-accounting)
-         * [Using the standard <a href="/systems/accounts/accounts_stage.py">Account class</a>](#using-the-standard-account-class)
+         * [Using the standard Account class](#using-the-standard-account-class)
          * [accountCurve](#accountcurve)
-         * [accountCurveGroup in more detail](#accountcurvegroup-in-more-detail)
          * [A nested accountCurveGroup](#a-nested-accountcurvegroup)
             * [Weighted and unweighted account curve groups](#weighted-and-unweighted-account-curve-groups)
          * [Testing account curves](#testing-account-curves)
@@ -149,24 +152,24 @@ Table of Contents
          * [Handcrafting (recommended)](#handcrafting-recommended)
       * [Post processing](#post-processing)
    * [Estimating correlations and diversification multipliers](#estimating-correlations-and-diversification-multipliers)
-   * [Capital correction: Varying capital](#capital-correction-varying-capital)
+   * [Capital correction - varying capital](#capital-correction---varying-capital)
 * [Reference](#reference)
    * [Table of standard system.data and system.stage methods](#table-of-standard-systemdata-and-systemstage-methods)
       * [Explanation of columns](#explanation-of-columns)
       * [System object](#system-object)
       * [Data object](#data-object)
-      * [<a href="#stage_rawdata">Raw data stage</a>](#raw-data-stage)
-      * [<a href="#rules">Trading rules stage (chapter 7 of book)</a>](#trading-rules-stage-chapter-7-of-book)
-      * [<a href="#stage_scale">Forecast scaling and capping stage (chapter 7 of book)</a>](#forecast-scaling-and-capping-stage-chapter-7-of-book)
-      * [<a href="#stage_combine">Combine forecasts stage (chapter 8 of book)</a>](#combine-forecasts-stage-chapter-8-of-book)
-      * [<a href="#position_scale">Position sizing stage (chapters 9 and 10 of book)</a>](#position-sizing-stage-chapters-9-and-10-of-book)
-      * [<a href="#stage_portfolio">Portfolio stage (chapter 11 of book)</a>](#portfolio-stage-chapter-11-of-book)
-      * [<a href="#accounts_stage">Accounting stage</a>](#accounting-stage)
+      * [Raw data stage](#raw-data-stage)
+      * [Trading rules stage (chapter 7 of book)](#trading-rules-stage-chapter-7-of-book)
+      * [Forecast scaling and capping stage (chapter 7 of book)](#forecast-scaling-and-capping-stage-chapter-7-of-book)
+      * [Combine forecasts stage (chapter 8 of book)](#combine-forecasts-stage-chapter-8-of-book)
+      * [Position sizing stage (chapters 9 and 10 of book)](#position-sizing-stage-chapters-9-and-10-of-book)
+      * [Portfolio stage (chapter 11 of book)](#portfolio-stage-chapter-11-of-book)
+      * [Accounting stage](#accounting-stage)
    * [Configuration options](#configuration-options)
-      * [Raw data stage](#raw-data-stage-1)
-         * [Volatility calculation](#volatility-calculation-1)
+      * [Raw data](#raw-data)
+         * [Calculating volatility](#calculating-volatility)
       * [Rules stage](#rules-stage)
-         * [Trading rules](#trading-rules-1)
+         * [Trading rules](#trading-rules)
       * [Forecast scaling and capping stage](#forecast-scaling-and-capping-stage)
          * [Forecast scalar (fixed)](#forecast-scalar-fixed)
          * [Forecast scalar (estimated)](#forecast-scalar-estimated)
@@ -176,9 +179,9 @@ Table of Contents
          * [Forecast weights (estimated)](#forecast-weights-estimated)
             * [List of trading rules to get forecasts for](#list-of-trading-rules-to-get-forecasts-for)
             * [Parameters for estimating forecast weights](#parameters-for-estimating-forecast-weights)
-         * [Forecast diversification multiplier  (fixed)](#forecast-diversification-multiplier--fixed)
-         * [Forecast diversification multiplier  (estimated)](#forecast-diversification-multiplier--estimated)
-            * [Forecast mapping](#forecast-mapping-1)
+         * [Forecast diversification multiplier (fixed)](#forecast-diversification-multiplier-fixed)
+         * [Forecast diversification multiplier (estimated)](#forecast-diversification-multiplier-estimated)
+            * [Forecast mapping config](#forecast-mapping-config)
       * [Position sizing stage](#position-sizing-stage)
          * [Capital scaling parameters](#capital-scaling-parameters)
       * [Portfolio combination stage](#portfolio-combination-stage)
@@ -187,19 +190,12 @@ Table of Contents
          * [Instrument diversification multiplier (fixed)](#instrument-diversification-multiplier-fixed)
          * [Instrument diversification multiplier (estimated)](#instrument-diversification-multiplier-estimated)
          * [Buffering](#buffering)
-      * [Accounting stage](#accounting-stage-1)
-         * [Buffering and position inertia](#buffering-and-position-inertia-1)
-         * [Costs](#costs-1)
-         * [Capital correction](#capital-correction-1)
+      * [Accounting stage config](#accounting-stage-config)
+         * [Buffering config](#buffering-config)
+         * [Costs config](#costs-config)
+         * [Capital correction config](#capital-correction-config)
+<!--te-->
 
-
-
-Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
-
-
-
-<a name="how_do_i">
-</a>
 
 # How do I?
 
@@ -232,7 +228,7 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
 system.portfolio.get_notional_position("EDOLLAR")
 ```
-See [standard futures system](#futures_system) for more.
+See [standard futures system](#futures-system-for-chapter-15) for more.
 
 
 ## How do I....Create a futures backtest which estimates parameters
@@ -248,7 +244,7 @@ system=futures_system()
 system.portfolio.get_notional_position("EDOLLAR")
 ```
 
-See [estimated futures system](#futures_system).
+See [estimated futures system](#futures-system-for-chapter-15).
 
 
 
@@ -265,7 +261,7 @@ system.rules.get_raw_forecast("EDOLLAR", "ewmac64_256")
 
 For a complete list of possible intermediate results, use `print(system)` to
 see the names of each stage, and then `stage_name.methods()`. Or see [this
-table](#table_system_stage_methods) and look for rows marked with **D** for
+table](#table-of-standard-systemdata-and-systemstage-methods) and look for rows marked with **D** for
 diagnostic. Alternatively type `system` to get a list of stages, and
 `system.stagename.methods()` to get a list of methods for a stage (insert the
 name of the stage, not stagename).
@@ -284,11 +280,7 @@ system.accounts.pandl_for_instrument_forecast("EDOLLAR", "carry").sharpe() ## Sh
 ```
 
 For more information on what statistics are available, see the [relevant guide
-section](#standard_accounts_stage).
-
-
-
-<a name="change_backtest_parameters"> </a>
+section](#using-the-standard-account-class).
 
 ## How do I....Change backtest parameters
 
@@ -310,9 +302,9 @@ behaviour in any of the following ways:
 5. Change the project defaults (definitely not recommended)
 
 For a list of all possible configuration options, see [this
-table](#Configuration_options).
+table](#configuration-options).
 
-If you use options 2 or 3, you can [save the config](#save_config) to a yaml
+If you use options 2 or 3, you can [save the config](#saving-configurations) to a yaml
 file.
 
 ### Option 1: Change the configuration file
@@ -338,7 +330,7 @@ my_config=Config("private.this_system_name.config.yaml")
 system=futures_system(config=my_config)
 ```
 
-See [here](#filenames) for how to specify filenames in pysystemtrade.
+See [here](#file-names) for how to specify filenames in pysystemtrade.
 
 ### Option 2: Change the configuration object; create a new system
 
@@ -371,8 +363,8 @@ This is useful if you're experimenting interactively 'on the fly'.
 
 ### Option 3: Change the configuration object within an existing system (not recommended - advanced)
 
-If you opt for (3) you will need to understand about [system caching](#caching)
-and [how defaults are handled](#defaults_how). To modify the configuration
+If you opt for (3) you will need to understand about [system caching](#system-caching-and-pickling)
+and [how defaults are handled](#how-the-defaults-and-private-configuration-work). To modify the configuration
 object in the system directly:
 
 ```python
@@ -400,15 +392,15 @@ Because we don't create a new system and have to recalculate everything from
 scratch, this can be useful for testing isolated changes to the system **if**
 you know what you're doing.
 
-### Option 4: Create a `/private/private_config.yaml` file
+### Option 4: Create a private config file
 
-This makes sense if you want to make a global change to a particular parameter rather than constantly including certain things in your configuration files. Anything in this file will overwrite the system defaults, but will in turn be overwritten by the backtest configuration .yaml file. This file will also come in very handy when it comes to [using pysystemtrade as a production trading environment](/docs/production.md)
+Override default config params by putting them in a file at `/private/private_config.yaml`. This makes sense if you want to make a global change to a particular parameter rather than constantly including certain things in your configuration files. Anything in this file will overwrite the system defaults, but will in turn be overwritten by the backtest configuration .yaml file. This file will also come in very handy when it comes to [using pysystemtrade as a production trading environment](/docs/production.md)
 
 
 ### Option 5: Change the project defaults (definitely not recommended)
 
 I don't recommend changing the defaults - a lot of tests will fail for a
-start - but should you want to more information is given [here](#defaults).
+start - but should you want to more information is given [here](#project-defaults-and-private-configuration).
 
 
 ## How do I....Run a backtest on a different set of instruments
@@ -420,9 +412,9 @@ configuration.
 
 There are two easy ways to do this - change the config file, or the config
 object already in the system (for more on changing config parameters see
-['change backtest parameters'](#change_backtest_parameters) ). You also need to
+['change backtest parameters'](#how-do-ichange-backtest-parameters) ). You also need to
 ensure that you have the data you need for any new instruments. See ['use my
-own data'](#create_my_own_data) below.
+own data'](#how-do-iuse-different-data-or-instruments) below.
 
 
 ### Change instruments: Change the configuration file
@@ -460,7 +452,7 @@ forecast_weights:
 
 *At this stage you'd also need to recalculate the diversification multiplier
 (see chapter 11 of my book). See [estimating the forecast diversification
-multiplier](#divmult).
+multiplier](#estimating-correlations-and-diversification-multipliers).
 
 For estimated instrument weights you'd change this section:
 
@@ -495,7 +487,7 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system(config=my_config)
 ```
 
-See [here](#filenames) for how to specify filenames in pysystemtrade.
+See [here](#file-names) for how to specify filenames in pysystemtrade.
 
 
 
@@ -563,13 +555,10 @@ Refer to the [instruments document](/docs/instruments.md).
 Refer to the [instruments document](/docs/instruments.md).
 
 
-
-<a name="how_do_i_write_rules"> </a>
-
 ## How do I....Create my own trading rule
 
 At some point you should read the relevant guide section
-['rules'](#TradingRules) as there is much more to this subject than I will
+['rules'](#trading-rules) as there is much more to this subject than I will
 explain briefly here.
 
 
@@ -609,7 +598,7 @@ Functions must return a Tx1 pandas dataframe.
 
 We can either modify the YAML file or the configuration object we've already
 loaded into memory. See ['changing backtest
-parameters'](#change_backtest_parameters) for more details. If you want to use a
+parameters'](#how-do-ichange-backtest-parameters) for more details. If you want to use a
 YAML file you need to first save the function into a .py module, so it can be
 referenced by a string (we can also use this method for a config object in
 memory).
@@ -626,7 +615,7 @@ Also note that the list of data for the rule will also be in the form of string
 references to methods in the system object. So for example to get the daily
 price we'd use the method `system.rawdata.daily_prices(instrument_code)` (for a
 list of all the data methods in a system see [stage
-methods](#table_system_stage_methods) or type `system.rawdata.methods()` and
+methods](#table-of-standard-systemdata-and-systemstage-methods) or type `system.rawdata.methods()` and
 `system.rawdata.methods()`). In the trading rule specification this would be
 shown as "rawdata.daily_prices".
 
@@ -636,9 +625,9 @@ keyword arguments are missing then the function will use its own defaults.
 
 At this stage we can also remove any trading rules that we don't want. We also
 ought to modify the forecast scalars (See [forecast scale
-estimation](#scalar_estimate]), forecast weights and probably the forecast
+estimation](#calculating-estimated-forecasting-scaling-on-the-fly), forecast weights and probably the forecast
 diversification multiplier (see [estimating the forecast diversification
-multiplier](#divmult)). If you're estimating weights and scalars (i.e. in the
+multiplier](#estimating-correlations-and-diversification-multipliers)). If you're estimating weights and scalars (i.e. in the
 pre-baked estimated futures system provided) this will be automatic.
 
 *If you're using fixed values (the default) then if you don't include a
@@ -742,14 +731,11 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system(config=config)
 ```
 
-
-<a name="create_my_own_data"> </a>
-
 ## How do I....Use different data or instruments
 
 The default data used for the simulation is .csv files for futures stitched
 prices, fx and contract related data. It's my intention to update
-this and try to keep it reasonably current with each release. The data is stored in the [data/futures directory](/data/futures/)
+this and try to keep it reasonably current with each release. The data is stored in the [data/futures directory](/data/futures)
 
 You can update that data, if you wish. Be careful to save it as a .csv with the
 right formatting, or pandas will complain. Check that a file is correctly
@@ -772,7 +758,7 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 data=csvFuturesSimData(csv_data_paths=dict(csvFuturesAdjustedPricesData = "private.system_name.adjusted_price_data"))
 system=futures_system(data=data)
 ```
-Notice that we use python style "." internal references within a project, we don't give actual path names. See [here](#filenames) for how to specify filenames in pysystemtrade.
+Notice that we use python style "." internal references within a project, we don't give actual path names. See [here](#file-names) for how to specify filenames in pysystemtrade.
 
 The full list of keys that you can use in the `csv_data_paths` are:
 * `csvFuturesInstrumentData` (configuration and costs)
@@ -783,17 +769,17 @@ The full list of keys that you can use in the `csv_data_paths` are:
   
 Note that you can't put adjusted prices and carry data in the same directory since they use the same file format.
 
-There is more detail about using .csv files [here](#csv).
+There is more detail about using .csv files [here](#the-csvfuturessimdata-object).
 
-If you want to store your data in Mongo DB databases instead you need to [use a different data object](#arctic_data).
+If you want to store your data in Mongo DB databases instead you need to [use a different data object](#the-dbfuturessimdata-object).
 
 If you want to get your data from Quandl.com, then see the document [working with futures data](/docs/data.md)
 
 If you want to get data from a different place (eg a database, yahoo finance,
-broker, quandl...) you'll need to [create your own Data object](#create_data).
+broker, quandl...) you'll need to [create your own Data object](#creating-your-own-data-objects).
 
 If you want to use a different set of data values (eg equity EP ratios,
-interest rates...) you'll need to [create your own Data object](#create_data).
+interest rates...) you'll need to [create your own Data object](#creating-your-own-data-objects).
 
 If you want to delve deeper into data storage see the document [working with futures data](/docs/data.md)
 
@@ -808,7 +794,7 @@ this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/)
 
 You can save the contents of a system cache to avoid having to redo
 calculations when you come to work on the system again (but you might want to
-read about [system caching and pickling](#caching) before you reload them).
+read about [system caching and pickling](#system-caching-and-pickling) before you reload them).
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -831,10 +817,8 @@ system.accounts.portfolio().sharpe()
 ```
 
 You can also save a config object into a yaml file - see [saving
-configuration](#save_config).
+configuration](#saving-configurations).
 
-
-<a name="guide"> </a>
 
 # Guide
 
@@ -842,14 +826,13 @@ configuration](#save_config).
 The guide section explains in more detail how each part of the system works:
 
 1. [Data](#data) objects
-2. [Config](#config) objects and yaml files
+2. [Config](#configuration) objects and yaml files
 3. [System](#system) objects,
-4. [Stages](#stage_general) within a system.
+4. [Stages](#stages) within a system.
 
 Each section is split into parts that get progressively trickier; varying from
 using the standard objects that are supplied up to writing your own.
 
-<a name="data"> </a>
 
 ## Data
 
@@ -902,7 +885,7 @@ system=futures_system(data=data)
 system.data.get_instrument_currency(instrument_code) # and so on
 ```
 
-(Note that when specifying a data item within a trading [rule](#rules) you
+(Note that when specifying a data item within a trading [rule](#stage-rules) you
 should omit the system eg `data.get_raw_price`)
 
 If you set the start_date configuration option, then only a subset of the data will be shown:
@@ -921,9 +904,6 @@ import datetime
 system.config.start_date = datetime.datetime(2000,1,19)
 ```
 
-
-
-<a name="csvdata"> </a>
 
 #### The csvFuturesSimData object
 
@@ -975,7 +955,7 @@ the instrument_code):
 
 DATETIME should be something that `pandas.to_datetime` can parse. Note that the
 price in (2) is the continuously stitched price (see [volatility
-calculation](#vol_calc) ), whereas the price column in (3) is the price of the
+calculation](#volatility-calculation) ), whereas the price column in (3) is the price of the
 contract we're currently trading.
 
 At a minimum we need to have a currency file for each instrument's currency
@@ -991,30 +971,25 @@ See data in subdirectories [pysystemtrade/data/futures](/data/futures) for files
 - [Futures specific carry and forward prices](/data/futures/multiple_prices_csv)
 - [Spot FX prices](/data/futures/fx_prices_csv)
 
-For more information see the [futures data document](/docs/data.md#csvFuturesSimData).
+For more information see the [futures data document](/docs/data.md#csvfuturessimdata).
 
-<a name="arctic_data"> </a>
 
-#### The arcticSimData object
+#### The dbFuturesSimData object
 
-This is a simData object which gets it's data out of [Mongo DB](https://mongodb.com) (static) and [Arctic](https://github.com/manahl/arctic) (time series) (*Yes the class name should include both terms. Yes I shortened it so it isn't ridiculously long, and most of the interesting stuff comes from Arctic*). It is better for live trading.
+This is a simData object which gets its data from [Mongo DB](https://mongodb.com) (static) and [Parquet](https://parquet.apache.org/) (time series). It is better for live trading. For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files.
 
-For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files.
-[MongoDB](https://mongodb.com) is a no-sql database which is rather fashionable at the moment, though the main reason I selected it for this purpose is that it is used by Arctic. [Arctic](https://github.com/manahl/arctic) is a superb open source time series database which sits on top of Mongo DB) and provides straightforward and fast storage of pandas DataFrames. It was created by my former colleagues at [Man AHL](https://www.ahl.com/) (in fact I beta tested a very early version of Arctic), and then very generously released as open source.
 
-There is more detail on this in the [futures data documentation](/docs/data.md): [Mongo DB](/docs/data.md#mongoDB) and [Arctic](/docs/data.md#arctic).
+##### Setting up MongoDB and Parquet
 
-##### Setting up your Arctic and Mongo DB databases
+Obviously you will need to make sure you already have a Mongo DB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process. 
 
-Obviously you will need to make sure you already have a Mongo DB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process. You also need to get [Arctic](https://github.com/manahl/arctic).
+Because the mongoDB data isn't included in the github repo, before using this you need to write the required data into Mongo and Parquet.
+You can do this from scratch, as per the ['futures data workflow'](/docs/data.md#part-1-a-futures-data-workflow). Alternatively you can run the following scripts which will copy the data from the existing github .csv files:
 
-Because the mongoDB data isn't included in the github repo, before using this you need to write the required data into Mongo and Arctic.
-You can do this from scratch, as per the ['futures data workflow'](/docs/data.md#a-futures-data-workflow). Alternatively you can run the following scripts which will copy the data from the existing github .csv files:
-
-- [Instrument configuration and cost data](/sysinit/futures/repocsv_instrument_config.py)
 - [Adjusted prices](/sysinit/futures/repocsv_adjusted_prices.py)
 - [Multiple prices](/sysinit/futures/repocsv_multiple_prices.py)
 - [Spot FX prices](/sysinit/futures/repocsv_spotfx_prices.py)
+- [Spread data](/sysinit/futures/repocsv_spread_costs.py)
 
 Of course it's also possible to mix these two methods.
 
@@ -1034,6 +1009,32 @@ system = futures_system()
 print(system.accounts.portfolio().sharpe())
 ```
 
+#### Arctic
+
+Early versions of this project used [Arctic](https://github.com/manahl/arctic) for storing time series data. Since November 2023, Parquet is the default. See [the reasoning behind the change](https://github.com/robcarver17/pysystemtrade/discussions/466), [switchover instructions](https://github.com/robcarver17/pysystemtrade/discussions/1290), and [required scheduling config changes](https://github.com/robcarver17/pysystemtrade/discussions/1291).
+
+The [original Arctic project](https://github.com/man-group/arctic) is no longer maintained - development has moved to [ArcticDB](https://github.com/man-group/ArcticDB)
+
+Parquet and Arctic are very different things. Parquet is an efficient column-oriented data file format, while Arctic is a thin software layer that allows storage of time series data in a MongoDB database.
+
+Although Parquet is not a database, data in this project sits behind an abstraction that treats it like one.
+
+##### Backtesting with Arctic instead of Parquet
+
+It is still possible to use the older method. For backtesting, modify the classes assigned in `sysdata.sim.db_futures_sim_data.py` to point to the Arctic classes instead of Parquet:
+
+```python
+use_sim_classes = {
+    FX_DATA: arcticFxPricesData,
+    ROLL_PARAMETERS_DATA: csvRollParametersData,
+    FUTURES_INSTRUMENT_DATA: csvFuturesInstrumentData,
+    FUTURES_MULTIPLE_PRICE_DATA: arcticFuturesMultiplePricesData,
+    FUTURES_ADJUSTED_PRICE_DATA: arcticFuturesAdjustedPricesData,
+    STORED_SPREAD_DATA: mongoSpreadCostData,
+}
+```
+
+You would need to uncomment the Arctic imports too.
 
 
 ### Creating your own data objects
@@ -1061,7 +1062,7 @@ This might seem a hassle, and it's tempting to skip and just inherit from
 convenient to have the possibility of multiple data sources and this process
 ensures they keep a consistent API for a given data type.
 
-It's worth reading the [documentation on futures data](/docs/data.md#modify_SimData) to understand how [csvFuturesSimData()](/sysdata/sim/csv_futures_sim_data.py) is constructed before modifying it or creating your own data objects.
+It's worth reading the [documentation on futures data](/docs/data.md#modifying-simdata-objects) to understand how [csvFuturesSimData()](/sysdata/sim/csv_futures_sim_data.py) is constructed before modifying it or creating your own data objects.
 
 #### The Data() class
 
@@ -1084,11 +1085,11 @@ working them out as needed.
 
 Neither should you override 'daily_prices'.
 
-Finally data methods should not do any caching. [Caching](#caching) is done
+Finally data methods should not do any caching. [Caching](#system-caching-and-pickling) is done
 within the system class.
 
 
-<a name="config"> </a>
+
 
 ## Configuration
 
@@ -1117,7 +1118,7 @@ my_config=Config(my_config_dict)
 
 There are no restrictions on what is nested in the dictionary, but if you
 include arbitrary items like the above they won't be very useful!. The section
-on [configuration options](#Configuration_options) explains what configuration
+on [configuration options](#configuration-options) explains what configuration
 options would be used by a system.
 
 #### 2) Creating a configuration object from a file
@@ -1147,7 +1148,7 @@ from sysdata.config.configdata import Config
 my_config=Config("private.filename.yaml") ## assuming the file is in "pysystemtrade/private/filename.yaml"
 ```
 
-See [here](#filenames) for how to specify filenames in pysystemtrade.
+See [here](#file-names) for how to specify filenames in pysystemtrade.
 
 
 In theory there are no restrictions on what is nested in the dictionary (but
@@ -1157,9 +1158,9 @@ PyYAML expert you can do other python objects like tuples, but it won't be
 pretty).
 
 You should respect the structure of the default config with respect to nesting, as
-otherwise [the defaults](#defaults_how) won't be properly filled in.
+otherwise [the defaults](#how-the-defaults-and-private-configuration-work) won't be properly filled in.
 
-The section on [configuration options](#Configuration_options) explains what
+The section on [configuration options](#configuration-options) explains what
 configuration options are available.
 
 
@@ -1175,7 +1176,7 @@ Under the hood this is effectively getting a configuration from a .yaml file -
 [this one](/systems/provided/futures_chapter15/futuresconfig.yaml).
 
 Configs created in this way will include all [the defaults
-populated](#defaults_how).
+populated](#how-the-defaults-and-private-configuration-work).
 
 
 #### 4) Creating a configuration object from a list
@@ -1210,14 +1211,12 @@ from sysinit.configtools.csvweights_to_yaml import forecast_mapping_csv_to_yaml 
 These will create .yaml files which can then be pasted into your existing configuration files.
 
 
-<a name="defaults"> </a>
-
 ### Project defaults and private configuration
 
 Many (but not all) configuration parameters have defaults which are used by the
 system if the parameters are not in the object. These can be found in the
 [defaults.yaml file](/sysdata/config/defaults.yaml). The section on
-[configuration options](#Configuration_options) explains what the defaults are,
+[configuration options](#configuration-options) explains what the defaults are,
 and where they are used.
 
 I recommend that you do not change these defaults. It's better to use the
@@ -1227,8 +1226,6 @@ If this file exists, `/private/private_config.yaml`, it will be used as a privat
 
 Basically, whenever a configuration object is added to a system, if there is a private config file then we add the elements from that. Then for any remaining missing elements we add the elements from the defaults.yaml.
 
-
-<a name="config_function_defaults"> </a>
 
 #### Handling defaults when you change certain functions
 
@@ -1240,8 +1237,6 @@ argument. However if you change the arguments you'll need to change the project
 defaults .yaml file. I recommend keeping the original parameters, and adding
 new ones with different names, to avoid accidentally breaking the system.
 
-
-<a name="defaults_how"> </a>
 
 #### How the defaults and private configuration work
 
@@ -1424,10 +1419,8 @@ my_config_list:
 Similarly if you wanted to use project defaults for your new parameters you'll
 also need to include them in the [defaults.yaml
 file](/sysdata/config/defaults.yaml). Make sure you understand [how the
-defaults work](#defaults_how).
+defaults work](#how-the-defaults-and-private-configuration-work).
 
-
-<a name="save_config"> </a>
 
 ### Saving configurations
 
@@ -1452,7 +1445,7 @@ with open(filename, 'w') as outfile:
 This is useful if you've been playing with a backtest configuration, and want
 to record the changes you've made. Note this will save trading rule functions
 as functions; this may not work and it will also be ugly. So you should use
-strings to define rule functions (see [rules](#rules) for more information)
+strings to define rule functions (see [rules](#stage-rules) for more information)
 
 You can also save the final optimised parameters into fixed weights for live trading:
 
@@ -1479,7 +1472,6 @@ Change the list of attr_names depending on what you want to output. You can then
 It shouldn't be necessary to modify the configuration class since it's
 deliberately lightweight and flexible.
 
-<a name="system"> </a>
 
 ## System
 
@@ -1506,7 +1498,7 @@ system=futures_system(config=my_config)
 system=futures_system(data=my_data, config=my_config)
 ```
 
-Finally we can also create our own [trading rules object](#rules), and pass
+Finally we can also create our own [trading rules object](#stage-rules), and pass
 that in. This is useful for interactive model development. If for example we've
 just written a new rule on the fly:
 
@@ -1516,9 +1508,9 @@ system=futures_system(trading_rules=my_rules) ## we probably need a new configur
 ```
 
 
-<a name="futures_system"> </a>
+#### Futures system for chapter 15
 
-#### [Futures system for chapter 15](/systems/provided/futures_chapter15/basesystem.py)
+- code here: [/systems/provided/futures_chapter15/basesystem.py](/systems/provided/futures_chapter15/basesystem.py)
 
 This system implements the framework in chapter 15 of my book.
 
@@ -1541,10 +1533,10 @@ system=System([Account(), Portfolios(), PositionSizing(), RawData(), ForecastCom
                    ForecastScaleCap(), Rules(trading_rules)], data, config)
 ```
 
-<a name="estimated_system"> </a>
 
-#### [Estimated system for chapter 15](/systems/provided/futures_chapter15/estimatedsystem.py)
+#### Estimated system for chapter 15
 
+- code here: [/systems/provided/futures_chapter15/basesystem.py](/systems/provided/futures_chapter15/basesystem.py)
 
 This system implements the framework in chapter 15 of my book, but includes
 estimation of forecast scalars, instrument and forecast diversification
@@ -1582,8 +1574,6 @@ estimation parameters:
 
 Warning: Be careful about changing a system from estimated to non estimated 'on
 the fly' by varying the estimation parameters (in the form use_*_estimates).
-See [persistence of 'switched' stage objects](#switch_persistence) for more
-information.
 
 
 ### Using the system object
@@ -1608,7 +1598,7 @@ We can also access the methods in the data object that is part of every system:
 system.data.get_raw_price("EDOLLAR")
 ```
 
-For a list of all the methods in a system and its stages see [stage methods](#table_system_stage_methods). Alternatively:
+For a list of all the methods in a system and its stages see [stage methods](#table-of-standard-systemdata-and-systemstage-methods). Alternatively:
 ```python
 system ## lists all the stages
 system.accounts.methods() ## lists all the methods in a particular stage
@@ -1646,8 +1636,6 @@ get_list_of_markets_with_trading_restrictions'
 
 `system.log` provides access to the system's log. See [logging](#logging) for more 
 details.
-
-<a name="caching"> </a>
 
 ### System Caching and pickling
 
@@ -1762,14 +1750,14 @@ system.accounts.portfolio().sharpe() ## Not coming from the cache, but this will
 
 ```
 
-See [here](#filenames) for how to specify filenames in pysystemtrade.
+See [here](#file-names) for how to specify filenames in pysystemtrade.
 
 
 ### Advanced caching
 
 It's also possible to selectively delete certain cached items, whilst keeping
 the rest of the system intact. You shouldn't do this without understanding
-[stage wiring](#stage_wiring). You need to have a good knowledge of the various
+[stage wiring](#stage-wiring). You need to have a good knowledge of the various
 methods in each stage, to understand the downstream implications of either
 deleting or keeping a particular data value.
 
@@ -1940,7 +1928,7 @@ the 'output' from an earlier stage and then 'serve' it to the rest of the
 stage. These exist to simplify changing the internal wiring of a stage and
 reduce the coupling between methods from different stages. These should also
 never cache; or again we'll be caching the same data multiple times ( see
-[stage wiring](#stage_wiring) ).
+[stage wiring](#stage-wiring) ).
 
 You should cache as early as possible; so that all the subsequent stages that
 need that data item already have it. Avoid looping back, where a stage uses
@@ -1977,7 +1965,7 @@ Caching is implemented (as of version 0.14.0 of this project) by python
 decorators attached to methods in the stage objects. There are four decorators
 used by the code:
 
-- `@input` - no caching done, input method see [stage wiring](#stage_wiring)
+- `@input` - no caching done, input method see [stage wiring](#stage-wiring)
 - `@dont_cache` - no caching done, used for very trivial calculations that
   aren't worth caching
 - `@diagnostic()` - caching done within the body of a stage
@@ -1988,7 +1976,7 @@ without. Labelling your code with the `@input` or `@dont_cache` decorators has
 no effect whatsoever, and is purely a labelling convention.
 
 Similarly the `@diagnostic` and `@output` decorators perform exactly the same
-way; it's just helpful to label your [stage wiring](#stage_wiring) and make
+way; it's just helpful to label your [stage wiring](#stage-wiring) and make
 output functions clear.
 
 The latter two decorators take two optional keyword arguments which default to
@@ -2100,8 +2088,6 @@ def futures_system(data=None, config=None, trading_rules=None):
 It shouldn't be necessary to modify the `System()` class or create new ones.
 
 
-<a name="stage_general"> </a>
-
 ## Stages
 
 A *stage* within a system does part of the multiple steps of calculation that
@@ -2164,15 +2150,11 @@ system.rawdata.get_raw_price("EDOLLAR").tail(5)
 `system.rawdata.log` provides access to the log for the stage rawdata, and so
 on. See [logging](#logging) for more details.
 
-
-
-<a name="stage_wiring"> </a>
-
 ### Stage 'wiring'
 
 It's worth having a basic understanding of how the stages within a system are
 'wired' together. Furthermore if you're going to modify or create new code, or
-use [advanced system caching](#caching), you're going to need to understand
+use [advanced system caching](#system-caching-and-pickling), you're going to need to understand
 this properly.
 
 What actually happens when we call
@@ -2248,7 +2230,7 @@ stage) you need to keep the following in mind:
 4. Modified stages should use the same name as their parent, or the wiring will
    go haywire.
 5. Think about whether you need to protect part of the system cache for this
-   stage output [system caching](#caching) from casual deletion.
+   stage output [system caching](#system-caching-and-pickling) from casual deletion.
 6. Similarly if you're going to cache complex objects that won't pickle easily
    (like accountCurve objects) you need to put a `not_pickable=True` in the
    decorator call.
@@ -2259,7 +2241,7 @@ stage) you need to keep the following in mind:
    is the first time it will be cached). Again only access public methods of
    the system data object.
 9. Use cached methods for internal diagnostic and output methods(see [system
-   caching](#caching) ).
+   caching](#system-caching-and-pickling) ).
 10. If you want to store attributes within a stage, then prefix them with _ and
     include a method to access or change them. Otherwise the methods() method
     will return attributes as well as methods.
@@ -2273,38 +2255,36 @@ stage) you need to keep the following in mind:
     stage
 15. Really big stages should be separated across multiple classes (and possibly
     files), using multiple inheritance to glue them together. See the [accounts
-    stage](/systems/account.py) for an example.
+    stage](/systems/accounts) for examples.
 
-New stage code should be included in a subdirectory of the systems package (as
-for [futures raw data](/systems/futures/) ) or in your [private
-directory](/private/).
+New stage code should be included in the systems package (as
+for [futures raw data](/systems/rawdata.py) ) or in your [private
+directory](/private).
 
 ### Specific stages
 
 The standard list of stages is as follows. The default class is given below, as
 well as the system attribute used to access the stage.
 
-1. [Raw data:](#stage_rawdata) [class RawData](/systems/rawdata.py)
+1. [Raw data:](#stage-raw-data) [class RawData](/systems/rawdata.py)
    `system.rawdata`
-2. [Forecasting:](#rules) [class Rules](/systems/forecasting.py) `system.rules`
+2. [Forecasting:](#stage-rules) [class Rules](/systems/forecasting.py) `system.rules`
    (chapter 7 of my book)
-3. [Scale and cap forecasts:](#stage_scale) [class
+3. [Scale and cap forecasts:](#stage-forecast-scale-and-cap) [class
    ForecastScaleCap](/systems/forecast_scale_cap.py)
    `system.forecastScaleCap`(chapter 7)
-4. [Combine forecasts:](#stage_combine) [class
+4. [Combine forecasts:](#stage-forecast-combine) [class
    ForecastCombine](/systems/forecast_combine.py) `system.combForecast`
    (chapter 8)
-5. [Calculate subsystem positions:](#position_scale) [class
+5. [Calculate subsystem positions:](#position-sizing-stage) [class
    PositionSizing](/systems/positionsizing.py) `system.positionSize` (chapters
    9 and 10)
-6. [Create a portfolio across multiple instruments:](#stage_portfolio) [class
+6. [Create a portfolio across multiple instruments:](#stage-creating-portfolios) [class
    Portfolios](/systems/portfolio.py) `system.portfolio` (chapter 11)
-7. [Calculate performance:](#accounts_stage) [class
-   Account](/systems/account.py) `system.accounts`
+7. [Calculate performance:](#stage-accounting) [class
+   Account](/systems/accounts/accounts_stage.py) `system.accounts`
 
 Each of these stages is described in more detail below.
-
-<a name="stage_rawdata"> </a>
 
 ### Stage: Raw data
 
@@ -2317,7 +2297,9 @@ in raw data are:
    intermediate steps required to calculate the carry rule for futures
 
 
-#### Using the standard [RawData class](/systems/rawdata.py)
+#### Using the standard RawData class
+
+- code here: [/systems/rawdata.py](/systems/rawdata.py)
 
 The base RawData class includes methods to get instrument prices, daily
 returns, volatility, and normalised returns (return over volatility).
@@ -2326,8 +2308,6 @@ As we are trading futures the raw data class has some extra methods needed to ca
 rule for futures, and to expose the intermediate calculations.
 
 (Versions prior to 1.06 had a separate FuturesRawData class)
-
-<a name="vol_calc"> </a>
 
 ##### Volatility calculation
 
@@ -2389,7 +2369,7 @@ volatility_calculation:
 ```
 
 If you're considering using your own function please see [configuring defaults
-for your own functions](#config_function_defaults)
+for your own functions](#handling-defaults-when-you-change-certain-functions)
 
 
 
@@ -2410,8 +2390,6 @@ For new asset classes in particular you should think hard about what you should
 override the `daily_denominator_price` (see discussion on volatility
 calculation above).
 
-<a name="rules"> </a>
-
 ### Stage: Rules
 
 Trading rules are at the heart of a fully systematic trading system. This stage
@@ -2419,13 +2397,7 @@ description is different from the others; and will be in the form of a tutorial
 around creating trading rules.
 
 The base class, Rules() [is here](/systems/forecasting.py); and it shouldn't be
-necessary to modify this class.
-
-<a name="TradingRules"> </a>
-
-### Trading rules
-
-A trading rule consists of:
+necessary to modify this class. A trading rule consists of:
 
 - a function
 - some data (specified as positional arguments)
@@ -2532,7 +2504,7 @@ trading_rules:
 
 Note that *`forecast_scalar`* isn't strictly part of the trading rule
 definition, but if included here will be used instead of the separate
-`config.forecast_scalar` parameter (see the [next stage](#stage_scale) ).
+`config.forecast_scalar` parameter (see the [next stage](#stage-forecast-scale-and-cap) ).
 
 #### Data and data arguments
 
@@ -2763,8 +2735,8 @@ system=System([rules, RawData()], data, config)
 ```
 
 It's generally a good idea to put new fixed forecast scalars (see [forecasting
-scaling and capping](#stage_scale) ) and forecast weights into the config (see
-[the combining stage](#stage_combine) ); although if you're estimating these
+scaling and capping](#stage-forecast-scale-and-cap) ) and forecast weights into the config (see
+[the combining stage](#stage-forecast-combine) ); although if you're estimating these
 parameters automatically this won't be a problem. Or if you're just playing
 with ideas you can live with the default forecast scale of 1.0, and you can
 delete the forecast weights so that the system will default to using equal
@@ -2849,10 +2821,9 @@ system.rules._trading_rules.pop("ewmac2_8")
 ```
 
 
+### Stage: Forecast scale and cap
 
-<a name="stage_scale"> </a>
-
-### Stage: Forecast scale and cap [ForecastScaleCap class](/systems/forecast_scale_cap.py)
+- code here: [/systems/forecast_scale_cap.py](/systems/forecast_scale_cap.py)
 
 This is a simple stage that performs two steps:
 
@@ -2861,10 +2832,12 @@ This is a simple stage that performs two steps:
 2. Cap forecasts at a maximum value
 
 
-#### Using fixed weights (/systems/forecast_scale_cap.py)
+#### Using fixed weights
+
+- code here: [/systems/forecast_scale_cap.py](/systems/forecast_scale_cap.py)
 
 The standard configuration uses fixed scaling and caps. It is included in
-[standard futures system](#futures_system).
+[standard futures system](#futures-system-for-chapter-15).
 
 Forecast scalars are specific to each rule. Scalars can either be included in
 the `trading_rules` or `forecast_scalars` part of the config. The former takes
@@ -2896,9 +2869,7 @@ forecast_cap: 20.0
 If entirely missing default values of 1.0 and 20.0 are used for the scale and
 cap respectively.
 
-<a name="scalar_estimate"> </a>
-
-#### Calculating estimated forecasting scaling on the fly(/systems/forecast_scale_cap.py)
+#### Calculating estimated forecasting scaling on the fly
 
 See [this blog
 post](https://qoppac.blogspot.com/2016/01/pysystemtrader-estimated-forecast.html).
@@ -2907,7 +2878,7 @@ You may prefer to estimate your forecast scales from the available data. This
 is often necessary if you have a new trading rule and have no idea at all what
 the scaling should be. To do this you need to turn on estimation
 `config.use_forecast_scale_estimates=True`. It is included in the pre-baked
-[estimated futures system](#futures_system).
+[estimated futures system](#futures-system-for-chapter-15).
 
 All the config parameters needed are stored in
 `config.forecast_scalar_estimate`.
@@ -2921,7 +2892,7 @@ which option is used.
 We do this if `pool_instruments=True`. This defaults to using the function
 "sysquant.estimators.forecast_scalar.forecast_scalar", but this is configurable using the parameter
 `func`. If you're changing this please see [configuring defaults for your own
-functions](#config_function_defaults).
+functions](#handling-defaults-when-you-change-certain-functions).
 
 I strongly recommend using pooling, since it's always good to get more data.
 The only reason not to use it is if you've been an idiot and designed a
@@ -2942,28 +2913,29 @@ back into the past so we don't lose any data; strictly speaking this is
 cheating but we're not selecting the parameter for performance reasons so I for
 one can sleep at night.
 
-Note: The pooled estimate is [cached](#caching) as an 'across system',
+Note: The pooled estimate is [cached](#system-caching-and-pickling) as an 'across system',
 non instrument specific, item.
 
 ##### Individual instrument forecast scale estimate
 
 We do this if `pool_instruments=False`. Other parameters work in the same way.
 
-Note: The estimate is [cached](#caching) separately for each instrument.
+Note: The estimate is [cached](#system-caching-and-pickling) separately for each instrument.
 
+### Stage: Forecast combine
 
-<a name="stage_combine"> </a>
-
-### Stage: Forecast combine [ForecastCombine class](/systems/forecast_combine.py)
+- code here: [/systems/forecast_combine.py](/systems/forecast_combine.py)
 
 We now take a weighted average of forecasts using instrument weights, and
 multiply by the forecast diversification multiplier.
 
 
-#### Using fixed weights and multipliers(/systems/forecast_combine.py)
+#### Using fixed weights and multipliers
+
+- code here: [/systems/forecast_combine.py](/systems/forecast_combine.py)
 
 The default fixed weights and a fixed multiplier. It is included in the
-pre-baked [standard futures system](#futures_system).
+pre-baked [standard futures system](#futures-system-for-chapter-15).
 
 Both weights and multiplier are configurable.
 
@@ -3013,11 +2985,13 @@ automatically adjusts forecast weights if different trading rules have
 different start dates for their forecasts. It does not adjust the multiplier.
 This means that in the past the multiplier will probably be too high.
 
-#### Using estimated weights and diversification multiplier(/systems/forecast_combine.py)
+#### Using estimated weights and diversification multiplier
+
+- code here: [/systems/forecast_combine.py](/systems/forecast_combine.py)
 
 
 This behaviour is included in the pre-baked [estimated futures
-system](#futures_system). We switch to it by setting
+system](#futures-system-for-chapter-15). We switch to it by setting
 `config.use_forecast_weight_estimates=True` and/or
 `config.use_forecast_div_mult_estimates=True`.
 
@@ -3032,7 +3006,7 @@ See [optimisation](#optimisation) for more information.
 
 ##### Estimating the forecast diversification multiplier
 
-See [estimating diversification multipliers](#divmult).
+See [estimating diversification multipliers](#estimating-correlations-and-diversification-multipliers).
 
 #### Forecast mapping
 
@@ -3107,13 +3081,15 @@ If the forecast_mapping key is missing from the configuration object, or the ins
 
 ### Stage: Position scaling
 
-<a name="notional"> We now scale our positions according to our percentage
+We now scale our positions according to our percentage
 volatility target (chapters 9 and 10 of my book). At this stage we treat our
 target, and therefore our account size, as fixed. So we ignore any compounding
-of losses and profits. It's for this reason the I refer to the 'notional'
-position. Later in the documentation I'll relax that assumption. </a>
+of losses and profits. It's for this reason I refer to the 'notional'
+position. Later in the documentation I'll relax that assumption.
 
-#### Using the standard [PositionSizing class](/systems/positionsizing.py)
+#### Using the standard PositionSizing class
+
+- code here: [/systems/positionsizing.py](/systems/positionsizing.py)
 
 The annualised percentage volatility target, notional trading capital and
 currency of trading capital are all configurable.
@@ -3130,11 +3106,9 @@ instrument from the rawdata stage. Since a rawdata stage might be omitted, it
 can also fall back to calculating this from scratch using the data object and
 the default volatility calculation method.
 
+### Stage: Creating portfolios
 
-
-<a name="stage_portfolio"> </a>
-
-### Stage: Creating portfolios [Portfolios class](/systems/portfolio.py)
+- code here: [/systems/portfolio.py](/systems/portfolio.py)
 
 The instrument weights and instrument diversification multiplier are used to
 combine different instruments together into the final portfolio (chapter eleven
@@ -3169,7 +3143,7 @@ high.
 
 You can estimate the correct instrument diversification multiplier 'on the
 fly', and also estimate instrument weights. This functionality is included in
-the pre-baked [estimated futures system](#futures_system). It is accessed by
+the pre-baked [estimated futures system](#futures-system-for-chapter-15). It is accessed by
 setting `config.use_instrument_weight_estimates=True` and/or
 `config.use_instrument_div_mult_estimates=True`.
 
@@ -3177,11 +3151,9 @@ setting `config.use_instrument_weight_estimates=True` and/or
 
 See [optimisation](#optimisation) for more information.
 
-##### Estimating the forecast diversification multiplier
+##### Using an estimated forecast diversification multiplier
 
-See [estimating diversification multipliers](#divmult).
-
-<a name="buffer"> </a>
+See [estimating diversification multipliers](#estimating-correlations-and-diversification-multipliers).
 
 #### Buffering and position inertia
 
@@ -3240,18 +3212,16 @@ Finally, if you set buffer_method to none there will be no buffering.
 #### Capital correction
 
 If you want to see positions that reflect varying capital, then read the
-section on [capital correction](#capcorrection).
+section on [capital correction](#capital-correction---varying-capital).
 
-
-<a name="accounts_stage"> </a>
 
 ### Stage: Accounting
 
 The final stage is the all important accounting stage, which calculates p&l.
 
-<a name="standard_accounts_stage"> </a>
+#### Using the standard Account class
 
-#### Using the standard [Account class](/systems/accounts/accounts_stage.py)
+- code here: [/systems/accounts/accounts_stage.py](/systems/accounts/accounts_stage.py)
 
 The standard accounting class includes several useful methods:
 
@@ -3283,11 +3253,11 @@ The standard accounting class includes several useful methods:
   of total capital (returns accountCurve)
 
 
-(Note that [buffered](#buffer) positions are only used at the final portfolio
+(Note that [buffered](#buffering-and-position-inertia) positions are only used at the final portfolio
 stage; the positions for forecasts and subsystems are not buffered. So their
 trading costs may be a little overstated).
 
-(Warning: see [weighted and unweighted account curve groups](#weighted_acg) )
+(Warning: see [weighted and unweighted account curve groups](#weighted-and-unweighted-account-curve-groups) )
 
 Most of these classes share some useful arguments (all boolean):
 
@@ -3463,7 +3433,7 @@ acc_curve_group.asset_columns
 acc_curve_group['US10']
 ```
 
-*Warning see [weighted and unweighted account curve groups](#weighted_acg)*
+*Warning see [weighted and unweighted account curve groups](#weighted-and-unweighted-account-curve-groups)*
 
 The second command returns the account curves *just* for US 10 year bonds. So
 we can do things like:
@@ -3488,7 +3458,7 @@ acc_curve_group.net.to_frame() ## returns net account curves all assets in a fra
 acc_curve_group.gross.to_frame() ## returns net account curves all assets in a frame
 acc_curve_group.costs.to_frame() ## returns net account curves all assets in a frame
 ```
-*Warning see [weighted and unweighted account curve groups](#weighted_acg)*
+*Warning see [weighted and unweighted account curve groups](#weighted-and-unweighted-account-curve-groups)*
 
 
 The other thing you can do is get a dictionary of any statistical method,
@@ -3503,7 +3473,7 @@ acc_curve_group.net.get_stats("sharpe", percent=False) ## defaults to giving sta
 
 ```
 
-*Warning see [weighted and unweighted account curve groups](#weighted_acg)*
+*Warning see [weighted and unweighted account curve groups](#weighted-and-unweighted-account-curve-groups)*
 
 You can get summary statistics for these. These can either be simple averages
 across all assets, or time weighted by the amount of data each asset has.
@@ -3542,9 +3512,6 @@ frame:
 ```python
 ewmac64_acc.to_frame()
 ```
-
-
-<a name="weighted_acg"> </a>
 
 ##### Weighted and unweighted account curve groups
 
@@ -3706,7 +3673,6 @@ objects are trading.
 Warning: The assumptions underlying a t-test may be violated for financial
 data. Use with care.
 
-<a name="costs"> </a>
 
 #### Costs
 
@@ -3779,15 +3745,13 @@ forecast_cost_estimate:
 
 
 
-<a name="Processes"> </a>
+
 
 # Processes
 
 This section gives much more detail on certain important processes that span
 multiple stages: logging, estimating correlations and diversification
 multipliers, optimisation, and capital correction.
-
-<a name="filenames"> </a>
 
 ## File names
 
@@ -3845,8 +3809,6 @@ These functions are used internally whenever a file name is passed in, so feel f
 ## Relative: Dot format to find a file in the installed pysystemtrade
 "syscore.tests.pricedata.csv"
 ```
-
-<a name="logging"> </a>
 
 ## Logging
 
@@ -3929,8 +3891,6 @@ self.log.debug("Calculating scaled forecast for %s %s" % (instrument_code, rule_
 ```
 This has the advantage of keeping the original log attributes intact. If you want to do something more complex it's worth looking at the docstring for [`syslogging.get_logger()`](/syslogging/logger.py) which shows usage patterns, including how to merge attributes.
 
-
-<a name="optimisation"> </a>
 
 ## Optimisation
 
@@ -4140,8 +4100,6 @@ is given a share of the weight.
 
 At this stage the other cost ceiling will be applied (`config.post_ceiling_cost_SR`). 
 
-<a name="divmult"> </a>
-
 ## Estimating correlations and diversification multipliers
 
 See [my blog
@@ -4201,9 +4159,7 @@ good idea to floor negative correlations at zero to avoid inflating the DM to
 very high values.
 
 
-<a name="capcorrection"> </a>
-
-## Capital correction: Varying capital
+## Capital correction - varying capital
 
 Capital correction is the process by which we change the capital we have at
 risk, and thus our positions, according to any profits or losses made. Most of
@@ -4249,12 +4205,8 @@ capital:
 
 All other methods in pysystemtrade use fixed capital.
 
-<a name="reference"> </a>
-
 # Reference
 
-
-<a name="table_system_stage_methods"> </a>
 
 ## Table of standard system.data and system.stage methods
 
@@ -4293,9 +4245,9 @@ Types are one or more of D, I, O:
 
 - **D**iagnostic: Exposed method useful for seeing intermediate calculations
 - Key **I**nput: A method which gets information from another stage. See [stage
-  wiring](#stage_wiring). The description will list the source of the data.
+  wiring](#stage-wiring). The description will list the source of the data.
 - Key **O**utput: A method whose output is used by other stages. See [stage
-  wiring](#stage_wiring). Note this excludes items only used by specific
+  wiring](#stage-wiring). Note this excludes items only used by specific
   trading rules (notably rawdata.daily_annualised_roll)
 
 Private methods are excluded from this table.
@@ -4325,7 +4277,7 @@ Other methods exist to access logging and caching.
 
 
 
-### [Raw data stage](#stage_rawdata)
+### Raw data stage
 
 
 | Call | Standard?| Arguments | Type | Description |
@@ -4345,7 +4297,7 @@ Other methods exist to access logging and caching.
 
 
 
-### [Trading rules stage (chapter 7 of book)](#rules)
+### Trading rules stage (chapter 7 of book)
 
 
 | Call | Standard?| Arguments | Type | Description |
@@ -4354,7 +4306,7 @@ Other methods exist to access logging and caching.
 | `rules.get_raw_forecast` | Standard | `instrument_code`, `rule_variation_name` | D,O| Get forecast (unscaled, uncapped) |
 
 
-### [Forecast scaling and capping stage (chapter 7 of book)](#stage_scale)
+### Forecast scaling and capping stage (chapter 7 of book)
 
 
 | Call | Standard?| Arguments | Type | Description |
@@ -4367,7 +4319,7 @@ Other methods exist to access logging and caching.
 | `forecastScaleCap.get_capped_forecast` | Standard | `instrument_code`, `rule_variation_name` | D, O | Get the forecast after scaling (after capping) |
 
 
-### [Combine forecasts stage (chapter 8 of book)](#stage_combine)
+### Combine forecasts stage (chapter 8 of book)
 
 
 | Call | Standard?| Arguments | Type | Description |
@@ -4383,7 +4335,7 @@ Other methods exist to access logging and caching.
 
 
 
-### [Position sizing stage (chapters 9 and 10 of book)](#position_scale)
+### Position sizing stage (chapters 9 and 10 of book)
 
 
 | Call | Standard?| Arguments | Type | Description |
@@ -4401,7 +4353,7 @@ Other methods exist to access logging and caching.
 
 
 
-### [Portfolio stage (chapter 11 of book)](#stage_portfolio)
+### Portfolio stage (chapter 11 of book)
 
 
 | Call | Standard?| Arguments | Type | Description |
@@ -4419,7 +4371,7 @@ Other methods exist to access logging and caching.
 
 
 
-### [Accounting stage](#accounts_stage)
+### Accounting stage
 
 Inputs:
 
@@ -4479,9 +4431,6 @@ Accounting outputs:
 | `accounts.portfolio_with_multiplier`| Standard | | D | P&l for whole system using multiplied capital|
 
 
-
-<a name="Configuration_options"> </a>
-
 ## Configuration options
 
 Below is a list of all configuration options for the system. The 'Yaml' section
@@ -4507,7 +4456,7 @@ my_config=Config()
 ```
 
 Each section also shows the project default options, which you could change
-[here](#defaults).
+[here](#project-defaults-and-private-configuration).
 
 When modifying a nested part of a config object, you can of course replace it
 wholesale:
@@ -4527,15 +4476,15 @@ If you do this make sure the rest of the config is consistent with what you've d
 
 
 
-### Raw data stage
+### Raw data
 
-#### Volatility calculation
+#### Calculating volatility
 Represented as: dict of str, int, or float. Keywords: Parameter names Defaults:
 As below
 
 The function used to calculate volatility, and any keyword arguments passed to
 it. Note if any keyword is missing then the project defaults will be used. See
-['volatility calculation'](#vol_calc) for more information.
+['volatility calculation'](#volatility-calculation) for more information.
 
 The following shows how to modify the configuration, and also the default
 values:
@@ -4560,7 +4509,7 @@ config.volatility_calculation=dict(func="syscore.algos.robust.vol.calc", days=35
 ```
 
 If you're considering using your own function please see [configuring defaults
-for your own functions](#config_function_defaults)
+for your own functions](#handling-defaults-when-you-change-certain-functions)
 
 
 ### Rules stage
@@ -4576,7 +4525,7 @@ parameters to be passed to the function. This is the only method that can be
 used for YAML.
 
 There are numerous other ways to define trading rules using python code. See
-['Rules'](#rules) for more detail.
+['Rules'](#stage-rules) for more detail.
 
 Note that *forecast_scalar* isn't strictly part of the trading rule definition,
 but if included here will be used instead of the separate
@@ -4665,10 +4614,10 @@ arguments are pool_instruments (determines if we pool estimate over multiple
 instruments) and func (str function pointer to use for estimation). The
 remaining arguments are passed to the estimation function.
 
-See [forecast scale estimation](#scalar_estimate) for more detail.
+See [forecast scale estimation](#calculating-estimated-forecasting-scaling-on-the-fly) for more detail.
 
 If you're considering using your own function please see [configuring defaults
-for your own functions](#config_function_defaults)
+for your own functions](#handling-defaults-when-you-change-certain-functions)
 
 
 YAML:
@@ -4829,7 +4778,7 @@ config.forecast_weights=dict(SP500=["ewmac","carry"], US10=["ewmac"])
 See the section on [Optimisation](#optimisation)
 
 
-#### Forecast diversification multiplier  (fixed)
+#### Forecast diversification multiplier (fixed)
 Represented as: (a) float or (b) dict of floats with keywords: instrument_codes
 Default: 1.0
 
@@ -4861,13 +4810,13 @@ config.forecast_div_multiplier=dict(SP500=1.4, US10=1.0)
 ```
 
 
-#### Forecast diversification multiplier  (estimated)
+#### Forecast diversification multiplier (estimated)
 
 See the section on [estimating correlations and diversification multipliers](#estimating-correlations-and-diversification-multipliers)
 
 
 
-##### Forecast mapping
+##### Forecast mapping config
 
 Represented as: dict (key names instrument names) of dict (key names: a_param,b_param, threshold). Defaults: dict(a_param = 1.0, b_param = 1.0, threshold = 0.0) equivalent to no mapping
 
@@ -4990,7 +4939,7 @@ See the section on [estimating correlations and diversification multipliers](#es
 
 Represented as: bool Default: see below
 
-Which [buffering or position inertia method](#buffer) should we use?
+Which [buffering or position inertia method](#buffering-and-position-inertia) should we use?
 'position': based on optimal position (position inertia), 'forecast': based on
 position with a forecast of +10; or 'none': do not use a buffer. What size
 should the buffer be, as a proportion of the position or average forecast
@@ -5004,12 +4953,12 @@ buffer_size: 0.10
 
 
 
-### Accounting stage
+### Accounting stage config
 
-#### Buffering and position inertia
+#### Buffering config
 
 To work out the portfolio positions should we trade to the edge of the
-[buffer](#buffer), or to the optimal position?
+[buffer](#buffering-and-position-inertia), or to the optimal position?
 
 Represented as: bool Default: True
 
@@ -5020,7 +4969,7 @@ buffer_trade_to_edge: True
 
 
 
-#### Costs
+#### Costs config
 
 Should we use normalised Sharpe Ratio [costs](#costs), or the actual costs for
 instrument level p&l (we always use SR costs for forecasts)?
@@ -5041,7 +4990,7 @@ forecast_cost_estimate:
    use_pooled_turnover: True ### Use weighted average of turnover across instruments with the same set of trading rules
 ```
 
-#### Capital correction
+#### Capital correction config
 
 Which capital correction method should we use?
 
