@@ -101,6 +101,7 @@ def merge_fill_prices_with_prices(
         [prices, unique_trades_as_pd_df.price], axis=1, join="outer"
     )
     prices_to_use.columns = ["price", "fill_price"]
+    prices_to_use.index = pd.to_datetime(prices_to_use.index)
 
     # Where no fill price available, use price
     prices_to_use = prices_to_use.ffill(axis=1)
