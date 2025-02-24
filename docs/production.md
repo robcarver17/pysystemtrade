@@ -18,7 +18,6 @@ And documents you should read after this one:
 - [Instruments](/docs/instruments.md)
 - [Dashboard and monitor](/docs/dashboard_and_monitor.md)
 - [Production strategy changes](/docs/production_strategy_changes.md)
-- [Recent undocumented changes](/docs/recent_changes.md)
 
 *IMPORTANT: Make sure you know what you are doing. All financial trading offers the possibility of loss. Leveraged trading, such as futures trading, may result in you losing all your money, and still owing more. Backtested results are no guarantee of future performance. No warranty is offered or implied for this software. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk.*
 
@@ -110,9 +109,10 @@ Table of Contents
    * [Script naming convention](#script-naming-convention)
    * [Run processes](#run-processes)
    * [Core production system components](#core-production-system-components)
-      * [Get spot FX data from interactive brokers, write to MongoDB (Daily)](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily)
+      * [Get spot FX data from interactive brokers, write to Parquet (Daily)](#get-spot-fx-data-from-interactive-brokers-write-to-parquet-daily)
       * [Update sampled contracts (Daily)](#update-sampled-contracts-daily)
       * [Update futures contract historical price data (Daily)](#update-futures-contract-historical-price-data-daily)
+         * [A note on market data subscriptions](#a-note-on-market-data-subscriptions)
          * [Set times when different regions download prices](#set-times-when-different-regions-download-prices)
       * [Update multiple and adjusted prices (Daily)](#update-multiple-and-adjusted-prices-daily)
       * [Update capital and p&amp;l by polling brokerage account](#update-capital-and-pl-by-polling-brokerage-account)
@@ -187,6 +187,7 @@ Table of Contents
       * [Backup DB to .csv files](#backup-db-to-csv-files)
       * [Backup state files](#backup-state-files)
       * [Backup mongo dump](#backup-mongo-dump)
+      * [Backup Parquet](#backup-parquet)
       * [Start up script](#start-up-script)
    * [Scripts under other (non-linux) operating systems](#scripts-under-other-non-linux-operating-systems)
 * [Scheduling](#scheduling)
@@ -238,6 +239,7 @@ Table of Contents
       * [Risk report](#risk-report)
       * [Liquidity report](#liquidity-report)
       * [Costs report](#costs-report)
+      * [TODO add new reports](#todo-add-new-reports)
    * [Customize scheduled report generation](#customize-scheduled-report-generation)
 <!--te-->
 
@@ -267,6 +269,7 @@ You need to:
     - Add the SCRIPT_PATH directory to your PATH
     - Create the following directories (again use other directories if you like, but you must modify the .profile above and specify the proper directories in 'private_config.yaml')
         - '/home/user_name/data/mongodb/'
+        - '/home/user_name/data/parquet'
         - '/home/user_name/echos/'
         - '/home/user_name/data/mongo_dump'
         - '/home/user_name/data/backups_csv'
@@ -276,11 +279,12 @@ You need to:
     - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
     - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/).
     - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a ['private_control_config.yaml' file in the same directory](#process-configuration) See [here for more details](#system-defaults--private-config)
+    - Set `parquet_store` in 'private_config.yaml' to the Parquet directory you set up earlier 
     - [check a mongodb server is running with the right data directory](/docs/data.md#mongodb) command line: `mongod --dbpath $MONGO_DATA`
     - launch an IB gateway (this could be done automatically depending on your security setup)
 - FX data:
-    - [Initialise the spot FX data in MongoDB from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
-    - Update the FX price data in MongoDB using interactive brokers: command line:`. /home/your_user_name/pysystemtrade/sysproduction/linux/scripts/update_fx_prices`
+    - [Initialise the spot FX data from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
+    - Update the FX price data using interactive brokers: command line:`. /home/your_user_name/pysystemtrade/sysproduction/linux/scripts/update_fx_prices`
 - Instrument configuration:
     - Set up futures instrument spread costs using this script [repocsv_spread_costs.py](/sysinit/futures/repocsv_spread_costs.py).
 - Futures contract prices:
@@ -325,7 +329,7 @@ When trading you will need to do the following:
 - Input: IB fx prices
 - Output: Spot FX prices
 
-*[Update roll adjusted prices](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily)*
+*[Update roll adjusted prices](#get-spot-fx-data-from-interactive-brokers-write-to-parquet-daily)*
 - Input: Manual decision, existing multiple price series
 - Output: Current set of active contracts (price, carry, forward), Roll calendar (implicit in updated multiple price series)
 
@@ -656,7 +660,14 @@ mongorestore
 
 ### Parquet data
 
-TODO
+Time series data stored in Parquet files can be backed up like any other file, eg
+
+```
+rsync -chavzP --stats --progress --delete /home/user/data/parquet remote_machine:/home/user/backup_dir
+```
+
+This is done as part of the default scheduled back up process, see [here](#backup-parquet)
+
 
 
 ### Mongo / csv data
@@ -915,8 +926,8 @@ We keep track of the positions allocated to each strategy and each instrument; t
 An instrument order will be resolved into a contract order: an order for a specific contract (or intramarket contract spread, since this is also a 'tradeable instrument'). This is done by the process run_stack_handler. This could occur in a number of ways:
 
 - For a normal single leg order, we trade the priced contract or the forward contract, or both; depending on whether we are passively rolling and whether our position is increasing or reducing (see [here](#interactively-roll-adjusted-prices) for more info about rolls)
-- For a FORCE roll order, we create an intramarket spread between the priced and forward contract. This will also create a zero size instrument order.
-- For a FORCELEG roll order, we create two separate trades closing the priced and opening up in the forward. This will also create a zero size instrument order.
+- For a Force roll order, we create an intramarket spread between the priced and forward contract. This will also create a zero size instrument order.
+- For a Force Outright roll order, we create two separate trades closing the priced and opening up in the forward. This will also create a zero size instrument order.
 - For an intramarket spread (eg 5th vs 6th Eurodollar spread) we create an intramarket spread using the current contract status which determines which contracts the trades map to. FIX ME TO BE IMPLEMENTED.
 - For an intermarket spread (eg Brent vs WTI crude) we create two separate normal single leg orders. FIX ME TO BE IMPLEMENTED.
 
@@ -945,8 +956,8 @@ Once all the child orders of an order are completed, then a parent order can als
 The most complex part of any trading system is the order management process. It is particularly complex in pysystemtrade, since it's designed to handle (in principle) some very complex types of trading strategy, and to trade multiple strategies. We also have the inherent complexity involved in trading futures. Let's look at the journey for a typical order. We'll consider the following:
 
 - A normal order in a trading system. This could involve passively rolling from one contract to the next.
-- A roll order which is a calendar spread (a FORCE roll)
-- A roll order implemented as two separate trades (a FORCELEG roll)
+- A roll order which is a calendar spread (a Force roll)
+- A roll order implemented as two separate trades (a Force Outright roll)
 
 
 ## Optimal positions
@@ -1095,7 +1106,7 @@ Note that the roll_order flag will still be False: because these are trades we w
 
 ### Instrument and contract order creation - active roll orders
 
-If the roll status is FORCE or FORCELEG then we generate instrument and contract orders together, with the method generate_force_roll_orders in the stack handler.
+If the roll status is Force or Force Outright then we generate instrument and contract orders together, with the method generate_force_roll_orders in the stack handler.
 
 The instrument order will have the following characteristics:
 
@@ -1112,7 +1123,7 @@ The instrument order will have the following characteristics:
 - active: True
 - locked: False
 
-If we are trading FORCELEG, then we will also create two separate contract orders:
+If we are trading Force Outright, then we will also create two separate contract orders:
 
 - instrument/strategy: Strategy is _ROLL_PSEUDO_STRATEGY
 - contract date (length 1)
@@ -1129,7 +1140,7 @@ If we are trading FORCELEG, then we will also create two separate contract order
 - inter_spread_order: False
 - algo_to_use: the location of the algo that will be used to execute the order
 
-If we are trading FORCED, we will create a single spread contract order:
+If we are trading Force, we will create a single spread contract order:
 
 - instrument/strategy: Strategy is _ROLL_PSEUDO_STRATEGY
 - contract date (length 2)
@@ -1376,7 +1387,7 @@ We then compare the filled quantity with that of the original instrument order t
 
 Next we update the instrument order on the database stack to reflect the new fills. We now check to see if the order can be completed.
 
-2. Flat orders where the instrument order is a zero trade (this can happen when we have rolls with FORCELEG status): This is trivial; as the instrument trade is a zero trade the instrument position isn't affected by the contract trade. We now try and *complete* the order.
+2. Flat orders where the instrument order is a zero trade (this can happen when we have rolls with Force Outright status): This is trivial; as the instrument trade is a zero trade the instrument position isn't affected by the contract trade. We now try and *complete* the order.
 
 3. Other: This is not implemented, but could potentially be required for inter-market spread strategies if they are implemented as multiple contract orders.
 
@@ -1509,8 +1520,8 @@ These are listed here for convenience, but more documentation is given below in 
 - run_backups: Runs [backup_db_to_csv](#backup-db-to-csv-files), [backup state files](#backup-state-files): [mongo dump backup](#backup-mongo-dump)
 - run_capital_updates: Runs [update_strategy_capital](#allocate-capital-to-strategies), [update_total_capital](#update-capital-and-pl-by-polling-brokerage-account): update capital
 - run_cleaners: Runs [clean_truncate_backtest_states](#delete-old-pickled-backtest-state-objects), [clean_truncate_echo_files](#truncate-echo-files), [clean_truncate_log_files](#clean-up-old-logs): Clean up
-- run_daily_price_updates: Runs [update_fx_prices](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily), [update_sampled_contracts](#update-sampled-contracts-daily), [update_historical_prices](#update-futures-contract-historical-price-data-daily), [update_multiple_adjusted_prices](#update-multiple-and-adjusted-prices-daily): daily price and contract data updates
-- run_daily_fx_and_contract_updates: Runs [update_fx_prices](#get-spot-fx-data-from-interactive-brokers-write-to-mongodb-daily), [update_sampled_contracts](#update-sampled-contracts-daily).
+- run_daily_price_updates: Runs [update_fx_prices](#get-spot-fx-data-from-interactive-brokers-write-to-parquet-daily), [update_sampled_contracts](#update-sampled-contracts-daily), [update_historical_prices](#update-futures-contract-historical-price-data-daily), [update_multiple_adjusted_prices](#update-multiple-and-adjusted-prices-daily): daily price and contract data updates
+- run_daily_fx_and_contract_updates: Runs [update_fx_prices](#get-spot-fx-data-from-interactive-brokers-write-to-parquet-daily), [update_sampled_contracts](#update-sampled-contracts-daily).
 - run_daily_update_multiple_adjusted_prices: Runs [update_multiple_adjusted_prices](#update-multiple-and-adjusted-prices-daily): daily price and contract data updates
 - run_reports: Runs [all reports](#reporting)
 - run_systems: Runs [update_system_backtests](#run-updated-backtest-systems-for-one-or-more-strategies): Runs a backtest to decide what optimal positions are required
@@ -1522,7 +1533,7 @@ These are listed here for convenience, but more documentation is given below in 
 
 These control the core functionality of the system.
 
-### Get spot FX data from interactive brokers, write to MongoDB (Daily)
+### Get spot FX data from interactive brokers, write to Parquet (Daily)
 
 Python:
 ```python
@@ -1581,9 +1592,7 @@ Linux script:
 
 Called by: `run_daily_price_updates`
 
-This will get daily closes, plus intraday data at the frequency specified by the parameter `intraday_frequency` in the defaults.yaml file (or overwritten in the private .yaml config file). It defaults to 'H: hourly'.
-
-It will try and get intraday data first, but if it can't get any then it will not try and get daily data (this is the default behaviour. To change modify the .yaml configuration parameter `dont_sample_daily_if_intraday_fails` to False). Otherwise, there will possibly be gaps in the intraday data when we are finally able to get daily data.
+This will get daily closes, plus intraday data at the frequency specified by the parameter `intraday_frequency` in the defaults.yaml file (or overwritten in the private .yaml config file). It defaults to 'H: hourly'. Prices are stored separately at Daily, Hourly and Merged frequencies.
 
 It performs the following cleaning on data that it receives, depending on the .yaml parameter values that are set (defaults are shown in brackets):
 
@@ -1593,13 +1602,15 @@ It performs the following cleaning on data that it receives, depending on the .y
 - if `ignore_negative_prices`  is True (default: False) we ignore negative prices. Because of the crude oil incident in March 2020 I prefer to allow negative prices, and if they are errors hope that the spike checker catches them.
 
 This will also check for 'spikes', unusually large movements in price either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
-.
 
 The threshold for spikes is set in the default.yaml file, or overridden in the private config .yaml file, using the parameter `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=8`, then a price change larger than 4 units will trigger a spike.
 
-In order for this step to work, you'll need an active IB market data subscription for the instruments you wish to trade. I detailed 
-my own market data subscriptions on [my blog](https://qoppac.blogspot.com/2021/05/adding-new-instruments-or-how-i-learned.html), 
-reproduced here:
+#### A note on market data subscriptions
+
+- market data subscriptions used to be required for IB historical data. This changed in early 2023. There was no announcement of the change, and the IB API documentation still says a subscription is required, so things may change
+- IB has different kinds of market data. There is the historical data, and there is also streaming data, which can be either live or delayed. Live streaming data requires a subscription, delayed streaming data does not
+- pysystemtrade (by default) uses streaming data to manage trades. If you don't have live streaming data for an instrument, you will need to change your trade execution algo to one that doesn't rely on it. See the supported order types in `sysexecution.orders.broker_orders.py`. See the available trading algos in `sysexecution.algos`. Override `execution_algos` in your config to match your situation
+- I detailed my own market data subscriptions on [my blog](https://qoppac.blogspot.com/2021/05/adding-new-instruments-or-how-i-learned.html), reproduced here:
 
 |            Name             | Cost per month |
 |:---------------------------:|:--------------:|
@@ -1814,7 +1825,7 @@ The behaviour of the stack handler is extremely complex (and it's worth reading 
 In addition the stack handler will:
 
 - Check that the broker and database positions are aligned at contract level, if not then it will lock the instrument so it can't be traded (locks can be cleared automatically once positions reconcile again, or using [interactive_order_stack](#interactive-order-stack).
-- Generate roll orders if a [roll status](#interactively-roll-adjusted-prices) is FORCE or FORCELEG
+- Generate orders if a [roll status](#interactively-roll-adjusted-prices) is Force, Force Outright or Close
 - Safely clear the order stacks at the end of the day or when the process is stopped by cancelling existing orders, and deleting them from the order stack.
 
 That's quite a list, hence the use of the [interactive_order_stack](#interactive-order-stack) to keep it in check!
@@ -1931,8 +1942,10 @@ The possible options are:
 - No roll. Obvious.
 - Passive. This will tactically reduce positions in the priced contract, and open new positions in the forward contract.
 - Force. This will pause all normal trading in the relevant instrument, and the stack handler will create a calendar spread trade to roll from the priced to the forward contract.
-- Force legs. This will pause all normal trading, and create two outright trades (closing the priced contract position, opening a forward position).
+- Force outright. This will pause all normal trading, and create two outright trades (closing the priced contract position, opening a forward position).
 - Roll adjusted. This is only possible if you have no positions in the current price contract. It will create a new adjusted and multiple price series, hence the current forward contract will become the new priced contract (and everything else will shift accordingly). Adjusted price changes are manually confirmed before writing to the database.
+- No open. No opening trades as we are near to expiry, but the forward contract is not liquid enough
+- Close. Close position in near contract only
 
 Once you've updated the roll status you have the option of choosing another instrument, or aborting.
 
@@ -1944,12 +1957,23 @@ This chooses a subset of instruments that are expiring soon. You will be prompte
 
 #### Cycle through instrument codes automatically, auto decide when to roll, manually confirm rolls
 
-Again this will first choose a subset of instruments that are expiring soon. What happens next will depend on the parameters you have decided upon:
+Again this will first choose a subset of instruments that are expiring soon. The script then gives you the default auto rolls options, and offers the chance to adjust them. The default params are: 
+
+```
+auto_roll_if_relative_volume_higher_than: 1.0
+min_relative_volume: 0.01
+min_absolute_volume: 100
+near_expiry_days: 10
+default_roll_state_if_undecided: 'Ask'
+auto_roll_expired: True
+```
+
+What happens next will depend on the parameters you have decided upon:
 
 - If the volume in the forward contract is less than the required relative volume, we do nothing
 - If the relative volume is fine and you have no position in the priced contract, then we automatically decide to roll adjusted prices
 - If the relative volume is fine and you have a position in the priced contract, and you have asked to manually input the required state on a case by case basis: that's what will happen
-- If the relative volume is fine and you have a position in the priced contract, and you have NOT asked to manually input the required state, then the state will automatically be changed to one of passive, force, or force leg (as selected). I strongly recommend using Passive rolling here, and then manually changing individual instruments if required.
+- If the relative volume is fine and you have a position in the priced contract, and you have NOT asked to manually input the required state, then the state will automatically be changed to one of passive, force, or force outright (as selected). I strongly recommend using Passive rolling here, and then manually changing individual instruments if required.
 
 If a decision is made to roll adjusted prices, you will be asked to confirm you are happy with the prices changes before they are written to the database.
 
@@ -2240,7 +2264,7 @@ If the stack handler is running it will periodically check for new instrument or
 
 ##### Create force roll contract orders
 
-If an instrument is in a FORCE or FORCELEG roll status (see [rolling](#interactively-roll-adjusted-prices)), then the stack handler will periodically create new roll orders (consisting of a parent instrument order that is an intramarket spread, allocated to the phantom 'rolling' strategy, and a child contract order). However you can do this manually. Use case for this might be debugging, or if you don't trust the stack handler and want to do everything step by step, or if you're trading manually (in which case the stack handler won't be running).
+If an instrument is in a Force or Force Outright roll status (see [rolling](#interactively-roll-adjusted-prices)), then the stack handler will, at the start of day, create new roll orders (consisting of a parent instrument order that is an intramarket spread, allocated to the phantom 'rolling' strategy, and a child contract order). However you can do this manually. Use case for this might be debugging, or if you don't trust the stack handler and want to do everything step by step, or if you're trading manually (in which case the stack handler won't be running).
 
 
 ##### Create (and try to execute...) IB broker orders
@@ -2464,6 +2488,24 @@ Called by: `run_backups`
 
 - Firstly it dumps the mongo databases to the local directory specified in the config parameter (defaults.yaml or private config yaml file) "mongo_dump_directory".
 - Then it copies those dumps to the backup directory specified in the config parameter "offsystem_backup_directory", subdirectory /mongo
+
+
+### Backup Parquet
+
+Python:
+```python
+from sysproduction.backup_parquet_data_to_remote import *
+backup_parquet_data_to_remote()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/backup_parquet_to_remote
+```
+
+Called by: `run_backups`
+
+- Copies all parquet files to the backup directory specified in the config parameter "offsystem_backup_directory", subdirectory /parquet
 
 
 ### Start up script
@@ -2832,6 +2874,7 @@ The following are configuration options that are in defaults.yaml and can be ove
 [Database](#data-storage)
 - `mongo_host`: 127.0.0.1
 - `mongo_db`: 'production'
+- `parquet_store`: '/home/me/data/parquet'  # location of parquet files 
 
 [Price collection](#update-futures-contract-historical-price-data-daily)
 - `max_price_spike`: 8
@@ -3990,6 +4033,9 @@ ASX                       NaN           NaN              NaN        NaN         
 KOSPI                     NaN           NaN              NaN        NaN    0.025000           NaN   <--- slippage is configured, but no sampling or trading done
 ....
 ```
+
+### TODO add new reports
+
 
 ## Customize scheduled report generation
 

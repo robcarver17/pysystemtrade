@@ -5,7 +5,6 @@ Related documents:
 - [Storing futures and spot FX data](/docs/data.md)
 - [Using pysystemtrade as a production trading environment](/docs/production.md)
 - [Connecting pysystemtrade to interactive brokers](/docs/IB.md)
-- [Recent undocumented changes](/docs/recent_changes.md)
 
 
 This guide is divided into four parts. The first ['How do I?'](#how-do-i)
@@ -152,6 +151,9 @@ Table of Contents
          * [Handcrafting (recommended)](#handcrafting-recommended)
       * [Post processing](#post-processing)
    * [Estimating correlations and diversification multipliers](#estimating-correlations-and-diversification-multipliers)
+   * [Specifying weights as hierarchy](#specifying-weights-as-hierarchy)
+      * [Hierarchical forecast weight example](#hierarchical-forecast-weight-example)
+      * [Hierarchical instrument weight example](#hierarchical-instrument-weight-example)
    * [Capital correction - varying capital](#capital-correction---varying-capital)
 * [Reference](#reference)
    * [Table of standard system.data and system.stage methods](#table-of-standard-systemdata-and-systemstage-methods)
@@ -4158,6 +4160,445 @@ correlations estimated on a pooled basis they'll have the same FDM. It's also a
 good idea to floor negative correlations at zero to avoid inflating the DM to
 very high values.
 
+## Specifying weights as hierarchy
+
+It is possible to specify instrument and forecast weights as a hierarchical config. This has the advantage that the high-level characteristics of a trading strategy can be maintained, even when rules (or instruments) are excluded due to costs. Read more [here](https://github.com/robcarver17/pysystemtrade/discussions/1160). See below for example config snippets
+
+### Hierarchical forecast weight example
+
+```yaml
+forecast_weights:
+  auto_weight_from_grouping:
+    parameters:
+      use_approx_DM: False
+      apply_forecast_post_ceiling_cost_SR_before_weighting: True
+    groups:
+      convergent:
+        weight: 0.4
+        mean_reversion:
+          weight: 0.3333
+          mrinasset1000: 1.0
+        skew:
+          weight:  0.3333
+          skewabs180: 0.25
+          skewabs365: 0.25
+          skewrv180: 0.25
+          skewrv365: 0.25
+        carry:
+          weight: 0.3333
+          purecarry:
+            weight: 0.6
+            carry10: 0.25
+            carry125: 0.25
+            carry30: 0.25
+            carry60: 0.25
+          relcarry:
+            weight: 0.4
+            relcarry: 1.0
+      divergent:
+        weight: 0.6
+        speed1:
+          weight: 0.1
+          relmomentum:
+            weight: 0.4
+            relmomentum10: 1.0
+          trend:
+            weight: 0.6
+            breakout10: 0.25
+            assettrend2: 0.25
+            normmom2: 0.25
+            momentum4: 0.25
+        speed2:
+          weight: 0.18
+          accel:
+            weight: 0.3
+            accel16: 1.0
+          relmomentum:
+            weight: 0.3
+            relmomentum20: 1.0
+          trend:
+            weight: 0.4
+            breakout20: 0.25
+            assettrend4: 0.25
+            normmom4: 0.25
+            momentum8: 0.25
+        speed3:
+          weight: 0.18
+          accel:
+            weight: 0.3
+            accel32: 1.0
+          relmomentum:
+            weight: 0.3
+            relmomentum40: 1.0
+          trend:
+            weight: 0.4
+            breakout40: 0.25
+            assettrend8: 0.25
+            normmom8: 0.25
+            momentum16: 0.25
+        speed4:
+          weight: 0.18
+          accel:
+            weight: 0.3
+            accel64: 1.0
+          relmomentum:
+            weight: 0.3
+            relmomentum80: 1.0
+          trend:
+            weight: 0.4
+            breakout80: 0.25
+            assettrend16: 0.25
+            normmom16: 0.25
+            momentum32: 0.25
+        speed5:
+          weight: 0.18
+          trend:
+            weight: 1.0
+            breakout160: 0.25
+            assettrend32: 0.25
+            normmom32: 0.25
+            momentum64: 0.25
+        speed6:
+          weight: 0.18
+          trend:
+            weight: 1.0
+            normmom64: 0.3333
+            assettrend64: 0.3333
+            breakout320: 0.3333
+```
+
+### Hierarchical instrument weight example
+
+```yaml
+instrument_weights:
+  auto_weight_from_grouping:
+    parameters:
+      use_approx_DM: True
+    groups:
+      ags:
+        weight: 0.143
+        grain:
+          weight: 0.25
+          corn:
+            weight: 0.2
+            CORN: 1.0
+          oats:
+            weight: 0.2
+            OATIES: 1.0
+          rapeseed:
+            weight: 0.2
+            RAPESEED: 1.0
+          rice:
+            weight: 0.1667
+            RICE: 1.0
+          soy:
+            weight: 0.1667
+            SOYBEAN_mini: 0.333
+            SOYMEAL: 0.333
+            SOYOIL: 0.3333
+          wheat:
+            weight: 0.1667
+            REDWHEAT: 0.5
+            WHEAT: 0.5
+        index:
+          weight: 0.25
+          BBCOMM: 0.5
+          GICS: 0.5
+        meats:
+          weight: 0.25
+          cows:
+            weight: 0.5
+            FEEDCOW: 0.5
+            LIVECOW: 0.5
+          pigs:
+            weight: 0.5
+            LEANHOG: 1.0
+        softs:
+          weight: 0.25
+          cotton:
+            weight: 0.25
+            COTTON: 1.0
+          milk:
+            weight: 0.25
+            BUTTER: 0.16667
+            CHEESE: 0.16667
+            MILK: 0.16667
+            MILKDRY: 0.16667
+            MILKWET: 0.16667
+            WHEY:  0.16667
+          rubber:
+            weight: 0.25
+            RUBBER: 1.0
+          wood:
+            weight: 0.25
+            LUMBER-new: 1.0
+      rates:
+        weight: 0.143
+        Americas:
+          weight: 0.4
+          govvie:
+            weight: 0.6
+            US2: 0.143
+            US3: 0.143
+            US5: 0.143
+            US10: 0.143
+            US10U: 0.143
+            US20: 0.143
+            US30: 0.143
+          STIR:
+            weight: 0.4
+            BB3M: 0.333
+            SOFR: 0.333
+            FED: 0.333
+          Swaps:
+            weight: 0.4
+            USIRS2ERIS: 0.25
+            USIRS5: 0.25
+            USIRS5ERIS: 0.25
+            USIRS10: 0.25
+        Asia:
+          weight: 0.2
+          korea:
+            weight: 0.4
+            KR3: 0.5
+            KR10: 0.5
+          japan:
+            weight: 0.6
+            JGB-SGX-mini: 1.0
+        EMEA:
+          weight: 0.4
+          swiss:
+            weight: 0.16667
+            CH10: 1.0
+          german:
+            weight: 0.16667
+            SHATZ: 0.25
+            BOBL: 0.25
+            BUND: 0.25
+            BUXL: 0.25
+          spain:
+            weight: 0.16667
+            BONO: 1.0
+          eu:
+            weight: 0.16667
+            EURIBOR: 1.0
+          france:
+            weight: 0.16667
+            OAT: 1.0
+          italy:
+            weight: 0.16667
+            BTP3: 0.5
+            BTP: 0.5
+      equity:
+        weight: 0.143
+        Americas:
+          weight: 0.2
+          index:
+            weight: 0.6
+            largecap:
+              weight: 0.6
+              DOW: 0.25
+              SP500_micro: 0.25
+              NASDAQ_micro: 0.25
+              R1000: 0.25
+            midcap:
+              weight: 0.4
+              RUSSELL: 0.5
+              SP400: 0.5
+          sector:
+            weight: 0.4
+            US-DISCRETE: 0.1
+            US-ENERGY: 0.1
+            US-FINANCE: 0.1
+            US-HEALTH: 0.1
+            US-INDUSTRY: 0.1
+            US-MATERIAL: 0.1
+            HOUSE-US: 0.0333
+            US-PROPERTY: 0.0333
+            US-REALESTATE: 0.0333
+            US-STAPLES: 0.1
+            US-TECH: 0.1
+            US-UTILS: 0.1
+        Asia:
+          weight: 0.2
+          panasia:
+            weight: 0.3333
+            MSCIASIA: 1.0
+          japan:
+            weight: 0.3333
+            NIKKEI: 0.2
+            NIKKEI400: 0.2
+            TOPIX: 0.2
+            MUMMY: 0.2
+            JP-REALESTATE: 0.2
+          singapore:
+            weight: 0.333
+            MSCISING: 0.5
+            SGX: 0.5
+        EM:
+          weight: 0.2
+          brazil:
+            weight: 0.143
+            BOVESPA: 1.0
+          china:
+            weight: 0.143
+            FTSECHINAA: 0.5
+            FTSECHINAH: 0.5
+          indonesia:
+            weight: 0.143
+            FTSEINDO: 1.0
+          india:
+            weight: 0.143
+            NIFTY: 1.0
+          korea:
+            weight: 0.143
+            KOSDAQ: 0.5
+            KOSPI_mini: 0.5
+          taiwan:
+            weight: 0.143
+            FTSETAIWAN: 1.0
+          vietnam:
+            weight: 0.143
+            FTSEVIET: 1.0
+        EMEA:
+          weight: 0.2
+          swiss:
+            weight: 0.1667
+            SMI: 0.3333
+            SWISSLEAD: 0.3333
+            SMI-MID: 0.3333
+          german:
+            weight: 0.1667
+            DAX: 1.0
+          eu:
+            weight: 0.1667
+            index:
+              weight: 0.6
+              largecap:
+                weight: 0.333
+                EURO600: 0.2
+                EUROSTX: 0.2
+                EUROSTX-LARGE: 0.2
+                EUROSTX200-LARGE: 0.2
+                EU-DIV30: 0.2
+              midcap:
+                weight: 0.333
+                EU-MID: 1.0
+              smallcap:
+                weight: 0.333
+                DJSTX-SMALL: 0.5
+                EUROSTX-SMALL: 0.5
+            sector:
+              weight: 0.4
+              EU-AUTO: 0.05556
+              EU-RETAIL: 0.05556
+              EU-TRAVEL: 0.05556
+              EU-OIL: 0.05556
+              EU-BANKS: 0.05556
+              EU-INSURE: 0.05556
+              EU-HEALTH: 0.05556
+              EU-BASIC: 0.05556
+              EU-CHEM: 0.05556
+              EU-CONSTRUCTION: 0.05556
+              EPRA-EUROPE: 0.05556
+              EU-REALESTATE: 0.05556
+              EU-FOOD: 0.05556
+              EU-HOUSE: 0.05556
+              EU-TECH: 0.05556
+              EU-DJ-TELECOM: 0.05556
+              EU-MEDIA: 0.05556
+              EU-DJ-UTIL: 0.05556
+          finland:
+            weight: 0.1667
+            OMX: 1.0
+          france:
+            weight: 0.1667
+            CAC: 1.0
+          netherlands:
+            weight: 0.1667
+            AEX: 1.0
+        World:
+          weight: 0.2
+          MSCIWORLD: 1.0
+      fx:
+        weight: 0.143
+        cross:
+          weight: 0.3333
+          AUDJPY: 0.1111
+          CHFJPY: 0.1111
+          EURAUD: 0.1111
+          EURCAD: 0.1111
+          EURCHF: 0.1111
+          GBPCHF: 0.1111
+          GBPEUR: 0.1111
+          GBPJPY: 0.1111
+          YENEUR: 0.1111
+        developed:
+          weight: 0.3333
+          AUD: 0.091
+          CAD: 0.091
+          CHF: 0.091
+          EUR_micro: 0.091
+          GBP: 0.091
+          JPY: 0.091
+          NOK: 0.091
+          NZD: 0.091
+          SEK: 0.091
+          SGD: 0.091
+          TWD: 0.091
+        em:
+          weight: 0.333
+          BRE: 0.091
+          CLP: 0.091
+          CNH: 0.091
+          CZK: 0.091
+          INR: 0.091
+          IRS: 0.091
+          KRWUSD_mini: 0.091
+          MXP: 0.091
+          PLN: 0.091
+          RUR: 0.091
+          ZAR: 0.091
+      metals:
+        weight: 0.143
+        crypto:
+          weight: 0.333
+          BITCOIN: 0.5
+          ETHEREUM: 0.5
+        industrial:
+          weight: 0.333
+          ALUMINIUM: 0.25
+          COPPER-micro: 0.25
+          IRON: 0.25
+          STEEL: 0.25
+        precious:
+          weight: 0.333
+          GOLD_micro: 0.25
+          PALLAD: 0.25
+          PLAT: 0.25
+          SILVER: 0.25
+      energies:
+        weight: 0.143
+        gas:
+          weight: 0.333
+          GAS-LAST: 0.333
+          GAS-PEN: 0.333
+          GAS_US_mini: 0.333
+        oil:
+          weight: 0.333
+          BRENT-LAST: 0.5
+          CRUDE_W: 0.5
+        products:
+          weight: 0.333
+          ETHANOL: 0.333
+          GASOILINE: 0.333
+          HEATOIL: 0.333
+      vol:
+        weight: 0.143
+        V2X: 0.35
+        VIX: 0.35
+        VNKI: 0.3
+```
 
 ## Capital correction - varying capital
 

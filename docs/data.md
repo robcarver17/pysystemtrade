@@ -126,7 +126,7 @@ Because of this it's possible at (almost) every stage to store data in either .c
 
 ## Instrument configuration and spread costs
 
-Instrument configuration consists of static information that enables us to trade an instrument like EDOLLAR: the asset class, futures contract point size, and traded currency (it also includes cost levels, that are required in the simulation environment). This is now mostly stored in [this file](/data/futures/csvconfig/instrumentconfig.csv) for both sim and production. The file includes a number of futures contracts that I don't actually trade or get prices for. Any configuration information for these may not be accurate and you use it at your own risk. The exception is spread costs, which are stored in [this file](/data/futures/csvconfig/spreadcosts.csv) for sim, but usually in a database for production, as they should be periodically updated with more accurate information.
+Instrument configuration consists of static information that enables us to trade an instrument like EDOLLAR: the asset class, futures contract point size, and traded currency (it also includes cost levels, that are required in the simulation environment). This is mostly stored in [this file](/data/futures/csvconfig/instrumentconfig.csv) for both sim and production. The file includes a number of futures contracts that I don't actually trade or get prices for. Any configuration information for these may not be accurate and you use it at your own risk. The exception is spread costs, which are stored in [this file](/data/futures/csvconfig/spreadcosts.csv) for sim, but usually in a database for production, as they should be periodically updated with more accurate information.
 
 To copy spread costs into the database we are going to *read* from .csv files, and *write* to a [Mongo Database](https://www.mongodb.com/). 
 
@@ -138,7 +138,7 @@ The information is sucked out of [this file](/data/futures/csvconfig/spreadcosts
 
 ## Roll parameter configuration
 
-*Roll configuration* is now stored in [a csv file](/data/futures/csvconfig/rollconfig.csv) for both sim and production.
+*Roll configuration* is stored in [a csv file](/data/futures/csvconfig/rollconfig.csv) for both sim and production.
 
 It's worth explaining the available options for roll configuration. First of all we have two *roll cycles*: 'priced' and 'hold'. Roll cycles use the usual definition for futures months (January is F, February G, March H, and the rest of the year is JKMNQUVX, with December Z). The 'priced' contracts are those that we can get prices for, whereas the 'hold' cycle contracts are those we actually hold. We may hold all the priced contracts (like for equities), or only only some because of liquidity issues (eg Gold), or to keep a consistent seasonal position (i.e. CRUDE_W is Winter Crude, so we only hold December).
 
