@@ -692,8 +692,6 @@ There is more detail about using .csv files [here](#the-csvfuturessimdata-object
 
 If you want to store your data in Mongo DB databases instead you need to [use a different data object](#the-dbfuturessimdata-object).
 
-If you want to get your data from Quandl.com, then see the document [working with futures data](/docs/data.md)
-
 If you want to get data from a different place (eg a database, yahoo finance, broker, quandl...) you'll need to [create your own Data object](#creating-your-own-data-objects).
 
 If you want to use a different set of data values (eg equity EP ratios, interest rates...) you'll need to [create your own Data object](#creating-your-own-data-objects).

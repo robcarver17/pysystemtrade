@@ -815,7 +815,7 @@ Creating your own data storage objects is trivial, assuming they are for an exis
 
 They should live in a subdirectory of [sysdata](/sysdata), named for the data source i.e. [sysdata/parquet](/sysdata/parquet).
 
-Look at an existing data storage object for a different source to see which methods you'd need to implement, and to see the generic data storage object you should inherit from. Normally you'd need to override all the methods in the generic object which return `NotImplementedError`; the exception is if you have a read-only source like Quandl, or if you're working with .csv or similar files in which case I wouldn't recommend implementing delete methods.
+Look at an existing data storage object for a different source to see which methods you'd need to implement, and to see the generic data storage object you should inherit from. Normally you'd need to override all the methods in the generic object which return `NotImplementedError`; the exception is if you have a read-only source like Barchart, or if you're working with .csv or similar files in which case I wouldn't recommend implementing delete methods.
 
 Use the naming convention `sourceNameOfObjectData`, i.e. `class parquetFuturesContractPriceData(futuresContractPriceData)`. They must be prefixed with the source, and suffixed with Data. And they must be camel cased in the middle.
 
