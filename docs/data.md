@@ -81,7 +81,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 # Part 1: A futures data workflow
 
-This section describes a typical workflow for setting up futures data from scratch, and setting up a mongoDB database full of the required data:
+This section describes a typical workflow for setting up futures data from scratch, and setting up a MongoDB database full of the required data:
 
 1. [Set up some static configuration information](#instrument-configuration-and-spread-costs) for instruments, and [roll parameters](#roll-parameter-configuration)
 2. Get, and store, [some historical data](#getting-historical-data-for-individual-futures-contracts)
@@ -109,9 +109,9 @@ Before we start, another note: Confusingly, data can be stored or come from vari
 5. External sources such as our broker, or data providers like Barchart and Quandl
 6. Mongo DB or other databases
 
-It's important to be clear where data is coming from, and where it is going to, during the initialisation process. Once we're actually running, the main storage will usually be in mongo DB (for production and possibly simulation).
+It's important to be clear where data is coming from, and where it is going to, during the initialisation process. Once we're actually running, the main storage will usually be in MongoDB (for production and possibly simulation).
 
-For simulation we could just use the provided .csv files (1), and this is the default for how the backtesting part of pysystemtrade works, since you probably don't want to start down the road of building up your data stack before you've even tested out any ideas. I don't advise using .csv files for production - it won't work. As we'll see later, you can use mongoDB data for simulation and production.
+For simulation we could just use the provided .csv files (1), and this is the default for how the backtesting part of pysystemtrade works, since you probably don't want to start down the road of building up your data stack before you've even tested out any ideas. I don't advise using .csv files for production - it won't work. As we'll see later, you can use MongoDB data for simulation and production.
 
 Hence there are five possible use cases:
 
@@ -128,13 +128,13 @@ Because of this it's possible at (almost) every stage to store data in either .c
 
 Instrument configuration consists of static information that enables us to trade an instrument like DAX: the asset class, futures contract point size, and traded currency (it also includes cost levels, that are required in the simulation environment). This is mostly stored in [this file](/data/futures/csvconfig/instrumentconfig.csv) for both sim and production. The file includes a number of futures contracts that I don't actually trade or get prices for. Any configuration information for these may not be accurate and you use it at your own risk. The exception is spread costs, which are stored in [this file](/data/futures/csvconfig/spreadcosts.csv) for sim, but usually in a database for production, as they should be periodically updated with more accurate information.
 
-To copy spread costs into the database we are going to *read* from .csv files, and *write* to a [Mongo Database](https://www.mongodb.com/). 
+To copy spread costs into the database we are going to *read* from .csv files, and *write* to a [MongoDB Database](https://www.mongodb.com/). 
 
 The relevant script to setup *information configuration* is in sysinit - the part of pysystemtrade used to initialise a new system. Here is the script you need to run [repocsv_spread_costs.py](/sysinit/futures/repocsv_spread_costs.py). 
 
-Make sure you are running a [Mongo Database](#mongodb) before running this.
+Make sure you are running a [MongoDB](#mongodb) instance before running this.
 
-The information is sucked out of [this file](/data/futures/csvconfig/spreadcosts.csv) and into the mongo database. 
+The information is sucked out of [this file](/data/futures/csvconfig/spreadcosts.csv) and into the MongoDB database. 
 
 ## Roll parameter configuration
 
@@ -597,7 +597,7 @@ Specific data sources
 - Mongo / Parquet / Arctic
     - `mongoDb`: Connection to a MongoDB database specifying port, database name and hostname. Usually created by a `dataBlob`, and the instance is used to create various `mongoConnection`
     - `mongoConnection`: Creates a connection (combination of database and specific collection) that is created inside object like `mongoPositionLimitData`, using a `mongoDb`
-    - `mongoData`: Provides a common abstract interface to mongo, assuming the data is in dicts. Has different classes for single or multiple keys.
+    - `mongoData`: Provides a common abstract interface to MongoDB, assuming the data is in dicts. Has different classes for single or multiple keys.
     - `ParquetAccess`: Provides a common abstract interface to Parquet
     - `arcticData`: Provides a common abstract interface to Arctic, assuming the data is passed as pd.DataFrame
 - Interactive brokers: see [this file](/docs/IB.md)
@@ -626,7 +626,7 @@ Simulation interface layer:
     - [/sysdata/futures/](/sysdata/futures): Data storage objects for futures (backtesting and production), including execution and logging
     - [/sysdata/production/](/sysdata/production): Data storage objects for production only 
     - [/sysdata/fx/](/sysdata/fx): Data storage object for spot FX
-    - [/sysdata/mongodb/](/sysdata/mongodb): Data storage objects, mongo specific
+    - [/sysdata/mongodb/](/sysdata/mongodb): Data storage objects, MongoDB specific
     - [/sysdata/parquet/](/sysdata/parquet): Data storage objects, Parquet specific
     - [/sysdata/arctic/](/sysdata/arctic): Data storage objects, Arctic specific
     - [/sysdata/csv/](/sysdata/csv): Data storage objects, csv specific
@@ -776,7 +776,7 @@ For obvious (?) reasons we only implement get and read methods for .csv files (S
 
 For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files. [MongoDB](https://mongodb.com) is a no-sql database.
 
-Obviously you will need to make sure you already have a Mongo DB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process.
+Obviously you will need to make sure you already have a MongoDB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process.
 
 Personally I like to keep my Mongo data in a specific subdirectory; that is achieved by starting up with `mongod --dbpath ~/data/mongodb/` (in Linux). Of course this isn't compulsory.
 
@@ -788,11 +788,11 @@ You need to specify an IP address (host), and database name when you connect to 
 - Then, variables set in the private `.yaml` configuration file /private/private_config.yaml: mongo_host, mongo_db, mongo_port
 - Finally, default arguments in the [system defaults configuration file](/sysdata/config/defaults.yaml): mongo_host, mongo_db, mongo_port
 
-Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine. Note also that if you have a non-standard mongo port, you must use the URL format for specifying the mongo host, eg
+Note that `localhost` is equivalent to `127.0.0.1`, i.e. this machine. Note also that if you have a non-standard MongoDB port, you must use the URL format for specifying the MongoDB host, eg
 
 ```mongo_host: mongodb://username:p4zzw0rd@localhost:28018```
 
-If your MongoDB is running on your local machine then you can stick with the defaults (assuming you are happy with the database name `production`). If you have different requirements, eg mongo running on another machine, or you want a different database name, then you should set them in private config. 
+If your MongoDB is running on your local machine then you can stick with the defaults (assuming you are happy with the database name `production`). If you have different requirements, eg MongoDB running on another machine, or you want a different database name, then you should set them in private config. 
 
 
 ### Parquet
@@ -900,7 +900,7 @@ Here's a quick whistle-stop tour of dataBlob's other features:
 
 The `simData` object is a compulsory part of the pysystemtrade system object which runs simulations (or in live trading generates desired positions). The API required for that is laid out in the user guide, [here](/docs/backtesting.md#using-the-standard-data-objects). It's an interface between the contents of a dataBlob, and the simulation code.
 
-This modularity allows us to easily replace the data objects, so we could load our adjusted prices from mongo DB, or do 'back adjustment' of futures prices 'on the fly'.
+This modularity allows us to easily replace the data objects, so we could load our adjusted prices from MongoDB, or do 'back adjustment' of futures prices 'on the fly'.
 
 For futures simData objects need to know the source of:
 

@@ -690,7 +690,7 @@ Note that you can't put adjusted prices and carry data in the same directory sin
 
 There is more detail about using .csv files [here](#the-csvfuturessimdata-object).
 
-If you want to store your data in Mongo DB databases instead you need to [use a different data object](#the-dbfuturessimdata-object).
+If you want to store your data in MongoDB databases instead you need to [use a different data object](#the-dbfuturessimdata-object).
 
 If you want to get data from a different place (eg a database, yahoo finance, broker, quandl...) you'll need to [create your own Data object](#creating-your-own-data-objects).
 
@@ -867,14 +867,14 @@ For more information see the [futures data document](/docs/data.md#csvfuturessim
 
 #### The dbFuturesSimData object
 
-This is a simData object which gets its data from [Mongo DB](https://mongodb.com) (static) and [Parquet](https://parquet.apache.org/) (time series). It is better for live trading. For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files.
+This is a simData object which gets its data from [MongoDB](https://mongodb.com) (static) and [Parquet](https://parquet.apache.org/) (time series). It is better for live trading. For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files.
 
 
 ##### Setting up MongoDB and Parquet
 
-Obviously you will need to make sure you already have a Mongo DB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process. 
+Obviously you will need to make sure you already have a MongoDB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process. 
 
-Because the mongoDB data isn't included in the github repo, before using this you need to write the required data into Mongo and Parquet. You can do this from scratch, as per the ['futures data workflow'](/docs/data.md#part-1-a-futures-data-workflow). Alternatively you can run the following scripts which will copy the data from the existing github .csv files:
+Because the MongoDB data isn't included in the github repo, before using this you need to write the required data into Mongo and Parquet. You can do this from scratch, as per the ['futures data workflow'](/docs/data.md#part-1-a-futures-data-workflow). Alternatively you can run the following scripts which will copy the data from the existing github .csv files:
 
 - [Adjusted prices](/sysinit/futures/repocsv_adjusted_prices.py)
 - [Multiple prices](/sysinit/futures/repocsv_multiple_prices.py)

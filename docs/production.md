@@ -46,9 +46,9 @@ Table of Contents
       * [Arctic](#arctic)
          * [Using Arctic in production instead of Parquet](#using-arctic-in-production-instead-of-parquet)
    * [Data backup](#data-backup)
-      * [Mongo data](#mongo-data)
+      * [MongoDB data](#mongodb-data)
       * [Parquet data](#parquet-data)
-      * [Mongo / csv data](#mongo--csv-data)
+      * [MongoDB / CSV data](#mongodb--csv-data)
    * [Echos, Logging, diagnostics and reporting](#echos-logging-diagnostics-and-reporting)
       * [Echos: stdout output](#echos-stdout-output)
          * [Cleaning old echo files](#cleaning-old-echo-files)
@@ -184,7 +184,7 @@ Table of Contents
       * [Truncate echo files](#truncate-echo-files)
       * [Backup DB to .csv files](#backup-db-to-csv-files)
       * [Backup state files](#backup-state-files)
-      * [Backup mongo dump](#backup-mongo-dump)
+      * [Backup MongoDB dump](#backup-mongodb-dump)
       * [Backup Parquet](#backup-parquet)
       * [Start up script](#start-up-script)
    * [Scripts under other (non-linux) operating systems](#scripts-under-other-non-linux-operating-systems)
@@ -249,7 +249,7 @@ This 'quick' start guide assumes the following:
 
 - you are running on a linux box with an appropriate distro (I use Mint). Windows / Mac people will have to do some things slightly differently
 - you are using interactive brokers
-- you are storing data using mongodb
+- you are storing data using MongoDB
 - you have a backtest that you are happy with
 - you are happy to store your data and configuration in the /private directory of your pysystemtrade installation
 
@@ -275,10 +275,10 @@ You need to:
         - '/home/user_name/data/reports'
     - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above). If using git clone from your home directory this should create the directory '/home/user_name/pysystemtrade/'
     - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
-    - [Install mongodb](https://docs.mongodb.com/manual/administration/install-on-linux/).
+    - [Install MongoDB](https://docs.mongodb.com/manual/administration/install-on-linux/).
     - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a ['private_control_config.yaml' file in the same directory](#process-configuration) See [here for more details](#system-defaults--private-config)
     - Set `parquet_store` in 'private_config.yaml' to the Parquet directory you set up earlier 
-    - [check a mongodb server is running with the right data directory](/docs/data.md#mongodb) command line: `mongod --dbpath $MONGO_DATA`
+    - [check a MongoDB server is running with the right data directory](/docs/data.md#mongodb) command line: `mongod --dbpath $MONGO_DATA`
     - launch an IB gateway (this could be done automatically depending on your security setup)
 - FX data:
     - [Initialise the spot FX data from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
@@ -305,7 +305,7 @@ You need to:
 
 Before trading, and each time you restart the machine you should:
 
-- [check a mongodb server is running with the right data directory](/docs/data.md#mongodb) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
+- [check a MongoDB server is running with the right data directory](/docs/data.md#mongodb) command line: `mongod --dbpath $MONGO_DATA` (the supplied crontab should do this)
 - launch an IB gateway (this could [be done automatically](https://github.com/IbcAlpha/IBC) depending on your security setup)
 - ensure all processes are [marked as 'close'](#mark-as-close)
 
@@ -435,7 +435,7 @@ You may want to run multiple trading systems on a single machine. Common use cas
 
 *for these cases I plan to implement functionality in pysystemtrade so that it can handle them in the same system.
 
-To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos and other directories. You will need to change the private config file so it points to different mongo_db database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the database_name in the relevant files whenever a connection is made eg mongo_db = mongoDb(database_name='whatever'). See storing futures and spot FX data for more detail.
+To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos and other directories. You will need to change the private config file so it points to different MongoDB database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the database_name in the relevant files whenever a connection is made eg mongo_db = mongoDb(database_name='whatever'). See storing futures and spot FX data for more detail.
 
 Finally you should set the field `ib_idoffset` in the private config file private/private_config.yaml so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
@@ -576,7 +576,7 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 - other state and control information
 - static configuration files
 
-The default option is to store these all into a mongodb database, except for configuration files which are stored as .yaml and .csv files. Time series data is stored in [Parquet](https://parquet.apache.org/) files. Databases used will be named with the value of parameter `mongo_db` in private config. 
+The default option is to store these all into a MongoDB database, except for configuration files which are stored as .yaml and .csv files. Time series data is stored in [Parquet](https://parquet.apache.org/) files. Databases used will be named with the value of parameter `mongo_db` in private config. 
 
 ### Arctic
 
@@ -616,9 +616,9 @@ You would need to uncomment the Arctic imports too.
 
 ## Data backup
 
-### Mongo data
+### MongoDB data
 
-Assuming that you are using the default mongob for storing, then I recommend using [mongodump](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) on a daily basis to back up your files. Other more complicated alternatives are available (see the [official mongodb man page](https://docs.mongodb.com/manual/core/backups/)). You may also want to do this if you're transferring your data to e.g. a new machine.
+Assuming that you are using the default MongoDB for storing, then I recommend using [mongodump](https://docs.mongodb.com/manual/reference/program/mongodump/#bin.mongodump) on a daily basis to back up your files. Other more complicated alternatives are available (see the [official MongoDB man page](https://docs.mongodb.com/manual/core/backups/)). You may also want to do this if you're transferring your data to e.g. a new machine.
 
 To avoid conflicts you should [schedule](#scheduling) your backup during the 'deadtime' for your system (see [scheduling](#scheduling)).
 
@@ -626,19 +626,19 @@ To avoid conflicts you should [schedule](#scheduling) your backup during the 'de
 Linux:
 ```
 # dumps everything into dump directory
-# make sure a mongo-db instance is running with correct directory, but ideally without any load; command line: `mongod --dbpath $MONGO_DATA`
+# make sure a MongoDB instance is running with correct directory, but ideally without any load; command line: `mongod --dbpath $MONGO_DATA`
 mongodump -o ~/dump/
 
 # copy dump directory to another machine or drive. This will create a directory $MONGO_BACKUP_PATH/dump/
 cp -rf ~/dump/* $MONGO_BACKUP_PATH
 ```
 
-This is done by the scheduled backup process (see [scheduling](#scheduling)), and also by [this script](#backup-mongo-dump)
+This is done by the scheduled backup process (see [scheduling](#scheduling)), and also by [this script](#backup-mongodb-dump)
 
 Then to restore, from a linux command line:
 ```
 cp -rf $MONGO_BACKUP_PATH/dump/ ~
-# Now make sure a mongo-db instance is running with correct directory
+# Now make sure a MongoDB instance is running with correct directory
 # If required delete any existing instances of the databases. If you don't do this the results may be unpredictable...
 mongo
 # This starts a mongo client
@@ -668,9 +668,9 @@ This is done as part of the default scheduled back up process, see [here](#backu
 
 
 
-### Mongo / csv data
+### MongoDB / CSV data
 
-As I am super paranoid, I also like to output all my mongo_db data into .csv files, which I then regularly backup. This will allow a system recovery, should the mongo files be corrupted.
+As I am super paranoid, I also like to output all my MongoDB data into .csv files, which I then regularly backup. This will allow a system recovery, should the MongoDB files be corrupted.
 
 This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, spread costs, optimal positions. Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a little work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
 
@@ -1503,7 +1503,7 @@ Normally it's possible to call a process directly (eg _backup_files) on an ad-ho
 
 These are listed here for convenience, but more documentation is given below in the relevant section for each script
 
-- run_backups: Runs [backup_db_to_csv](#backup-db-to-csv-files), [backup state files](#backup-state-files): [mongo dump backup](#backup-mongo-dump)
+- run_backups: Runs [backup_db_to_csv](#backup-db-to-csv-files), [backup state files](#backup-state-files): [MongoDB dump backup](#backup-mongodb-dump)
 - run_capital_updates: Runs [update_strategy_capital](#allocate-capital-to-strategies), [update_total_capital](#update-capital-and-pl-by-polling-brokerage-account): update capital
 - run_cleaners: Runs [clean_truncate_backtest_states](#delete-old-pickled-backtest-state-objects), [clean_truncate_echo_files](#truncate-echo-files), [clean_truncate_log_files](#clean-up-old-logs): Clean up
 - run_daily_price_updates: Runs [update_fx_prices](#get-spot-fx-data-from-interactive-brokers-write-to-parquet-daily), [update_sampled_contracts](#update-sampled-contracts-daily), [update_historical_prices](#update-futures-contract-historical-price-data-daily), [update_multiple_adjusted_prices](#update-multiple-and-adjusted-prices-daily): daily price and contract data updates
@@ -1562,7 +1562,7 @@ Called by: `run_daily_fx_and_contract_updates`
 
 ### Update futures contract historical price data (Daily)
 
-This gets historical daily data from IB for all the futures contracts marked to sample in the mongoDB contracts database, and updates the futures prices in Parquet.
+This gets historical daily data from IB for all the futures contracts marked to sample in the MongoDB contracts database, and updates the futures prices in Parquet.
 If update sampled contracts has not yet run, it may not be getting data for all the contracts you need.
 
 Python:
@@ -2426,7 +2426,7 @@ Linux script:
 
 Called by: `run_backups`
 
-See [backups](#mongo--csv-data).
+See [backups](#mongodb--csv-data).
 
 - It copies data from MongoDB and Parquet into a temporary .csv directory
 - It then copies the .csv files to the backup directory, "offsystem_backup_directory", subdirectory /csv
@@ -2456,7 +2456,7 @@ sensitive (e.g., IB account number, email address, email password). If you
 choose to store these files with a cloud storage provider or backup service, you should consider encrypting them first
 (some services may do this for you, but many do not).
 
-### Backup mongo dump
+### Backup MongoDB dump
 
 
 Python:
@@ -2472,8 +2472,8 @@ Linux script:
 
 Called by: `run_backups`
 
-- Firstly it dumps the mongo databases to the local directory specified in the config parameter (defaults.yaml or private config yaml file) "mongo_dump_directory".
-- Then it copies those dumps to the backup directory specified in the config parameter "offsystem_backup_directory", subdirectory /mongo
+- Firstly it dumps the MongoDB databases to the local directory specified in the config parameter (defaults.yaml or private config yaml file) "mongo_dump_directory".
+- Then it copies those dumps to the backup directory specified in the config parameter "offsystem_backup_directory", subdirectory `/mongo`
 
 
 ### Backup Parquet
@@ -2611,7 +2611,7 @@ Useful things to note about the crontab:
 
 - We start the stack handler and capital update processes. These run 'all day' (you can envisage a situation in which other processes also run all day, if you are running certain kinds of intraday system). They will actually start and then stop when the process configuration (in .yaml) tells them to.
 - We then start a bunch of 'once a day' processes: `run_daily_price_updates`, `run_systems`, `run_strategy_order_generator`, `run_cleaners`, `run_backups`, `run_reports`. They are started in the sequence they will run, but their behaviour will actually be governed by the process configuration in .yaml (below)
-- On startup we start a mongodb instance, and run the [startup script](#start-up-script)
+- On startup we start a MongoDB instance, and run the [startup script](#start-up-script)
 
 #### Process configuration
 
@@ -3079,7 +3079,7 @@ Here's some general advice about recovering from a crash:
 
 - If you're not using IBC restart the IB Gateway; and if you are check it has started ok
 - Temporarily turn off the crontab to stop processes from spawning before you are ready
-- Check you have a mongoDB instance running okay
+- Check you have a MongoDB instance running okay
 - Run a full set of reports, and carefully check them, especially the status and reconcile reports, to see that all is well.
 - If necessary take steps to recover data (see next section). 
 - If this goes well you will have an empty order stack. Run update_strategy_orders to repopulate it.
@@ -3090,11 +3090,11 @@ Here's some general advice about recovering from a crash:
 
 ## Data recovery
 
-Let's first consider an awful case where your mongo DB is corrupted, and the backups are also corrupted. In this case you can use the backed up .csv database dump files to recover the following: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Note that scripts don't necessarily exist to do all this automatically yet FIX ME TO DO.
+Let's first consider an awful case where your MongoDB is corrupted, and the backups are also corrupted. In this case you can use the backed up .csv database dump files to recover the following: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Note that scripts don't necessarily exist to do all this automatically yet FIX ME TO DO.
 
 Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a little work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
 
-The better case is when the mongo DB is fine. In this case (once you've [restored](#mongo-data) it) you will have only lost everything from your last nightly backup onwards. Here is what you do to get it back (if possible)
+The better case is when the MongoDB is fine. In this case (once you've [restored](#mongodb-data) it) you will have only lost everything from your last nightly backup onwards. Here is what you do to get it back (if possible)
 
 - As the database isn't SQL it's possible for inconsistencies to creep in, so it's generally better to revert to the last good full backup even if some data appears to be up to date
 - Any changes made to trade limits, position limits and overrides will be lost and will need to be redone.
