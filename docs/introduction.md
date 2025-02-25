@@ -201,7 +201,7 @@ A full list of stages would include:
 4. Combining forecasts together
 5. Position sizing
 6. Creating a portfolio of instruments
-7. Working out the p&l
+7. Working out the P&L
 
 For now let's start with the simplest possible system, one which contains only a trading rules stage. Let's just setup our environment again:
 

@@ -113,7 +113,7 @@ Table of Contents
          * [A note on market data subscriptions](#a-note-on-market-data-subscriptions)
          * [Set times when different regions download prices](#set-times-when-different-regions-download-prices)
       * [Update multiple and adjusted prices (Daily)](#update-multiple-and-adjusted-prices-daily)
-      * [Update capital and p&amp;l by polling brokerage account](#update-capital-and-pl-by-polling-brokerage-account)
+      * [Update capital and P&amp;L by polling brokerage account](#update-capital-and-pl-by-polling-brokerage-account)
       * [Allocate capital to strategies](#allocate-capital-to-strategies)
       * [Run updated backtest systems for one or more strategies](#run-updated-backtest-systems-for-one-or-more-strategies)
       * [Generate orders for each strategy](#generate-orders-for-each-strategy)
@@ -345,7 +345,7 @@ When trading you will need to do the following:
 
 *[Update account values](#update-capital-and-pl-by-polling-brokerage-account)*
 - Input: Brokerage account value from IB
-- Output: Total capital. Account level p&l
+- Output: Total capital. Account level P&L
 
 *[Update strategy capital](#allocate-capital-to-strategies)*
 - Input: Total capital
@@ -1656,7 +1656,7 @@ Called by: `run_daily_update_multiple_adjusted_prices`
 Spike checks are not carried out on multiple and adjusted prices, since they should hopefully be clean if the underlying per contract prices are clean.
 
 
-### Update capital and p&l by polling brokerage account
+### Update capital and P&L by polling brokerage account
 
 
 See [capital](#capital) to understand how capital works. On a daily basis we need to check how our brokerage account value has changed. This will be used to update our total available capital, and allocate that to individual strategies.
@@ -2925,7 +2925,7 @@ On initialising capital you can choose what the following values are:
 
 If you don't initialise capital deliberately, then the first time that is run it will populate the fields with the defaults (which will effectively mean your capital will be equal to your current trading account value).
 
-After initialising the capital is updated [daily](#update-capital-and-pl-by-polling-brokerage-account). First the valuation of the brokerage account is captured, and compared to the previous valuation. The difference between the valuations is your profit (or loss) since the capital was last checked, and this is written to the p&l accumulation account.
+After initialising the capital is updated [daily](#update-capital-and-pl-by-polling-brokerage-account). First the valuation of the brokerage account is captured, and compared to the previous valuation. The difference between the valuations is your profit (or loss) since the capital was last checked, and this is written to the P&L accumulation account.
 
 What will happen next will depend on `production_capital_method`. Read [this first](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html):
 
@@ -2942,11 +2942,11 @@ If brokerage account value has changed by more than 10% no further action is tak
 
 ### Withdrawals and deposits of cash or stock
 
-The method above is neat in that it 'self recovers'; if you don't collect capital for a while it will adjust correctly when restarted. However this does mean that if you withdraw cash or securities from your brokerage account, it will look like you've made a loss and your capital will reduce. The reverse will happen if you make a deposit. This may not bother you (you actually want this to happen and aren't using the account level p&l figures), but if it does you can run the [interactive tool](#interactively-modify-capital-values) and select 'Adjust account value for withdrawal or deposit'. Make sure you are using the base currency of the account.
+The method above is neat in that it 'self recovers'; if you don't collect capital for a while it will adjust correctly when restarted. However this does mean that if you withdraw cash or securities from your brokerage account, it will look like you've made a loss and your capital will reduce. The reverse will happen if you make a deposit. This may not bother you (you actually want this to happen and aren't using the account level P&L figures), but if it does you can run the [interactive tool](#interactively-modify-capital-values) and select 'Adjust account value for withdrawal or deposit'. Make sure you are using the base currency of the account.
 
 If you forget to do this, you should select 'Delete values of capital since time T' in the interactive tool. You can then delete the erroneous rows of capital, account for the withdrawal, and finally 'Update capital from IB account value' to make sure it has worked properly.
 
-If you want the p&l to be correct, but do want your capital to reduce (increase), then you should use option 'Modify any/all values' after accounting for the withdrawal. Decrease (increase) the total capital figure accordingly. If you are using half compounding you also need to increase the maximum capital figure if it is lower than the new total capital figure.
+If you want the P&L to be correct, but do want your capital to reduce (increase), then you should use option 'Modify any/all values' after accounting for the withdrawal. Decrease (increase) the total capital figure accordingly. If you are using half compounding you also need to increase the maximum capital figure if it is lower than the new total capital figure.
 
 
 ### Change in capital methodology or capital base
@@ -3103,7 +3103,7 @@ The better case is when the MongoDB is fine. In this case (once you've [restored
 - IMPORTANT: The stack handler may contain incomplete orders. Run interactive_order_stack and run the end of day process. Do this before any trading takes place, or you may confuse the system!
 - IMPORTANT:Even after finishing the stack handler, position data and historical data will be missing the effect of any trades, including orders that were subsequently filled but for which the fill was lost. Run interactive_order_stack and check to see if view positions. If any breaks come up, you will need to enter create either a balance trade (contract level break between broker and database) or balance instrument trade (instrument level break between strategy and contract positions) using interactive_order_stack. Get the fill prices from your brokerage website. Do this before any trading takes place or the system will lock and won't trade the instruments with breaks.
 - FX, individual futures contract prices, multiple prices, adjusted prices: data will be backfilled once run_daily_price_updates has run.
-- Capital: any intraday p&l data will be lost, but once run_capital_update has run the current capital will be correct.
+- Capital: any intraday P&L data will be lost, but once run_capital_update has run the current capital will be correct.
 - Optimal positions: will be correct once run_systems has run.
 - You can use update_*  processes to run skipped processes before the normal scheduled process will do so. Don't forget to run them in the correct order: update_fx_prices (has to be before run_systems), update_sampled_contracts, update_historical_prices, update_multiple_adjusted_prices, update_strategy_backtests
 - IMPORTANT: State information about processes running may be wrong; you may need to manually FINISH processes using interactive_controls otherwise processes won't run for fear of conflict (but the startup script should do this for you)
@@ -3164,7 +3164,7 @@ Volumes are shown in relative terms to make interpretation easier."
 
 ### P&L report
     
-The p&l report shows you profit and loss (duh!).  On a daily basis it is run for the previous 24 hours. On an ad hoc basis, it can be run for any time period (recent or in the past).
+The P&L report shows you profit and loss (duh!).  On a daily basis it is run for the previous 24 hours. On an ad hoc basis, it can be run for any time period (recent or in the past).
 
 Here is an example, with annotations added in quotes (""):
 
@@ -3174,7 +3174,7 @@ Here is an example, with annotations added in quotes (""):
 P&L report produced on 2020-10-20 09:50:44.037739 from 2020-06-01 00:00:00 to 2020-10-20 09:17:16.470039
 ********************************************************************************
 
-"Total p&l is what you'd expect. This comes from comparing broker valuations from the two relevant snapshot times. "
+"Total P&L is what you'd expect. This comes from comparing broker valuations from the two relevant snapshot times. "
 
 Total p&l is -2.746%
 
@@ -3198,9 +3198,9 @@ P&L by instrument for all strategies
 20      BTP   3.88
 21    WHEAT   5.03
 
-"If we add up our futures P&L and compare to the total p&l, we get a residual.
+"If we add up our futures P&L and compare to the total P&L, we get a residual.
 This could be because of a bug (as here), but also fees and interest charges,
-or non futures instruments which aren't captured by the instrument p&l,
+or non futures instruments which aren't captured by the instrument P&L,
 or because of a difference in timing between the broker account valuation and the relevant prices."
 
 Total futures p&l is -12.916%
@@ -3210,7 +3210,7 @@ Residual p&l is 10.171%
         P&L by strategy        
 ===============================
 
-"P&L versus total capital, not the capital for the specific strategy. So these should all add up to total p&l"
+"P&L versus total capital, not the capital for the specific strategy. So these should all add up to total P&L"
 
                    codes  pandl
 0  medium_speed_TF_carry -13.42
