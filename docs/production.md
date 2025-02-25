@@ -324,7 +324,7 @@ When trading you will need to do the following:
 # Production system data flow
 
 *[Update FX prices]()*
-- Input: IB fx prices
+- Input: IB FX prices
 - Output: Spot FX prices
 
 *[Update roll adjusted prices](#get-spot-fx-data-from-interactive-brokers-write-to-parquet-daily)*

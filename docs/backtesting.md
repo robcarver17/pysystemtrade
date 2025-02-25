@@ -657,7 +657,7 @@ system=futures_system(config=config)
 
 ## How do I....Use different data or instruments
 
-The default data used for the simulation is CSV files for futures stitched prices, fx and contract related data. It's my intention to update this and try to keep it reasonably current with each release. The data is stored in the [data/futures directory](/data/futures)
+The default data used for the simulation is CSV files for futures stitched prices, FX and contract related data. It's my intention to update this and try to keep it reasonably current with each release. The data is stored in the [data/futures directory](/data/futures)
 
 You can update that data, if you wish. Be careful to save it as a CSV with the right formatting, or pandas will complain. Check that a file is correctly formatted like so:
 
@@ -774,7 +774,7 @@ data.keys() ## also gets the instrument list
 
 data.get_value_of_block_price_move(instrument_code)
 data.get_instrument_currency(instrument_code)
-data.get_fx_for_instrument(instrument_code, base_currency) # get fx rate between instrument currency and base currency
+data.get_fx_for_instrument(instrument_code, base_currency) # get FX rate between instrument currency and base currency
 
 ```
 
@@ -953,7 +953,7 @@ Methods that you'll probably want to override:
 - `_get_fx_data(currency1, currency2)` Returns Tx1 pandas data frame of exchange rates
 - 'get_rolls_per_year': returns int
 
-You should not override `get_fx_for_instrument`, or any of the other private fx related methods. Once you've created a `_get_fx_data method`, then the methods in the `Data` base class will interact to give the correct fx rate when external objects call `get_fx_for_instrument()`; handling cross rates and working them out as needed.
+You should not override `get_fx_for_instrument`, or any of the other private FX related methods. Once you've created a `_get_fx_data method`, then the methods in the `Data` base class will interact to give the correct FX rate when external objects call `get_fx_for_instrument()`; handling cross rates and working them out as needed.
 
 Neither should you override 'daily_prices'.
 
@@ -3180,7 +3180,7 @@ A logger is initialised with a name; should be the name of the top level calling
 
 - stage: Used by stages in System objects, such as 'rawdata'
 - component: other parts of the top level function that have their own loggers
-- currency_code: Currency code (used for fx), format 'GBPUSD'
+- currency_code: Currency code (used for FX), format 'GBPUSD'
 - instrument_code: Self explanatory
 - contract_date: Self explanatory, format 'yyyymm'
 - broker: broker name
