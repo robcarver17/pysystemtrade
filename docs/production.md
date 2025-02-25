@@ -454,7 +454,7 @@ I strongly recommend that you use a code repo system or similar to manage your n
 
 ### Managing your private directory
 
-Since the private directory is excluded from the git system (since you don't want it appearing on github!), you need to ensure it is managed separately. I have a separate repo for my private stuff, for which I have a local clone in directory ~/private. Incidentally, github are now offering free private repos, so that is another option.
+Since the private directory is excluded from the git system (since you don't want it appearing on GitHub!), you need to ensure it is managed separately. I have a separate repo for my private stuff, for which I have a local clone in directory ~/private. Incidentally, GitHub are now offering free private repos, so that is another option.
 I then use a bash script which I run in lieu of a normal git add/ commit / push cycle, to commit both private and public code:
 
 ```
@@ -492,7 +492,7 @@ git pull
 # copy the updated contents of the private directory to pysystemtrade private directory
 # use rsync to avoid overwriting git metadata
 rsync -av ~/private/ ~/pysystemtrade/private --exclude .git
-# git pull from main pysystemtrade github repo
+# git pull from main pysystemtrade GitHub repo
 cd ~/pysystemtrade/
 git pull
 ```

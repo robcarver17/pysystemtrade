@@ -700,7 +700,7 @@ If you want to delve deeper into data storage see the document [working with fut
 
 ## How do I... Save my work
 
-To remain organised it's good practice to save any work into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create the directory first). If you plan to contribute to github, just be careful to avoid adding 'private' to your commit ([you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/)).
+To remain organised it's good practice to save any work into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create the directory first). If you plan to contribute to GitHub, just be careful to avoid adding 'private' to your commit ([you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/)).
 
 You can save the contents of a system cache to avoid having to redo calculations when you come to work on the system again (but you might want to read about [system caching and pickling](#system-caching-and-pickling) before you reload them).
 
@@ -874,7 +874,7 @@ This is a simData object which gets its data from [MongoDB](https://mongodb.com)
 
 Obviously you will need to make sure you already have a MongoDB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process. 
 
-Because the MongoDB data isn't included in the github repo, before using this you need to write the required data into Mongo and Parquet. You can do this from scratch, as per the ['futures data workflow'](/docs/data.md#part-1-a-futures-data-workflow). Alternatively you can run the following scripts which will copy the data from the existing github .csv files:
+Because the MongoDB data isn't included in the GitHub repo, before using this you need to write the required data into Mongo and Parquet. You can do this from scratch, as per the ['futures data workflow'](/docs/data.md#part-1-a-futures-data-workflow). Alternatively you can run the following scripts which will copy the data from the existing GitHub .csv files:
 
 - [Adjusted prices](/sysinit/futures/repocsv_adjusted_prices.py)
 - [Multiple prices](/sysinit/futures/repocsv_multiple_prices.py)
@@ -1729,7 +1729,7 @@ The elements of a new pre-baked system will be:
 3. A configuration file
 4. A python function that loads the above elements, and returns a system object
 
-To remain organised it's good practice to save your configuration file and any python functions you need into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create a couple of directories first). If you plan to contribute to github, just be careful to avoid adding 'private' to your commit ( [you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/)). If you have novel data you're using for this system, you may also want to save it in the same directory.
+To remain organised it's good practice to save your configuration file and any python functions you need into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create a couple of directories first). If you plan to contribute to GitHub, just be careful to avoid adding 'private' to your commit ( [you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/)). If you have novel data you're using for this system, you may also want to save it in the same directory.
 
 Then it's a case of creating the python function. Here is an extract from the [futuressystem for chapter 15](/systems/provided/futures_chapter15/basesystem.py)
 

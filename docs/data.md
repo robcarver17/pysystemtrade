@@ -178,7 +178,7 @@ We could get this from anywhere, but I'm going to use Barchart. As you'll see, t
 
 Once we have the data we can also store it, in principle, anywhere but I will be using [Parquet](https://parquet.apache.org/) which provides straightforward and fast storage of pandas DataFrames. Once we have the data we can also copy it to .csv files.
 
-By the way I can't just pull down this data myself and put it on github to save you time. Storing large amounts of data in github isn't a good idea regardless of whether it is in .csv or Mongo files, and there would also be licensing issues with me basically just copying and pasting raw data that belongs to someone else. You have to get, and then store, this stuff yourself. And of course at some point in a live system you would be updating this yourself.
+By the way I can't just pull down this data myself and put it on GitHub to save you time. Storing large amounts of data in GitHub isn't a good idea regardless of whether it is in .csv or Mongo files, and there would also be licensing issues with me basically just copying and pasting raw data that belongs to someone else. You have to get, and then store, this stuff yourself. And of course at some point in a live system you would be updating this yourself.
 
 An easy way to bulk download data from [Barchart](https://www.barchart.com) is to create a Premier account, which allows for up to 250 data downloads per day, and to use [bc-utils](https://github.com/bug-or-feature/bc-utils). That project has a [guide for pysystemtrade users](https://github.com/bug-or-feature/bc-utils?tab=readme-ov-file#for-pysystemtrade-users).
 
@@ -465,7 +465,7 @@ The default method for stitching the prices is 'panama' stitching. If you don't 
 
 ## Getting and storing FX data
 
-Although strictly not futures prices we also need spot FX prices to run our system (unless you are very dull, and have a USD account, and all of your futures are USD denominated. How do you survive with such an epically dull life? Never having to worry about sweeping your currency margin, or tracking error? I feel for you). The github for pysystemtrade contains spot FX data, but you will probably wish to update it. 
+Although strictly not futures prices we also need spot FX prices to run our system (unless you are very dull, and have a USD account, and all of your futures are USD denominated. How do you survive with such an epically dull life? Never having to worry about sweeping your currency margin, or tracking error? I feel for you). The GitHub for pysystemtrade contains spot FX data, but you will probably wish to update it. 
 
 In live trading we'd use interactive brokers, but to get some backfilled data I'm going to use one of the many free data websites: [investing.com](https://www.investing.com)
 
@@ -767,7 +767,7 @@ This section covers the various sources for reading and writing [data objects](#
 
 ### .csv data files
 
-Storing data in .csv files has some obvious disadvantages, and doesn't feel like the sort of thing a 21st century trading system ought to be doing. However it's good for roll calendars, which sometimes need manual hacking when they're created. It's also good for the data required to run backtests that lives as part of the github repo for pysystemtrade (storing large binary files in git is not a great idea, although various workarounds exist I haven't yet found one that works satisfactorily).
+Storing data in .csv files has some obvious disadvantages, and doesn't feel like the sort of thing a 21st century trading system ought to be doing. However it's good for roll calendars, which sometimes need manual hacking when they're created. It's also good for the data required to run backtests that lives as part of the GitHub repo for pysystemtrade (storing large binary files in git is not a great idea, although various workarounds exist I haven't yet found one that works satisfactorily).
 
 For obvious (?) reasons we only implement get and read methods for .csv files (So... you want to delete the .csv file? Do it through the filesystem. Don't get python to do your dirty work for you).
 
@@ -927,7 +927,7 @@ The simplest simData object gets all of its data from .csv files, making it idea
 
 This is a simData object which gets its data from MongoDB (static) and Parquet (time series). 
 
-Because the MongoDB data isn't included in the github repo, before using this you need to write the required data into Mongo and Parquet.
+Because the MongoDB data isn't included in the GitHub repo, before using this you need to write the required data into Mongo and Parquet.
 You can do this from scratch, as per the ['futures data workflow'](#part-1-a-futures-data-workflow) at the start of this document:
 
 - [Setting up spread cost data](#instrument-configuration-and-spread-costs)
@@ -935,7 +935,7 @@ You can do this from scratch, as per the ['futures data workflow'](#part-1-a-fut
 - [Multiple prices](#creating-and-storing-multiple-prices)
 - [Spot FX prices](#getting-and-storing-fx-data)
 
-Alternatively you can run the following scripts which will copy the data from the existing github .csv files:
+Alternatively you can run the following scripts which will copy the data from the existing GitHub .csv files:
 
 - [Spread cost data](/sysinit/futures/repocsv_spread_costs.py)
 - [Adjusted prices](/sysinit/futures/repocsv_adjusted_prices.py)
