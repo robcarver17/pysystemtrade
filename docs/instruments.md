@@ -188,7 +188,7 @@ system.config.duplicate_instruments['include']['sp500']="SP500"
 > False
 ```
 
-If you wanted to make this change permanent, you could modify the backtest and/or private_config.yaml files (see discussion about configuration below). Later in the document I explain how to determine which is the best duplicate instrument to use in any given pair.
+If you wanted to make this change permanent, you could modify the backtest and/or `private_config.yaml` files (see discussion about configuration below). Later in the document I explain how to determine which is the best duplicate instrument to use in any given pair.
 
 
 

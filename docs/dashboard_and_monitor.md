@@ -61,7 +61,7 @@ Then on the monitoring machine:
 
 - You may need to change your firewall settings to open up ports 27017 (MongoDB) and 4001 (IB, unless you use a different port).
 - you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address eg `mongo_host: 192.168.0.13`
-- you will need to modify the private_config.yaml` system configuration file so it connects to a different IP address eg `ib_ipaddress: 192.168.0.13` 
+- you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address eg `ib_ipaddress: 192.168.0.13` 
 - add the following to your `private_config.yaml` file so that the process monitoring works correctly
 
 `trading_server_ip: 192.168.0.13`

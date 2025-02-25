@@ -265,7 +265,7 @@ You need to:
         - ECHO_PATH=/home/user_name/echos
         - MONGO_BACKUP_PATH=/media/shared_network/drive/mongo_backup
     - Add the SCRIPT_PATH directory to your PATH
-    - Create the following directories (again use other directories if you like, but you must modify the .profile above and specify the proper directories in 'private_config.yaml')
+    - Create the following directories (again use other directories if you like, but you must modify the .profile above and specify the proper directories in `private_config.yaml`)
         - '/home/user_name/data/mongodb/'
         - '/home/user_name/data/parquet'
         - '/home/user_name/echos/'
@@ -276,7 +276,7 @@ You need to:
     - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above). If using git clone from your home directory this should create the directory '/home/user_name/pysystemtrade/'
     - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
     - [Install MongoDB](https://docs.mongodb.com/manual/administration/install-on-linux/).
-    - create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private), and optionally a ['private_control_config.yaml' file in the same directory](#process-configuration) See [here for more details](#system-defaults--private-config)
+    - create a file `private_config.yaml` in the private directory of [pysystemtrade](/private), and optionally a [`private_control_config.yaml` file in the same directory](#process-configuration) See [here for more details](#system-defaults--private-config)
     - Set `parquet_store` in 'private_config.yaml' to the Parquet directory you set up earlier 
     - [check a MongoDB server is running with the right data directory](/docs/data.md#mongodb) command line: `mongod --dbpath $MONGO_DATA`
     - launch an IB gateway (this could be done automatically depending on your security setup)
@@ -4024,10 +4024,7 @@ KOSPI                     NaN           NaN              NaN        NaN    0.025
 
 ## Customize scheduled report generation
 
-It is possible to setup a custom report configuration. Say for example that you would like to push reports to a git repo 
-[like this](https://github.com/robcarver17/reports). In that case you would need to change the default behaviour, sending reports
-via email, to saving the report as a file Files would be stored in according to what is declared in `private_config.yaml`
-`reporting_directory`. Customization is done in the `private_config.yaml`. Example of reporting customization is; 
+It is possible to set up a custom report configuration. Say for example that you would like to push reports to a git repo [like this](https://github.com/robcarver17/reports). In that case you would need to change the default behaviour (sending reports via email), to saving the report as a file. Files would be stored according to what is defined as `reporting_directory` in `private_config.yaml`. Example of reporting customization is: 
 
 ```
  reports:
@@ -4044,8 +4041,7 @@ via email, to saving the report as a file Files would be stored in according to 
     calendar_days_back: 250
 
 ```
-The available reports can be found by interrogating the `dataReports` object,
-e.g.:
+The available reports can be found by interrogating the `dataReports` object, e.g.:
 ```python
 from sysproduction.data.reports import dataReports
 print(dataReports().get_default_reporting_config_dict().keys())
