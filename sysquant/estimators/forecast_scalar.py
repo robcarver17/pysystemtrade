@@ -45,6 +45,6 @@ def forecast_scalar(
     scaling_factor = target_abs_forecast / avg_abs_value
 
     if backfill:
-        scaling_factor = scaling_factor.fillna(method="bfill")
+        scaling_factor = scaling_factor.bfill()
 
     return scaling_factor
