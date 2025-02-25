@@ -56,7 +56,7 @@ Table of Contents
          * [2) Creating a configuration object from a file](#2-creating-a-configuration-object-from-a-file)
          * [3) Creating a configuration object from a pre-baked system](#3-creating-a-configuration-object-from-a-pre-baked-system)
          * [4) Creating a configuration object from a list](#4-creating-a-configuration-object-from-a-list)
-         * [5) Creating configuration files from .csv files](#5-creating-configuration-files-from-csv-files)
+         * [5) Creating configuration files from CSV files](#5-creating-configuration-files-from-csv-files)
       * [Project defaults and private configuration](#project-defaults-and-private-configuration)
          * [Handling defaults when you change certain functions](#handling-defaults-when-you-change-certain-functions)
          * [How the defaults and private configuration work](#how-the-defaults-and-private-configuration-work)
@@ -657,9 +657,9 @@ system=futures_system(config=config)
 
 ## How do I....Use different data or instruments
 
-The default data used for the simulation is .csv files for futures stitched prices, fx and contract related data. It's my intention to update this and try to keep it reasonably current with each release. The data is stored in the [data/futures directory](/data/futures)
+The default data used for the simulation is CSV files for futures stitched prices, fx and contract related data. It's my intention to update this and try to keep it reasonably current with each release. The data is stored in the [data/futures directory](/data/futures)
 
-You can update that data, if you wish. Be careful to save it as a .csv with the right formatting, or pandas will complain. Check that a file is correctly formatted like so:
+You can update that data, if you wish. Be careful to save it as a CSV with the right formatting, or pandas will complain. Check that a file is correctly formatted like so:
 
 ```python
 import pandas as pd
@@ -668,7 +668,7 @@ test
 ```
 You can also add new files for new instruments. Be sure to keep the file format and header names consistent.
 
-You can create your own directory for .csv files. For example supposed you wanted to get your adjusted prices from `pysystemtrade/private/system_name/adjusted_price_data`. Here is how you'd use it:
+You can create your own directory for CSV files. For example supposed you wanted to get your adjusted prices from `pysystemtrade/private/system_name/adjusted_price_data`. Here is how you'd use it:
 
 ```python
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
@@ -688,7 +688,7 @@ The full list of keys that you can use in the `csv_data_paths` are:
   
 Note that you can't put adjusted prices and carry data in the same directory since they use the same file format.
 
-There is more detail about using .csv files [here](#the-csvfuturessimdata-object).
+There is more detail about using CSV files [here](#the-csvfuturessimdata-object).
 
 If you want to store your data in MongoDB databases instead you need to [use a different data object](#the-dbfuturessimdata-object).
 
@@ -742,11 +742,11 @@ Each section is split into parts that get progressively trickier; varying from u
 
 ## Data
 
-A data object is used to feed data into a system. Data objects work with a particular **kind** of data (normally asset class specific, eg futures) from a particular **source** (for example .csv files, databases and so on).
+A data object is used to feed data into a system. Data objects work with a particular **kind** of data (normally asset class specific, eg futures) from a particular **source** (for example CSV files, databases and so on).
 
 ### Using the standard data objects
 
-Two kinds of specific data object is currently provided with the system in the current version - `csvFuturesSimData` (.csv files) and `dbFuturesSimData` (database storage)
+Two kinds of specific data object is currently provided with the system in the current version - `csvFuturesSimData` (CSV files) and `dbFuturesSimData` (database storage)
 
 See [working with futures data](/docs/data.md)
 
@@ -843,7 +843,7 @@ system=futures_system(data=data)
 system.data.get_instrument_raw_carry_data(instrument_code)
 ```
 
-Each relevant pathname must contain .csv files of the following four types (where code is the instrument_code):
+Each relevant pathname must contain CSV files of the following four types (where code is the instrument_code):
 
 1. Static configuration and cost data- `instrument_config.csv` headings: Instrument, Pointsize, AssetClass, Currency. Additional headings for costs: Slippage, PerBlock, Percentage, PerTrade. See ['costs'](#costs) for more detail.
 2. Roll parameters data. See [storing futures and spot FX data](/docs/data.md) for more detail.
@@ -867,14 +867,14 @@ For more information see the [futures data document](/docs/data.md#csvfuturessim
 
 #### The dbFuturesSimData object
 
-This is a simData object which gets its data from [MongoDB](https://mongodb.com) (static) and [Parquet](https://parquet.apache.org/) (time series). It is better for live trading. For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than .csv files.
+This is a simData object which gets its data from [MongoDB](https://mongodb.com) (static) and [Parquet](https://parquet.apache.org/) (time series). It is better for live trading. For production code, and storing large amounts of data (eg for individual futures contracts) we probably need something more robust than CSV files.
 
 
 ##### Setting up MongoDB and Parquet
 
 Obviously you will need to make sure you already have a MongoDB instance running. You might find you already have one running, in Linux use `ps wuax | grep mongo` and then kill the relevant process. 
 
-Because the MongoDB data isn't included in the GitHub repo, before using this you need to write the required data into Mongo and Parquet. You can do this from scratch, as per the ['futures data workflow'](/docs/data.md#part-1-a-futures-data-workflow). Alternatively you can run the following scripts which will copy the data from the existing GitHub .csv files:
+Because the MongoDB data isn't included in the GitHub repo, before using this you need to write the required data into Mongo and Parquet. You can do this from scratch, as per the ['futures data workflow'](/docs/data.md#part-1-a-futures-data-workflow). Alternatively you can run the following scripts which will copy the data from the existing GitHub CSV files:
 
 - [Adjusted prices](/sysinit/futures/repocsv_adjusted_prices.py)
 - [Multiple prices](/sysinit/futures/repocsv_multiple_prices.py)
@@ -1047,9 +1047,9 @@ Note that if there are overlapping keynames, then those in latter parts of the l
 
 This can be useful if, for example, we wanted to change the instrument weights 'on the fly' but keep the rest of the configuration unchanged.
 
-#### 5) Creating configuration files from .csv files
+#### 5) Creating configuration files from CSV files
 
-Sometimes it is more convenient to specify certain parameters in a .csv file, then push them into a YAML file. If you want to use this method then you can use these two functions:
+Sometimes it is more convenient to specify certain parameters in a CSV file, then push them into a YAML file. If you want to use this method then you can use these two functions:
 
 ```python
 from sysinit.configtools.csvweights_to_yaml import instr_weights_csv_to_yaml  # for instrument weights

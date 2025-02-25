@@ -182,7 +182,7 @@ Table of Contents
       * [Delete old pickled backtest state objects](#delete-old-pickled-backtest-state-objects)
       * [Clean up old logs](#clean-up-old-logs)
       * [Truncate echo files](#truncate-echo-files)
-      * [Backup DB to .csv files](#backup-db-to-csv-files)
+      * [Backup DB to CSV files](#backup-db-to-csv-files)
       * [Backup state files](#backup-state-files)
       * [Backup MongoDB dump](#backup-mongodb-dump)
       * [Backup Parquet](#backup-parquet)
@@ -281,7 +281,7 @@ You need to:
     - [check a MongoDB server is running with the right data directory](/docs/data.md#mongodb) command line: `mongod --dbpath $MONGO_DATA`
     - launch an IB gateway (this could be done automatically depending on your security setup)
 - FX data:
-    - [Initialise the spot FX data from .csv files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
+    - [Initialise the spot FX data from CSV files](/sysinit/futures/repocsv_spotfx_prices.py) (this will be out of date, but you will update it in a moment)
     - Update the FX price data using interactive brokers: command line:`. /home/your_user_name/pysystemtrade/sysproduction/linux/scripts/update_fx_prices`
 - Instrument configuration:
     - Set up futures instrument spread costs using this script [repocsv_spread_costs.py](/sysinit/futures/repocsv_spread_costs.py).
@@ -576,7 +576,7 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 - other state and control information
 - static configuration files
 
-The default option is to store these all into a MongoDB database, except for configuration files which are stored as YAML and .csv files. Time series data is stored in [Parquet](https://parquet.apache.org/) files. Databases used will be named with the value of parameter `mongo_db` in private config. 
+The default option is to store these all into a MongoDB database, except for configuration files which are stored as YAML and CSV files. Time series data is stored in [Parquet](https://parquet.apache.org/) files. Databases used will be named with the value of parameter `mongo_db` in private config. 
 
 ### Arctic
 
@@ -670,7 +670,7 @@ This is done as part of the default scheduled back up process, see [here](#backu
 
 ### MongoDB / CSV data
 
-As I am super paranoid, I also like to output all my MongoDB data into .csv files, which I then regularly backup. This will allow a system recovery, should the MongoDB files be corrupted.
+As I am super paranoid, I also like to output all my MongoDB data into CSV files, which I then regularly backup. This will allow a system recovery, should the MongoDB files be corrupted.
 
 This currently supports: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, spread costs, optimal positions. Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a little work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
 
@@ -1628,7 +1628,7 @@ arguments:
 
 ```
 
-This will download Asian regional instruments at 7am, local machine time; Europe Middle East Africa at 6pm, and US at 8pm. Regions are set in the instrument configuration (provided .csv file which is then written to the database using interactive_controls, options to update configuration). 
+This will download Asian regional instruments at 7am, local machine time; Europe Middle East Africa at 6pm, and US at 8pm. Regions are set in the instrument configuration (provided CSV file which is then written to the database using interactive_controls, options to update configuration). 
 
 You should also ensure that `run_daily_price_updates` has a start time set in `private_control_config.yaml` earlier than 7am, and is started by the crontab or other scheduler before 7am.
 
@@ -2409,7 +2409,7 @@ Called by: `run_cleaners`
 Every day we generate echo files with extension .txt; this process renames ones from yesterday and before with a date suffix, and then deletes anything more than 30 days old.
 
 
-### Backup DB to .csv files
+### Backup DB to CSV files
 
 Python:
 
@@ -2428,8 +2428,8 @@ Called by: `run_backups`
 
 See [backups](#mongodb--csv-data).
 
-- It copies data from MongoDB and Parquet into a temporary .csv directory
-- It then copies the .csv files to the backup directory, "offsystem_backup_directory", subdirectory /csv
+- It copies data from MongoDB and Parquet into a temporary CSV directory
+- It then copies the CSV files to the backup directory, "offsystem_backup_directory", subdirectory /csv
 
 
 
@@ -2896,7 +2896,7 @@ The following are configurations mainly for mapping from our codes to broker cod
 
 ### Instrument and roll configuration
 
-The following are .csv configurations used in both production and sim:
+The following are CSV configurations used in both production and sim:
 
 - [/data/futures/csvconfig/instrumentconfig.csv](/data/futures/csvconfig/instrumentconfig.csv) 
 - [/data/futures/csvconfig/rollconfig.csv](/data/futures/csvconfig/rollconfig.csv) 
@@ -3090,7 +3090,7 @@ Here's some general advice about recovering from a crash:
 
 ## Data recovery
 
-Let's first consider an awful case where your MongoDB is corrupted, and the backups are also corrupted. In this case you can use the backed up .csv database dump files to recover the following: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Note that scripts don't necessarily exist to do all this automatically yet FIX ME TO DO.
+Let's first consider an awful case where your MongoDB is corrupted, and the backups are also corrupted. In this case you can use the backed up CSV database dump files to recover the following: FX, individual futures contract prices, multiple prices, adjusted prices, position data, historical trades, capital, contract meta-data, instrument data, optimal positions. Note that scripts don't necessarily exist to do all this automatically yet FIX ME TO DO.
 
 Some other state information relating to the control of trading and processes is also stored in the database and this will be lost, however this can be recovered with a little work: roll status, trade limits, position limits, and overrides. Log data will also be lost; but archived [echo files](#echos-stdout-output) could be searched if necessary.
 

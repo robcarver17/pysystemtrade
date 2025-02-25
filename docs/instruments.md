@@ -56,7 +56,7 @@ This is keyed off the multiple instruments database. This should be as extensive
 
 # Instruments we have adjusted prices for, used for simulation and production system backtest raw data
 
-If they're both coming from a database, then this in principle should be the same as the previous list, however if you use .csv prices for simulated backtesting then you might have a different set of instruments. Obviously try and avoid this! (Unless it's deliberate, eg you're doing a quick and dirty backtest on a subset of instruments).
+If they're both coming from a database, then this in principle should be the same as the previous list, however if you use CSV prices for simulated backtesting then you might have a different set of instruments. Obviously try and avoid this! (Unless it's deliberate, eg you're doing a quick and dirty backtest on a subset of instruments).
 
 ```python
 from systems.provided.futures_chapter15.basesystem import *
@@ -78,7 +78,7 @@ This is where it gets complicated :-) Basically we start with the instruments we
 
 ## The global list of instruments, when defined
 
-If we load a default config that contains no instrument information, then in principle we'll have available every instrument with an adjusted price in the source we're using (sim .csv or database):
+If we load a default config that contains no instrument information, then in principle we'll have available every instrument with an adjusted price in the source we're using (sim CSV or database):
 
 ```python
 from systems.provided.futures_chapter15.basesystem import *
@@ -197,7 +197,7 @@ If you wanted to make this change permanent, you could modify the backtest and/o
 As well as duplicates, we might have other instruments we just don't like at all. Again, these will be absent from get_instrument_list. 
 
 ```python
-"EURIBOR" in system.data.get_instrument_list() ## this won't show True if you're using .csv prices but I have EURIBOR prices in my database - just not very good ones
+"EURIBOR" in system.data.get_instrument_list() ## this won't show True if you're using CSV prices but I have EURIBOR prices in my database - just not very good ones
 > True
 system.config.exclude_instrument_lists['ignore_instruments'] # from the default config
 >['EURIBOR']

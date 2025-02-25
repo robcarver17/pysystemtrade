@@ -7,7 +7,7 @@ Notice that you will see different results than shown here, as you will be using
 
 (code is [here](/examples/introduction/asimpletradingrule.py) )
 
-As systematic traders we believe that the future will be at least a bit like the past. So first of all we need some past data. In principle past data can come from many places, but to begin with we'll get it from some pre-baked .csv files:
+As systematic traders we believe that the future will be at least a bit like the past. So first of all we need some past data. In principle past data can come from many places, but to begin with we'll get it from some pre-baked CSV files:
 
 ```python
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
