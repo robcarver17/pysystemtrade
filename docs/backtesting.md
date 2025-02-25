@@ -270,24 +270,24 @@ For more information on what statistics are available, see the [relevant guide s
 The backtest looks for its configuration information in the following places:
 
 1. Elements in the configuration object
-2. If not found, in: the private yaml config if it exists here `/private/private_config.yaml`
+2. If not found, in: the private YAML config if it exists here `/private/private_config.yaml`
 3. If not found, in: Project defaults
 
-Configuration objects can be loaded from [yaml](https://pyyaml.org/) files, or created with a dictionary. This suggests that you can modify the systems behaviour in any of the following ways:
+Configuration objects can be loaded from [YAML](https://pyyaml.org/) files, or created with a dictionary. This suggests that you can modify the systems behaviour in any of the following ways:
 
-1. Change or create a configuration yaml file, read it in, and create a new system
+1. Change or create a configuration YAML file, read it in, and create a new system
 2. Change a configuration object in memory, and create a new system with it.
 3. Change a configuration object within an existing system (advanced)
-4. Create a private config yaml `/private/private_config.yaml` (this useful if you want to make a global change that affects all your backtest)
+4. Create a private config YAML `/private/private_config.yaml` (this useful if you want to make a global change that affects all your backtest)
 5. Change the project defaults (definitely not recommended)
 
 For a list of all possible configuration options, see [this table](#configuration-options).
 
-If you use options 2 or 3, you can [save the config](#saving-configurations) to a yaml file.
+If you use options 2 or 3, you can [save the config](#saving-configurations) to a YAML file.
 
 ### Option 1: Change the configuration file
 
-Configurations in this project are stored in [yaml](https://pyyaml.org) files. Don't worry if you're not familiar with yaml; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python, to create nesting.
+Configurations in this project are stored in [YAML](https://pyyaml.org) files. Don't worry if you're not familiar with YAML; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python, to create nesting.
 
 You can make a new config file by copying this [one](/systems/provided/futures_chapter15/futuresconfig.yaml), and modifying it. Best practice is to save this as `pysystemtrade/private/this_system_name/config.yaml` (you'll need to create a couple of directories first).
 
@@ -360,7 +360,7 @@ Because we don't create a new system and have to recalculate everything from scr
 
 ### Option 4: Create a private config file
 
-Override default config params by putting them in a file at `/private/private_config.yaml`. This makes sense if you want to make a global change to a particular parameter rather than constantly including certain things in your configuration files. Anything in this file will overwrite the system defaults, but will in turn be overwritten by the backtest configuration .yaml file. This file will also come in very handy when it comes to [using pysystemtrade as a production trading environment](/docs/production.md)
+Override default config params by putting them in a file at `/private/private_config.yaml`. This makes sense if you want to make a global change to a particular parameter rather than constantly including certain things in your configuration files. Anything in this file will overwrite the system defaults, but will in turn be overwritten by the backtest configuration YAML file. This file will also come in very handy when it comes to [using pysystemtrade as a production trading environment](/docs/production.md)
 
 
 ### Option 5: Change the project defaults (definitely not recommended)
@@ -483,7 +483,7 @@ system=futures_system(config=new_config)
 
 ## How do I.... run the backtest only on more recent data
 
-You need to set the start_date in the .yaml backtest configuration file:
+You need to set the start_date in the YAML backtest configuration file:
 
 ```
 ## Note you must use this format
@@ -724,7 +724,7 @@ system.accounts.portfolio().sharpe()
 
 ```
 
-You can also save a config object into a yaml file - see [saving configuration](#saving-configurations).
+You can also save a config object into a YAML file - see [saving configuration](#saving-configurations).
 
 
 # Guide
@@ -733,7 +733,7 @@ You can also save a config object into a yaml file - see [saving configuration](
 The guide section explains in more detail how each part of the system works:
 
 1. [Data](#data) objects
-2. [Config](#configuration) objects and yaml files
+2. [Config](#configuration) objects and YAML files
 3. [System](#system) objects,
 4. [Stages](#stages) within a system.
 
@@ -799,10 +799,10 @@ If you set the start_date configuration option, then only a subset of the data w
 from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system(data=data)
 
-# We could also do this in the .yaml file. Note the formatting used must be the same
+# We could also do this in the YAML file. Note the formatting used must be the same
 system.config.start_date = '2000-01-19'
 
-## or as a datetime (won't work in yaml obviously)
+## or as a datetime (won't work in YAML obviously)
 import datetime
 system.config.start_date = datetime.datetime(2000,1,19)
 ```
@@ -1002,7 +1002,7 @@ optionthree:
   - 2.0
 ```
 
-Note that as with python the indentation in a yaml file shows how things are nested. If you want to learn more about yaml check [this out](https://pyyaml.org/wiki/PyYAMLDocumentation#YAMLsyntax).
+Note that as with python the indentation in a YAML file shows how things are nested. If you want to learn more about YAML check [this out](https://pyyaml.org/wiki/PyYAMLDocumentation#YAMLsyntax).
 
 ```python
 from sysdata.config.configdata import Config
@@ -1027,7 +1027,7 @@ system=futures_system()
 new_config=system.config
 ```
 
-Under the hood this is effectively getting a configuration from a .yaml file - [this one](/systems/provided/futures_chapter15/futuresconfig.yaml).
+Under the hood this is effectively getting a configuration from a YAML file - [this one](/systems/provided/futures_chapter15/futuresconfig.yaml).
 
 Configs created in this way will include all [the defaults populated](#how-the-defaults-and-private-configuration-work).
 
@@ -1049,7 +1049,7 @@ This can be useful if, for example, we wanted to change the instrument weights '
 
 #### 5) Creating configuration files from .csv files
 
-Sometimes it is more convenient to specify certain parameters in a .csv file, then push them into a .yaml file. If you want to use this method then you can use these two functions:
+Sometimes it is more convenient to specify certain parameters in a .csv file, then push them into a YAML file. If you want to use this method then you can use these two functions:
 
 ```python
 from sysinit.configtools.csvweights_to_yaml import instr_weights_csv_to_yaml  # for instrument weights
@@ -1057,7 +1057,7 @@ from sysinit.configtools.csvweights_to_yaml import forecast_weights_by_instrumen
 from sysinit.configtools.csvweights_to_yaml import forecast_mapping_csv_to_yaml # Forecast mapping for each instrument
 ```
 
-These will create .yaml files which can then be pasted into your existing configuration files.
+These will create YAML files which can then be pasted into your existing configuration files.
 
 
 ### Project defaults and private configuration
@@ -1068,20 +1068,20 @@ I recommend that you do not change these defaults. It's better to use the settin
 
 If this file exists, `/private/private_config.yaml`, it will be used as a private configuration file.
 
-Basically, whenever a configuration object is added to a system, if there is a private config file then we add the elements from that. Then for any remaining missing elements we add the elements from the defaults.yaml.
+Basically, whenever a configuration object is added to a system, if there is a private config file then we add the elements from that. Then for any remaining missing elements we add the elements from `defaults.yaml`.
 
 
 #### Handling defaults when you change certain functions
 
-In certain places you can change the function used to do a particular calculation, eg volatility estimation (This does *not* include trading rules - the way we change the functions for these is quite different). This is straightforward if you're going to use the same arguments as the original argument. However if you change the arguments you'll need to change the project defaults .yaml file. I recommend keeping the original parameters, and adding new ones with different names, to avoid accidentally breaking the system.
+In certain places you can change the function used to do a particular calculation, eg volatility estimation (This does *not* include trading rules - the way we change the functions for these is quite different). This is straightforward if you're going to use the same arguments as the original argument. However if you change the arguments you'll need to change the project `defaults.yaml` file. I recommend keeping the original parameters, and adding new ones with different names, to avoid accidentally breaking the system.
 
 
 #### How the defaults and private configuration work
 
 
-When added to a system the config class fills in parameters that are missing from the original config object, but are present in (i) the private .yaml file and (ii) the default .yaml file. For example if forecast_scalar is missing from the config, then the default value of 1.0 will be used. This works in a similar way for top level config items that are lists, str, int and float.
+When added to a system the config class fills in parameters that are missing from the original config object, but are present in (i) the private YAML file and (ii) the default YAML file. For example if forecast_scalar is missing from the config, then the default value of 1.0 will be used. This works in a similar way for top level config items that are lists, str, int and float.
 
-This will also happen if you miss anything from a dict within the config (eg if `config.forecast_div_mult_estimate` is a dict, then any keys present in this dict in the default .yaml, but not in the config will be added). Finally it will work for nested dicts, eg if any keys are missing from `config.instrument_weight_estimate['correlation_estimate']` then they'll be filled in from the default file. If something is a dict, or a nested dict, in the config but not in the default (or vice versa) then values won't be replaced and bad things could happen. It's better to keep your config files, and the default file, with matching structures (for the items you want to change at least!). Again this is a good argument for adding new parameters, and retaining the original ones.
+This will also happen if you miss anything from a dict within the config (eg if `config.forecast_div_mult_estimate` is a dict, then any keys present in this dict in the default YAML, but not in the config will be added). Finally it will work for nested dicts, eg if any keys are missing from `config.instrument_weight_estimate['correlation_estimate']` then they'll be filled in from the default file. If something is a dict, or a nested dict, in the config but not in the default (or vice versa) then values won't be replaced and bad things could happen. It's better to keep your config files, and the default file, with matching structures (for the items you want to change at least!). Again this is a good argument for adding new parameters, and retaining the original ones.
 
 Note this means that the config before, and after, it goes into a system object will probably be different; the latter will be populated with defaults.
 
@@ -1124,7 +1124,7 @@ Exception: A system config needs to include trading_rules, unless rules are pass
 
 ### Viewing configuration parameters
 
-Regardless of whether we create the dictionary using a yaml file or interactively, we'll end up with a dictionary. The keys in the top level dictionary will become attributes of the config. We can then use dictionary keys or list positions to access any nested data. For example using the simple config above:
+Regardless of whether we create the dictionary using a YAML file or interactively, we'll end up with a dictionary. The keys in the top level dictionary will become attributes of the config. We can then use dictionary keys or list positions to access any nested data. For example using the simple config above:
 
 ```python
 my_config.optionone
@@ -1235,7 +1235,7 @@ Similarly if you wanted to use project defaults for your new parameters you'll a
 
 ### Saving configurations
 
-You can also save a config object into a yaml file:
+You can also save a config object into a YAML file:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
@@ -1272,7 +1272,7 @@ sysdiag.yaml_config_with_estimated_parameters('someyamlfile.yaml',
                                                                   'instrument_div_multiplier'])
 
 ```
-Change the list of attr_names depending on what you want to output. You can then merge the resulting .yaml file into your simulated .yaml file. Don't forget to turn off the flags for `use_forecast_div_mult_estimates`,`use_forecast_scale_estimates`,`use_forecast_weight_estimates`,`use_instrument_div_mult_estimates`, and `use_instrument_weight_estimates`.  You don't need to change flag for forecast mapping, since this isn't done by default.
+Change the list of attr_names depending on what you want to output. You can then merge the resulting YAML file into your simulated YAML file. Don't forget to turn off the flags for `use_forecast_div_mult_estimates`,`use_forecast_scale_estimates`,`use_forecast_weight_estimates`,`use_instrument_div_mult_estimates`, and `use_instrument_weight_estimates`.  You don't need to change flag for forecast mapping, since this isn't done by default.
 
 
 ### Modifying the configuration class
@@ -4115,7 +4115,7 @@ Accounting outputs:
 
 ## Configuration options
 
-Below is a list of all configuration options for the system. The 'Yaml' section shows how they appear in a yaml file. The 'python' section shows an example of how you'd modify a config object in memory having first created it, like this:
+Below is a list of all configuration options for the system. The 'Yaml' section shows how they appear in a YAML file. The 'python' section shows an example of how you'd modify a config object in memory having first created it, like this:
 
 
 ```python

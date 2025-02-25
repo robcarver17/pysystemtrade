@@ -167,7 +167,7 @@ system.get_list_of_duplicate_instruments_to_remove()
 > ['COPPER-mini', 'CORN_mini', 'CRUDE_W', 'GAS_US', 'GASOILINE_mini', 'GOLD', 'HEATOIL_mini', 'JGB_mini', 'JGB-SGX-mini', 'JPY_micro', 'JPY-SGX-TITAN', 'JPY-SGX', 'KOSPI_mini', 'KRWUSD_mini', 'NASDAQ', 'SILVER_mini', 'SOYBEAN_mini', 'SP500', 'TWD-mini', 'VIX_mini', 'WHEAT_mini']
 ```
 
-These are defined in the following configuration element (values from default.yaml shown here):
+These are defined in the following configuration element (values from `defaults.yaml` shown here):
 
 ```python
 system.config.duplicate_instruments['exclude']
@@ -352,7 +352,7 @@ Operating in the production environment is a bit more complex, due to the intera
 
 ## A note about configuration
 
-When you're running in simulation things are relatively simple; configuration items are defined in defaults_yaml, but can be overridden by your private_config.yaml, and then also by your own backtest.yaml file.
+When you're running in simulation things are relatively simple; configuration items are defined in `defaults.yaml`, but can be overridden by your `private_config.yaml`, and then also by your own backtest.yaml file.
 
 Importantly, once we're out of the 'backtesting' part of a production system, we can't see the backtest configuration (which after all is system specific, whereas generally in the production environment we're working with global parameters). So the priority order is `defaults.yaml`, overridden by `private_config.yaml`. The downstream code that produces strategy orders once the production backtest has generated optimal positions, and then trades those orders, will operate only on the configuration in `private_config.yaml` and `defaults.yaml`. 
 
@@ -388,7 +388,7 @@ And to allow a bad instrument to begin trading again:
 
 Similar logic will apply to ignored and duplicated instruments. Obviously if you mark an instrument has untradeable, and you have a position on, that position will continue to be held! Also limits on the number of trades that can be done will apply, so if you want to shut something down today you might need to create a manual order using the interactive order stack handler.
 
-The code that applies this constraints is generic; it won't load in the strategy configuration .yaml, so if you wish to change the default configuration of bad, duplicated, ignored or untradeable instruments you need to change the `private_config.yaml`.
+The code that applies these constraints is generic; it won't load in the strategy configuration YAML, so if you wish to change the default configuration of bad, duplicated, ignored or untradeable instruments you need to change the `private_config.yaml`.
 
 You can see the current list of instruments with overrides (either from configuration or set in the database) in the interactive_controls script:
 
@@ -429,7 +429,7 @@ You can also set database trade overrides here.
 
 ## Reduce only and other constraints in dynamic systems
 
-In a dynamic system we apply an optimisation to the optimal positions from the production backtest before generating orders. This optimisation needs to know about instruments with status 'reduce_only' and 'dont_trade'; again it will pull this information from a combination of configuration .yaml information (importantly, ignoring the backtest .yaml file) and what is loaded in the database. 
+In a dynamic system we apply an optimisation to the optimal positions from the production backtest before generating orders. This optimisation needs to know about instruments with status 'reduce_only' and 'dont_trade'; again it will pull this information from a combination of configuration YAML information (importantly, ignoring the backtest YAML file) and what is loaded in the database. 
 
 In principle the orders which are generated will also be subjected to the same constraints as for a static system, but since the optimisation takes care of them already this step won't have any effect on the orders that have been created.
 
@@ -536,7 +536,7 @@ Min risk $m traded per day? <RETURN for default 1.5>
 This will take a while to get all the relevant data, but eventually you will get presented with something like this:
 
 ```
-Add the following to yaml .config under bad_markets heading:
+Add the following to YAML .config under bad_markets heading:
 
 bad_markets:
   - ALUMINIUM
@@ -550,7 +550,7 @@ New bad markets ['FTSEINDO', 'V2X']
 Removed bad markets ['US10']
 ```
 
-At the bottom it tells you what changes it recommends, and you can implement these changes by copying and pasting the .yaml fragment above - this doesn't happen automatically!
+At the bottom it tells you what changes it recommends, and you can implement these changes by copying and pasting the YAML fragment above - this doesn't happen automatically!
 Although this doesn't give you the reason why markets are bad, the costs and liquidity reports use the same underlying information.
 
 

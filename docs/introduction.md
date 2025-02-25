@@ -317,7 +317,7 @@ Freq: B, dtype: float64
 
 Now let's introduce the idea of **config** objects. A `config` or configuration object allows us to control the behaviour of the various stages in the system.
 
-Configuration objects can be created on the fly or by reading in files written in yaml (which we'll talk about below). A configuration object is just a collection of attributes. We create them interactively like so:
+Configuration objects can be created on the fly or by reading in files written in YAML (which we'll talk about below). A configuration object is just a collection of attributes. We create them interactively like so:
 
 ```python
 from sysdata.config.configdata import Config
@@ -646,7 +646,7 @@ Note we don't need to tell the config that we're not using estimation for foreca
 Config with elements: base_currency, forecast_div_multiplier, forecast_scalars, forecast_weights, instrument_div_multiplier, instrument_weights, notional_trading_capital, percentage_vol_target, trading_rules
 ```
 
-Alternatively we could get the same result from reading a [yaml](https://pyyaml.org) file ( [this one to be precise](/systems/provided/example/simplesystemconfig.yaml) ). Don't worry if you're not familiar with yaml; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python.
+Alternatively we could get the same result from reading a [YAML](https://pyyaml.org) file ( [this one to be precise](/systems/provided/example/simplesystemconfig.yaml) ). Don't worry if you're not familiar with YAML; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python.
 
 ```python
 my_config=Config("systems.provided.example.simplesystemconfig.yaml")
@@ -684,7 +684,7 @@ my_system.portfolio.get_notional_position("SOFR").tail(5)
 
 
 
-By default this has loaded the same data and read the config from the same yaml file. However we can also do this manually, allowing us to use new `data` and a modified `config` with a pre-baked system.
+By default this has loaded the same data and read the config from the same YAML file. However we can also do this manually, allowing us to use new `data` and a modified `config` with a pre-baked system.
 
 ```python
 from sysdata.config.configdata import Config

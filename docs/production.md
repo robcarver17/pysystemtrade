@@ -206,7 +206,7 @@ Table of Contents
 * [Production system concepts](#production-system-concepts)
    * [Configuration files](#configuration-files)
       * [System defaults &amp; Private config](#system-defaults--private-config)
-      * [System backtest .yaml config file(s)](#system-backtest-yaml-config-files)
+      * [System backtest YAML config file(s)](#system-backtest-yaml-config-files)
       * [Control config files](#control-config-files)
       * [Broker and data source specific configuration files](#broker-and-data-source-specific-configuration-files)
       * [Instrument and roll configuration](#instrument-and-roll-configuration)
@@ -295,7 +295,7 @@ You need to:
     - [Create adjusted prices in Parquet](/docs/data.md#creating-and-storing-back-adjusted-prices)
 - Use [interactive diagnostics](#interactive-diagnostics) to check all your prices are in place correctly
 - Live production backtest:
-    - Create a yaml config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a .yaml file.
+    - Create a YAML config file to run the live production 'backtest'. For speed I recommend you do not estimate parameters, but use fixed parameters, using the [yaml_config_with_estimated_parameters method of systemDiag](/systems/diagoutput.py) function to output these to a YAML file.
 - Scheduling:
     - Initialise the [supplied crontab](/sysproduction/linux/crontab). Note if you have put your code or echos somewhere else you will need to modify the directory references at the top of the crontab.
     - All scripts executable by the crontab need to be executable, so do the following: `cd $SCRIPT_PATH` ; `sudo chmod +x *.*`
@@ -395,7 +395,7 @@ If running fully automated, [IBC](https://github.com/IbcAlpha/IBC) is very usefu
 
 I suggest the following:
 
-- From `run_stack_handler`.yaml process configuration (#process-configuration) in your `private_control_config.yaml` file, remove the method `create_broker_orders_from_contract_orders`
+- From `run_stack_handler` process configuration in your `private_control_config.yaml` file, remove the method `create_broker_orders_from_contract_orders`
 - Run `interactive_order_stack` to check what contract orders have been created.
 - Do the trade
 - Use 'manually fill broker or contract order' in `interactive_order_stack` to enter the fill details.
@@ -417,7 +417,7 @@ If spreading your implementation across several machines bear in mind:
    - You may need to change your firewall settings, either UFW (`sudo ufw enable`, `sudo ufw allow 27017 from 192.168.0.10`) or iptables
    - you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address `mongo_host: 192.168.0.13`
    - you may want to enforce [further security protocol](https://docs.mongodb.com/manual/administration/security-checklist/)
-- [Process configuration](#process-configuration); you will want to specify different machine names for each process in your private yaml config file.
+- [Process configuration](#process-configuration); you will want to specify different machine names for each process in your private YAML config file.
 
 ### Backup machine
 
@@ -437,7 +437,7 @@ You may want to run multiple trading systems on a single machine. Common use cas
 
 To handle this I suggest having multiple copies of the pysystemtrade environment. You will have a single crontab, but you will need multiple script, echos and other directories. You will need to change the private config file so it points to different MongoDB database names. If you don't want multiple copies of certain data (eg prices) then you should hardcode the database_name in the relevant files whenever a connection is made eg mongo_db = mongoDb(database_name='whatever'). See storing futures and spot FX data for more detail.
 
-Finally you should set the field `ib_idoffset` in the private config file private/private_config.yaml so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
+Finally you should set the field `ib_idoffset` in the private config file `private/private_config.yaml` so that there is no chance of duplicate clientid connections; setting one system to have an id offset of 1, the next offset 1000, and so on should be sufficient.
 
 ## Code and configuration management
 
@@ -450,7 +450,7 @@ Personally I prefer the latter as it makes a neat self contained unit, but this 
 
 ### Managing your separate directories of code and configuration
 
-I strongly recommend that you use a code repo system or similar to manage your non pysystemtrade code and configuration. Since code and configuration will mostly be in text (or text like) yaml files a code repo system like git will work just fine. I do not recommend storing configuration in database files that will need to be backed up separately, because this makes it more complex to store old configuration data that can be archived and retrieved if required.
+I strongly recommend that you use a code repo system or similar to manage your non pysystemtrade code and configuration. Since code and configuration will mostly be in text (or text like) YAML files a code repo system like git will work just fine. I do not recommend storing configuration in database files that will need to be backed up separately, because this makes it more complex to store old configuration data that can be archived and retrieved if required.
 
 ### Managing your private directory
 
@@ -534,7 +534,7 @@ sysdiag.yaml_config_with_estimated_parameters('someyamlfile.yaml',
 
 ```
 
-Change the list of attr_names depending on what you want to output. You can then merge the resulting .yaml file into your production backtest .yaml file.
+Change the list of attr_names depending on what you want to output. You can then merge the resulting YAML file into your production backtest YAML file.
 
 Don't forget to turn off the flags for `use_forecast_div_mult_estimates`, `use_forecast_scale_estimates`, `use_forecast_weight_estimates`, #`use_instrument_div_mult_estimates`, and `use_instrument_weight_estimates`.  You don't need to change flag for forecast mapping, since this isn't done by default.
 
@@ -576,7 +576,7 @@ Various kinds of data files are used by the pysystemtrade production system. Bro
 - other state and control information
 - static configuration files
 
-The default option is to store these all into a MongoDB database, except for configuration files which are stored as .yaml and .csv files. Time series data is stored in [Parquet](https://parquet.apache.org/) files. Databases used will be named with the value of parameter `mongo_db` in private config. 
+The default option is to store these all into a MongoDB database, except for configuration files which are stored as YAML and .csv files. Time series data is stored in [Parquet](https://parquet.apache.org/) files. Databases used will be named with the value of parameter `mongo_db` in private config. 
 
 ### Arctic
 
@@ -1539,7 +1539,7 @@ Called by: `run_daily_fx_and_contract_updates`
 This will check for 'spikes', unusually large movements in FX rates either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-fx-price-data).
 .
 
-The threshold for spikes is set in the default.yaml file, or overridden in the private config, using the parameter `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
+The threshold for spikes is set in the `defaults.yaml` file, or overridden in the private config, using the parameter `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=6`, then a price change larger than 3 units will trigger a spike.
 
 
 ### Update sampled contracts (Daily)
@@ -1578,9 +1578,9 @@ Linux script:
 
 Called by: `run_daily_price_updates`
 
-This will get daily closes, plus intraday data at the frequency specified by the parameter `intraday_frequency` in the defaults.yaml file (or overwritten in the private .yaml config file). It defaults to 'H: hourly'. Prices are stored separately at Daily, Hourly and Merged frequencies.
+This will get daily closes, plus intraday data at the frequency specified by the parameter `intraday_frequency` in the `defaults.yaml` file (or overwritten in the private YAML config file). It defaults to 'H: hourly'. Prices are stored separately at Daily, Hourly and Merged frequencies.
 
-It performs the following cleaning on data that it receives, depending on the .yaml parameter values that are set (defaults are shown in brackets):
+It performs the following cleaning on data that it receives, depending on the YAML parameter values that are set (defaults are shown in brackets):
 
 - if `ignore_future_prices` is True (default: True) we ignore any prices with time stamps in the future (assumes all prices are sampled back to local time). This prevents us from early filling of Asian time zone closing prices.
 - if `ignore_prices_with_zero_volumes`  is True (default: True) we ignore any price in a bar with zero volume; this reduces the amount of bad data we get.
@@ -1589,7 +1589,7 @@ It performs the following cleaning on data that it receives, depending on the .y
 
 This will also check for 'spikes', unusually large movements in price either when comparing new data to existing data, or within new data. If any spikes are found in data for a particular contract it will not be written. The system will attempt to email the user when a spike is detected. The user will then need to [manually check the data](#manual-check-of-futures-contract-historical-price-data).
 
-The threshold for spikes is set in the default.yaml file, or overridden in the private config .yaml file, using the parameter `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=8`, then a price change larger than 4 units will trigger a spike.
+The threshold for spikes is set in the `defaults.yaml` file, or overridden in the private config YAML file, using the parameter `max_price_spike`. Spikes are defined as a large multiple of the average absolute daily change. So for example if a price typically changes by 0.5 units a day, and `max_price_spike=8`, then a price change larger than 4 units will trigger a spike.
 
 #### A note on market data subscriptions
 
@@ -1717,7 +1717,7 @@ Linux script:
 
 Called by: `run_systems`
 
-The code to run each strategy's backtest is defined in the configuration parameter in the control_config.yaml file (or overridden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
+The code to run each strategy's backtest is defined in the configuration parameter in the `control_config.yaml` file (or overridden in the `private_control_config.yaml` file): `process_configuration_methods/run_systems/strategy_name/`. For example:
 
 ```
 process_configuration_methods:
@@ -1733,7 +1733,7 @@ process_configuration_methods:
 The sub-parameters do the following:
 
 - `object` the class of the code that runs the system, eg `sysproduction.strategy_code.run_system_classic.runSystemClassic` This class **must** provide a method `run_backtest` that has no arguments.
-- `backtest_config_filename` the location of the .yaml configuration file to pass to the strategy runner eg `systems.provided.futures_chapter15.futures_config.yaml`
+- `backtest_config_filename` the location of the YAML configuration file to pass to the strategy runner eg `systems.provided.futures_chapter15.futures_config.yaml`
 
 The following optional parameters are used only by `run_systems`:
 - `max_executions` the number of times the backtest should be run on each iteration of run_systems. Normally 1, unless you have some whacky intraday system. Can be omitted.
@@ -1761,7 +1761,7 @@ Linux script:
 Called by: `run_strategy_order_generator`
 
 
-The code to run each strategy's backtest is defined in the configuration parameter in the control_config.yaml file (or overridden in the private_control_config.yaml file): `process_configuration_methods/run_systems/strategy_name/`. For example:
+The code to run each strategy's backtest is defined in the configuration parameter in the `control_config.yaml` file (or overridden in the `private_control_config.yaml` file): `process_configuration_methods/run_systems/strategy_name/`. For example:
 
 
 ```
@@ -2117,7 +2117,7 @@ Linux script:
 
 #### Backtest objects
 
-It's often helpful to examine the backtest output of run_systems to understand where particular trades came from (above and beyond what the [strategy report](#strategy-report) gives you. These are saved as a combination of pickled cache and configuration .yaml file, allowing you to see the calculations done when the system ran.
+It's often helpful to examine the backtest output of run_systems to understand where particular trades came from (above and beyond what the [strategy report](#strategy-report) gives you. These are saved as a combination of pickled cache and configuration YAML file, allowing you to see the calculations done when the system ran.
 
 ##### Output choice
 
@@ -2472,7 +2472,7 @@ Linux script:
 
 Called by: `run_backups`
 
-- Firstly it dumps the MongoDB databases to the local directory specified in the config parameter (defaults.yaml or private config yaml file) "mongo_dump_directory".
+- Firstly it dumps the MongoDB databases to the local directory specified in the config parameter (`defaults.yaml` or private config YAML file) "mongo_dump_directory".
 - Then it copies those dumps to the backup directory specified in the config parameter "offsystem_backup_directory", subdirectory `/mongo`
 
 
@@ -2603,25 +2603,25 @@ The scheduler built into pysystemtrade does not launch processes (this is still 
 
 #### The crontab
 
-Processes still need to be launched every day, since the pysystemtrade scheduler doesn't do that. However their start time isn't critical, since separate start times can be configured in .yaml files (more of that below).
+Processes still need to be launched every day, since the pysystemtrade scheduler doesn't do that. However their start time isn't critical, since separate start times can be configured in YAML files (more of that below).
 
 Because I use cron myself, there are is a [cron tab included in pysystemtrade](https://github.com/robcarver17/pysystemtrade/blob/master/sysproduction/linux/crontab).
 
 Useful things to note about the crontab:
 
-- We start the stack handler and capital update processes. These run 'all day' (you can envisage a situation in which other processes also run all day, if you are running certain kinds of intraday system). They will actually start and then stop when the process configuration (in .yaml) tells them to.
-- We then start a bunch of 'once a day' processes: `run_daily_price_updates`, `run_systems`, `run_strategy_order_generator`, `run_cleaners`, `run_backups`, `run_reports`. They are started in the sequence they will run, but their behaviour will actually be governed by the process configuration in .yaml (below)
+- We start the stack handler and capital update processes. These run 'all day' (you can envisage a situation in which other processes also run all day, if you are running certain kinds of intraday system). They will actually start and then stop when the process configuration (in YAML) tells them to.
+- We then start a bunch of 'once a day' processes: `run_daily_price_updates`, `run_systems`, `run_strategy_order_generator`, `run_cleaners`, `run_backups`, `run_reports`. They are started in the sequence they will run, but their behaviour will actually be governed by the process configuration in YAML (below)
 - On startup we start a MongoDB instance, and run the [startup script](#start-up-script)
 
 #### Process configuration
 
-Process configuration is governed by the following config parameters (in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), or these will be overridden by /private/private_control_config.yaml):
+Process configuration is governed by the following config parameters (in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), or these will be overridden by `/private/private_control_config.yaml`):
 
 -  `process_configuration_start_time`: when the process starts (default 00:01)
 - `process_configuration_stop_time`: when the process ends, regardless of any method configuration (default 23:50)
 - `process_configuration_previous_process`: a process that has to have run in the previous 24 hours for the process to start (default: none)
 
-Each of these is a dict, with process names as keys. All values are strings; start and stop times are in 24 hour format eg '23:05'. If a value is missing for any process, then we use the default. Here's the default .yaml values, with some comments:
+Each of these is a dict, with process names as keys. All values are strings; start and stop times are in 24 hour format eg '23:05'. If a value is missing for any process, then we use the default. Here's the default YAML values, with some comments:
 
 ```
 process_configuration_start_time:
@@ -2737,7 +2737,7 @@ process_configuration_methods:
       max_executions: 1
 ```
 
-You can override any of these in /private/private_control_config.yaml, but you *must* also include the following sections in your private control config file (add more if you have more strategies), or these run processes won't work:
+You can override any of these in `/private/private_control_config.yaml`, but you *must* also include the following sections in your private control config file (add more if you have more strategies), or these run processes won't work:
 
 ```
 process_configuration_methods:
@@ -2814,9 +2814,9 @@ Configuration for the system is spread across a few different places:
 
 ### System defaults & Private config
 
-Most configuration is stored in [/sysdata/config/defaults.yaml](/sysdata/config/defaults.yaml), with the possibility of overriding in the private configuration file `/private/private_config.yaml`, an example of which is here [/examples/production/private_config_example.yaml](/examples/production/private_config_example.yaml). Anything included in the private config will override the defaults.yaml file.
+Most configuration is stored in [/sysdata/config/defaults.yaml](/sysdata/config/defaults.yaml), with the possibility of overriding in the private configuration file `/private/private_config.yaml`, an example of which is here [/examples/production/private_config_example.yaml](/examples/production/private_config_example.yaml). Anything included in the private config will override the `defaults.yaml` file.
 
-Exceptionally, the following are configuration options that are not in defaults.yaml and *must* be in private_config.yaml:
+Exceptionally, the following are configuration options that are not in `defaults.yaml` and *must* be in `private_config.yaml`:
 
 - `broker_account`: IB account id, str
 - `offsystem_backup_directory`: if you're using off site backup (if not set it to a local drive or modify the backup scripts)
@@ -2835,7 +2835,7 @@ Exceptionally, the following are configuration options that are not in defaults.
       - `strategy_name` weight as float
 
 
-The following are configuration options that are not in defaults.yaml and *may* be in private_config.yaml:
+The following are configuration options that are not in `defaults.yaml` and *may* be in `private_config.yaml`:
 
 - `quandl_key`: if using quandl data
 - `barchart_key`: if using barchart data
@@ -2844,7 +2844,7 @@ The following are configuration options that are not in defaults.yaml and *may* 
 - `email_server`: this is the outgoing server
 
 
-The following are configuration options that are in defaults.yaml and can be overridden in private_config.yaml:
+The following are configuration options that are in `defaults.yaml` and can be overridden in `private_config.yaml`:
 
 [Backup paths](#data-backup)
 - `backtest_store_directory` parent directory, backtests are stored under strategy_name subdirectory
@@ -2873,18 +2873,18 @@ The following are configuration options that are in defaults.yaml and can be ove
 
 
 
-### System backtest .yaml config file(s)
+### System backtest YAML config file(s)
 
 See the [user guide for backtesting](/docs/backtesting.md).
 
-The interaction of system, private, and backtest configs can be a bit confusing. Inside a backtest (which can either be in production or sim mode), configuration options will be pulled in the following priority (1) specific backtest .yaml configuration, (2) private_config.yaml, (3) defaults.yaml file. 
+The interaction of system, private, and backtest configs can be a bit confusing. Inside a backtest (which can either be in production or sim mode), configuration options will be pulled in the following priority (1) specific backtest YAML configuration, (2) `private_config.yaml`, (3) `defaults.yaml` file. 
 
-Outside of the backtest code, in production configuration options are pulled in the following priority order: (1) private_config.yaml, (2) defaults.yaml file. *The production code can't see inside your backtest configuration files - it is not specific to a strategy so doesn't know which configuration to look for'*. 
+Outside of the backtest code, in production configuration options are pulled in the following priority order: (1) `private_config.yaml`, (2) `defaults.yaml` file. *The production code can't see inside your backtest configuration files - it is not specific to a strategy so doesn't know which configuration to look for*. 
 
 
 ### Control config files
 
-As discussed above, these are used purely for control and monitoring purposes in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), overridden by /private/private_control_config.yaml).
+As discussed above, these are used purely for control and monitoring purposes in [/syscontrol/control_config.yaml](/syscontrol/control_config.yaml), overridden by `/private/private_control_config.yaml`).
 
 ### Broker and data source specific configuration files
 
@@ -2914,7 +2914,7 @@ The following are used when initialising the database with its initial configura
 
 *Capital* is how much we have 'at risk' in our trading account. This total capital is then allocated to trading strategies; see [strategy-capital](#strategy-capital) on a [daily basis](#update-capital-and-pl-by-polling-brokerage-account).
 
-The simplest possible case is that your capital at risk is equal to what is in your trading account. If you do nothing else, that is how the system will behave. For all other cases, the behaviour of capital will depend on the interaction between stored capital values and the parameter value `production_capital_method` (defaults to *full* unless set in private yaml config). If you want to do things differently, you should consider modifying that parameter and/or using the [interactive tool](#interactively-modify-capital-values) to modify or initialise capital.
+The simplest possible case is that your capital at risk is equal to what is in your trading account. If you do nothing else, that is how the system will behave. For all other cases, the behaviour of capital will depend on the interaction between stored capital values and the parameter value `production_capital_method` (defaults to *full* unless set in private YAML config). If you want to do things differently, you should consider modifying that parameter and/or using the [interactive tool](#interactively-modify-capital-values) to modify or initialise capital.
 
 On initialising capital you can choose what the following values are:
 
@@ -2962,7 +2962,7 @@ You can also change other values in the interactive tool, but be careful and mak
 
 ## Strategies
 
-Each strategy is defined in the config parameter `strategy_list`, found either in the defaults.yaml file or overridden in private yaml configuration. The following shows the parameters for an example strategy, named (appropriately enough) `example`.
+Each strategy is defined in the config parameter `strategy_list`, found either in the `defaults.yaml` file or overridden in private YAML configuration. The following shows the parameters for an example strategy, named (appropriately enough) `example`.
 
 ```
 strategy_list:
@@ -2976,7 +2976,7 @@ strategy_list:
 
 ### Strategy capital
 
-Strategy capital is allocated from [total capital](#capital). This is done by the scripted function, [update strategy capital](#allocate-capital-to-strategies). It is controlled by the configuration element below (in the defaults.yaml file, or overridden in private_config.yaml).
+Strategy capital is allocated from [total capital](#capital). This is done by the scripted function, [update strategy capital](#allocate-capital-to-strategies). It is controlled by the configuration element below (in the `defaults.yaml` file, or overridden in `private_config.yaml`).
 
 ```
 strategy_capital_allocation:
@@ -2990,7 +2990,7 @@ The allocation calls the function specified, with any other parameters passed as
 
 #### Risk target
 
-The actual risk a strategy will take depends on both it's capital and it's risk target. The risk target is set in the configuration option, `percentage_vol_target`, in the backtest configuration .yaml file for the relevant strategy (if not supplied, the defaults.yaml value is used; this is *not* overridden by private_config.yaml). Risk targets can be different across strategies.
+The actual risk a strategy will take depends on both it's capital and it's risk target. The risk target is set in the configuration option, `percentage_vol_target`, in the backtest configuration YAML file for the relevant strategy (if not supplied, the `defaults.yaml` value is used; this is *not* overridden by `private_config.yaml`). Risk targets can be different across strategies.
 
 #### Changing risk targets and/or capital
 
@@ -3003,7 +3003,7 @@ We do not store a history of the risk target of a strategy, so if you change the
 
 System runners run overnight backtests for each of the strategies you are running (see [here](#run-updated-backtest-systems-for-one-or-more-strategies) for more details.)
 
-The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you must specify your own personal strategy configuration in private_control_config.yaml).
+The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you must specify your own personal strategy configuration in `private_control_config.yaml`).
 
 ```
 process_configuration_methods:
@@ -3029,7 +3029,7 @@ As an example [here](/sysproduction/strategy_code/run_system_classic.py) is the 
 
 Once a backtest has been run it will generate a list of desired optimal positions (for the classic buffered positions, these will include buffers). From those, and our actual current positions, we need to calculate what trades are required for execution by the run_stack_handler process.
 
-The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you must specify your own personal strategy configuration in private_control_config.yaml)
+The following shows the parameters for an example strategy, named (appropriately enough) `example` stored in [syscontrol/control_config.yaml](/syscontrol/control_config.yaml) (remember you must specify your own personal strategy configuration in `private_control_config.yaml`)
 
 ```
 process_configuration_methods:
@@ -3712,7 +3712,7 @@ V2X                            [20201118, 20201216] 2020-10-15 09:43:30  (1, -1)
 
 The strategy report is bespoke to a strategy; it will load the last backtest file generated and report diagnostics from it. On a daily basis it runs for all strategies. On an ad hoc basis, it can be run for all or a single strategy.
 
-The strategy reporting is determined by the parameter `strategy_list/strategy_name/reporting_code/function` in default.yaml or overridden in the private config .yaml file. The 'classic' reporting function is `sysproduction.strategy_code.report_system_classic.report_system_classic`
+The strategy reporting is determined by the parameter `strategy_list/strategy_name/reporting_code/function` in `defaults.yaml` or overridden in the private config YAML file. The 'classic' reporting function is `sysproduction.strategy_code.report_system_classic.report_system_classic`
 
 Here is an example, with annotations added in quotes (""):
 
@@ -4026,8 +4026,8 @@ KOSPI                     NaN           NaN              NaN        NaN    0.025
 
 It is possible to setup a custom report configuration. Say for example that you would like to push reports to a git repo 
 [like this](https://github.com/robcarver17/reports). In that case you would need to change the default behaviour, sending reports
-via email, to saving the report as a file Files would be stored in according to what is declared in private_config.yaml
-`reporting_directory`. Customization is done in the private_config.yaml. Example of reporting customization is; 
+via email, to saving the report as a file Files would be stored in according to what is declared in `private_config.yaml`
+`reporting_directory`. Customization is done in the `private_config.yaml`. Example of reporting customization is; 
 
 ```
  reports:
