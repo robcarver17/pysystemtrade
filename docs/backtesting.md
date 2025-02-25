@@ -1669,8 +1669,6 @@ Think carefully about whether your method should create data that is protected f
 - Estimated Instrument weights
 - Estimated Instrument correlations
 
-To this list I'd add any cross sectional data, and anything that measures portfolio risk (not yet implemented in this project).
-
 Also think about whether you're going to cache any complex objects that `pickle` might have trouble with, like class instances. You need to flag these up as problematic.
 
 Caching is implemented (as of version 0.14.0 of this project) by python decorators attached to methods in the stage objects. There are four decorators used by the code:
