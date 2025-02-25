@@ -214,12 +214,12 @@ Although the project is intended mainly for working with trading systems, it's p
 
 ## How do I....Create a standard futures backtest
 
-This creates the staunch systems trader example defined in chapter 15 of my book, using the csv data that is provided, and gives you the position in the Eurodollar market:
+This creates the staunch systems trader example defined in chapter 15 of my book, using the csv data that is provided, and gives you the position in the DAX market:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
-system.portfolio.get_notional_position("EDOLLAR")
+system.portfolio.get_notional_position("DAX")
 ```
 See [standard futures system](#futures-system-for-chapter-15) for more.
 
@@ -231,7 +231,7 @@ This creates the staunch systems trader example defined in chapter 15 of my book
 ```python
 from systems.provided.futures_chapter15.estimatedsystem import futures_system
 system=futures_system()
-system.portfolio.get_notional_position("EDOLLAR")
+system.portfolio.get_notional_position("SOFR")
 ```
 
 See [estimated futures system](#futures-system-for-chapter-15).
@@ -240,12 +240,12 @@ See [estimated futures system](#futures-system-for-chapter-15).
 
 ## How do I....See intermediate results from a backtest
 
-This will give you the raw forecast (before scaling and capping) of one of the EWMAC rules for Eurodollar futures in the standard futures backtest:
+This will give you the raw forecast (before scaling and capping) of one of the EWMAC rules for DAX futures in the standard futures backtest:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
 system=futures_system()
-system.rules.get_raw_forecast("EDOLLAR", "ewmac64_256")
+system.rules.get_raw_forecast("DAX", "ewmac64_256")
 ```
 
 For a complete list of possible intermediate results, use `print(system)` to see the names of each stage, and then `stage_name.methods()`. Or see [this table](#table-of-standard-systemdata-and-systemstage-methods) and look for rows marked with **D** for diagnostic. Alternatively type `system` to get a list of stages, and `system.stagename.methods()` to get a list of methods for a stage (insert the name of the stage, not stagename).
@@ -260,7 +260,7 @@ system.accounts.portfolio().stats() ## see some statistics
 system.accounts.portfolio().curve().plot() ## plot an account curve
 system.accounts.portfolio().percent.curve().plot() ## plot an account curve in percentage terms
 system.accounts.pandl_for_instrument("US10").percent.stats() ## produce % statistics for a 10 year bond
-system.accounts.pandl_for_instrument_forecast("EDOLLAR", "carry").sharpe() ## Sharpe for a specific trading rule variation
+system.accounts.pandl_for_instrument_forecast("SOFR", "carry").sharpe() ## Sharpe for a specific trading rule variation
 ```
 
 For more information on what statistics are available, see the [relevant guide section](#using-the-standard-account-class).
@@ -383,7 +383,7 @@ For fixed weights, you can then change this section of the config:
 
 ```
 instrument_weights:
-    EDOLLAR: 0.117
+    SOFR: 0.117
     US10: 0.117
     EUROSTX: 0.20
     V2X: 0.098
@@ -396,7 +396,7 @@ You may also have to change the forecast_weights, if they're instrument specific
 
 ```
 forecast_weights:
-   EDOLLAR:
+   SOFR:
      ewmac16_64: 0.21
      ewmac32_128: 0.08
      ewmac64_256: 0.21
@@ -409,7 +409,7 @@ forecast_weights:
 For estimated instrument weights you'd change this section:
 
 ```
-instruments: ["EDOLLAR", "US10", "EUROSTX", "V2X", "MXP", "CORN"]
+instruments: ["SOFR", "US10", "EUROSTX", "V2X", "MXP", "CORN"]
 ```
 
 Note that if moving from fixed to estimated instrument weights (by changing `system.config.use_instrument_weight_estimates` to `True`), the set of instruments selected in your `system.config.instrument_weights` will be ignored; if you want to continue using this same set of instruments, you need to say so:
@@ -424,7 +424,7 @@ You may also need to change this section, if you have different rules for each i
 
 ```
 rule_variations:
-     EDOLLAR: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
+     SOFR: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'carry']
 ```
 
 You should then create a new system which points to the new config file:
@@ -599,7 +599,7 @@ use_forecast_scale_estimates: True
 use_forecast_div_mult_estimates: True
 
 rule_variations:
-     EDOLLAR: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule']
+     SOFR: ['ewmac16_64','ewmac32_128', 'ewmac64_256', 'new_rule']
 #
 # OR if all variations are the same for all instruments
 #
@@ -1384,13 +1384,13 @@ The system object doesn't do very much in itself, except provide access to its '
 For example to get the final portfolio level 'notional' position, which is in the child stage named `portfolio`:
 
 ```python
-system.portfolio.get_notional_position("EDOLLAR")
+system.portfolio.get_notional_position("SOFR")
 ```
 
 We can also access the methods in the data object that is part of every system:
 
 ```python
-system.data.get_raw_price("EDOLLAR")
+system.data.get_raw_price("SOFR")
 ```
 
 For a list of all the methods in a system and its stages see [stage methods](#table-of-standard-systemdata-and-systemstage-methods). Alternatively:
@@ -1428,7 +1428,7 @@ get_list_of_markets_with_trading_restrictions'
 
 ### System Caching and pickling
 
-Pulling in data and calculating all the various stages in a system can be a time consuming process. So the code supports caching. When we first ask for some data by calling a stage method, like `system.portfolio.get_notional_position("EDOLLAR")`, the system first checks to see if it has already pre-calculated this figure. If not then it will calculate the figure from scratch. This in turn may involve calculating preliminary figures that are needed for this position, unless they've already been pre-calculated. So for example to get a combined forecast, we'd already need to have all the individual forecasts from different trading rule variations for a particular instrument. Once we've calculated a particular data point, which could take some time, it is stored in the system object cache (along with any intermediate results we also calculated). The next time we ask for it will be served up immediately.
+Pulling in data and calculating all the various stages in a system can be a time consuming process. So the code supports caching. When we first ask for some data by calling a stage method, like `system.portfolio.get_notional_position("DAX")`, the system first checks to see if it has already pre-calculated this figure. If not then it will calculate the figure from scratch. This in turn may involve calculating preliminary figures that are needed for this position, unless they've already been pre-calculated. So for example to get a combined forecast, we'd already need to have all the individual forecasts from different trading rule variations for a particular instrument. Once we've calculated a particular data point, which could take some time, it is stored in the system object cache (along with any intermediate results we also calculated). The next time we ask for it will be served up immediately.
 
 Most of the time you shouldn't need to worry about caching. If you're testing different configurations, or updating or changing your data, you just have to make sure you recreate the system object from scratch after each change. A new system object will have an empty cache.
 
@@ -1439,50 +1439,50 @@ from copy import copy
 from systems.provided.futures_chapter15.basesystem import futures_system
 
 system=futures_system()
-system.combForecast.get_combined_forecast("EDOLLAR")
+system.combForecast.get_combined_forecast("SOFR")
 
 ## What's in the cache?
-system.cache.get_cache_refs_for_instrument("EDOLLAR")
+system.cache.get_cache_refs_for_instrument("SOFR")
 
-   [_get_forecast_scalar_fixed in forecastScaleCap for instrument EDOLLAR [carry] , get_raw_forecast in rules for instrument EDOLLAR [ewmac32_128]  ...
+   [_get_forecast_scalar_fixed in forecastScaleCap for instrument SOFR [carry] , get_raw_forecast in rules for instrument SOFR [ewmac32_128]  ...
 
 
 ## Let's make a change to the config:
 system.config.forecast_div_multiplier=0.1
 
 ## This will produce the same result, as we've cached the result
-system.combForecast.get_combined_forecast("EDOLLAR")
+system.combForecast.get_combined_forecast("SOFR")
 
 ## but if we make a new system with the new config...
 system=futures_system(config=system.config)
 
 ## check the cache is empty:
-system.cache.get_cache_refs_for_instrument("EDOLLAR")
+system.cache.get_cache_refs_for_instrument("SOFR")
 
 ## ... we get a different result
-system.combForecast.get_combined_forecast("EDOLLAR")
+system.combForecast.get_combined_forecast("SOFR")
 
 ## We can also turn caching off
 ## First clear the cache
 system.cache.clear()
 
 ## ... should be nothing here
-system.cache.get_cache_refs_for_instrument("EDOLLAR")
+system.cache.get_cache_refs_for_instrument("SOFR")
 
 ## Now turn off caching
 system.cache.set_caching_off()
 
 ## Now after getting some data:
-system.combForecast.get_combined_forecast("EDOLLAR")
+system.combForecast.get_combined_forecast("SOFR")
 
 ##.... the cache is still empty
-system.cache.get_cache_refs_for_instrument("EDOLLAR")
+system.cache.get_cache_refs_for_instrument("SOFR")
 
 ## if we change the config
 system.config.forecast_div_multiplier=100.0
 
 ## ... then the result will be different without needing to create a new system
-system.combForecast.get_combined_forecast("EDOLLAR")
+system.combForecast.get_combined_forecast("SOFR")
 ```
 
 ### Pickling and unpickling saved cache data
@@ -1540,13 +1540,13 @@ For example here are is how we'd check the cache after getting a notional positi
 
 
 ```python
-system.portfolio.get_notional_position("EDOLLAR")
+system.portfolio.get_notional_position("SOFR")
 
 system.cache.get_items_with_data() ## this list everything.
 system.cache.get_cacherefs_for_stage("portfolio") ## lists everything in a particular stage
 system.cache.get_items_with_data().filter_by_stage_name("portfolio") ## more idiomatic way
 system.cache._get_protected_items() ## lists protected items
-system.cache.get_items_with_data().filter_by_instrument_code("EDOLLAR") ## list items with data for an instrument
+system.cache.get_items_with_data().filter_by_instrument_code("SOFR") ## list items with data for an instrument
 system.cache.get_cache_refs_across_system() ## list items that run across the whole system or multiple instruments
 
 system.cache.get_items_with_data().filter_by_itemname('get_capped_forecast').unique_list_of_instrument_codes() ## lists all instruments with a capped forecast
@@ -1816,7 +1816,7 @@ SystemStage 'rawdata'
 So we can access the data methods of each stage:
 
 ```python
-system.rawdata.get_raw_price("EDOLLAR").tail(5)
+system.rawdata.get_raw_price("SOFR").tail(5)
 ```
 
 ```
@@ -1834,22 +1834,22 @@ system.rawdata.get_raw_price("EDOLLAR").tail(5)
 
 It's worth having a basic understanding of how the stages within a system are 'wired' together. Furthermore if you're going to modify or create new code, or use [advanced system caching](#system-caching-and-pickling), you're going to need to understand this properly.
 
-What actually happens when we call `system.combForecast.get_combined_forecast("EDOLLAR")` in the pre-baked futures system? Well this in turn will call other methods in this stage, and they will call methods in previous stages... and so on until we get back to the underlying data. We can represent this with a diagram:
+What actually happens when we call `system.combForecast.get_combined_forecast("DAX")` in the pre-baked futures system? Well this in turn will call other methods in this stage, and they will call methods in previous stages... and so on until we get back to the underlying data. We can represent this with a diagram:
 
-- `system.combForecast.get_combined_forecast("EDOLLAR")`
-  - `system.combForecast.get_forecast_diversification_multiplier("EDOLLAR")`
-  - `system.combForecast.get_forecast_weights("EDOLLAR")`
-  - `system.combForecast.get_capped_forecast("EDOLLAR", "ewmac2_8"))` etc
-    - `system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac2_8"))` etc
-      - `system.forecastScaleCap.get_forecast_cap("EDOLLAR", "ewmac2_8")` etc
-      - `system.forecastScaleCap.get_scaled_forecast("EDOLLAR", "ewmac2_8")`
+- `system.combForecast.get_combined_forecast("DAX")`
+  - `system.combForecast.get_forecast_diversification_multiplier("DAX")`
+  - `system.combForecast.get_forecast_weights("DAX")`
+  - `system.combForecast.get_capped_forecast("DAX", "ewmac2_8"))` etc
+    - `system.forecastScaleCap.get_capped_forecast("DAX", "ewmac2_8"))` etc
+      - `system.forecastScaleCap.get_forecast_cap("DAX", "ewmac2_8")` etc
+      - `system.forecastScaleCap.get_scaled_forecast("DAX", "ewmac2_8")`
         etc
-        - `system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac2_8")`
+        - `system.forecastScaleCap.get_forecast_scalar("DAX", "ewmac2_8")`
           etc
-        - `system.forecastScaleCap.get_raw_forecast("EDOLLAR", "ewmac2_8")` etc
-          - `system.rules.get_raw_forecast("EDOLLAR", "ewmac2_8")` etc
-            - `system.data.get_raw_price("EDOLLAR")`
-            - `system.rawdata.get_daily_returns_volatility("EDOLLAR")`
+        - `system.forecastScaleCap.get_raw_forecast("DAX", "ewmac2_8")` etc
+          - `system.rules.get_raw_forecast("DAX", "ewmac2_8")` etc
+            - `system.data.get_raw_price("DAX")`
+            - `system.rawdata.get_daily_returns_volatility("DAX")`
               - (further stages to calculate volatility omitted)
 
 A system effectively consists of a 'tree' of which the above shows only a small part. When we ask for a particular 'leaf' of the tree, the data travels up the 'branches' of the tree, being cached as it goes.
@@ -1863,15 +1863,15 @@ The stage 'wiring' is how the various stages communicate with each other. Genera
 For example consider the first few items in the list above. Let's label them appropriately:
 
 - **Output (combForecast)**:
-  `system.combForecast.get_combined_forecast("EDOLLAR")`
+  `system.combForecast.get_combined_forecast("DAX")`
   - **Internal (combForecast)**:
-    `system.combForecast.get_forecast_diversification_multiplier("EDOLLAR")`
+    `system.combForecast.get_forecast_diversification_multiplier("DAX")`
   - **Internal (combForecast)**:
-    `system.combForecast.get_forecast_weights("EDOLLAR")`
+    `system.combForecast.get_forecast_weights("DAX")`
   - **Input (combForecast)**:
-    `system.combForecast.get_capped_forecast("EDOLLAR", "ewmac2_8"))` etc
+    `system.combForecast.get_capped_forecast("DAX", "ewmac2_8"))` etc
     - **Output (forecastScaleCap)**:
-      `system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac2_8"))` etc
+      `system.forecastScaleCap.get_capped_forecast("DAX", "ewmac2_8"))` etc
 
 This approach (which you can also think of as the stage "API") is used to make it easier to modify the code - we can change the way a stage works internally, or replace it with a new stage with the same name, but as long as we keep the output method intact we don't need to mess around with any other stage.
 
@@ -2137,8 +2137,8 @@ system = System([
 ], data, config)
 
 # This will now work in the usual way
-system.rules.get_raw_forecast("EDOLLAR", "ewmac8_32")
-system.rules.get_raw_forecast("EDOLLAR", "ewmac2_8")
+system.rules.get_raw_forecast("DAX", "ewmac8_32")
+system.rules.get_raw_forecast("DAX", "ewmac2_8")
 ```
 
 Notes: methods passed as data pointers must only have a single argument plus optionally keyword arguments. Multiple non keyword arguments will break. Also in specifying the other arguments you don't have to provide keyword arguments for all data elements, or for the trading rule: all are optional.
@@ -2181,7 +2181,7 @@ Exception: A Rules stage needs to be part of a System to identify trading rules,
 
 ```python
 ## Once part of a system we can see the rules
-forecast=system.rules.get_raw_forecast('EDOLLAR','ewmac2_8')
+forecast=system.rules.get_raw_forecast('DAX','ewmac2_8')
 rules
 ```
 
@@ -2626,7 +2626,7 @@ Both are configurable. If omitted equal weights will be used, and a multiplier o
 YAML:
 ```
 instrument_weights:
-    EDOLLAR: 0.5
+    DAX: 0.5
     US10: 0.5
 instrument_div_multiplier: 1.2
 
@@ -2773,7 +2773,7 @@ There is a lot more to `accountCurve` and group objects than meets the eye.
 Let's start with `accountCurve`, which is the output you get from `systems.account.pandl_for_subsystem` amongst other things
 
 ```python
-acc_curve=system.accounts.pandl_for_subsystem("EDOLLAR")
+acc_curve=system.accounts.pandl_for_subsystem("DAX")
 ```
 
 This *looks* like a pandas data frame, where each day is a different return. However it's actually a bit more interesting than that. There's actually three different account curves buried inside this; *gross* p&l without costs, *costs*, and *net* including costs. We can access any of them like so:
@@ -3046,13 +3046,13 @@ Instrument level turnovers are accurate for the vanilla system but may be mislea
 To see holding costs in SR units:
 
 ```
-system.accounts.get_rolls_per_year("EDOLLAR") ## four
-system.accounts.get_SR_cost_per_trade_for_instrument("EDOLLAR") ## about 1 SR unit
-system.accounts.get_SR_holding_cost_only("EDOLLAR") ## cost of 4 rolls per year: which is two 'turnovers'
-system.accounts.get_SR_trading_cost_only_given_turnover("EDOLLAR", 5.0) ## trading five times a year, no holding cost
-system.accounts.get_SR_cost_given_turnover("EDOLLAR", 5) ## includes both holding and trading costs for a turnover of 5
-system.accounts.get_SR_cost_for_instrument_forecast("EDOLLAR", "carry") ## includes both
-system.accounts.pandl_for_subsystem("EDOLLAR") ## includes both, assuming you're using SR costs
+system.accounts.get_rolls_per_year("DAX") ## four
+system.accounts.get_SR_cost_per_trade_for_instrument("DAX") ## about 1 SR unit
+system.accounts.get_SR_holding_cost_only("DAX") ## cost of 4 rolls per year: which is two 'turnovers'
+system.accounts.get_SR_trading_cost_only_given_turnover("DAX", 5.0) ## trading five times a year, no holding cost
+system.accounts.get_SR_cost_given_turnover("DAX", 5) ## includes both holding and trading costs for a turnover of 5
+system.accounts.get_SR_cost_for_instrument_forecast("DAX", "carry") ## includes both
+system.accounts.pandl_for_subsystem("DAX") ## includes both, assuming you're using SR costs
 ```
 
 For calculating forecast costs (`pandl_for_instrument_forecast`... and so on. Note these are used for estimating forecast weights) I offer the option to pool costs across instruments. You can either pool the estimate of turnovers (which I recommend), or pool the average of cost * turnover (which I don't recommend). Averaging in the pooling process is always done with more weight given to instruments that have more history.
@@ -3911,12 +3911,12 @@ system.rawdata.methods() ## works for any stage or data
 
 ### Explanation of columns
 
-For brevity the name of the system instance is omitted from the 'call' column (except where it's the actual system object we're calling directly). So for example to get the instrument price for Eurodollar from the data object, which is marked as *`data.get_raw_price`* we would do something like this:
+For brevity the name of the system instance is omitted from the 'call' column (except where it's the actual system object we're calling directly). So for example to get the instrument price for DAX from the data object, which is marked as *`data.get_raw_price`* we would do something like this:
 
 ```python
 from systems.provided.futures_chapter15.basesystem import futures_system
 name_of_system=futures_system()
-name_of_system.data.get_raw_price("EDOLLAR")
+name_of_system.data.get_raw_price("DAX")
 ```
 
 Standard methods are in all systems. Non standard methods are for stage classes inherited from the standard class, eg the raw data method specific to *futures*; or the *estimate* classes which estimate parameters rather than use fixed versions.
@@ -4539,13 +4539,13 @@ Although the default is equal weights, these are not included in the system defa
 YAML:
 ```
 instrument_weights:
-    EDOLLAR: 0.5
+    DAX: 0.5
     US10: 0.5
 ```
 
 Python
 ```python
-config.instrument_weights=dict(EDOLLAR=0.5, US10=0.5)
+config.instrument_weights=dict(DAX=0.5, US10=0.5)
 ```
 
 #### Instrument weights (estimated)

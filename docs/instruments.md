@@ -216,9 +216,9 @@ The list of instruments we have now will be used throughout the backtest. So we 
 from systems.provided.futures_chapter15.estimatedsystem import *
 system = futures_system()
 system.config.instruments
->['EDOLLAR', 'US10', 'EUROSTX', 'MXP', 'CORN', 'V2X']
+>['SOFR', 'US10', 'EUROSTX', 'MXP', 'CORN', 'V2X']
 system.get_instrument_list()
->['CORN', 'EDOLLAR', 'EUROSTX', 'MXP', 'US10', 'V2X'] ## nothing has been excluded yet
+>['CORN', 'SOFR', 'EUROSTX', 'MXP', 'US10', 'V2X'] ## nothing has been excluded yet
 system.portfolio.get_subsystem_position("V2X")
 > ....
 2021-10-05   -33.749026
@@ -241,7 +241,7 @@ system.portfolio.get_instrument_list(for_instrument_weights=True)
 ['V2X']
 This is fine for dynamic systems where we remove them in later optimisation, but may be problematic for static systems
 Consider adding to config element allocate_zero_instrument_weights_to_these_instruments
-['CORN', 'EDOLLAR', 'EUROSTX', 'MXP', 'US10', 'V2X']
+['CORN', 'SOFR', 'EUROSTX', 'MXP', 'US10', 'V2X']
 ```
 
 OK, let's do what we're told:
@@ -250,10 +250,10 @@ OK, let's do what we're told:
 system.cache.delete_all_items()
 system.config.allocate_zero_instrument_weights_to_these_instruments= ['V2X']
 system.portfolio.get_instrument_list(for_instrument_weights=True)
-['CORN', 'EDOLLAR', 'EUROSTX', 'MXP', 'US10']
+['CORN', 'SOFR', 'EUROSTX', 'MXP', 'US10']
 system.portfolio.get_instrument_weights().tail(1)
 
->              CORN   EDOLLAR   EUROSTX      MXP      US10  V2X
+>           CORN      SOFR      EUROSTX   MXP      US10      V2X
 index                                                           
 2021-10-06  0.260899  0.188551  0.181449  0.18055  0.188551  0.0
 
@@ -263,7 +263,7 @@ Incidentally, this will also apply zero weights if we are using 1/n fixed instru
 ```
 system.portfolio.get_raw_fixed_instrument_weights()
 >WARNING: No instrument weights  - using equal weights of 0.2000 over all 5 instruments in data
-            CORN  EDOLLAR  EUROSTX  MXP  US10  V2X
+            CORN     SOFR  EUROSTX  MXP  US10  V2X
 1972-10-18   0.2      0.2      0.2  0.2   0.2  0.0
 2021-10-06   0.2      0.2      0.2  0.2   0.2  0.0
 ```

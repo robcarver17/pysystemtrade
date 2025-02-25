@@ -2197,9 +2197,9 @@ View historic series of positions and orders. Options are:
 
 ##### View instrument configuration data
 
-View the configuration data for a particular instrument, eg for EDOLLAR:
+View the configuration data for a particular instrument, eg for DAX:
 
-```{'Description': 'US STIR Eurodollar', 'Exchange': 'GLOBEX', 'Pointsize': 2500.0, 'Currency': 'USD', 'AssetClass': 'STIR', 'Slippage': 0.0025, 'PerBlock': 2.11, 'Percentage': 0.0, 'PerTrade': 0.0}```
+```{'Description': 'DAX 30 Index (Deutsche Aktien Xchange 30)', 'Pointsize': 1.0, 'Currency': 'EUR', 'AssetClass': 'Equity', 'PerBlock': 0.4, 'Percentage': 0.0, 'PerTrade': 0, 'Region': 'EMEA'}```
 
 Note there may be further configuration stored in other places, eg broker specific.
 
