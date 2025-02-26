@@ -100,9 +100,6 @@ Out[13]: IB broker connection{'ipaddress': '127.0.0.1', 'port': 4001, 'client': 
 See [here](#creating-and-closing-connection-objects) for more details.
 
 
-
-
-<a name="futures_data_workflow"></a>
 # Reference
 
 ## Classes and object references
