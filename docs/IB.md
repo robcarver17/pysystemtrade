@@ -1,6 +1,6 @@
 This document is specifically about using pysystemtrade to connect with *Interactive Brokers (IB)*
 
-As of version 0.28.0, this requires the [ib_insync](https://github.com/erdewit/ib_insync) library.
+As of version 0.28.0, this requires the [ib-insync](https://github.com/erdewit/ib_insync) library.
 
 Although this document is about Interactive Brokers, you should read it carefully if you plan to use other brokers as it explains how to modify the various classes to achieve that, or perhaps if you want to use an alternative Python layer to talk to the IB API
 
@@ -20,10 +20,11 @@ Table of Contents
 =================
 
 <!--ts-->
+* [Table of Contents](#table-of-contents)
 * [Preliminaries](#preliminaries)
    * [Getting started with interactive brokers](#getting-started-with-interactive-brokers)
       * [Gateway / TWS](#gateway--tws)
-      * [IB-insync library](#ib-insync-library)
+      * [ib-insync library](#ib-insync-library)
       * [IBC](#ibc)
    * [Launching and configuring the Gateway](#launching-and-configuring-the-gateway)
    * [Making a connection](#making-a-connection)
@@ -51,18 +52,18 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 ## Getting started with interactive brokers
 
-You may want to read [my blog posts](https://qoppac.blogspot.com/2017/03/interactive-brokers-native-python-api.html) to understand more about what is going on if it's your first experience of IB's Python API. For any issues with IB go to [this group](https://groups.io/g/twsapi). IB also have a [webinar](https://register.gotowebinar.com/register/5481173598715649281) for the API. The official manual for the IB API is [here](http://interactivebrokers.github.io/tws-api/introduction.html) and for IB insync is [here](https://ib-insync.readthedocs.io/api.html).
+You may want to read [my blog posts](https://qoppac.blogspot.com/2017/03/interactive-brokers-native-python-api.html) to understand more about what is going on if it's your first experience of IB's Python API. For any issues with IB go to [this group](https://groups.io/g/twsapi). IB also have a [webinar](https://register.gotowebinar.com/register/5481173598715649281) for the API. The official manual for the IB API is [here](http://interactivebrokers.github.io/tws-api/introduction.html) and for ib-insync is [here](https://ib-insync.readthedocs.io/api.html).
 
 ### Gateway / TWS
 
 You need to download either the gateway or TWS software from the IB website. I recommend using the Gateway as it is much more stable and lightweight, and does not regularly reboot itself.
 
 
-### IB-insync library
+### ib-insync library
 
-I use IB-insync as my API to the Python Gateway. You will need the [ib_insync](https://github.com/erdewit/ib_insync) library. This does not require you to download the IB Python code.
+I use [ib-insync](https://github.com/erdewit/ib_insync) as my interface to the IB API. This library is a required dependency
 
-It is worth running the examples in the [IB-insync cookbook](https://ib-insync.readthedocs.io/api.html) to make sure your IB connection is working, that you have the right gateway settings, and so on. Pysystemtrade obviously won't work if IB insync can't work!!
+It is worth running the examples in the [ib-insync cookbook](https://ib-insync.readthedocs.io/api.html) to make sure your IB connection is working, that you have the right gateway settings, and so on. Pysystemtrade obviously won't work if ib-insync can't work!!
 
 
 ### IBC
@@ -110,8 +111,8 @@ See [here](#creating-and-closing-connection-objects) for more details.
 There are three types of objects in the [sysbrokers/IB](/sysbrokers/IB) area of pysystemtrade:
 
 - Data source objects: Provide the standard data object API to the rest of the code, eg getting futures contracts prices is done with the same call whether they are coming from a database or IB. They are called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface). They are instanced with a *connection object*. They make calls to *client objects*. 
-- Client objects: These make calls to the ib_insync in specific domains (getting data, placing orders and so on). They are also instanced with a *connection object*.
-- Connection objects. These contain a specific connection to an IB gateway via an ib_insync IB instance.
+- Client objects: These make calls to the ib-insync in specific domains (getting data, placing orders and so on). They are also instanced with a *connection object*.
+- Connection objects. These contain a specific connection to an IB gateway via an ib-insync `IB` instance.
 
 
 ## Data source objects
@@ -226,7 +227,7 @@ ib_contract_position_data.get_all_current_positions_as_list_with_contract_object
 
 ## Client objects
 
-Client objects make calls and requests to the broker via ib_insync. They are usually initialised by a broker data source object, which passes them a connection (and optionally a log).
+Client objects make calls and requests to the broker via ib-insync. They are usually initialised by a broker data source object, which passes them a connection (and optionally a log).
 
 They are located in this [module](/sysbrokers/IB/client). They are tied together with a weird inheritance tree:
 
@@ -294,7 +295,7 @@ The main service the connection provides is that it encapsulates a live ib_inysn
 conn.ib
 ```
 
-You can use this directly if you are familiar with ib_insync eg `conn.ib.positions()`, but normally this would be used by the IB client objects.
+You can use this directly if you are familiar with ib-insync eg `conn.ib.positions()`, but normally this would be used by the IB client objects.
 
 
 ### Make multiple connections
