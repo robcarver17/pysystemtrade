@@ -1236,7 +1236,7 @@ The following is correct for IB, which in any case is the only broker we can cur
 
 Broker orders are passed to sysbrokers.IB.ib_orders.ibExecutionStackData.put_order_on_stack; after adding information needed to identify the contract to be traded accurately, it is subsequently sent to sysbrokers.IB.client.ib_orders_client.ibOrdersClient.
 
-That translates the order into IB terms, and places the order. It returns a tradeWithContract object, which contains an ibcontractWithLegs object (containing the IB representation of the contract traded, plus any legs for a spread order), and the order object returned by the ib_insync code. 
+That translates the order into IB terms, and places the order. It returns a tradeWithContract object, which contains an ibcontractWithLegs object (containing the IB representation of the contract traded, plus any legs for a spread order), and the order object returned by the ib-insync code. 
 
 This is then turned into a ibOrderWithControls object. This further layer of abstraction contains both a broker order, plus the tradeWithContract 'control' object needed to manage the trade (clearly this would make it easier to use another broker). We then replace the submit_datetime with the order time (from the broker itself, to ensure consistency with the timestamp on price data as well as any fill times). We then store this orderWithControls object in a local cache. That will make it easier to access subsequently, and check for fills etc. The storage key is broker_tempid.
 
@@ -1258,7 +1258,7 @@ Control then returns to the algo to manage the trade. For the market algo, it wi
 
 For the best execution algo if a market order has been issued it will behave like the market algo. If a limit order was issued, it will wait passively for a fill. If certain conditions are met it will switch to trading aggressively; which means it will change the limit price to buy at the offer, and sell at the bid. 
 
-How do we poll for cancellations and fills, change limit prices, and request cancellations? This is all done via the 'control' objects buried inside ibOrderWithControls, which is the IB insync representation of the order and contract traded. A frequent pattern is to update that object, and then use it to update the *execution details* for the broker order. The following broker order fields are updated in this way:
+How do we poll for cancellations and fills, change limit prices, and request cancellations? This is all done via the 'control' objects buried inside ibOrderWithControls, which is the ib-insync representation of the order and contract traded. A frequent pattern is to update that object, and then use it to update the *execution details* for the broker order. The following broker order fields are updated in this way:
 
 - fill: length 1, or longer for spread orders
 - filled price: float, even for spread orders (since IB fills are returned as a list for each leg, we have to calculate this)
