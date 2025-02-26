@@ -633,7 +633,7 @@ mongodump -o ~/dump/
 cp -rf ~/dump/* $MONGO_BACKUP_PATH
 ```
 
-This is done by the scheduled backup process (see [scheduling](#scheduling)), and also by [this script](#backup-mongodb-dump)
+This is done by the scheduled backup process (see [scheduling](#scheduling)), and also by the script detailed [here](#backup-mongodb-dump)
 
 Then to restore, from a linux command line:
 ```
@@ -1836,8 +1836,13 @@ Linux script:
 . $SCRIPT_PATH/interactive_manual_check_historical_prices
 ```
 
-The script will pull in data from interactive brokers, and the existing data. It will behave in the same way as `update_historical_prices`, except you have the option to change the relevant configuration items before you begin.
+The script will pull in data from interactive brokers, and the existing data. It will behave in the same way as `update_historical_prices`, except you have the option to change the price filter configuration before you begin. The default config is: 
 
+```yaml
+priceFilterConfig(ignore_future_prices=True, ignore_prices_with_zero_volumes_daily=False, ignore_prices_with_zero_volumes_intraday=True, ignore_zero_prices=True, ignore_negative_prices=False, max_price_spike=8)
+```
+
+(Any of these values could be different if overridden in your own config)
 
 Next it will check for spikes. If any spikes are found, then the user is interactively asked if they wish to (a) accept the spiked price, (b) use the previous time periods price instead, or (c) type a number in manually. You should check another data source to see if the spike is 'real', if so accept it, otherwise type in the correct value. Using the previous time periods value is only advisable if you are fairly sure that the price change wasn't real and you don't have a source to check with.
 

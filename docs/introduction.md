@@ -646,7 +646,7 @@ Note we don't need to tell the config that we're not using estimation for foreca
 Config with elements: base_currency, forecast_div_multiplier, forecast_scalars, forecast_weights, instrument_div_multiplier, instrument_weights, notional_trading_capital, percentage_vol_target, trading_rules
 ```
 
-Alternatively we could get the same result from reading a [YAML](https://pyyaml.org) file ( [this one to be precise](/systems/provided/example/simplesystemconfig.yaml) ). Don't worry if you're not familiar with YAML; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python.
+Alternatively we could get the same result from reading a [YAML](https://pyyaml.org) file (the one at [`/systems/provided/example/simplesystemconfig.yaml`](/systems/provided/example/simplesystemconfig.yaml) to be precise). Don't worry if you're not familiar with YAML; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python.
 
 ```python
 my_config=Config("systems.provided.example.simplesystemconfig.yaml")

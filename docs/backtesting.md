@@ -1027,7 +1027,7 @@ system=futures_system()
 new_config=system.config
 ```
 
-Under the hood this is effectively getting a configuration from a YAML file - [this one](/systems/provided/futures_chapter15/futuresconfig.yaml).
+Under the hood this is effectively getting a configuration from [`/systems/provided/futures_chapter15/futuresconfig.yaml`](/systems/provided/futures_chapter15/futuresconfig.yaml).
 
 Configs created in this way will include all [the defaults populated](#how-the-defaults-and-private-configuration-work).
 
@@ -1066,7 +1066,7 @@ Many (but not all) configuration parameters have defaults which are used by the 
 
 I recommend that you do not change these defaults. It's better to use the settings you want in each system configuration file, or use a private configuration file if this is something you want to apply to all your backtests.
 
-If this file exists, `/private/private_config.yaml`, it will be used as a private configuration file.
+If this file exists, `/private/private_config.yaml`, it will be used as a private configuration file. Another option is to [put your private config in a directory external to the project](production.md#custom-private-directory).
 
 Basically, whenever a configuration object is added to a system, if there is a private config file then we add the elements from that. Then for any remaining missing elements we add the elements from `defaults.yaml`.
 

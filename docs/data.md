@@ -103,7 +103,7 @@ In general each step relies on the previous step to work; more formally:
 Before we start, another note: Confusingly, data can be stored or come from various places, which include: 
 
 1. CSV files containing data that pysystemtrade is shipped with (stored in [this set of directories](/data/futures)). Any CSV data 'pipeline' object defaults to using this data set.
-2. configuration CSV files used to initialise the system, such as [this file](/data/futures/csvconfig/spreadcosts.csv)
+2. configuration CSV files used to initialise the system, such as [`/data/futures/csvconfig/spreadcosts.csv`](/data/futures/csvconfig/spreadcosts.csv)
 3. Temporary CSV files created in the process of initialising the databases
 4. Backup CSV files, created by the production system.
 5. External sources such as our broker, or data providers like Barchart and Quandl
@@ -126,7 +126,7 @@ Because of this it's possible at (almost) every stage to store data in either CS
 
 ## Instrument configuration and spread costs
 
-Instrument configuration consists of static information that enables us to trade an instrument like DAX: the asset class, futures contract point size, and traded currency (it also includes cost levels, that are required in the simulation environment). This is mostly stored in [this file](/data/futures/csvconfig/instrumentconfig.csv) for both sim and production. The file includes a number of futures contracts that I don't actually trade or get prices for. Any configuration information for these may not be accurate and you use it at your own risk. The exception is spread costs, which are stored in [this file](/data/futures/csvconfig/spreadcosts.csv) for sim, but usually in a database for production, as they should be periodically updated with more accurate information.
+Instrument configuration consists of static information that enables us to trade an instrument like DAX: the asset class, futures contract point size, and traded currency (it also includes cost levels, that are required in the simulation environment). This is mostly stored in [`/data/futures/csvconfig/instrumentconfig.csv`](/data/futures/csvconfig/instrumentconfig.csv) for both sim and production. The file includes a number of futures contracts that I don't actually trade or get prices for. Any configuration information for these may not be accurate and you use it at your own risk. The exception is spread costs, which are stored in [`/data/futures/csvconfig/spreadcosts.csv`](/data/futures/csvconfig/spreadcosts.csv) for sim, but usually in a database for production, as they should be periodically updated with more accurate information.
 
 To copy spread costs into the database we are going to *read* from CSV files, and *write* to a [MongoDB Database](https://www.mongodb.com/). 
 
@@ -134,7 +134,7 @@ The relevant script to setup *information configuration* is in sysinit - the par
 
 Make sure you are running a [MongoDB](#mongodb) instance before running this.
 
-The information is sucked out of [this file](/data/futures/csvconfig/spreadcosts.csv) and into the MongoDB database. 
+The information is sucked out of [`/data/futures/csvconfig/spreadcosts.csv`](/data/futures/csvconfig/spreadcosts.csv) and into the MongoDB database. 
 
 ## Roll parameter configuration
 
@@ -166,7 +166,7 @@ This step is necessary if you're going to run production code, or you want newer
 
 ### Getting data from the broker (Interactive brokers)
 
-You can use [this script](/sysinit/futures/seed_price_data_from_IB.py) to get as much historical data as possible from Interactive Brokers. This will include expired contracts, but in any case will go back for a year of daily data. 
+You can use the script [`/sysinit/futures/seed_price_data_from_IB.py`](/sysinit/futures/seed_price_data_from_IB.py) to get as much historical data as possible from Interactive Brokers. This will include expired contracts, but in any case will go back for a year of daily data. 
 
 ### Getting data from an external data source (Barchart)
 
@@ -184,7 +184,7 @@ An easy way to bulk download data from [Barchart](https://www.barchart.com) is t
 
 Alternatively, if you are very patient, you can manually download the data from the Barchart historical data pages, such as [this one 
 for Cotton #2](https://www.barchart.com/futures/quotes/KG*0/historical-download). 
-Then, to read the data, you can use [this script](/sysinit/futures/barchart_futures_contract_prices.py), which in turn calls this [other more general script](/sysinit/futures/contract_prices_from_csv_to_db.py). Although it's very specific to Barchart, with some work you should be able to adapt it. You will need to call it with the directory where your Barchart CSV files are stored.
+Then, to read the data, you can use the script [`/sysinit/futures/barchart_futures_contract_prices.py`](/sysinit/futures/barchart_futures_contract_prices.py), which in turn calls [`/sysinit/futures/contract_prices_from_csv_to_db.py`](/sysinit/futures/contract_prices_from_csv_to_db.py). Although it's very specific to Barchart, with some work you should be able to adapt it. You will need to call it with the directory where your Barchart CSV files are stored.
 
 The script does two things:
 
@@ -330,7 +330,7 @@ In the next section we learn how to use roll calendars, and price data for indiv
 
 Of course you can only do this if you've already got these prices, which means you already need to have a roll calendar. A catch 22? Fortunately there are sets of multiple prices provided in pysystemtrade, and have been for some time, [here](/data/futures/multiple_prices_csv), which I built myself.
 
-We run [this script](/sysinit/futures/rollcalendars_from_providedcsv_prices.py) which by default will loop over all the instruments for which we have data in the multiple prices directory, and output to a provided temporary directory. 
+We run [`/sysinit/futures/rollcalendars_from_providedcsv_prices.py`](/sysinit/futures/rollcalendars_from_providedcsv_prices.py) which by default will loop over all the instruments for which we have data in the multiple prices directory, and output to a provided temporary directory. 
 
 The downside is that I don't keep the data constantly updated, and thus you might be behind. For example, if you're trading quarterly with a hold cycle of HMUZ, and the data was last updated 6 months ago, there will probably have been one or two rolls since then. You will need to manually edit the calendars to add these extra rows (in theory you could generate these automatically - perhaps some kind person wants to write the code that will do this).
 
@@ -351,19 +351,19 @@ The [relevant script is here](/sysinit/futures/multipleprices_from_db_prices_and
 
 The script should be reasonably self explanatory in terms of data pipelines, but it's worth briefly reviewing what it does:
 
-1. Get the roll calendars from `csv_roll_data_path` (which defaults to [this](/data/futures/roll_calendars_csv), so make sure you change it if you followed my advice to store your roll calendars somewhere else more temporary), which we have spent so much time and energy creating.
+1. Get the roll calendars from `csv_roll_data_path` (which defaults to [`/data/futures/roll_calendars_csv`](/data/futures/roll_calendars_csv), so make sure you change it if you followed my advice to store your roll calendars somewhere else more temporary), which we have spent so much time and energy creating.
 2. Get some closing prices for each individual future (we don't use OHLC data in the multiple and adjusted prices stage).
 3. Optionally but recommended: adjust the roll calendar so it aligns to the closing prices. This isn't strictly necessary if you've used method 1 above, deriving the calendar from individual futures contract prices. But it is if you've used methods 2 or 3, and strongly advisable if you've done any manual hacking of the roll calendar files. 
 4. Add a 'phantom' roll a week in the future. Otherwise the data won't be complete up the present day. This will fix itself the first time you run the live production code to update prices, but some people find it annoying.
 5. Create the multiple prices; basically stitching together contract data for different roll periods. 
-6. Depending on flags, write the multiple prices data to`csv_multiple_data_path` (which defaults to [this](/data/futures/multiple_prices_csv)) and / or to the database. I like to write to both: the DB for production, CSV as a backup and sometimes I prefer to use that for backtesting.
+6. Depending on flags, write the multiple prices data to`csv_multiple_data_path` (which defaults to [`/data/futures/multiple_prices_csv`](/data/futures/multiple_prices_csv)) and / or to the database. I like to write to both: the DB for production, CSV as a backup and sometimes I prefer to use that for backtesting.
 
 Step 5 can sometimes throw up warnings or outright errors if things don't look right. Sometimes you can live with these, sometimes you are better off trying to fix them by changing your roll calendar. 99.9% of the time you will have had a problem with your roll calendar that you've ignored, so it's most likely because you haven't checked your roll calendar properly: make sure it's verified, monotonic, and adjusted to actual prices.
 
 
 ### Writing multiple prices from CSV to database
 
-The use case here is you are happy to use the shipped CSV data, even though it's probably out of date, but you want to use a database for backtesting. You don't want to try and find and upload individual futures prices, or create roll calendars.... the good news is you don't have to. Instead you can just use [this script](/sysinit/futures/multiple_and_adjusted_from_csv_to_db.py) which will just copy from CSV (default ['shipping' directory](/data/futures/multiple_prices_csv)) to the database.
+The use case here is you are happy to use the shipped CSV data, even though it's probably out of date, but you want to use a database for backtesting. You don't want to try and find and upload individual futures prices, or create roll calendars.... the good news is you don't have to. Instead you can just use the script [`/sysinit/futures/multiple_and_adjusted_from_csv_to_db.py`](/sysinit/futures/multiple_and_adjusted_from_csv_to_db.py) which will just copy from CSV (default ['shipping' directory](/data/futures/multiple_prices_csv)) to the database.
 
 This will also copy adjusted prices, so you can now skip ahead to [creating FX data](#getting-and-storing-fx-data).
 
@@ -477,7 +477,7 @@ data=csvFxPricesData()
 data.get_fx_prices("GBPUSD")
 ```
 
-Save the files in a directory with no other content, using the filename format "GBPUSD.csv". Using [this simple script](/sysinit/futures/spotfx_from_csvAndInvestingDotCom_to_db.py) they are written to DB and/or CSV files. You will need to modify the script to point to the right directory, and you can also change the column and formatting parameters to use data from other sources.
+Save the files in a directory with no other content, using the filename format "GBPUSD.csv". Using the script [`/sysinit/futures/spotfx_from_csvAndInvestingDotCom_to_db.py`](/sysinit/futures/spotfx_from_csvAndInvestingDotCom_to_db.py) they are written to DB and/or CSV files. You will need to modify the script to point to the right directory, and you can also change the column and formatting parameters to use data from other sources.
 
 You can also run the script with `ADD_EXTRA_DATA = False, ADD_TO_CSV = True`. Then it will just do a straight copy from provided CSV data to DB. Your data will be stale, but in production it will automatically be updated with data from IB (as long as the provided data isn't more than a year out of date, since IB will give you only a year of daily prices).
 
@@ -509,7 +509,7 @@ I use [`dataBlob`s](/sysdata/data_blob.py) to access collections of data storage
 
 To further hide the data, I use two kinds of additional interface which embed `dataBlob`s, one in backtesting and the other in production trading. For backtesting, data is accessed through the interface of `simData` objects (I discuss these [later](#simdata-objects)). These form part of the giant `System` objects that are used in backtesting ([as the `data` stage](backtesting.md#data)), and they provide the appropriate methods to get certain kinds of data which are needed for backtesting (some instrument configuration and cost data, spot FX, multiple, and adjusted prices). 
 
-Finally in production I use the objects in [this module](/sysproduction/data) to act as [interfaces](#production-interface) between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
+Finally in production I use the objects in the [`/sysproduction/data`](/sysproduction/data) module to act as [interfaces](#production-interface) between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
 
 The references to `arctic` in this document are because early versions of this project used [Arctic](https://github.com/manahl/arctic) for storing time series data instead of Parquet, now deprecated. There is more detail in the [backtesting guide](/docs/backtesting.md#arctic)
 
@@ -600,7 +600,7 @@ Specific data sources
     - `mongoData`: Provides a common abstract interface to MongoDB, assuming the data is in dicts. Has different classes for single or multiple keys.
     - `ParquetAccess`: Provides a common abstract interface to Parquet
     - `arcticData`: Provides a common abstract interface to Arctic, assuming the data is passed as pd.DataFrame
-- Interactive brokers: see [this file](/docs/IB.md)
+- Interactive brokers: see [the IB connection guide](/docs/IB.md)
 
 
 Data collection and abstraction:
@@ -821,7 +821,7 @@ Use the naming convention `sourceNameOfObjectData`, i.e. `class parquetFuturesCo
 
 **YOU MUST DO THIS OR THE `dataBlob` RENAMING WILL NOT WORK!!** `dataBlob` renames `sourceSomethingInCamelCaseData` to `db_something_in_camel_case`. If you add another source you'll need to add that to the dataBlob resolution dictionary.
 
-For databases, you may want to create connection objects (like [this](/sysdata/mongodb/mongo_connection.py) for MongoDB) which abstract the database implementation to a set of simple read/write/update/delete methods.
+For databases, you may want to create connection objects (like [`/sysdata/mongodb/mongo_connection.py`](/sysdata/mongodb/mongo_connection.py) for MongoDB) which abstract the database implementation to a set of simple read/write/update/delete methods.
 
 
 
@@ -955,8 +955,8 @@ print(system.data.get_instrument_list())
 Configuration information about futures instruments is stored in a number of different places:
 
 - Instrument configuration and cost levels in [instrumentconfig.csv](/data/futures/csvconfig/instrumentconfig.csv) and [spreadcosts.csv](/data/futures/csvconfig/spreadcosts.csv)
-- Roll configuration information in [this CSV file](/data/futures/csvconfig/rollconfig.csv)
-- Interactive brokers configuration in [this file](/sysbrokers/IB/config/ib_config_spot_FX.csv) and [this file](/sysbrokers/IB/config/ib_config_futures.csv).
+- Roll configuration information in [`/data/futures/csvconfig/rollconfig.csv`](/data/futures/csvconfig/rollconfig.csv)
+- Interactive brokers configuration in [`/sysbrokers/IB/config/ib_config_spot_FX.csv`](/sysbrokers/IB/config/ib_config_spot_FX.csv) and [`/sysbrokers/IB/config/ib_config_futures.csv`](/sysbrokers/IB/config/ib_config_futures.csv).
 
 The instruments in these lists won't necessarily match up, however under the principle of DRY there shouldn't be duplicated column headings across files.
 
@@ -1001,7 +1001,7 @@ csvFxPricesData accessing data.futures.fx_prices_csv
 
 ## Production interface
 
-In production I use the objects in [this module](/sysproduction/data) to act as interfaces between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
+In production I use the objects in the [`/sysproduction/data`](/sysproduction/data) module to act as interfaces between production code and data blobs, so that production code doesn't need to be too concerned about the exact implementation of the data storage. These also include some business logic. 
 
 `diag` classes are read only, `update` are write only, `data` are read/write (created because it's not worth creating a separate read and write class):
 - `dataBacktest`: read/write pickled backtests from production `run_systems`
