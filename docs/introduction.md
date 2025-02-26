@@ -283,7 +283,7 @@ TradingRule; function: <function ewmac_forecast_with_defaults at 0xb734ca4c>, da
 
 Time to reveal what the mysterious object is. A `TradingRule` contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function. So the function is just the `ewmac` function that we imported earlier, and in this trivial case there is no data, and no arguments. Having no data is fine, because the code assumes that you'd normally want to pass the price of an instrument to a trading rule if you don't tell it otherwise. Furthermore on this occasion having no arguments is also no problem since the ewmac function we're using includes some defaults.
 
-*If you're familiar with the concept in python of args and kwargs; `data` is a bit like args - we always pass a list of positional arguments to `function`; and `other_args` are a bit like kwargs - we always pass in a dict of named arguments to `function`*
+*If you're familiar with the concept in Python of args and kwargs; `data` is a bit like args - we always pass a list of positional arguments to `function`; and `other_args` are a bit like kwargs - we always pass in a dict of named arguments to `function`*
 
 There are a few different ways to define trading rules completely. I'll use a couple of different ones here:
 
@@ -646,13 +646,13 @@ Note we don't need to tell the config that we're not using estimation for foreca
 Config with elements: base_currency, forecast_div_multiplier, forecast_scalars, forecast_weights, instrument_div_multiplier, instrument_weights, notional_trading_capital, percentage_vol_target, trading_rules
 ```
 
-Alternatively we could get the same result from reading a [YAML](https://pyyaml.org) file (the one at [`/systems/provided/example/simplesystemconfig.yaml`](/systems/provided/example/simplesystemconfig.yaml) to be precise). Don't worry if you're not familiar with YAML; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python.
+Alternatively we could get the same result from reading a [YAML](https://pyyaml.org) file (the one at [`/systems/provided/example/simplesystemconfig.yaml`](/systems/provided/example/simplesystemconfig.yaml) to be precise). Don't worry if you're not familiar with YAML; it's just a nice way of creating nested dicts, lists and other Python objects in plain text. Just be aware that indentations are important, just in like Python.
 
 ```python
 my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 ```
 
-(Notice we don't put filenames in; rather a python style reference within the project)
+(Notice we don't put filenames in; rather a Python style reference within the project)
 
 If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.rules.ewmac.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure.
 

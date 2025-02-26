@@ -2,7 +2,7 @@ This document is specifically about using pysystemtrade to connect with *Interac
 
 As of version 0.28.0, this requires the [ib_insync](https://github.com/erdewit/ib_insync) library.
 
-Although this document is about Interactive Brokers, you should read it carefully if you plan to use other brokers as it explains how to modify the various classes to achieve that, or perhaps if you want to use an alternative python layer to talk to the IB API
+Although this document is about Interactive Brokers, you should read it carefully if you plan to use other brokers as it explains how to modify the various classes to achieve that, or perhaps if you want to use an alternative Python layer to talk to the IB API
 
 
 - Get spot FX price data
@@ -51,7 +51,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 ## Getting started with interactive brokers
 
-You may want to read [my blog posts](https://qoppac.blogspot.com/2017/03/interactive-brokers-native-python-api.html) to understand more about what is going on if it's your first experience of IB's python API. For any issues with IB go to [this group](https://groups.io/g/twsapi). IB also have a [webinar](https://register.gotowebinar.com/register/5481173598715649281) for the API. The official manual for the IB API is [here](http://interactivebrokers.github.io/tws-api/introduction.html) and for IB insync is [here](https://ib-insync.readthedocs.io/api.html).
+You may want to read [my blog posts](https://qoppac.blogspot.com/2017/03/interactive-brokers-native-python-api.html) to understand more about what is going on if it's your first experience of IB's Python API. For any issues with IB go to [this group](https://groups.io/g/twsapi). IB also have a [webinar](https://register.gotowebinar.com/register/5481173598715649281) for the API. The official manual for the IB API is [here](http://interactivebrokers.github.io/tws-api/introduction.html) and for IB insync is [here](https://ib-insync.readthedocs.io/api.html).
 
 ### Gateway / TWS
 
@@ -60,7 +60,7 @@ You need to download either the gateway or TWS software from the IB website. I r
 
 ### IB-insync library
 
-I use IB-insync as my API to the python Gateway. You will need the [ib_insync](https://github.com/erdewit/ib_insync) library. This does not require you to download the IB python code.
+I use IB-insync as my API to the Python Gateway. You will need the [ib_insync](https://github.com/erdewit/ib_insync) library. This does not require you to download the IB Python code.
 
 It is worth running the examples in the [IB-insync cookbook](https://ib-insync.readthedocs.io/api.html) to make sure your IB connection is working, that you have the right gateway settings, and so on. Pysystemtrade obviously won't work if IB insync can't work!!
 
@@ -72,9 +72,9 @@ Many people find [ibcAlpha](https://github.com/IbcAlpha/IBC) is very useful. It 
 
 ## Launching and configuring the Gateway
 
-Before you run any python code you'll need to launch the Gateway software. Current versions of the Gateway do this via a desktop icon. You will need to use either:
+Before you run any Python code you'll need to launch the Gateway software. Current versions of the Gateway do this via a desktop icon. You will need to use either:
 
-- A demo account, such as username: `fdemo`, password: `demouser`. IB seem to be phasing out their demo accounts.
+- A demo account, such as username: `fdemo`, password: `demouser`
 - A paper trading account
 - A live trading account (*Make sure you know what you are doing. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk!!!*)
 

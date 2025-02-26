@@ -769,7 +769,7 @@ This section covers the various sources for reading and writing [data objects](#
 
 Storing data in CSV files has some obvious disadvantages, and doesn't feel like the sort of thing a 21st century trading system ought to be doing. However it's good for roll calendars, which sometimes need manual hacking when they're created. It's also good for the data required to run backtests that lives as part of the GitHub repo for pysystemtrade (storing large binary files in git is not a great idea, although various workarounds exist I haven't yet found one that works satisfactorily).
 
-For obvious (?) reasons we only implement get and read methods for CSV files (So... you want to delete the CSV file? Do it through the filesystem. Don't get python to do your dirty work for you).
+For obvious (?) reasons we only implement get and read methods for CSV files (So... you want to delete the CSV file? Do it through the filesystem. Don't get Python to do your dirty work for you).
 
 
 ### MongoDB

@@ -146,7 +146,7 @@ Table of Contents
             * [Output choice](#output-choice)
             * [Choice of strategy and backtest](#choice-of-strategy-and-backtest)
             * [Choose stage / method / arguments](#choose-stage--method--arguments)
-            * [Alternative python code](#alternative-python-code)
+            * [Alternative Python code](#alternative-python-code)
          * [Reports](#reports)
          * [Logs, errors, emails](#logs-errors-emails)
             * [View stored emails](#view-stored-emails)
@@ -196,7 +196,7 @@ Table of Contents
       * [Windows task scheduler](#windows-task-scheduler)
       * [Python](#python)
       * [Manual system](#manual-system)
-      * [Hybrid of python and cron](#hybrid-of-python-and-cron)
+      * [Hybrid of Python and cron](#hybrid-of-python-and-cron)
    * [Pysystemtrade scheduling](#pysystemtrade-scheduling)
       * [Configuring the scheduling](#configuring-the-scheduling)
          * [The crontab](#the-crontab)
@@ -274,7 +274,7 @@ You need to:
         - '/home/user_name/data/backtests'
         - '/home/user_name/data/reports'
     - Install the pysystemtrade package, and install or update, any dependencies in directory $PYSYS_CODE (it's possible to put it elsewhere, but you will need to modify the environment variables listed above). If using git clone from your home directory this should create the directory '/home/user_name/pysystemtrade/'
-    - [Set up interactive brokers](/docs/IB.md), download and install their python code, and get a gateway running.
+    - [Set up interactive brokers](/docs/IB.md), get a gateway running.
     - [Install MongoDB](https://docs.mongodb.com/manual/administration/install-on-linux/).
     - create a file `private_config.yaml` in the private directory of [pysystemtrade](/private), and optionally a [`private_control_config.yaml` file in the same directory](#process-configuration) See [here for more details](#system-defaults--private-config)
     - Set `parquet_store` in 'private_config.yaml' to the Parquet directory you set up earlier 
@@ -368,7 +368,7 @@ When trading you will need to do the following:
 
 # Overview of a production system
 
-Here are the steps you need to follow to set up a production system. I assume you already have a backtested system in pysystemtrade, with appropriate python libraries etc.
+Here are the steps you need to follow to set up a production system. I assume you already have a backtested system in pysystemtrade, with appropriate Python libraries etc.
 
 1. Consider your implementation options
 2. Ensure you have a private area for your system code and configuration
@@ -1447,7 +1447,7 @@ The above is recovered from the historic order tables with a special method that
 
 # Scripts
 
-Scripts are used to run python code which:
+Scripts are used to run Python code which:
 
 - runs different parts of the trading system, such as:
    - get price data
@@ -1475,7 +1475,7 @@ So, for example, here is the [run reports script](/sysproduction/linux/scripts/r
 . p sysproduction.run_reports.run_reports
 ```
 
-In plain english this will call the python function `run_reports()`, located in `/sysproduction/run_reports.py` By convention all 'top level' python functions should be located in this folder, and the file name, script name, and top level function name ought to be the same.
+In plain english this will call the Python function `run_reports()`, located in `/sysproduction/run_reports.py` By convention all 'top level' Python functions should be located in this folder, and the file name, script name, and top level function name ought to be the same.
 
 Scripts are run with the following linux convenience [script](/sysproduction/linux/scripts/p) that just calls run.py with the single argument in the script that is the code reference for the function:
 
@@ -1483,7 +1483,7 @@ Scripts are run with the following linux convenience [script](/sysproduction/lin
 python3 run.py $1
 ```
 
-run.py is a little more complicated as it allows you to call python functions that require arguments, such as [interactive_update_roll_status](/sysproduction/interactive_update_roll_status.py), and then ask the user for those arguments (with type hints).
+run.py is a little more complicated as it allows you to call Python functions that require arguments, such as [interactive_update_roll_status](/sysproduction/interactive_update_roll_status.py), and then ask the user for those arguments (with type hints).
 
 
 ## Script naming convention
@@ -1492,7 +1492,7 @@ The following prefixes are used for scripts:
 
 - _backup: run a backup.
 - _clean: run a housekeeping / cleaning process
-- _interactive: run an interactive process to check or fix the system, avoiding diving into python every time something goes wrong
+- _interactive: run an interactive process to check or fix the system, avoiding diving into Python every time something goes wrong
 - _update: update data in the system (basically do one of the stages in the system)
 - startup: run when the machine starts
 - _run: run a regularly scheduled process.
@@ -2128,7 +2128,7 @@ It's often helpful to examine the backtest output of run_systems to understand w
 
 First of all you can choose your output:
 
-- Interactive python. This loads the backtest, and effectively opens a small python interpreter (actually it just runs eval on the input).
+- Interactive Python. This loads the backtest, and effectively opens a small Python interpreter (actually it just runs eval on the input).
 - Plot. This loads a menu allowing you to choose a data element in the backtest, which is then plotted (will obviously fail on headless servers)
 - Print. This loads a menu allowing you to choose a data element in the backtest, which is then printed to screen.
 - HTML. This loads a menu allowing you to choose a data element in the backtest, which is then output to an HTML file (outputs to ~/temp.html), which can easily be web browsed
@@ -2141,9 +2141,9 @@ Next you can choose your strategy, and the backtest you want to see- all backtes
 
 Unless you're working in 'interactive python' mode, you can then choose the stage and method for which you want to see output. Depending on exactly what you've asked for, you'll be asked for other parameters like the instrument code and possibly trading rule name. The time series of calling the relevant method will then be shown to you using your chosen output method.
 
-##### Alternative python code
+##### Alternative Python code
 
-If you prefer to do this exercise in your python environment, then this will interactively allow you to choose a system and dated backtest, and returns the system object for you to do what you wish.
+If you prefer to do this exercise in your Python environment, then this will interactively allow you to choose a system and dated backtest, and returns the system object for you to do what you wish.
 
 ```python
 
@@ -2537,7 +2537,7 @@ interactive_update_roll_status = "sysproduction.interactive_update_roll_status:i
 ...
 ```
 
-When the project is installed, the above config would generate executable *shims* for all the interactive scripts into the current python path, which when run, would execute the configured function. There are several advantages to this method:
+When the project is installed, the above config would generate executable *shims* for all the interactive scripts into the current Python path, which when run, would execute the configured function. There are several advantages to this method:
 - no need for additional code or scripts
 - cross-platform compatibility
 - standard Python
@@ -2583,13 +2583,13 @@ I have not used this product (I don't use Windows or Mac products for ideologica
 
 ### Python
 
-You can use python itself as a scheduler, using something like [this](https://github.com/dbader/schedule), which gives you the advantage of being platform independent. However you will still need to ensure there is a python instance running all the time. You also need to be careful about whether you are spawning new threads or new processes, since only one connection to IB Gateway or TWS can be launched within a single process.
+You can use Python itself as a scheduler, using something like [this](https://github.com/dbader/schedule), which gives you the advantage of being platform independent. However you will still need to ensure there is a Python instance running all the time. You also need to be careful about whether you are spawning new threads or new processes, since only one connection to IB Gateway or TWS can be launched within a single process.
 
 ### Manual system
 
 It's possible to run pysystemtrade without any scheduling, by manually starting the necessary processes as required. This option might make sense for traders who are not running a fully automated system (though [you may want to keep most of the scheduling running anyway](#automation-options)).
 
-### Hybrid of python and cron
+### Hybrid of Python and cron
 
 This is the approach I use in pysystemtrade, and it's described in more detail below. It ought to be possible to replace the cron component with another scheduler.
 

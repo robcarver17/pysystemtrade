@@ -287,7 +287,7 @@ If you use options 2 or 3, you can [save the config](#saving-configurations) to 
 
 ### Option 1: Change the configuration file
 
-Configurations in this project are stored in [YAML](https://pyyaml.org) files. Don't worry if you're not familiar with YAML; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python, to create nesting.
+Configurations in this project are stored in [YAML](https://pyyaml.org) files. Don't worry if you're not familiar with YAML; it's just a nice way of creating nested dicts, lists and other Python objects in plain text. Just be aware that indentations are important, just in like Python, to create nesting.
 
 You can make a new config file by copying this [one](/systems/provided/futures_chapter15/futuresconfig.yaml), and modifying it. Best practice is to save this as `pysystemtrade/private/this_system_name/config.yaml` (you'll need to create a couple of directories first).
 
@@ -677,7 +677,7 @@ from systems.provided.futures_chapter15.basesystem import futures_system
 data=csvFuturesSimData(csv_data_paths=dict(csvFuturesAdjustedPricesData = "private.system_name.adjusted_price_data"))
 system=futures_system(data=data)
 ```
-Notice that we use python style "." internal references within a project, we don't give actual path names. See [here](#file-names) for how to specify filenames in pysystemtrade.
+Notice that we use Python style "." internal references within a project, we don't give actual path names. See [here](#file-names) for how to specify filenames in pysystemtrade.
 
 The full list of keys that you can use in the `csv_data_paths` are:
 * `csvFuturesInstrumentData` (configuration and costs)
@@ -929,7 +929,7 @@ You would need to uncomment the Arctic imports too.
 
 ### Creating your own data objects
 
-You should be familiar with the python object orientated idiom before reading this section.
+You should be familiar with the Python object orientated idiom before reading this section.
 
 The [`simData()`](/sysdata/sim/sim_data.py) object is the base class for data used in simulations. From that we inherit data type specific classes such as those [for futures](/sysdata/sim/futures_sim_data.py) object. These in turn are inherited from for specific data sources, such as for csv files: [csvFuturesSimData()](/sysdata/sim/csv_futures_sim_data.py).
 
@@ -1002,7 +1002,7 @@ optionthree:
   - 2.0
 ```
 
-Note that as with python the indentation in a YAML file shows how things are nested. If you want to learn more about YAML check [this out](https://pyyaml.org/wiki/PyYAMLDocumentation#YAMLsyntax).
+Note that as with Python the indentation in a YAML file shows how things are nested. If you want to learn more about YAML check [this out](https://pyyaml.org/wiki/PyYAMLDocumentation#YAMLsyntax).
 
 ```python
 from sysdata.config.configdata import Config
@@ -1012,7 +1012,7 @@ my_config=Config("private.filename.yaml") ## assuming the file is in "pysystemtr
 See [here](#file-names) for how to specify filenames in pysystemtrade.
 
 
-In theory there are no restrictions on what is nested in the dictionary (but the top level must be a dict); although it is easier to use str, float, int, lists and dicts, and the standard project code only requires those (if you're a PyYAML expert you can do other python objects like tuples, but it won't be pretty).
+In theory there are no restrictions on what is nested in the dictionary (but the top level must be a dict); although it is easier to use str, float, int, lists and dicts, and the standard project code only requires those (if you're a PyYAML expert you can do other Python objects like tuples, but it won't be pretty).
 
 You should respect the structure of the default config with respect to nesting, as otherwise [the defaults](#how-the-defaults-and-private-configuration-work) won't be properly filled in.
 
@@ -1487,9 +1487,9 @@ system.combForecast.get_combined_forecast("SOFR")
 
 ### Pickling and unpickling saved cache data
 
-It can take a while to backtest a large system. It's quite useful to be able to save the contents of the cache and reload it later. I use the python pickle module to do this.
+It can take a while to backtest a large system. It's quite useful to be able to save the contents of the cache and reload it later. I use the Python pickle module to do this.
 
-For boring python related reasons not all elements in the cache will be saved. The accounting information, and the optimisation functions used when estimating weights, will be excluded and won't be reloaded.
+For boring Python related reasons not all elements in the cache will be saved. The accounting information, and the optimisation functions used when estimating weights, will be excluded and won't be reloaded.
 
 
 ```python
@@ -1669,7 +1669,7 @@ Think carefully about whether your method should create data that is protected f
 
 Also think about whether you're going to cache any complex objects that `pickle` might have trouble with, like class instances. You need to flag these up as problematic.
 
-Caching is implemented (as of version 0.14.0 of this project) by python decorators attached to methods in the stage objects. There are four decorators used by the code:
+Caching is implemented (as of version 0.14.0 of this project) by Python decorators attached to methods in the stage objects. There are four decorators used by the code:
 
 - `@input` - no caching done, input method see [stage wiring](#stage-wiring)
 - `@dont_cache` - no caching done, used for very trivial calculations that aren't worth caching
@@ -1727,11 +1727,11 @@ The elements of a new pre-baked system will be:
 1. New stages, or a different choice of existing stages.
 2. A set of data (either new or existing)
 3. A configuration file
-4. A python function that loads the above elements, and returns a system object
+4. A Python function that loads the above elements, and returns a system object
 
-To remain organised it's good practice to save your configuration file and any python functions you need into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create a couple of directories first). If you plan to contribute to GitHub, just be careful to avoid adding 'private' to your commit ( [you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/)). If you have novel data you're using for this system, you may also want to save it in the same directory.
+To remain organised it's good practice to save your configuration file and any Python functions you need into a directory like `pysystemtrade/private/this_system_name/` (you'll need to create a couple of directories first). If you plan to contribute to GitHub, just be careful to avoid adding 'private' to your commit ( [you may want to read this](https://24ways.org/2013/keeping-parts-of-your-codebase-private-on-github/)). If you have novel data you're using for this system, you may also want to save it in the same directory.
 
-Then it's a case of creating the python function. Here is an extract from the [futuressystem for chapter 15](/systems/provided/futures_chapter15/basesystem.py)
+Then it's a case of creating the Python function. Here is an extract from the [futuressystem for chapter 15](/systems/provided/futures_chapter15/basesystem.py)
 
 ```python
 ## We probably need these to get our data
@@ -2674,7 +2674,7 @@ buffer_size: 0.10
 
 Note that buffering can work on both rounded and unrounded positions. In the case of rounded positions we round the lower limit of the buffer, and the upper limit.
 
-These python methods allow you to see buffering in action.
+These Python methods allow you to see buffering in action.
 
 ```
 system.portfolio.get_notional_position("US10") ## get the position before buffering
@@ -4193,7 +4193,7 @@ Represented as: dict of dicts, each representing a trading rule. Keywords: tradi
 
 The set of trading rules. A trading rule definition consists of a dict containing: a *function* identifying string, an optional list of *data* identifying strings, and *other_args* an optional dictionary containing named parameters to be passed to the function. This is the only method that can be used for YAML.
 
-There are numerous other ways to define trading rules using python code. See ['Rules'](#stage-rules) for more detail.
+There are numerous other ways to define trading rules using Python code. See ['Rules'](#stage-rules) for more detail.
 
 Note that *forecast_scalar* isn't strictly part of the trading rule definition, but if included here will be used instead of the separate
 'config.forecast_scalar' parameter (see the next section).
