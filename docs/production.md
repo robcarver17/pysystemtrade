@@ -1367,13 +1367,13 @@ Three cases:
 
 1. Distributed orders (this can happen when we have PASSIVE rolls and we get both a priced and forward contract trade): A distributed order is one where all the contract order trades are in the same direction, all the instrument codes are identical, and the total trades are equal to the total trade for the instrument. We calculate across contract orders:
 
-- The *last* filled datetime
-- The *total* filled quantity
-- The *average* filled price 
+   - The *last* filled datetime
+   - The *total* filled quantity
+   - The *average* filled price 
 
-We then compare the filled quantity with that of the original instrument order to see if it has changed. If so, we apply the position change to the instrument/strategy position table. Now both of our position tables are correct and consistent! 
+    We then compare the filled quantity with that of the original instrument order to see if it has changed. If so, we apply the position change to the instrument/strategy position table. Now both of our position tables are correct and consistent! 
 
-Next we update the instrument order on the database stack to reflect the new fills. We now check to see if the order can be completed.
+    Next we update the instrument order on the database stack to reflect the new fills. We now check to see if the order can be completed.
 
 2. Flat orders where the instrument order is a zero trade (this can happen when we have rolls with Force Outright status): This is trivial; as the instrument trade is a zero trade the instrument position isn't affected by the contract trade. We now try and *complete* the order.
 

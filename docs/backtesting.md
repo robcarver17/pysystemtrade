@@ -1630,11 +1630,8 @@ Although the project doesn't yet include a live trading system, the caching beha
 2. Save these in wherever our data object is looking
 3. Create a new system object from scratch
 4. Run the system by asking for optimal positions for all instruments
-
-Step 4 might be very involved and slow, but markets are closed so that's fine.
-
-Then we do the following throughout the day:
-
+    - Step 4 might be very involved and slow, but markets are closed so that's fine.
+    - Then we do the following throughout the day:
 5. Wait for a new price to come in (perhaps through a message bus)
 6. So we don't subsequently use stale prices delete everything specific to that instrument with `system.delete_items_for_instrument(instrument_code)`
 7. Re-calculate the optimal positions for this instrument
