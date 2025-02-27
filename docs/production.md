@@ -1463,9 +1463,7 @@ Script are then called by [schedulers](#scheduling), or on an ad-hoc basis from 
 
 ## Script calling
 
-I've created scripts that run under Linux, however these all just call simple python functions so it ought to be easy to 
-create your own scripts in another OS. See [here](#scripts-under-other-non-linux-operating-systems) for notes about a 
-method to create cross-platform executable scripts.
+I've created scripts that run under Linux, however these all just call simple python functions so it ought to be easy to create your own scripts in another OS. See [here](#scripts-under-other-non-linux-operating-systems) for notes about a method to create cross-platform executable scripts.
 
 So, for example, here is the [run reports script](/sysproduction/linux/scripts/run_reports):
 
@@ -1562,8 +1560,7 @@ Called by: `run_daily_fx_and_contract_updates`
 
 ### Update futures contract historical price data (Daily)
 
-This gets historical daily data from IB for all the futures contracts marked to sample in the MongoDB contracts database, and updates the futures prices in Parquet.
-If update sampled contracts has not yet run, it may not be getting data for all the contracts you need.
+This gets historical daily data from IB for all the futures contracts marked to sample in the MongoDB contracts database, and updates the futures prices in Parquet. If update sampled contracts has not yet run, it may not be getting data for all the contracts you need.
 
 Python:
 ```python
@@ -2456,10 +2453,7 @@ Called by: `run_backups`
 
 It copies backtest pickle and config files to the backup directory,  "offsystem_backup_directory", subdirectory /statefile
 
-**Important**: the backed up files will contain any data you have added to your private config, some of which may be 
-sensitive (e.g., IB account number, email address, email password). If you 
-choose to store these files with a cloud storage provider or backup service, you should consider encrypting them first
-(some services may do this for you, but many do not).
+**Important**: the backed up files will contain any data you have added to your private config, some of which may be sensitive (e.g., IB account number, email address, email password). If you choose to store these files with a cloud storage provider or backup service, you should consider encrypting them first (some services may do this for you, but many do not).
 
 ### Backup MongoDB dump
 
