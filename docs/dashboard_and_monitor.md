@@ -21,7 +21,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 At the moment, the dashboard provides basic diagnostic "traffic lights" to show status of various system components. The content of the reports is also reproduced.
 
-If you have installed all of the Python dependencies listed in the `requirement.txt` file, the web dashboard is ready to be started:
+If you have installed all the Python dependencies listed in the `pyproject.toml` file, the web dashboard is ready to be started:
 
 ```
 cd pysystemtrade/dashboard

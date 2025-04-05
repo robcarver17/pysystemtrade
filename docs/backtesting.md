@@ -7,7 +7,7 @@ Related documents:
 - [Connecting pysystemtrade to interactive brokers](/docs/IB.md)
 
 
-This guide is divided into four parts. The first ['How do I?'](#how-do-i) explains how to do many common tasks. The second part ['Guide'](#guide) details the relevant parts of the code, and explains how to modify or create new parts. The third part ['Processes'](#Processes) discusses certain processes that cut across multiple parts of the code in more detail. The final part ['Reference'](#reference) includes lists of methods and parameters.
+This guide is divided into four parts. The first [How do I?](#how-do-i) explains how to do many common tasks. The second part [Guide](#guide) details the relevant parts of the code, and explains how to modify or create new parts. The third part [Processes](#Processes) discusses certain processes that cut across multiple parts of the code in more detail. The final part [Reference](#reference) includes lists of methods and parameters.
 
 Table of Contents
 =================
@@ -3877,7 +3877,7 @@ capital_multiplier:
    func: syscore.capital.fixed_capital
 ```
 
-Other functions I've written are `full_compounding` and `half_compounding`. Again see the blog post [blog post](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html) for more detail.
+Other functions I've written are `full_compounding` and `half_compounding`. Again see the [blog post](https://qoppac.blogspot.com/2016/06/capital-correction-pysystemtrade.html) for more detail.
 
 To get the varying capital multiplier which the chosen method calculates use `system.accounts.capital_multiplier()`. The multiplier will be 1.0 at a given time if the variable capital is identical to the fixed capital.
 

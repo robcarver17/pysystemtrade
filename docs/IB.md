@@ -4,9 +4,6 @@ As of version 0.28.0, this requires the [ib-insync](https://github.com/erdewit/i
 
 Although this document is about Interactive Brokers, you should read it carefully if you plan to use other brokers as it explains how to modify the various classes to achieve that, or perhaps if you want to use an alternative Python layer to talk to the IB API
 
-
-- Get spot FX price data
-
 Related documents:
 
 - [Storing futures and spot FX data](/docs/data.md)
@@ -65,6 +62,7 @@ I use [ib-insync](https://github.com/erdewit/ib_insync) as my interface to the I
 
 It is worth running the examples in the [ib-insync cookbook](https://ib-insync.readthedocs.io/api.html) to make sure your IB connection is working, that you have the right gateway settings, and so on. Pysystemtrade obviously won't work if ib-insync can't work!!
 
+> The ib-insync library has been archived as of March 2024. As some point we may need to transition to one of its forks
 
 ### IBC
 
@@ -75,14 +73,13 @@ Many people find [ibcAlpha](https://github.com/IbcAlpha/IBC) is very useful. It 
 
 Before you run any Python code you'll need to launch the Gateway software. Current versions of the Gateway do this via a desktop icon. You will need to use either:
 
-- A demo account, such as username: `fdemo`, password: `demouser`
 - A paper trading account
 - A live trading account (*Make sure you know what you are doing. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk!!!*)
 
 You will also need to configure the Gateway:
 
 - Socket port: Should be 4001. If you use a different port you'll need to change your connection calls [here](#making-a-connection) and [here](#creating-and-closing-connection-objects)
-- White list for trusted IP addresses: Should include 127.0.0.1. If you are going to be running the Gateway on one machine, and accessing it via another, then you need to add the IP address of your other machines here.
+- White list for trusted IP addresses: Should include 127.0.0.1. If you are going to be running the Gateway on one machine, and accessing it via another, then you need to add the IP address of your other machine here.
 - If you are going to be trading, then 'Read only API' should be turned off
 - You may also need to change precautions and preset options
 
@@ -114,9 +111,9 @@ There are three types of objects in the [sysbrokers/IB](/sysbrokers/IB) area of 
 
 ## Data source objects
 
-We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). However we can't delete or write to IB.  Normally these functions would be called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface); it's discouraged to call them directly as the interface abstracts away exactly which broker you are talking to.
+We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). However, we can't delete or write to IB.  Normally these functions would be called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface); it's discouraged to call them directly as the interface abstracts away exactly which broker you are talking to.
 
-The data source objects all inherit from the classes in the `sysbrokers/` directory, eg `broker*data.py`. This serves a few purposes: it means we can add additional non specific IB methods that only make sense when talking to a broker rather than to a database, and it illustrates the interface you'd need to implement to connect to a different broker.
+The data source objects all inherit from the classes in the `sysbrokers/` directory, eg `broker*data.py`. This serves a few purposes: it means we can add additional non-specific IB methods that only make sense when talking to a broker rather than to a database, and it illustrates the interface you'd need to implement to connect to a different broker.
 Data source objects are instanced with and contain a *connection object* (and optionally a logger). They contain, and make calls to, *client objects*. They are in this [module](/sysbrokers/IB)
 
 You can access the client object and connection used by a particular data source, for example:
@@ -237,7 +234,7 @@ They are located in this [module](/sysbrokers/IB/client). They are tied together
          - ibFxClient(ibPriceClient)
  
 
-Client objects also contain a connection and the live ib_inysnc.IB instance which is actually used by the client object code:
+Client objects also contain a connection and the live `ib_inysnc.IB` instance which is actually used by the client object code:
 
 ```
 from sysbrokers.IB.client.ib_price_client import ibPriceClient
@@ -286,7 +283,7 @@ Again in production the connection would normally be closed by the [dataBlob](/d
 
 We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). Since connection objects abstract what the broker is doing, it should be possible to use these object for other brokers with minimal changes.
 
-The main service the connection provides is that it encapsulates a live ib_inysnc.IB instance:
+The main service the connection provides is that it encapsulates a live `ib_inysnc.IB` instance:
 
 ```
 conn.ib

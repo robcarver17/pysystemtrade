@@ -89,7 +89,7 @@ instruments_with_adj_prices = system.data.get_instrument_list()
 >True
 ```
 
-However we normally don't want to run a backtest with everything, so there are two ways of restricting this subset. The first is to set explicit instrument weights:
+However, we normally don't want to run a backtest with everything, so there are two ways of restricting this subset. The first is to set explicit instrument weights:
 
 ```python
 system.cache.delete_all_items()
@@ -117,7 +117,7 @@ system.config.instruments = list(system.config.instrument_weights.keys())
 
 ## Always excluded
 
-We can take the global list and exclude instruments from it for various reasons. Always excluded means exactly that- the system literally can't see them.
+We can take the global list and exclude instruments from it for various reasons. Always excluded means exactly that - the system literally can't see them.
 
 ```python
 from systems.provided.futures_chapter15.basesystem import *
@@ -226,7 +226,7 @@ system.portfolio.get_subsystem_position("V2X")
 Freq: B, Length: 2314, dtype: float64
 ```
 
-However it turns out that V2X is a 'bad market' and ought to be excluded for optimisation:
+However, it turns out that V2X is a 'bad market' and ought to be excluded for optimisation:
 
 ```
 "V2X" in system.get_list_of_bad_markets()
@@ -488,7 +488,7 @@ Name: US-DISCRETE, dtype: float64
 New configured slippage value (current 10.360086, default is estimate 14.304580) <RETURN for default 14.304579734718004> 
 ```
 
-This is a market we haven't traded, but our sampled values (14.3 price points) is 38% higher than our configured (10.36). This is because the sampled bid/ask spread has averaged 20.67 points; we given a 38% weight to these samples (maybe we haven't traded that much) and 62% to the configured value.
+This is a market we haven't traded, but our sampled values (14.3 price points) is 38% higher than our configured (10.36). This is because the sampled bid/ask spread has averaged 20.67 points; we have given a 38% weight to these samples (maybe we haven't traded that much) and 62% to the configured value.
 
 ```
 New configured slippage value (current 0.172000, default is estimate 0.117354) <RETURN for default 0.11735449352746953> 
