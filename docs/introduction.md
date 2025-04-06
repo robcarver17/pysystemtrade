@@ -1,13 +1,13 @@
 
 
 Here is a whistle-stop tour of what pysystemtrade can currently do. You'll probably want to read the [users guide](backtesting.md) after this.
-Notice that you will see different results than shown here, as you will be using more up to date data.
+Notice that you will see different results than shown here, as you will be using more up-to-date data.
 
 ## A simple trading rule
 
 (code is [here](/examples/introduction/asimpletradingrule.py) )
 
-As systematic traders we believe that the future will be at least a bit like the past. So first of all we need some past data. In principle past data can come from many places, but to begin with we'll get it from some pre-baked .csv files:
+As systematic traders we believe that the future will be at least a bit like the past. So first of all we need some past data. In principle past data can come from many places, but to begin with we'll get it from some pre-baked CSV files:
 
 ```python
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
@@ -201,9 +201,9 @@ A full list of stages would include:
 4. Combining forecasts together
 5. Position sizing
 6. Creating a portfolio of instruments
-7. Working out the p&l
+7. Working out the P&L
 
-For now let's start with the simplest possible system, one which contains only a trading rules stage. Let's just setup our environment again:
+For now let's start with the simplest possible system, one which contains only a trading rules stage. Let's just set up our environment again:
 
 ```python
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
@@ -281,9 +281,9 @@ ewmac_rule
 TradingRule; function: <function ewmac_forecast_with_defaults at 0xb734ca4c>, data:  and other_args:
 ```
 
-Time to reveal what the mysterious object is. A `TradingRule` contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function. So the function is just the `ewmac` function that we imported earlier, and in this trivial case there is no data, and no arguments. Having no data is fine, because the code assumes that you'd normally want to pass the price of an instrument to a trading rule if you don't tell it otherwise. Furthermore on this occasion having no arguments is also no problem since the ewmac function we're using includes some defaults.
+Time to reveal what the mysterious object is. A `TradingRule` contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function. So the function is just the `ewmac` function that we imported earlier, and in this trivial case there is no data, and no arguments. Having no data is fine, because the code assumes that you'd normally want to pass the price of an instrument to a trading rule if you don't tell it otherwise. Furthermore, on this occasion having no arguments is also no problem since the ewmac function we're using includes some defaults.
 
-*If you're familiar with the concept in python of args and kwargs; `data` is a bit like args - we always pass a list of positional arguments to `function`; and `other_args` are a bit like kwargs - we always pass in a dict of named arguments to `function`*
+*If you're familiar with the concept in Python of args and kwargs; `data` is a bit like args - we always pass a list of positional arguments to `function`; and `other_args` are a bit like kwargs - we always pass in a dict of named arguments to `function`*
 
 There are a few different ways to define trading rules completely. I'll use a couple of different ones here:
 
@@ -317,7 +317,7 @@ Freq: B, dtype: float64
 
 Now let's introduce the idea of **config** objects. A `config` or configuration object allows us to control the behaviour of the various stages in the system.
 
-Configuration objects can be created on the fly or by reading in files written in yaml (which we'll talk about below). A configuration object is just a collection of attributes. We create them interactively like so:
+Configuration objects can be created on the fly or by reading in files written in YAML (which we'll talk about below). A configuration object is just a collection of attributes. We create them interactively like so:
 
 ```python
 from sysdata.config.configdata import Config
@@ -348,9 +348,9 @@ Notice the differences from before:
 
 *Note if you'd passed the dict of trading rules into Rules()* **and** *into the config, only the former would be used*
 
-Why do we have this alternative method of specifying trading rules? Indeed why the option of using config at all. The answer it's that's a much more robust method for defining system behaviour than having pages of scripts defining how the system behaves. This is especially true in a production system. Why do we need an empty instance of Rules()? Well effectively we build our System object up from building blocks like Rules. These are usually just empty instances of a given class with no arguments passed, which are controlled by the contents of the configuration object also passed to system.
+Why do we have this alternative method of specifying trading rules? Indeed, why the option of using config at all. The answer it's that's a much more robust method for defining system behaviour than having pages of scripts defining how the system behaves. This is especially true in a production system. Why do we need an empty instance of Rules()? Well effectively we build our System object up from building blocks like Rules. These are usually just empty instances of a given class with no arguments passed, which are controlled by the contents of the configuration object also passed to system.
  
-So in a sense passing Rules(dict(....)) is not the normal behaviour, it's just sometimes nice to be able to do this so I allow it.
+So in a sense passing Rules(dict(....)) is not the normal behaviour, it's just sometimes nice to be able to do this, so I allow it.
 
 Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. To fix this we need to add another *stage* to our system: forecast scaling and capping.
 Stages are added by including extra objects in the list which is the first argument passed to `System`. The order of these doesn't matter.
@@ -646,23 +646,23 @@ Note we don't need to tell the config that we're not using estimation for foreca
 Config with elements: base_currency, forecast_div_multiplier, forecast_scalars, forecast_weights, instrument_div_multiplier, instrument_weights, notional_trading_capital, percentage_vol_target, trading_rules
 ```
 
-Alternatively we could get the same result from reading a [yaml](https://pyyaml.org) file ( [this one to be precise](/systems/provided/example/simplesystemconfig.yaml) ). Don't worry if you're not familiar with yaml; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python.
+Alternatively we could get the same result from reading a [YAML](https://pyyaml.org) file (the one at [`/systems/provided/example/simplesystemconfig.yaml`](/systems/provided/example/simplesystemconfig.yaml) to be precise). Don't worry if you're not familiar with YAML; it's just a nice way of creating nested dicts, lists and other Python objects in plain text. Just be aware that indentations are important, just in like Python.
 
 ```python
 my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 ```
 
-(Notice we don't put filenames in; rather a python style reference within the project)
+(Notice we don't put filenames in; rather a Python style reference within the project)
 
-If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.rules.ewmac.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure.
+If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.rules.ewmac.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead, we specify where the relevant function can be found in the project directory structure.
 
-Similarly for the ewmac8 rule we've specified a data source `data.daily_prices` which points to `system.data.daily_prices()`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs. This means you can configure almost any trading rule quite easily through configuration changes.
+Similarly, for the ewmac8 rule we've specified a data source `data.daily_prices` which points to `system.data.daily_prices()`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally, we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs. This means you can configure almost any trading rule quite easily through configuration changes.
 
 
 
 ## A simple pre-baked system
 
-Normally we wouldn't create a system by adding each stage manually (importing and creating long lists of stage objects). Instead you can use a 'pre baked' system, and then modify it as required.
+Normally we wouldn't create a system by adding each stage manually (importing and creating long lists of stage objects). Instead, you can use a 'pre-baked' system, and then modify it as required.
 
 For example here is a pre-baked version of the previous example (code is [here](/examples/introduction/prebakedsystems.py) ):
 
@@ -684,7 +684,7 @@ my_system.portfolio.get_notional_position("SOFR").tail(5)
 
 
 
-By default this has loaded the same data and read the config from the same yaml file. However we can also do this manually, allowing us to use new `data` and a modified `config` with a pre-baked system.
+By default, this has loaded the same data and read the config from the same YAML file. However, we can also do this manually, allowing us to use new `data` and a modified `config` with a pre-baked system.
 
 ```python
 from sysdata.config.configdata import Config

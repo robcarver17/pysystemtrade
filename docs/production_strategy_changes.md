@@ -41,7 +41,7 @@ If you are using a completely vanilla 'out of the box' strategy that can be run 
 - [Classic system](/sysproduction/strategy_code/run_system_classic.py)
 - [Dynamic system](/sysproduction/strategy_code/run_dynamic_optimised_system.py) (as described [here](https://qoppac.blogspot.com/2021/10/mr-greedy-and-tale-of-minimum-tracking.html))
 
-Otherwise you will need to create your own runSystem class. There is an example [here](/examples/production/example_of_custom_run_system.py). Notice that it overrides `system_method` to create a different system from the default; that in turn is built up from some custom stages.
+Otherwise, you will need to create your own runSystem class. There is an example [here](/examples/production/example_of_custom_run_system.py). Notice that it overrides `system_method` to create a different system from the default; that in turn is built up from some custom stages.
 
 You may also need to override the `run_backtest` method if you need your strategy to do something different in terms of saving optimised positions (again that is the principal difference between the classic and dynamic systems).
 
@@ -53,7 +53,7 @@ If you are using a completely vanilla 'out of the box' strategy that can be run 
 - [Classic system](/sysexecution/strategies/classic_buffered_positions.py)
 - [Dynamic system](/sysexecution/strategies/dynamic_optimised_positions.py) (as described [here](https://qoppac.blogspot.com/2021/10/mr-greedy-and-tale-of-minimum-tracking.html))
 
-Otherwise you'll need to write an order management function. You will need to overwrite the method `get_required_orders`.
+Otherwise, you'll need to write an order management function. You will need to overwrite the method `get_required_orders`.
 
 
 ### Create a reporting class
@@ -63,7 +63,7 @@ If you are using a completely vanilla 'out of the box' strategy that can be run 
 - [Classic system](/sysproduction/strategy_code/report_system_classic.py)
 - [Dynamic system](/sysproduction/strategy_code/report_system_dynamic_optimised.py) (as described [here](https://qoppac.blogspot.com/2021/10/mr-greedy-and-tale-of-minimum-tracking.html))
 
-Otherwise you'll need to write a reporting function. If your strategy is similar enough to the 'classic' system, you can reuse the code as the dynamic system does.
+Otherwise, you'll need to write a reporting function. If your strategy is similar enough to the 'classic' system, you can reuse the code as the dynamic system does.
 
 
 ## Update configuration files
@@ -108,7 +108,7 @@ strategy_capital_allocation:
     medium_speed_TF_carry: 0.01
 ```
 
-Again we refer to the custom run_system and reporting classes, or to default provided classes. Notice that the contents of strategy_weights will depend on exactly what you'd like to do. Here we're replacing `medium_speed_TF_carry` with `dynamic_TF_carry`. Of course we could also want to do this more gradually starting with just a small notional amount of capital to check everything is working, or only allocate part of our capital to the new strategy rather than all of it.
+Again we refer to the custom run_system and reporting classes, or to default provided classes. Notice that the contents of strategy_weights will depend on exactly what you'd like to do. Here we're replacing `medium_speed_TF_carry` with `dynamic_TF_carry`. Of course, we could also want to do this more gradually starting with just a small notional amount of capital to check everything is working, or only allocate part of our capital to the new strategy rather than all of it.
 
 
 # Update strategy capital
@@ -123,7 +123,7 @@ Using the `update_system_backtests` script make sure that the production system 
 
 # Transfer positions between strategies
 
-If you are replacing a strategy, wholly or partially, then it makes sense to transfer the positions across. Otherwise you'll do costly trading as one strategy closes it's positions, and the other opens up new ones. 
+If you are replacing a strategy, wholly or partially, then it makes sense to transfer the positions across. Otherwise, you'll do costly trading as one strategy closes its positions, and the other opens up new ones. 
 
 There is a script that does this by generating pseudo instrument orders at the current market price. For example (python):
 
@@ -193,7 +193,7 @@ The shadow cost is a key variable which is set in the private_config.yaml file (
 
 ### Strategy backtest output of optimal positions
 
-The optimal positions are output from the strategy using a special '-raw' suffix which means they won't normally be displayed. However they are shown in strategy reports.
+The optimal positions are output from the strategy using a special '-raw' suffix which means they won't normally be displayed. However, they are shown in strategy reports.
 
 
 ### Ensure position and trade limits are appropriate
@@ -214,7 +214,7 @@ Obviously if you have no existing position then it doesn't matter if you use don
 
 ### Actual optimal positions
 
-The actual optimal positions, used to generate instrument orders, are of simple integer values. In addition they also contain a lot of hidden diagnostic information about the optimisation, which is displayed by the strategy report and also by the interactive_diagnostics function to display optimal positions.
+The actual optimal positions, used to generate instrument orders, are of simple integer values. In addition, they also contain a lot of hidden diagnostic information about the optimisation, which is displayed by the strategy report and also by the interactive_diagnostics function to display optimal positions.
 
 
 

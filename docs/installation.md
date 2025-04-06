@@ -23,7 +23,7 @@ git clone https://github.com/robcarver17/pysystemtrade.git
 
 ### pyenv
 
-pyenv is a tool that makes it easy to manage multiple versions of Python on the same machine. It allows the version of python used to be defined at the user and project level. It is a great tool, easy to use, and does its one job very well. It is worth reading the introduction to have an overview of how it works at a high level. It's not necessary to understand the technical internals 
+pyenv is a tool that makes it easy to manage multiple versions of Python on the same machine. It allows the version of Python used to be defined at the user and project level. It is a great tool, easy to use, and does its one job very well. It is worth reading the introduction to have an overview of how it works at a high level. It's not necessary to understand the technical internals 
 
 https://github.com/pyenv/pyenv#how-it-works
 
@@ -59,7 +59,7 @@ Your output will be different, it's just an example
 
 https://docs.python.org/3.10/library/venv.html
 
-Now we want to create a virtual environment (venv) for the project. Doing this will keep all the dependencies for pysystemtrade separate from your other python projects
+Now we want to create a virtual environment (venv) for the project. Doing this will keep all the dependencies for pysystemtrade separate from your other Python projects
 
 ```
 $ cd pysystemtrade
@@ -88,7 +88,7 @@ Now we will want to let pyenv know that we want to use Python 3.10 for this proj
 pyenv local 3.10.15
 ```
 
-this creates a file at the top level of the project `.python-version` that lets the Python execution environment know to use version 3.10.15. We can check this by running python
+this creates a file at the top level of the project `.python-version` that lets the Python execution environment know to use version 3.10.15. We can check this by running `python`
 
 ```
 $ python
@@ -253,7 +253,7 @@ Once your virtual env is activated, the prompt will change. It will look somethi
 ```
 This reminds you that your virtual environment is active. You can exit the virtual environment at any time by running `deactivate`
 
-We can check this by running python
+We can check this by running `python`
 
 ```
 $ python

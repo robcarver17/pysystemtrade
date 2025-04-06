@@ -40,7 +40,7 @@ Table of Contents
 
 Different sets of instruments are used for different purposes:
 
-- The superset of all instruments we can use are defined in the instrument configuration (a .csv version of which lives [here](/data/futures/csvconfig/instrumentconfig.csv))
+- The superset of all instruments we can use are defined in the [instrument configuration](/data/futures/csvconfig/instrumentconfig.csv))
 - When sampling instrument prices in production, we use a subset consisting of the current list of instruments already saved with multiple prices
 - When pulling in back adjusted prices into a simulation environment or update_systems production script, we use a subset consisting of the current list of instruments that have adjusted prices saved (which may be different in a database environment, but for .csv will be the prices [here](/data/futures/adjusted_prices_csv))
 - Within that simulation environment we can further exclude different instruments for different reasons
@@ -56,7 +56,7 @@ This is keyed off the multiple instruments database. This should be as extensive
 
 # Instruments we have adjusted prices for, used for simulation and production system backtest raw data
 
-If they're both coming from a database, then this in principle should be the same as the previous list, however if you use .csv prices for simulated backtesting then you might have a different set of instruments. Obviously try and avoid this! (Unless it's deliberate, eg you're doing a quick and dirty backtest on a subset of instruments).
+If they're both coming from a database, then this in principle should be the same as the previous list, however if you use CSV prices for simulated backtesting then you might have a different set of instruments. Obviously try and avoid this! (Unless it's deliberate, eg you're doing a quick and dirty backtest on a subset of instruments).
 
 ```python
 from systems.provided.futures_chapter15.basesystem import *
@@ -78,7 +78,7 @@ This is where it gets complicated :-) Basically we start with the instruments we
 
 ## The global list of instruments, when defined
 
-If we load a default config that contains no instrument information, then in principle we'll have available every instrument with an adjusted price in the source we're using (sim .csv or database):
+If we load a default config that contains no instrument information, then in principle we'll have available every instrument with an adjusted price in the source we're using (sim CSV or database):
 
 ```python
 from systems.provided.futures_chapter15.basesystem import *
@@ -89,7 +89,7 @@ instruments_with_adj_prices = system.data.get_instrument_list()
 >True
 ```
 
-However we normally don't want to run a backtest with everything, so there are two ways of restricting this subset. The first is to set explicit instrument weights:
+However, we normally don't want to run a backtest with everything, so there are two ways of restricting this subset. The first is to set explicit instrument weights:
 
 ```python
 system.cache.delete_all_items()
@@ -117,7 +117,7 @@ system.config.instruments = list(system.config.instrument_weights.keys())
 
 ## Always excluded
 
-We can take the global list and exclude instruments from it for various reasons. Always excluded means exactly that- the system literally can't see them.
+We can take the global list and exclude instruments from it for various reasons. Always excluded means exactly that - the system literally can't see them.
 
 ```python
 from systems.provided.futures_chapter15.basesystem import *
@@ -167,7 +167,7 @@ system.get_list_of_duplicate_instruments_to_remove()
 > ['COPPER-mini', 'CORN_mini', 'CRUDE_W', 'GAS_US', 'GASOILINE_mini', 'GOLD', 'HEATOIL_mini', 'JGB_mini', 'JGB-SGX-mini', 'JPY_micro', 'JPY-SGX-TITAN', 'JPY-SGX', 'KOSPI_mini', 'KRWUSD_mini', 'NASDAQ', 'SILVER_mini', 'SOYBEAN_mini', 'SP500', 'TWD-mini', 'VIX_mini', 'WHEAT_mini']
 ```
 
-These are defined in the following configuration element (values from default.yaml shown here):
+These are defined in the following configuration element (values from `defaults.yaml` shown here):
 
 ```python
 system.config.duplicate_instruments['exclude']
@@ -188,7 +188,7 @@ system.config.duplicate_instruments['include']['sp500']="SP500"
 > False
 ```
 
-If you wanted to make this change permanent, you could modify the backtest and/or private_config.yaml files (see discussion about configuration below). Later in the document I explain how to determine which is the best duplicate instrument to use in any given pair.
+If you wanted to make this change permanent, you could modify the backtest and/or `private_config.yaml` files (see discussion about configuration below). Later in the document I explain how to determine which is the best duplicate instrument to use in any given pair.
 
 
 
@@ -197,7 +197,7 @@ If you wanted to make this change permanent, you could modify the backtest and/o
 As well as duplicates, we might have other instruments we just don't like at all. Again, these will be absent from get_instrument_list. 
 
 ```python
-"EURIBOR" in system.data.get_instrument_list() ## this won't show True if you're using .csv prices but I have EURIBOR prices in my database - just not very good ones
+"EURIBOR" in system.data.get_instrument_list() ## this won't show True if you're using CSV prices but I have EURIBOR prices in my database - just not very good ones
 > True
 system.config.exclude_instrument_lists['ignore_instruments'] # from the default config
 >['EURIBOR']
@@ -216,9 +216,9 @@ The list of instruments we have now will be used throughout the backtest. So we 
 from systems.provided.futures_chapter15.estimatedsystem import *
 system = futures_system()
 system.config.instruments
->['EDOLLAR', 'US10', 'EUROSTX', 'MXP', 'CORN', 'V2X']
+>['SOFR', 'US10', 'EUROSTX', 'MXP', 'CORN', 'V2X']
 system.get_instrument_list()
->['CORN', 'EDOLLAR', 'EUROSTX', 'MXP', 'US10', 'V2X'] ## nothing has been excluded yet
+>['CORN', 'SOFR', 'EUROSTX', 'MXP', 'US10', 'V2X'] ## nothing has been excluded yet
 system.portfolio.get_subsystem_position("V2X")
 > ....
 2021-10-05   -33.749026
@@ -226,7 +226,7 @@ system.portfolio.get_subsystem_position("V2X")
 Freq: B, Length: 2314, dtype: float64
 ```
 
-However it turns out that V2X is a 'bad market' and ought to be excluded for optimisation:
+However, it turns out that V2X is a 'bad market' and ought to be excluded for optimisation:
 
 ```
 "V2X" in system.get_list_of_bad_markets()
@@ -241,7 +241,7 @@ system.portfolio.get_instrument_list(for_instrument_weights=True)
 ['V2X']
 This is fine for dynamic systems where we remove them in later optimisation, but may be problematic for static systems
 Consider adding to config element allocate_zero_instrument_weights_to_these_instruments
-['CORN', 'EDOLLAR', 'EUROSTX', 'MXP', 'US10', 'V2X']
+['CORN', 'SOFR', 'EUROSTX', 'MXP', 'US10', 'V2X']
 ```
 
 OK, let's do what we're told:
@@ -250,10 +250,10 @@ OK, let's do what we're told:
 system.cache.delete_all_items()
 system.config.allocate_zero_instrument_weights_to_these_instruments= ['V2X']
 system.portfolio.get_instrument_list(for_instrument_weights=True)
-['CORN', 'EDOLLAR', 'EUROSTX', 'MXP', 'US10']
+['CORN', 'SOFR', 'EUROSTX', 'MXP', 'US10']
 system.portfolio.get_instrument_weights().tail(1)
 
->              CORN   EDOLLAR   EUROSTX      MXP      US10  V2X
+>           CORN      SOFR      EUROSTX   MXP      US10      V2X
 index                                                           
 2021-10-06  0.260899  0.188551  0.181449  0.18055  0.188551  0.0
 
@@ -263,7 +263,7 @@ Incidentally, this will also apply zero weights if we are using 1/n fixed instru
 ```
 system.portfolio.get_raw_fixed_instrument_weights()
 >WARNING: No instrument weights  - using equal weights of 0.2000 over all 5 instruments in data
-            CORN  EDOLLAR  EUROSTX  MXP  US10  V2X
+            CORN     SOFR  EUROSTX  MXP  US10  V2X
 1972-10-18   0.2      0.2      0.2  0.2   0.2  0.0
 2021-10-06   0.2      0.2      0.2  0.2   0.2  0.0
 ```
@@ -352,7 +352,7 @@ Operating in the production environment is a bit more complex, due to the intera
 
 ## A note about configuration
 
-When you're running in simulation things are relatively simple; configuration items are defined in defaults_yaml, but can be overridden by your private_config.yaml, and then also by your own backtest.yaml file.
+When you're running in simulation things are relatively simple; configuration items are defined in `defaults.yaml`, but can be overridden by your `private_config.yaml`, and then also by your own backtest.yaml file.
 
 Importantly, once we're out of the 'backtesting' part of a production system, we can't see the backtest configuration (which after all is system specific, whereas generally in the production environment we're working with global parameters). So the priority order is `defaults.yaml`, overridden by `private_config.yaml`. The downstream code that produces strategy orders once the production backtest has generated optimal positions, and then trades those orders, will operate only on the configuration in `private_config.yaml` and `defaults.yaml`. 
 
@@ -388,7 +388,7 @@ And to allow a bad instrument to begin trading again:
 
 Similar logic will apply to ignored and duplicated instruments. Obviously if you mark an instrument has untradeable, and you have a position on, that position will continue to be held! Also limits on the number of trades that can be done will apply, so if you want to shut something down today you might need to create a manual order using the interactive order stack handler.
 
-The code that applies this constraints is generic; it won't load in the strategy configuration .yaml, so if you wish to change the default configuration of bad, duplicated, ignored or untradeable instruments you need to change the `private_config.yaml`.
+The code that applies these constraints is generic; it won't load in the strategy configuration YAML, so if you wish to change the default configuration of bad, duplicated, ignored or untradeable instruments you need to change the `private_config.yaml`.
 
 You can see the current list of instruments with overrides (either from configuration or set in the database) in the interactive_controls script:
 
@@ -429,7 +429,7 @@ You can also set database trade overrides here.
 
 ## Reduce only and other constraints in dynamic systems
 
-In a dynamic system we apply an optimisation to the optimal positions from the production backtest before generating orders. This optimisation needs to know about instruments with status 'reduce_only' and 'dont_trade'; again it will pull this information from a combination of configuration .yaml information (importantly, ignoring the backtest .yaml file) and what is loaded in the database. 
+In a dynamic system we apply an optimisation to the optimal positions from the production backtest before generating orders. This optimisation needs to know about instruments with status 'reduce_only' and 'dont_trade'; again it will pull this information from a combination of configuration YAML information (importantly, ignoring the backtest YAML file) and what is loaded in the database. 
 
 In principle the orders which are generated will also be subjected to the same constraints as for a static system, but since the optimisation takes care of them already this step won't have any effect on the orders that have been created.
 
@@ -488,7 +488,7 @@ Name: US-DISCRETE, dtype: float64
 New configured slippage value (current 10.360086, default is estimate 14.304580) <RETURN for default 14.304579734718004> 
 ```
 
-This is a market we haven't traded, but our sampled values (14.3 price points) is 38% higher than our configured (10.36). This is because the sampled bid/ask spread has averaged 20.67 points; we given a 38% weight to these samples (maybe we haven't traded that much) and 62% to the configured value.
+This is a market we haven't traded, but our sampled values (14.3 price points) is 38% higher than our configured (10.36). This is because the sampled bid/ask spread has averaged 20.67 points; we have given a 38% weight to these samples (maybe we haven't traded that much) and 62% to the configured value.
 
 ```
 New configured slippage value (current 0.172000, default is estimate 0.117354) <RETURN for default 0.11735449352746953> 
@@ -536,7 +536,7 @@ Min risk $m traded per day? <RETURN for default 1.5>
 This will take a while to get all the relevant data, but eventually you will get presented with something like this:
 
 ```
-Add the following to yaml .config under bad_markets heading:
+Add the following to YAML .config under bad_markets heading:
 
 bad_markets:
   - ALUMINIUM
@@ -550,7 +550,7 @@ New bad markets ['FTSEINDO', 'V2X']
 Removed bad markets ['US10']
 ```
 
-At the bottom it tells you what changes it recommends, and you can implement these changes by copying and pasting the .yaml fragment above - this doesn't happen automatically!
+At the bottom it tells you what changes it recommends, and you can implement these changes by copying and pasting the YAML fragment above - this doesn't happen automatically!
 Although this doesn't give you the reason why markets are bad, the costs and liquidity reports use the same underlying information.
 
 

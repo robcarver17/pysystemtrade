@@ -1,7 +1,7 @@
 # List of futures product pages
 Below is an incomplete mapping of instrument symbols to their corresponding futures product webpages. List will get updated in the future 
 Could be useful for checking price spikes, or for checking volumes and open interest when trying to decide what a good time to roll is. 
-CME has detailed graphs that go back several days. Other exchanges have detailed intra-day graphs.
+CME has detailed graphs that go back several days. Other exchanges have detailed intraday graphs.
 Exceptions exist - like japanese pages - no price / chart data available at all. and also to look at volumes and open interest when rolling.
 
 

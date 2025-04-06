@@ -223,5 +223,5 @@ If you update any of the docs, please make sure the Table of Contents is synced,
 To generate the table of contents for the backtesting document, run:
 ```shell
 $ cd pysystemtrade
-$ ./docs/gh-md-toc --insert --hide-footer docs/backtesting.md
+$ ./docs/gh-md-toc --insert --no-backup --hide-footer docs/backtesting.md
 ```

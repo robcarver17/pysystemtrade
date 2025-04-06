@@ -21,7 +21,7 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 At the moment, the dashboard provides basic diagnostic "traffic lights" to show status of various system components. The content of the reports is also reproduced.
 
-If you have installed all of the Python dependencies listed in the `requirement.txt` file, the web dashboard is ready to be started:
+If you have installed all the Python dependencies listed in the `pyproject.toml` file, the web dashboard is ready to be started:
 
 ```
 cd pysystemtrade/dashboard
@@ -50,18 +50,18 @@ Whilst running the monitor and dashboard will also handle any 'crashed' processe
 
 # Running a remote dashboard or monitor
 
-You may prefer to run your monitor or dashboard from another machine. Let's assume the trading server (the machine that is being monitored), is also the machine that is hosting your mongoDB instance, and has an IP address of 192.168.0.13; and the remote monitoring machine is on 192.168.0.10:
+You may prefer to run your monitor or dashboard from another machine. Let's assume the trading server (the machine that is being monitored), is also the machine that is hosting your MongoDB instance, and has an IP address of 192.168.0.13; and the remote monitoring machine is on 192.168.0.10:
 
-- Add an ip address to the `bind_ip` line in the `/etc/mongod.conf` file to allow connections from other machines `eg bind_ip=localhost, 192.168.0.10` or change your call to mongodb eg in linux `mongod --dbpath /home/rob/data/mongodb --bind_ip_all` (**warning, insecure unless you have other security eg firewall**). This is required
+- Add an ip address to the `bind_ip` line in the `/etc/mongod.conf` file to allow connections from other machines `eg bind_ip=localhost, 192.168.0.10` or change your call to MongoDB eg in linux `mongod --dbpath /home/rob/data/mongodb --bind_ip_all` (**warning, insecure unless you have other security eg firewall**). This is required
 - set up ssh so that it does not require password login from the remote machine, only ssh-key (**again, has security implications so make sure you know what you are doing!**). This is necessary for remote process monitoring to work via ssh.
 - Add the monitoring machine IP (192.168.0.10) to the whitelist for your IB gateway software.
-- - You may need to change your firewall settings to open up ports 27017 (mongodb) and 4001 (IB, unless you use a different port); eg in linux using UFW (`sudo ufw enable`, `sudo ufw allow 27017 from 192.168.0.10`) or iptables
+- You may need to change your firewall settings to open up ports 27017 (MongoDB) and 4001 (IB, unless you use a different port); eg in linux using UFW (`sudo ufw enable`, `sudo ufw allow 27017 from 192.168.0.10`) or iptables
 
 Then on the monitoring machine:
 
-- You may need to change your firewall settings to open up ports 27017 (mongodb) and 4001 (IB, unless you use a different port).
+- You may need to change your firewall settings to open up ports 27017 (MongoDB) and 4001 (IB, unless you use a different port).
 - you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address eg `mongo_host: 192.168.0.13`
-- you will need to modify the private_config.yaml` system configuration file so it connects to a different IP address eg `ib_ipaddress: 192.168.0.13` 
+- you will need to modify the `private_config.yaml` system configuration file so it connects to a different IP address eg `ib_ipaddress: 192.168.0.13` 
 - add the following to your `private_config.yaml` file so that the process monitoring works correctly
 
 `trading_server_ip: 192.168.0.13`

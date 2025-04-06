@@ -1,11 +1,8 @@
 This document is specifically about using pysystemtrade to connect with *Interactive Brokers (IB)*
 
-As of version 0.28.0, this requires the [ib_insync](https://github.com/erdewit/ib_insync) library.
+As of version 0.28.0, this requires the [ib-insync](https://github.com/erdewit/ib_insync) library.
 
-Although this document is about Interactive Brokers, you should read it carefully if you plan to use other brokers as it explains how to modify the various classes to achieve that, or perhaps if you want to use an alternative python layer to talk to the IB API
-
-
-- Get spot FX price data
+Although this document is about Interactive Brokers, you should read it carefully if you plan to use other brokers as it explains how to modify the various classes to achieve that, or perhaps if you want to use an alternative Python layer to talk to the IB API
 
 Related documents:
 
@@ -20,10 +17,11 @@ Table of Contents
 =================
 
 <!--ts-->
+* [Table of Contents](#table-of-contents)
 * [Preliminaries](#preliminaries)
    * [Getting started with interactive brokers](#getting-started-with-interactive-brokers)
       * [Gateway / TWS](#gateway--tws)
-      * [IB-insync library](#ib-insync-library)
+      * [ib-insync library](#ib-insync-library)
       * [IBC](#ibc)
    * [Launching and configuring the Gateway](#launching-and-configuring-the-gateway)
    * [Making a connection](#making-a-connection)
@@ -51,19 +49,20 @@ Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 ## Getting started with interactive brokers
 
-You may want to read [my blog posts](https://qoppac.blogspot.com/2017/03/interactive-brokers-native-python-api.html) to understand more about what is going on if it's your first experience of IB's python API. For any issues with IB go to [this group](https://groups.io/g/twsapi). IB also have a [webinar](https://register.gotowebinar.com/register/5481173598715649281) for the API. The official manual for the IB API is [here](http://interactivebrokers.github.io/tws-api/introduction.html) and for IB insync is [here](https://ib-insync.readthedocs.io/api.html).
+You may want to read [my blog posts](https://qoppac.blogspot.com/2017/03/interactive-brokers-native-python-api.html) to understand more about what is going on if it's your first experience of IB's Python API. For any issues with IB go to [this group](https://groups.io/g/twsapi). IB also have a [webinar](https://register.gotowebinar.com/register/5481173598715649281) for the API. The official manual for the IB API is [here](http://interactivebrokers.github.io/tws-api/introduction.html) and for ib-insync is [here](https://ib-insync.readthedocs.io/api.html).
 
 ### Gateway / TWS
 
 You need to download either the gateway or TWS software from the IB website. I recommend using the Gateway as it is much more stable and lightweight, and does not regularly reboot itself.
 
 
-### IB-insync library
+### ib-insync library
 
-I use IB-insync as my API to the python Gateway. You will need the [ib_insync](https://github.com/erdewit/ib_insync) library. This does not require you to download the IB python code.
+I use [ib-insync](https://github.com/erdewit/ib_insync) as my interface to the IB API. This library is a required dependency
 
-It is worth running the examples in the [IB-insync cookbook](https://ib-insync.readthedocs.io/api.html) to make sure your IB connection is working, that you have the right gateway settings, and so on. Pysystemtrade obviously won't work if IB insync can't work!!
+It is worth running the examples in the [ib-insync cookbook](https://ib-insync.readthedocs.io/api.html) to make sure your IB connection is working, that you have the right gateway settings, and so on. Pysystemtrade obviously won't work if ib-insync can't work!!
 
+> The ib-insync library has been archived as of March 2024. As some point we may need to transition to one of its forks
 
 ### IBC
 
@@ -72,16 +71,15 @@ Many people find [ibcAlpha](https://github.com/IbcAlpha/IBC) is very useful. It 
 
 ## Launching and configuring the Gateway
 
-Before you run any python code you'll need to launch the Gateway software. Current versions of the Gateway do this via a desktop icon. You will need to use either:
+Before you run any Python code you'll need to launch the Gateway software. Current versions of the Gateway do this via a desktop icon. You will need to use either:
 
-- A demo account, such as username: `fdemo`, password: `demouser`. IB seem to be phasing out their demo accounts.
 - A paper trading account
 - A live trading account (*Make sure you know what you are doing. I can take no responsibility for any losses caused by live trading using pysystemtrade. Use at your own risk!!!*)
 
 You will also need to configure the Gateway:
 
 - Socket port: Should be 4001. If you use a different port you'll need to change your connection calls [here](#making-a-connection) and [here](#creating-and-closing-connection-objects)
-- White list for trusted IP addresses: Should include 127.0.0.1. If you are going to be running the Gateway on one machine, and accessing it via another, then you need to add the IP address of your other machines here.
+- White list for trusted IP addresses: Should include 127.0.0.1. If you are going to be running the Gateway on one machine, and accessing it via another, then you need to add the IP address of your other machine here.
 - If you are going to be trading, then 'Read only API' should be turned off
 - You may also need to change precautions and preset options
 
@@ -99,9 +97,6 @@ Out[13]: IB broker connection{'ipaddress': '127.0.0.1', 'port': 4001, 'client': 
 See [here](#creating-and-closing-connection-objects) for more details.
 
 
-
-
-<a name="futures_data_workflow"></a>
 # Reference
 
 ## Classes and object references
@@ -110,15 +105,15 @@ See [here](#creating-and-closing-connection-objects) for more details.
 There are three types of objects in the [sysbrokers/IB](/sysbrokers/IB) area of pysystemtrade:
 
 - Data source objects: Provide the standard data object API to the rest of the code, eg getting futures contracts prices is done with the same call whether they are coming from a database or IB. They are called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface). They are instanced with a *connection object*. They make calls to *client objects*. 
-- Client objects: These make calls to the ib_insync in specific domains (getting data, placing orders and so on). They are also instanced with a *connection object*.
-- Connection objects. These contain a specific connection to an IB gateway via an ib_insync IB instance.
+- Client objects: These make calls to the ib-insync in specific domains (getting data, placing orders and so on). They are also instanced with a *connection object*.
+- Connection objects. These contain a specific connection to an IB gateway via an ib-insync `IB` instance.
 
 
 ## Data source objects
 
-We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). However we can't delete or write to IB.  Normally these functions would be called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface); it's discouraged to call them directly as the interface abstracts away exactly which broker you are talking to.
+We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). However, we can't delete or write to IB.  Normally these functions would be called by the `/sysproduction/data/broker/` [interface functions](/docs/data.md#production-interface); it's discouraged to call them directly as the interface abstracts away exactly which broker you are talking to.
 
-The data source objects all inherit from the classes in the `sysbrokers/` directory, eg `broker*data.py`. This serves a few purposes: it means we can add additional non specific IB methods that only make sense when talking to a broker rather than to a database, and it illustrates the interface you'd need to implement to connect to a different broker.
+The data source objects all inherit from the classes in the `sysbrokers/` directory, eg `broker*data.py`. This serves a few purposes: it means we can add additional non-specific IB methods that only make sense when talking to a broker rather than to a database, and it illustrates the interface you'd need to implement to connect to a different broker.
 Data source objects are instanced with and contain a *connection object* (and optionally a logger). They contain, and make calls to, *client objects*. They are in this [module](/sysbrokers/IB)
 
 You can access the client object and connection used by a particular data source, for example:
@@ -154,8 +149,8 @@ from sysdata.data_blob import dataBlob
 ibfuturesdata = ibFuturesContractPriceData(conn, dataBlob())
 
 ibfuturesdata.get_list_of_instrument_codes_with_merged_price_data() # returns list of instruments defined in [futures config file](/sysbrokers/IB/ibConfigFutures.csv)
-ibfuturesdata.contract_dates_with_price_data_for_instrument_code("EDOLLAR") # returns list of contract dates
-ibfuturesdata.get_prices_for_contract_object(futuresContract("EDOLLAR", "201203")) # returns OHLC price and volume data
+ibfuturesdata.contract_dates_with_price_data_for_instrument_code("DAX") # returns list of contract dates
+ibfuturesdata.get_prices_for_contract_object(futuresContract("DAX", "201203")) # returns OHLC price and volume data
 ```
 
 ### Capital data
@@ -172,7 +167,7 @@ ib_capital_data.get_account_value_across_currency()
 
 ```
 from sysobjects.contracts import futuresContract
-contract = futuresContract("EDOLLAR", "202306")
+contract = futuresContract("DAX", "202306")
 
 from sysbrokers.IB.ib_futures_contracts_data import ibFuturesContractData
 ib_futures_contract_data = ibFuturesContractData(conn)
@@ -189,9 +184,9 @@ ib_futures_contract_data.get_trading_hours_for_contract(contract)
 from sysbrokers.IB.ib_instruments_data import ibFuturesInstrumentData
 ib_futures_instrument_data = ibFuturesInstrumentData(conn)
 ib_futures_instrument_data.get_list_of_instruments()
-ib_futures_instrument_data.get_futures_instrument_object_with_IB_data("EDOLLAR") # again used by other functions to get the 'metadata' to map into IB instruments
-ib_futures_instrument_data.get_brokers_instrument_code("EDOLLAR") # reverse of next function
-ib_futures_instrument_data.get_instrument_code_from_broker_contract_object("GE") # reverse of previous function
+ib_futures_instrument_data.get_futures_instrument_object_with_IB_data("DAX") # again used by other functions to get the 'metadata' to map into IB instruments
+ib_futures_instrument_data.get_brokers_instrument_code("DAX") # reverse of next function
+ib_futures_instrument_data.get_instrument_code_from_broker_contract_object("DAX") # reverse of previous function
 ```
 
 
@@ -226,7 +221,7 @@ ib_contract_position_data.get_all_current_positions_as_list_with_contract_object
 
 ## Client objects
 
-Client objects make calls and requests to the broker via ib_insync. They are usually initialised by a broker data source object, which passes them a connection (and optionally a log).
+Client objects make calls and requests to the broker via ib-insync. They are usually initialised by a broker data source object, which passes them a connection (and optionally a log).
 
 They are located in this [module](/sysbrokers/IB/client). They are tied together with a weird inheritance tree:
 
@@ -239,7 +234,7 @@ They are located in this [module](/sysbrokers/IB/client). They are tied together
          - ibFxClient(ibPriceClient)
  
 
-Client objects also contain a connection and the live ib_inysnc.IB instance which is actually used by the client object code:
+Client objects also contain a connection and the live `ib_inysnc.IB` instance which is actually used by the client object code:
 
 ```
 from sysbrokers.IB.client.ib_price_client import ibPriceClient
@@ -264,10 +259,10 @@ Portid should match that in the Gateway configuration. Client ids (eg 1) must no
 
 If values for account, ib_ipaddress and ib_port are not passed here, they will default to:
 
-1- values supplied in file 'private_config.yaml' (see below)
-2- values supplied in the ['defaults.yaml' file](/sysdata/config/defaults.yaml)
+1- values supplied in file `private_config.yaml` (see below)
+2- values supplied in the [`defaults.yaml` file](/sysdata/config/defaults.yaml)
 
-You should first create a file 'private_config.yaml' in the private directory of [pysystemtrade](/private). Then add one or more of these line:
+You should first create a file `private_config.yaml` in the private directory of [pysystemtrade](/private). Then add one or more of these line:
 
 ```
 ib_ipaddress: 192.168.0.10
@@ -288,18 +283,18 @@ Again in production the connection would normally be closed by the [dataBlob](/d
 
 We treat IB as another data source, which means it has to conform to the data object API (see [storing futures and spot FX data](/docs/data.md)). Since connection objects abstract what the broker is doing, it should be possible to use these object for other brokers with minimal changes.
 
-The main service the connection provides is that it encapsulates a live ib_inysnc.IB instance:
+The main service the connection provides is that it encapsulates a live `ib_inysnc.IB` instance:
 
 ```
 conn.ib
 ```
 
-You can use this directly if you are familiar with ib_insync eg `conn.ib.positions()`, but normally this would be used by the IB client objects.
+You can use this directly if you are familiar with ib-insync eg `conn.ib.positions()`, but normally this would be used by the IB client objects.
 
 
 ### Make multiple connections
 
-It's possible to have multiple connections to the IB Gateway, each from its own process, but each connection must have a unique clientid. Used clientids are stored in the active database (usually mongoDB) to ensure we don't re-use active clientids. 
+It's possible to have multiple connections to the IB Gateway, each from its own process, but each connection must have a unique clientid. Used clientids are stored in the active database (usually MongoDB) to ensure we don't re-use active clientids. 
 
 
 
