@@ -855,9 +855,20 @@ def get_list_of_changes_to_make_to_slippage(
         difference = pd_row["Difference"]
         configured = pd_row["Configured"]
         suggested_estimate = pd_row["estimate"]
+        total_trades = pd_row["total_trades"]
+        bid_ask_sampled = pd_row["bid_ask_sampled"]
 
         if np.isnan(suggested_estimate) or np.isnan(configured):
             print("No data for %s" % instrument_code)
+            continue
+
+        if np.isnan(total_trades) and bid_ask_sampled == 0.0:
+            print(f"Insufficient data for {instrument_code}")
+            continue
+
+        if suggested_estimate == 0.0:
+            # skip, else divide by zero
+            print(f"Estimate for {instrument_code} is 0.0, skipping")
             continue
 
         if abs(difference) < filter:
