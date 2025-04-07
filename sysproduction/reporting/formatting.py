@@ -111,8 +111,8 @@ def nice_format_slippage_table(slippage_table: pd.DataFrame) -> pd.DataFrame:
 
 def nice_format_liquidity_table(liquidity_table: pd.DataFrame) -> pd.DataFrame:
     liquidity_table = liquidity_table.dropna()
-    liquidity_table.contracts = liquidity_table.contracts.astype(int)
-    liquidity_table.risk = liquidity_table.risk.round(2)
+    liquidity_table = liquidity_table.astype({"contracts": "int64"})
+    liquidity_table = liquidity_table.round({"risk": 2})
     return liquidity_table
 
 
