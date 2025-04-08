@@ -71,20 +71,19 @@ def get_optimal_positions_table_as_df(
         ]
     ]
 
-    things_to_round = [
-        "optimal_position",
-        "weight_per_contract",
-        "position_limit_weight",
-        "optimum_weight",
-        "start_weight",
-        "maximum_weight",
-        "minimum_weight",
-        "previous_weight",
-        "optimised_weight",
-    ]
-
-    for column_name in things_to_round:
-        subset_of_pd[column_name] = subset_of_pd[column_name].round(2)
+    subset_of_pd = subset_of_pd.round(
+        {
+            "optimal_position": 2,
+            "weight_per_contract": 2,
+            "position_limit_weight": 2,
+            "optimum_weight": 2,
+            "start_weight": 2,
+            "maximum_weight": 2,
+            "minimum_weight": 2,
+            "previous_weight": 2,
+            "optimised_weight": 2,
+        }
+    )
 
     subset_of_pd = subset_of_pd.sort_values("optimum_weight")
 

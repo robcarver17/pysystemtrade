@@ -191,7 +191,9 @@ def get_forecast_matrix(
         for instrument_code in instrument_codes:
             stage = getattr(data_backtest.system, stage_name)
             method = getattr(stage, method_name)
-            value = method(instrument_code, rule_name).ffill()[:datetime_cutoff][-1]
+            value = (
+                method(instrument_code, rule_name).ffill()[:datetime_cutoff].iloc[-1]
+            )
             value_dict[rule_name].append(value)
 
     value_df = pd.DataFrame(value_dict, index=instrument_codes)
