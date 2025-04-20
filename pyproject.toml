@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Systematic futures trading in Python"
 readme = "README.md"
-license = {file = "LICENCE"}
+license = {file = "LICENSE"}
 requires-python = ">=3.10"
 keywords = ["systematic trading", "interactive brokers"]
 dependencies = [
