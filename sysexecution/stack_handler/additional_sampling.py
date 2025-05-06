@@ -1,3 +1,5 @@
+from typing import List
+
 from syscore.exceptions import missingData
 from sysexecution.stack_handler.stackHandlerCore import stackHandlerCore
 from sysobjects.contracts import futuresContract
@@ -20,13 +22,14 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
 
     def _get_all_instruments_priced_contracts_from_db(self):
         instrument_list = self._get_all_instruments()
+        instrument_list_excluding_ignored = remove_ignored_instruments(self, instrument_list)
         data_contracts = self.data_contracts
 
         priced_contracts = [
             futuresContract(
                 instrument_code, data_contracts.get_priced_contract_id(instrument_code)
             )
-            for instrument_code in instrument_list
+            for instrument_code in instrument_list_excluding_ignored
         ]
 
         return priced_contracts
@@ -78,3 +81,14 @@ class stackHandlerAdditionalSampling(stackHandlerCore):
         update_prices = self.update_prices
 
         update_prices.add_spread_entry(instrument_code, spread=average_spread)
+
+
+
+
+def remove_ignored_instruments(self:stackHandlerAdditionalSampling, list_of_instruments: List[str]):
+    ignore_list = self.data.config.get_element('exclude_instrument_lists').get('ignore_in_order_stack', [])
+    if len(ignore_list)==1:
+        return list_of_instruments
+    new_list = [instrument for instrument in list_of_instruments if not instrument in ignore_list]
+
+    return new_list

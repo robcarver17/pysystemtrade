@@ -26,7 +26,8 @@ class spreadCostData(baseData):
 
     def _get_spread_cost_if_series_provided(self, instrument_code: str) -> float:
         all_data = self.get_spread_costs_as_series()
-        return all_data[instrument_code]
+        costs = all_data.get(instrument_code, 0)
+        return costs
 
     def _get_spread_costs_as_series_if_individual_spreads_provided(self) -> pd.Series:
         all_instruments = self.get_list_of_instruments()

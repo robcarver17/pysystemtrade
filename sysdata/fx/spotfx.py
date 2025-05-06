@@ -44,7 +44,11 @@ class fxPricesData(baseData):
         :param fx_code: currency code, in the form EURUSD
         :return: fxData object
         """
-        currency1, currency2 = get_fx_tuple_from_code(fx_code)
+        try:
+            currency1, currency2 = get_fx_tuple_from_code(fx_code)
+        except:
+            self.log.warning("Currency can't be located for %s using USD" % fx_code)
+            return DEFAULT_RATE_SERIES
 
         if currency1 == currency2:
             # Trivial, just a bunch of 1's
