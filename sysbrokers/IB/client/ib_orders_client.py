@@ -4,6 +4,7 @@ from ib_insync.order import (
     LimitOrder as ibLimitOrder,
     Trade as ibTrade,
     Order as ibOrder,
+StopOrder as ibStopOrder
 )
 
 from syscore.exceptions import missingContract
@@ -27,6 +28,7 @@ from sysexecution.orders.broker_orders import (
     snap_mid_type,
     snap_prim_type,
     adaptive_mkt_type,
+    stop_loss_order_type
 )
 
 from sysobjects.contracts import futuresContract
@@ -148,6 +150,13 @@ class ibOrdersClient(ibContractsClient):
                 return missing_order
             else:
                 ib_order = ibLimitOrder(ib_BS_str, ib_qty, limit_price)
+        elif order_type is stop_loss_order_type:
+            if limit_price is None:
+                self.log.critical("Need to have limit price with limit order!")
+                return missing_order
+            else:
+                ib_order = ibStopOrder(ib_BS_str, ib_qty, limit_price)
+
         elif order_type is snap_mkt_type:
             ## auxPrice is the offset so this will submit an order buy at the best offer, etc
             ## Works like a market order but works for instruments with no streaming data

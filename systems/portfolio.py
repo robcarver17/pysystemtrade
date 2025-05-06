@@ -642,13 +642,13 @@ class Portfolios(SystemStage):
 
         # these will probably be annual
         optimiser = self.calculation_of_raw_instrument_weights()
-        weights_of_instruments_with_weights = optimiser.weights()
+        instrument_weights = optimiser.weights()
 
-        instrument_weights = self._add_zero_weights_to_instrument_weights_df(
-            weights_of_instruments_with_weights
+        instrument_weights_with_zeros = self._add_zero_weights_to_instrument_weights_df(
+            instrument_weights
         )
 
-        return instrument_weights
+        return instrument_weights_with_zeros
 
     def fit_periods(self):
         # FIXME, NO GUARANTEE THIS OBJECT HAS AN ESTIMATOR UNLESS IT INHERITS FROM
