@@ -12,7 +12,7 @@ from sysexecution.orders.broker_orders import (
     brokerOrderType,
     market_order_type,
     limit_order_type,
-    brokerOrder,
+    brokerOrder, stop_loss_order_type,
 )
 from sysexecution.tick_data import tickerObject
 from sysexecution.orders.contract_orders import contractOrder
@@ -105,7 +105,7 @@ class Algo(object):
         ## We want to preserve these otherwise there is a danger they will dynamically change
         collected_prices = copy(collected_prices)
 
-        if order_type == limit_order_type:
+        if order_type == limit_order_type or order_type==stop_loss_order_type:
             limit_price = self.set_limit_price(
                 contract_order=contract_order,
                 collected_prices=collected_prices,
@@ -201,7 +201,6 @@ class Algo(object):
         input_limit_price: float = None,
         limit_price_from: str = limit_price_from_input,
     ) -> float:
-        assert limit_price_from in sources_of_limit_price
 
         if limit_price_from == limit_price_from_input:
             assert input_limit_price is not None

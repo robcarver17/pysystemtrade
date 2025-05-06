@@ -40,9 +40,10 @@ class brokerOrderType(orderType):
             "snap_mid",
             "snap_prim",
             "adaptive_mkt",
+            "stop_loss"
         ]
 
-
+stop_loss_order_type = brokerOrderType("stop loss")
 market_order_type = brokerOrderType("market")
 limit_order_type = brokerOrderType("limit")
 
