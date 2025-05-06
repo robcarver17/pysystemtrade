@@ -1,5 +1,6 @@
 from sysexecution.algos.algo import Algo, limit_price_from_input, limit_order_type
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
+from sysexecution.orders.broker_orders import stop_loss_order_type
 
 
 class algoLimit(Algo):
@@ -32,3 +33,26 @@ class algoLimit(Algo):
         self, broker_order_with_controls: orderWithControls
     ) -> orderWithControls:
         raise Exception("Limit order shouldn't be managed")
+
+
+class algoStopLoss(algoLimit):
+    """
+    Submit a limit order which is a stop loss
+    """
+
+    def submit_trade(self) -> orderWithControls:
+        contract_order = self.contract_order
+        self.data.log.debug(
+            "Submitting stop loss order for %s, limit price %f"
+            % (str(contract_order), contract_order.limit_price)
+        )
+        broker_order_with_controls = (
+            self.get_and_submit_broker_order_for_contract_order(
+                contract_order,
+                order_type=stop_loss_order_type,
+                input_limit_price=contract_order.limit_price,
+                limit_price_from=limit_price_from_input,
+            )
+        )
+
+        return broker_order_with_controls
