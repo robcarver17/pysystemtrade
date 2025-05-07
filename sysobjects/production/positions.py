@@ -369,6 +369,11 @@ class listOfContractPositions(listOfPositionsWithInstruments):
     def sum_for_contract(self):
         return sum_for_contract(self)
 
+    def position_in_contract(self, futures_contract: futuresContract):
+        position = [position.position for position in self if position.instrument_code==futures_contract.instrument_code and
+                    position.contract.contract_date.key == futures_contract.contract_date.key]
+
+        return sum(position)
 
 def sum_for_instrument(list_of_positions) -> listOfInstrumentPositions:
     """
