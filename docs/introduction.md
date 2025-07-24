@@ -1,13 +1,13 @@
 
 
 Here is a whistle-stop tour of what pysystemtrade can currently do. You'll probably want to read the [users guide](backtesting.md) after this.
-Notice that you will see different results than shown here, as you will be using more up to date data.
+Notice that you will see different results than shown here, as you will be using more up-to-date data.
 
 ## A simple trading rule
 
 (code is [here](/examples/introduction/asimpletradingrule.py) )
 
-As systematic traders we believe that the future will be at least a bit like the past. So first of all we need some past data. In principle past data can come from many places, but to begin with we'll get it from some pre-baked .csv files:
+As systematic traders we believe that the future will be at least a bit like the past. So first of all we need some past data. In principle past data can come from many places, but to begin with we'll get it from some pre-baked CSV files:
 
 ```python
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
@@ -26,7 +26,7 @@ data.get_instrument_list()
 ```
 
 ```
-['CORN', 'LEANHOG', 'LIVECOW', 'SOYBEAN', 'WHEAT', 'KR10', 'KR3', 'BOBL', 'BTP', 'BUND', 'OAT', 'SHATZ', 'US10', 'US2', 'US20', 'US5', 'V2X', 'VIX', 'KOSPI', 'AEX', 'CAC', 'SMI', 'NASDAQ', 'SP500', 'AUD', 'EUR', 'GBP', 'JPY', 'MXP', 'NZD', 'COPPER', 'GOLD', 'PALLAD', 'PLAT', 'CRUDE_W', 'GAS_US', 'EDOLLAR', 'EUROSTX']
+['CORN', 'LEANHOG', 'LIVECOW', 'SOYBEAN', 'WHEAT', 'KR10', 'KR3', 'BOBL', 'BTP', 'BUND', 'OAT', 'SHATZ', 'US10', 'US2', 'US20', 'US5', 'V2X', 'VIX', 'KOSPI', 'AEX', 'CAC', 'SMI', 'NASDAQ', 'SP500', 'AUD', 'EUR', 'GBP', 'JPY', 'MXP', 'NZD', 'COPPER', 'GOLD', 'PALLAD', 'PLAT', 'CRUDE_W', 'GAS_US', 'SOFR', 'EUROSTX']
 ```
 
 Not all the instruments are easily identifiable
@@ -42,7 +42,7 @@ futuresInstrumentWithMetaData(instrument=MUMMY, meta_data=instrumentMetaData(Des
 And what kind of data can we get for them?
 
 ```python
-data.get_raw_price("EDOLLAR").tail(5)
+data.get_raw_price("SOFR").tail(5)
 ```
 
 ```
@@ -68,7 +68,7 @@ data['SP500_micro'] ## equivalent to data.get_instrument_price
 Price data is useful, but is there any other data available? For futures, yes, we can get the data we need to implement a carry rule:
 
 ```python
-data.get_instrument_raw_carry_data("EDOLLAR").tail(6)
+data.get_instrument_raw_carry_data("SOFR").tail(6)
 
 ```
 
@@ -117,7 +117,7 @@ def calc_ewmac_forecast(price, Lfast, Lslow=None):
 Let's run it and look at the output
 
 ```python
-instrument_code='EDOLLAR'
+instrument_code='SOFR'
 price=data.daily_prices(instrument_code)
 ewmac=calc_ewmac_forecast(price, 32, 128)
 ewmac.tail(5)
@@ -201,9 +201,9 @@ A full list of stages would include:
 4. Combining forecasts together
 5. Position sizing
 6. Creating a portfolio of instruments
-7. Working out the p&l
+7. Working out the P&L
 
-For now let's start with the simplest possible system, one which contains only a trading rules stage. Let's just setup our environment again:
+For now let's start with the simplest possible system, one which contains only a trading rules stage. Let's just set up our environment again:
 
 ```python
 from sysdata.sim.csv_futures_sim_data import csvFuturesSimData
@@ -250,7 +250,7 @@ System with stages: rules
 We can now get forecasts:
 
 ```python
-my_system.rules.get_raw_forecast("EDOLLAR", "ewmac").tail(5)
+my_system.rules.get_raw_forecast("SOFR", "ewmac").tail(5)
 ```
 
 ```
@@ -281,9 +281,9 @@ ewmac_rule
 TradingRule; function: <function ewmac_forecast_with_defaults at 0xb734ca4c>, data:  and other_args:
 ```
 
-Time to reveal what the mysterious object is. A `TradingRule` contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function. So the function is just the `ewmac` function that we imported earlier, and in this trivial case there is no data, and no arguments. Having no data is fine, because the code assumes that you'd normally want to pass the price of an instrument to a trading rule if you don't tell it otherwise. Furthermore on this occasion having no arguments is also no problem since the ewmac function we're using includes some defaults.
+Time to reveal what the mysterious object is. A `TradingRule` contains 3 elements - a function, a list of any data the function needs, and a dict of any other arguments that can be passed to the function. So the function is just the `ewmac` function that we imported earlier, and in this trivial case there is no data, and no arguments. Having no data is fine, because the code assumes that you'd normally want to pass the price of an instrument to a trading rule if you don't tell it otherwise. Furthermore, on this occasion having no arguments is also no problem since the ewmac function we're using includes some defaults.
 
-*If you're familiar with the concept in python of args and kwargs; `data` is a bit like args - we always pass a list of positional arguments to `function`; and `other_args` are a bit like kwargs - we always pass in a dict of named arguments to `function`*
+*If you're familiar with the concept in Python of args and kwargs; `data` is a bit like args - we always pass a list of positional arguments to `function`; and `other_args` are a bit like kwargs - we always pass in a dict of named arguments to `function`*
 
 There are a few different ways to define trading rules completely. I'll use a couple of different ones here:
 
@@ -302,7 +302,7 @@ Again, let's check that `ewmac32` is the same as the `ewmac` we have before (it 
 
 ```python
 my_system=System([my_rules], data)
-my_system.rules.get_raw_forecast("EDOLLAR", "ewmac32").tail(5)
+my_system.rules.get_raw_forecast("SOFR", "ewmac32").tail(5)
 ```
 
 ```
@@ -317,7 +317,7 @@ Freq: B, dtype: float64
 
 Now let's introduce the idea of **config** objects. A `config` or configuration object allows us to control the behaviour of the various stages in the system.
 
-Configuration objects can be created on the fly or by reading in files written in yaml (which we'll talk about below). A configuration object is just a collection of attributes. We create them interactively like so:
+Configuration objects can be created on the fly or by reading in files written in YAML (which we'll talk about below). A configuration object is just a collection of attributes. We create them interactively like so:
 
 ```python
 from sysdata.config.configdata import Config
@@ -336,7 +336,7 @@ So far, not exciting. Let's see how we'd use a `config` to define our trading ru
 empty_rules=Rules()
 my_config.trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32)
 my_system=System([empty_rules], data, my_config)
-print(my_system.rules.get_raw_forecast("EDOLLAR", "ewmac8"))
+print(my_system.rules.get_raw_forecast("SOFR", "ewmac8"))
 ```
 
 Notice the differences from before:
@@ -348,9 +348,9 @@ Notice the differences from before:
 
 *Note if you'd passed the dict of trading rules into Rules()* **and** *into the config, only the former would be used*
 
-Why do we have this alternative method of specifying trading rules? Indeed why the option of using config at all. The answer it's that's a much more robust method for defining system behaviour than having pages of scripts defining how the system behaves. This is especially true in a production system. Why do we need an empty instance of Rules()? Well effectively we build our System object up from building blocks like Rules. These are usually just empty instances of a given class with no arguments passed, which are controlled by the contents of the configuration object also passed to system.
+Why do we have this alternative method of specifying trading rules? Indeed, why the option of using config at all. The answer it's that's a much more robust method for defining system behaviour than having pages of scripts defining how the system behaves. This is especially true in a production system. Why do we need an empty instance of Rules()? Well effectively we build our System object up from building blocks like Rules. These are usually just empty instances of a given class with no arguments passed, which are controlled by the contents of the configuration object also passed to system.
  
-So in a sense passing Rules(dict(....)) is not the normal behaviour, it's just sometimes nice to be able to do this so I allow it.
+So in a sense passing Rules(dict(....)) is not the normal behaviour, it's just sometimes nice to be able to do this, so I allow it.
 
 Now these trading rules aren't producing forecasts that are correctly scaled (with an average absolute value of 10), and they don't have the cap of 20 that I recommend. To fix this we need to add another *stage* to our system: forecast scaling and capping.
 Stages are added by including extra objects in the list which is the first argument passed to `System`. The order of these doesn't matter.
@@ -363,14 +363,14 @@ from systems.forecast_scale_cap import ForecastScaleCap
 
 ## By default we pool estimates across instruments. It's worth telling the system what instruments we want to use:
 #
-my_config.instruments=["EDOLLAR", "US10", "CORN", "SP500_micro"]
+my_config.instruments=["SOFR", "US10", "CORN", "SP500_micro"]
 
 ## this parameter ensures we estimate:
 my_config.use_forecast_scale_estimates=True
 
 fcs=ForecastScaleCap()
 my_system = System([fcs, my_rules], data, my_config)
-print(my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32").tail(5))
+print(my_system.forecastScaleCap.get_forecast_scalar("SOFR", "ewmac32").tail(5))
 ```
 
 ```
@@ -394,10 +394,10 @@ my_config.use_forecast_scale_estimates=False
 
 my_system=System([fcs, empty_rules], data, my_config)
 
-print(my_system.forecastScaleCap.get_forecast_scalar("EDOLLAR", "ewmac32"))
+print(my_system.forecastScaleCap.get_forecast_scalar("SOFR", "ewmac32"))
 2.65 # now a single float value
 
-my_system.forecastScaleCap.get_capped_forecast("EDOLLAR", "ewmac32")
+my_system.forecastScaleCap.get_capped_forecast("SOFR", "ewmac32")
 ```
 
 *Note that the order of stages in the list passed to `System([...], ...)` isn't relevant*
@@ -421,8 +421,8 @@ from systems.forecast_combine import ForecastCombine
 
 combiner = ForecastCombine()
 my_system = System([fcs, empty_rules, combiner], data, my_config)
-my_system.combForecast.get_forecast_weights("EDOLLAR").tail(5)
-my_system.combForecast.get_forecast_diversification_multiplier("EDOLLAR").tail(5)
+my_system.combForecast.get_forecast_weights("SOFR").tail(5)
+my_system.combForecast.get_forecast_diversification_multiplier("SOFR").tail(5)
 
 ```
 
@@ -499,7 +499,7 @@ my_config.forecast_div_multiplier=1.1
 my_config.use_forecast_weight_estimates = False
 my_config.use_forecast_div_mult_estimates = False
 my_system=System([fcs, empty_rules, combiner, raw_data, position_size], data, my_config)
-my_system.combForecast.get_combined_forecast("EDOLLAR").tail(5)
+my_system.combForecast.get_combined_forecast("SOFR").tail(5)
 ```
 
 
@@ -524,7 +524,7 @@ my_config.base_currency="GBP"
 
 my_system=System([ fcs, empty_rules, combiner, position_size, raw_data], data, my_config)
 
-my_system.positionSize.get_subsystem_position("EDOLLAR").tail(5)
+my_system.positionSize.get_subsystem_position("SOFR").tail(5)
 ```
 
 
@@ -560,7 +560,7 @@ print(my_system.portfolio.get_instrument_diversification_multiplier())
 ```
 
 ```
-                CORN   EDOLLAR     SP500_micro      US10
+                CORN   SOFR     SP500_micro      US10
 2016-05-05  0.273715  0.245994  0.281982  0.198309
 2016-05-06  0.273715  0.245994  0.281982  0.198309
 2016-05-09  0.273715  0.245994  0.281982  0.198309
@@ -582,14 +582,14 @@ Alternatively we can just make up some instrument weights, and diversification m
 *Again if we really couldn't be bothered, this would default to equal weights and 1.0 respectively*
 
 ```python
-my_config.instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500_micro=.8)
+my_config.instrument_weights=dict(US10=.1, SOFR=.4, CORN=.3, SP500_micro=.8)
 my_config.instrument_div_multiplier=1.5
 my_config.use_instrument_weight_estimates = False
 my_config.use_instrument_div_mult_estimates = False
 
 my_system=System([ fcs, empty_rules, combiner, position_size, raw_data, portfolio], data, my_config)
 
-my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
+my_system.portfolio.get_notional_position("SOFR").tail(5)
 ```
 
 ```                 
@@ -635,7 +635,7 @@ To speed things up you can also pass a dictionary to `Config()`. To reproduce th
 
 ```python
 from sysdata.config.configdata import Config
-my_config=Config(dict(trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32), instrument_weights=dict(US10=.1, EDOLLAR=.4, CORN=.3, SP500_micro=.2), instrument_div_multiplier=1.5, forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65), forecast_weights=dict(ewmac8=0.5, ewmac32=0.5), forecast_div_multiplier=1.1
+my_config=Config(dict(trading_rules=dict(ewmac8=ewmac_8, ewmac32=ewmac_32), instrument_weights=dict(US10=.1, SOFR=.4, CORN=.3, SP500_micro=.2), instrument_div_multiplier=1.5, forecast_scalars=dict(ewmac8=5.3, ewmac32=2.65), forecast_weights=dict(ewmac8=0.5, ewmac32=0.5), forecast_div_multiplier=1.1
 ,percentage_vol_target=25, notional_trading_capital=500000, base_currency="GBP"))
 my_config
 ```
@@ -646,23 +646,23 @@ Note we don't need to tell the config that we're not using estimation for foreca
 Config with elements: base_currency, forecast_div_multiplier, forecast_scalars, forecast_weights, instrument_div_multiplier, instrument_weights, notional_trading_capital, percentage_vol_target, trading_rules
 ```
 
-Alternatively we could get the same result from reading a [yaml](https://pyyaml.org) file ( [this one to be precise](/systems/provided/example/simplesystemconfig.yaml) ). Don't worry if you're not familiar with yaml; it's just a nice way of creating nested dicts, lists and other python objects in plain text. Just be aware that indentations are important, just in like python.
+Alternatively we could get the same result from reading a [YAML](https://pyyaml.org) file (the one at [`/systems/provided/example/simplesystemconfig.yaml`](/systems/provided/example/simplesystemconfig.yaml) to be precise). Don't worry if you're not familiar with YAML; it's just a nice way of creating nested dicts, lists and other Python objects in plain text. Just be aware that indentations are important, just in like Python.
 
 ```python
 my_config=Config("systems.provided.example.simplesystemconfig.yaml")
 ```
 
-(Notice we don't put filenames in; rather a python style reference within the project)
+(Notice we don't put filenames in; rather a Python style reference within the project)
 
-If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.rules.ewmac.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead we specify where the relevant function can be found in the project directory structure.
+If you look at the YAML file you'll notice that the trading rule function has been specified as a string `systems.provided.rules.ewmac.ewmac_forecast_with_defaults`. This is because we can't easily create a function in a YAML text file (*we can in theory; but it's quite a bit of work and creates a potential security risk*). Instead, we specify where the relevant function can be found in the project directory structure.
 
-Similarly for the ewmac8 rule we've specified a data source `data.daily_prices` which points to `system.data.daily_prices()`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs. This means you can configure almost any trading rule quite easily through configuration changes.
+Similarly, for the ewmac8 rule we've specified a data source `data.daily_prices` which points to `system.data.daily_prices()`. This is the default, which is why we haven't needed to specify it before, and it isn't included in the specification for the ewmac32 rule. Equally, we could specify any attribute and method within the system object, as long as it takes the argument `instrument_code`. We can also have a list of data inputs. This means you can configure almost any trading rule quite easily through configuration changes.
 
 
 
 ## A simple pre-baked system
 
-Normally we wouldn't create a system by adding each stage manually (importing and creating long lists of stage objects). Instead you can use a 'pre baked' system, and then modify it as required.
+Normally we wouldn't create a system by adding each stage manually (importing and creating long lists of stage objects). Instead, you can use a 'pre-baked' system, and then modify it as required.
 
 For example here is a pre-baked version of the previous example (code is [here](/examples/introduction/prebakedsystems.py) ):
 
@@ -679,12 +679,12 @@ System with stages: accounts, portfolio, positionSize, combForecast, forecastSca
 Everything will now work as before:
 
 ```python
-my_system.portfolio.get_notional_position("EDOLLAR").tail(5)
+my_system.portfolio.get_notional_position("SOFR").tail(5)
 ```
 
 
 
-By default this has loaded the same data and read the config from the same yaml file. However we can also do this manually, allowing us to use new `data` and a modified `config` with a pre-baked system.
+By default, this has loaded the same data and read the config from the same YAML file. However, we can also do this manually, allowing us to use new `data` and a modified `config` with a pre-baked system.
 
 ```python
 from sysdata.config.configdata import Config

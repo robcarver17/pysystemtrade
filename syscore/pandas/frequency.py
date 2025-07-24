@@ -112,7 +112,11 @@ def merge_data_with_different_freq(
     dtype: int64
     """
 
-    list_as_concat_pd = pd.concat(list_of_data, axis=0)
+    filtered = [item for item in list_of_data if len(item) > 0]
+    if len(filtered) == 0:
+        return list_of_data[0]
+    else:
+        list_as_concat_pd = pd.concat(filtered, axis=0)
     sorted_pd = list_as_concat_pd.sort_index()
     unique_pd = uniquets(sorted_pd)
 
@@ -215,6 +219,9 @@ def interpolate_for_a_single_day(
 
 
 def reindex_last_monthly_include_first_date(df: pd.DataFrame) -> pd.DataFrame:
+    if df.empty:
+        return df
+
     df_monthly_index = list(df.resample("1M").last().index)  ## last day in month
     df_first_date_in_index = df.index[0]
     df_monthly_index = [df_first_date_in_index] + df_monthly_index

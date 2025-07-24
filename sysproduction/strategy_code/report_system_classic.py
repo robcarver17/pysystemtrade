@@ -191,7 +191,9 @@ def get_forecast_matrix(
         for instrument_code in instrument_codes:
             stage = getattr(data_backtest.system, stage_name)
             method = getattr(stage, method_name)
-            value = method(instrument_code, rule_name).ffill()[:datetime_cutoff][-1]
+            value = (
+                method(instrument_code, rule_name).ffill()[:datetime_cutoff].iloc[-1]
+            )
             value_dict[rule_name].append(value)
 
     value_df = pd.DataFrame(value_dict, index=instrument_codes)
@@ -212,10 +214,16 @@ def get_forecast_matrix_over_code(
     for instrument_code in instrument_codes:
         stage = getattr(data_backtest.system, stage_name)
         method = getattr(stage, method_name)
-        value_row = method(instrument_code).ffill()[:datetime_cutoff].iloc[-1]
-        values_by_rule = [
-            value_row.get(rule_name, np.nan) for rule_name in trading_rule_names
-        ]
+        values = method(instrument_code).ffill()[:datetime_cutoff]
+
+        if not values.empty:
+            value_row = values.iloc[-1]
+            values_by_rule = [
+                value_row.get(rule_name, np.nan) for rule_name in trading_rule_names
+            ]
+        else:
+            values_by_rule = [np.nan] * len(trading_rule_names)
+
         value_dict[instrument_code] = values_by_rule
 
     value_df = pd.DataFrame(value_dict, index=trading_rule_names)

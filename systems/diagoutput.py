@@ -165,7 +165,9 @@ class systemDiag(object):
 
             for instrument in instrument_list:
                 scalar = float(
-                    system.forecastScaleCap.get_forecast_scalar(instrument, rule)[-1]
+                    system.forecastScaleCap.get_forecast_scalar(instrument, rule).iloc[
+                        -1
+                    ]
                 )
                 if pooling:
                     # will be overwritten for each instrument

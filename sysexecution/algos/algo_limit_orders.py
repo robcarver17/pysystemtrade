@@ -2,7 +2,6 @@ from sysexecution.algos.algo import Algo, limit_price_from_input, limit_order_ty
 from sysexecution.order_stacks.broker_order_stack import orderWithControls
 from sysexecution.orders.broker_orders import stop_loss_order_type
 
-
 class algoLimit(Algo):
     """
     Submit a limit order
@@ -33,8 +32,6 @@ class algoLimit(Algo):
         self, broker_order_with_controls: orderWithControls
     ) -> orderWithControls:
         raise Exception("Limit order shouldn't be managed")
-
-
 
 
 class algoStopLoss(algoLimit):

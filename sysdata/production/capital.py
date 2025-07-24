@@ -164,18 +164,18 @@ class capitalData(baseData):
         if date is arg_not_supplied:
             date = datetime.datetime.now()
 
+        new_capital_item = pd.Series([new_capital_value], [date])
+
         try:
             capital_df = self.get_capital_pd_df_for_strategy(strategy_name)
         except missingData:
-            capital_series = pd.Series(dtype=float)
+            capital_series = new_capital_item
         else:
-            capital_series = df_to_series(capital_df)
+            capital_series = pd.concat(
+                [df_to_series(capital_df), new_capital_item], axis=0
+            )
 
-        new_capital_item = pd.Series([new_capital_value], [date])
-        updated_capital_series = pd.concat([capital_series, new_capital_item], axis=0)
-        updated_capital_df = updated_capital_series.to_frame()
-
-        self.update_capital_pd_df_for_strategy(strategy_name, updated_capital_df)
+        self.update_capital_pd_df_for_strategy(strategy_name, capital_series.to_frame())
 
     def delete_recent_capital_for_strategy(
         self, strategy_name: str, last_date: datetime.datetime

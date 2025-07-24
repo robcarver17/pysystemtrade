@@ -704,7 +704,10 @@ def get_trading_hours_for_instrument(
     data: dataBlob, instrument_code: str
 ) -> listOfTradingHours:
     diag_contracts = dataContracts(data)
-    contract_id = diag_contracts.get_priced_contract_id(instrument_code)
+    try:
+        contract_id = diag_contracts.get_priced_contract_id(instrument_code)
+    except missingData:
+        raise missingContract
 
     contract = futuresContract(instrument_code, contract_id)
 

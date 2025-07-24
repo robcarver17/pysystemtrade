@@ -12,9 +12,6 @@ class seriesOfMargin(pd.Series):
             raise missingData
         return self.values[-1]
 
-    def add_value(self, value: float, dateref=datetime.datetime.now()):
-        return seriesOfMargin(self._append(pd.Series([value], index=[dateref])))
-
 
 class marginData(object):
     def get_series_of_total_margin(self) -> seriesOfMargin:
@@ -48,10 +45,14 @@ class marginData(object):
         return series_of_margin.final_value()
 
     def add_strategy_margin_entry(self, margin_entry: float, strategy_name: str):
+        new_val = pd.Series([margin_entry], index=[datetime.datetime.now()])
         existing_series = self.get_series_of_strategy_margin(strategy_name)
-        new_series = existing_series.add_value(margin_entry)
+        if existing_series.empty:
+            new_series = new_val
+        else:
+            new_series = pd.concat([existing_series, new_val])
         self._write_series_of_strategy_margin(
-            strategy_name, series_of_margin=new_series
+            strategy_name, series_of_margin=seriesOfMargin(new_series)
         )
 
     def get_series_of_strategy_margin(self, strategy_name: str) -> seriesOfMargin:

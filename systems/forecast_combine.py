@@ -251,6 +251,9 @@ class ForecastCombine(SystemStage):
             monthly_forecast_weights=monthly_forecast_weights,
         )
 
+        if forecast_weights_fixed_to_forecasts.empty:
+            return forecast_weights_fixed_to_forecasts
+
         # Remap to business day frequency so the smoothing makes sense also space saver
         daily_forecast_weights_fixed_to_forecasts_unsmoothed = (
             forecast_weights_fixed_to_forecasts.resample("1B").mean()
@@ -432,7 +435,7 @@ class ForecastCombine(SystemStage):
     @diagnostic()
     def get_forecasts_given_rule_list(
         self, instrument_code: str, rule_variation_list: list
-    ) -> pd.Series:
+    ) -> pd.DataFrame:
         """
         Convenience function to get a list of forecasts
 
@@ -444,6 +447,9 @@ class ForecastCombine(SystemStage):
             self._get_capped_individual_forecast(instrument_code, rule_variation_name)
             for rule_variation_name in rule_variation_list
         ]
+
+        if not forecasts:
+            return pd.DataFrame(index=pd.DatetimeIndex([]))
 
         forecasts = pd.concat(forecasts, axis=1)
 

@@ -242,11 +242,13 @@ class correlationEstimate(Estimate):
             [[np.nan] * len(new_asset_names)] * len(new_asset_names),
             columns=new_asset_names,
             index=new_asset_names,
+            dtype="float64",
         )
         l2 = pd.DataFrame(
             [[np.nan] * len(self.columns)] * len(new_asset_names),
             columns=self.columns,
             index=new_asset_names,
+            dtype="float64",
         )
         bottom_row = pd.concat([l2, r2], axis=1)
         both_rows = pd.concat([top_row, bottom_row], axis=0)

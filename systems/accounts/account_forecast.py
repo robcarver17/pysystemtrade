@@ -253,20 +253,17 @@ def pandl_for_instrument_forecast(
     notional_position = _get_notional_position_for_forecast(
         normalised_forecast, average_notional_position=average_notional_position
     )
-
-    pandl_calculator = pandlCalculationWithSRCosts(
-        price,
+    account_curve = pandl_for_position(
+        notional_position=notional_position,
+        average_notional_position=average_notional_position,
         SR_cost=SR_cost,
-        positions=notional_position,
         fx=fx,
         daily_returns_volatility=daily_returns_volatility,
-        average_position=average_notional_position,
         capital=capital,
         value_per_point=value_per_point,
         delayfill=delayfill,
+        price=price,
     )
-
-    account_curve = accountCurve(pandl_calculator)
 
     return account_curve
 
@@ -302,3 +299,31 @@ def _get_normalised_forecast(
     normalised_forecast = forecast / target_abs_forecast
 
     return normalised_forecast
+
+
+def pandl_for_position(
+    notional_position: pd.Series,
+    average_notional_position,
+    price: pd.Series,
+    capital: float = ARBITRARY_FORECAST_CAPITAL,
+    fx=arg_not_supplied,
+    daily_returns_volatility: pd.Series = arg_not_supplied,
+    SR_cost=0.0,
+    delayfill=True,
+    value_per_point=ARBITRARY_VALUE_OF_PRICE_POINT,
+) -> accountCurve:
+    pandl_calculator = pandlCalculationWithSRCosts(
+        price,
+        SR_cost=SR_cost,
+        positions=notional_position,
+        fx=fx,
+        daily_returns_volatility=daily_returns_volatility,
+        average_position=average_notional_position,
+        capital=capital,
+        value_per_point=value_per_point,
+        delayfill=delayfill,
+    )
+
+    account_curve = accountCurve(pandl_calculator)
+
+    return account_curve
