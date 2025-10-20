@@ -1,6 +1,7 @@
 from syscore.constants import arg_not_supplied
 from syscore.dateutils import MIXED_FREQ, HOURLY_FREQ, DAILY_PRICE_FREQ
 from syscore.pandas.frequency import merge_data_with_different_freq
+from sysdata.csv.csv_futures_contract_prices import ConfigCsvFuturesPrices
 from sysdata.csv.csv_futures_contract_prices import csvFuturesContractPriceData
 from sysobjects.contracts import futuresContract
 from sysobjects.futures_per_contract_prices import futuresContractPrices
@@ -8,6 +9,16 @@ from sysproduction.data.prices import diagPrices
 
 diag_prices = diagPrices()
 db_prices = diag_prices.db_futures_contract_price_data
+
+BARCHART_CONFIG = ConfigCsvFuturesPrices(
+    input_date_index_name="Time",
+    input_skiprows=0,
+    input_skipfooter=0,
+    input_date_format="%Y-%m-%dT%H:%M:%S",
+    input_column_mapping=dict(
+        OPEN="Open", HIGH="High", LOW="Low", FINAL="Close", VOLUME="Volume"
+    ),
+)
 
 
 def init_db_with_split_freq_csv_prices(
@@ -171,4 +182,8 @@ if __name__ == "__main__":
     input("Will overwrite existing prices are you sure?! CTL-C to abort")
     # modify flags as required
     datapath = "*** NEED TO DEFINE A DATAPATH***"
-    init_db_with_split_freq_csv_prices(datapath)
+
+    for instr in ["CRUDE_W"]:
+        init_db_with_split_freq_csv_prices_for_code(
+            instr, datapath, csv_config=BARCHART_CONFIG
+        )
