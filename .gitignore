@@ -28,3 +28,10 @@ venv/
 
 # libreoffice
 .~lock.*
+
+# environment secrets
+.env
+
+# A-stock parquet data (fetched, not committed)
+data/astock/daily_prices_parquet/*.parquet
+data/astock/minutes_prices_parquet/
