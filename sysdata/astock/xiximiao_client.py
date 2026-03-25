@@ -38,9 +38,12 @@ DEFAULT_API_URL = os.environ.get(
 )
 MAX_ROWS_PER_CALL = 8000
 MAX_OFFSET = 100000
-RATE_LIMIT_SLEEP = 0.35
-MAX_RETRIES = 3
+RATE_LIMIT_SLEEP = 0.5
+MAX_RETRIES = 5
 RETRY_BACKOFF = 2.0
+
+import re
+_RATE_LIMIT_RE = re.compile(r"(\d+)\s*秒后可用")
 
 
 def _init_pro(token: str = DEFAULT_TOKEN, api_url: str = DEFAULT_API_URL):
@@ -90,12 +93,18 @@ class XiximiaoClient:
                 df = fn(**kwargs)
                 return df
             except Exception as e:
-                wait = RETRY_BACKOFF ** (attempt + 1)
+                msg = str(e)
+                # Parse rate limit wait time from API error
+                m = _RATE_LIMIT_RE.search(msg)
+                if m:
+                    wait = int(m.group(1)) + 3  # wait the requested time + 3s buffer
+                else:
+                    wait = RETRY_BACKOFF ** (attempt + 1)
                 logger.warning(
-                    "API call failed (attempt %d/%d): %s — retrying in %.1fs",
+                    "API call failed (attempt %d/%d): %s — retrying in %.0fs",
                     attempt + 1,
                     MAX_RETRIES,
-                    e,
+                    msg[:80],
                     wait,
                 )
                 time.sleep(wait)
