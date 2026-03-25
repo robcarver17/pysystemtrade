@@ -32,6 +32,11 @@ from syscore.exceptions import missingData
 from sysdata.sim.sim_data import simData
 from sysdata.astock.astock_prices import AStockDailyPricesData, AStockMinutesPricesData
 from sysdata.astock.astock_instruments import AStockInstrumentData, AStockSpreadCostData
+from sysdata.astock.db_config import (
+    get_daily_prices_store, get_minutes_prices_store,
+    get_instrument_data_store, get_spread_cost_store,
+    is_pg_enabled,
+)
 
 from sysobjects.spot_fx_prices import fxPrices
 from sysobjects.instruments import instrumentCosts
@@ -55,23 +60,24 @@ class AStockSimData(simData):
     ):
         super().__init__(log=log)
 
-        # Data stores
+        # Data stores — use PG or Parquet depending on ASTOCK_BACKEND env
+        # Explicit path args override the backend switch (for testing)
         if daily_prices_path:
             self._daily_store = AStockDailyPricesData(datapath=daily_prices_path)
         else:
-            self._daily_store = AStockDailyPricesData()
+            self._daily_store = get_daily_prices_store()
 
         if minutes_prices_path:
             self._minutes_store = AStockMinutesPricesData(datapath=minutes_prices_path)
         else:
-            self._minutes_store = AStockMinutesPricesData()
+            self._minutes_store = get_minutes_prices_store()
 
         if instrument_config_path:
             self._instrument_data = AStockInstrumentData(datapath=instrument_config_path)
             self._spread_cost_data = AStockSpreadCostData(datapath=instrument_config_path)
         else:
-            self._instrument_data = AStockInstrumentData()
-            self._spread_cost_data = AStockSpreadCostData()
+            self._instrument_data = get_instrument_data_store()
+            self._spread_cost_data = get_spread_cost_store()
 
     def __repr__(self):
         n = len(self.get_instrument_list())
