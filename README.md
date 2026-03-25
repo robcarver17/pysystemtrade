@@ -108,7 +108,7 @@ This fork extends pysystemtrade with a complete **A-share (China) equity data la
 
 | File | Description |
 |------|-------------|
-| `sysdata/astock/xiximiao_client.py` | API client for xiximiao.com (Tushare proxy). Pagination, rate limiting, retry. |
+| `sysdata/astock/xiximiao_client.py` | API client for xiximiao.com (Tushare proxy). Pagination, smart rate-limit retry (parses API cooldown seconds). |
 | `sysdata/astock/astock_prices.py` | Parquet-based daily & minute price storage |
 | `sysdata/astock/astock_instruments.py` | CSV-based instrument metadata & spread costs |
 | `sysdata/astock/astock_pg.py` | PostgreSQL storage backend (interface-compatible with Parquet) |
@@ -204,6 +204,13 @@ python -m sysinit.astock.init_pg --all              # All of the above
 | `XIXIMIAO_API_URL` | `http://stk_mins.xiximiao.com/dataapi` | API endpoint |
 | `ASTOCK_BACKEND` | `parquet` | Data backend: `parquet` or `pg` |
 | `ASTOCK_PG_URL` | `postgresql://user@localhost:5432/astock` | PostgreSQL connection URL |
+
+### Current Data Coverage
+
+- **193 A-share instruments** (SSE + SZSE mainboard + ChiNext + STAR)
+- **229,836 daily price rows** (2021-03 ~ present)
+- **198 instrument configs** with spread costs
+- Auto-refreshed via pm2 fetcher daemon during trading hours
 
 
 ## Licensing and legal stuff
