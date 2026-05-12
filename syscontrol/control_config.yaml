@@ -10,6 +10,8 @@ process_configuration_start_time:
   run_backups: '20:15'
   run_cleaners: '20:20'
   run_reports: '20:25'
+  # Opt-in: see docs/auto-roll-status.md. Uncomment to enable.
+  #run_auto_roll_status: '23:30'
 process_configuration_stop_time:
   default: '23:50'
   run_strategy_order_generator: '23:50'
@@ -22,6 +24,8 @@ process_configuration_stop_time:
   run_backups: '23:50'
   run_cleaners: '23:50'
   run_reports: '23:50'
+  # Opt-in: see docs/auto-roll-status.md. Uncomment together with the start time above.
+  #run_auto_roll_status: '23:55'
 ## Examples of passing arguments
 #arguments:
 #  run_daily_prices_updates:
@@ -131,6 +135,11 @@ process_configuration_methods:
       max_executions: 1
     clean_log_files:
       max_executions: 1
+  # Opt-in: non-interactive automated roll status. See docs/auto-roll-status.md.
+  # Uncomment together with the start/stop times above to enable.
+  #run_auto_roll_status:
+  #  update_auto_roll_status:
+  #    max_executions: 1
 # You need to create an entry in private control config that looks like this for each strategy
 #process_configuration_methods:
 #  run_systems:

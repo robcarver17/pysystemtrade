@@ -13,6 +13,7 @@ from syscore.interactive.input import (
 )
 from syscore.interactive.menus import print_menu_of_values_and_get_response
 from syscore.constants import named_object, status, success, failure
+from syscore.exceptions import ContractNotFound
 from syscore.interactive.display import (
     print_with_landing_strips_around,
     landing_strip,
@@ -40,7 +41,7 @@ from sysproduction.reporting.data.rolls import volume_contracts_in_forward_contr
 
 from sysproduction.data.positions import diagPositions, updatePositions
 from sysproduction.data.controls import updateOverrides, dataTradeLimits
-from sysproduction.data.contracts import dataContracts
+from sysproduction.data.contracts import dataContracts, FORWARD_SUFFIX
 from sysproduction.data.prices import diagPrices, get_valid_instrument_code_from_user
 
 from sysproduction.reporting.data.rolls import (
@@ -97,6 +98,7 @@ class RollDataWithStateReporting(object):
     relative_volume: float
     absolute_forward_volume: int
     days_until_expiry: int
+    any_key_contract_expired: bool = False
 
     @property
     def original_roll_status_as_string(self):
@@ -225,7 +227,11 @@ def get_days_ahead_to_consider_when_auto_cycling() -> int:
 
 
 def get_list_of_instruments_to_auto_cycle(data: dataBlob, days_ahead: int = 10) -> list:
-    diag_prices = diagPrices()
+    """
+    Returns instruments whose priced contract expires within days_ahead days,
+    or whose carry/forward contract has already expired.
+    """
+    diag_prices = diagPrices(data)
     list_of_potential_instruments = (
         diag_prices.get_list_of_instruments_in_multiple_prices()
     )
@@ -237,28 +243,78 @@ def get_list_of_instruments_to_auto_cycle(data: dataBlob, days_ahead: int = 10) 
         )
     ]
 
-    print_with_landing_strips_around(
-        "Identified following instruments that are near expiry %s"
-        % str(instrument_list)
-    )
-
     return instrument_list
 
 
 def include_instrument_in_auto_cycle(
     data: dataBlob, instrument_code: str, days_ahead: int = 10
 ) -> bool:
-    days_until_expiry = days_until_earliest_expiry(data, instrument_code)
-    return days_until_expiry <= days_ahead
+    """
+    Returns True if the instrument should be included in the auto-cycle check.
 
-
-def days_until_earliest_expiry(data: dataBlob, instrument_code: str) -> int:
+    Keys off ``days_until_price_expiry`` so the selection criterion matches the
+    escalation check used downstream by ``process_instrument_roll_status``.
+    Also includes instruments where any current key contract (carry, priced or
+    forward) has already expired, so an expired carry leg is not missed just
+    because the priced contract is still beyond the look-ahead window.
+    """
     data_contracts = dataContracts(data)
-    carry_days = data_contracts.days_until_carry_expiry(instrument_code)
-    roll_days = data_contracts.days_until_roll(instrument_code)
-    price_days = data_contracts.days_until_price_expiry(instrument_code)
+    days_until_expiry = data_contracts.days_until_price_expiry(instrument_code)
+    if days_until_expiry <= days_ahead:
+        return True
 
-    return min([carry_days, roll_days, price_days])
+    return check_if_any_key_contract_has_expired(
+        data=data, instrument_code=instrument_code
+    )
+
+
+def check_if_any_key_contract_has_expired(
+    data: dataBlob, instrument_code: str
+) -> bool:
+    """
+    Returns True if any current key contract has expired.
+
+    Key contracts are the carry/priced/forward contracts currently referenced
+    by the multiple-price series. Selecting on this matches the invariant that
+    ``update_sampled_contracts`` enforces, so an expired carry leg is caught
+    by auto-roll even if the priced contract is still healthy.
+    """
+    data_contracts = dataContracts(data)
+    labelled_contracts = data_contracts.get_labelled_dict_of_current_contracts(
+        instrument_code
+    )
+    key_contract_ids = labelled_contracts["contracts"]
+    key_contract_labels = labelled_contracts["labels"]
+
+    for contract_id, label in zip(key_contract_ids, key_contract_labels):
+        contract = futuresContract(instrument_code, contract_id)
+        try:
+            actual_contract = data_contracts.get_contract_from_db(contract)
+        except ContractNotFound:
+            # A fresh Roll_Adjusted advances the forward slot in the multiple-prices
+            # chain before update_sampled_contracts has populated the new contract,
+            # so an unsampled FORWARD is expected and cannot have expired. Treat
+            # missing carry/priced contracts as alert-worthy: they should always
+            # exist, and silently skipping them would mask a delisted contract or
+            # corrupt multiple-prices entry.
+            if label.endswith(FORWARD_SUFFIX):
+                data.log.debug(
+                    "Forward contract %s/%s not yet sampled in DB; "
+                    "treating as not-expired for auto-roll selection"
+                    % (instrument_code, contract_id)
+                )
+                continue
+            data.log.critical(
+                "Key contract %s/%s (%s) referenced by multiple-prices but missing "
+                "from contracts DB — investigate (delisted? manually deleted? "
+                "stale multiple-prices entry?). Skipping expiry check for this leg."
+                % (instrument_code, contract_id, label)
+            )
+            continue
+        if actual_contract.expired():
+            return True
+
+    return False
 
 
 @dataclass
@@ -269,6 +325,8 @@ class autoRollParameters:
     near_expiry_days: int
     default_roll_state_if_undecided: RollState
     auto_roll_expired: bool
+    passive_start_days: int = 30
+    force_roll_max_trading_days: int = 2
 
 
 ASK_FOR_STATE = "Ask"
@@ -302,6 +360,8 @@ def get_auto_roll_parameters_potentially_using_default(
         "default_roll_state_if_undecided"
     ]
     auto_roll_expired = default_parameters["auto_roll_expired"]
+    passive_start_days = default_parameters.get("passive_start_days", 30)
+    force_roll_max_trading_days = default_parameters.get("force_roll_max_trading_days", 2)
 
     if use_default:
         pass
@@ -346,6 +406,15 @@ def get_auto_roll_parameters_potentially_using_default(
             "Automatically roll adjusted prices when a priced contract has expired and no position?"
         )
 
+    # Convert string to RollState enum if needed
+    if isinstance(default_roll_state_if_undecided, str):
+        if default_roll_state_if_undecided == ASK_FOR_STATE:
+            # Keep as string "Ask" for later comparison
+            pass
+        else:
+            # Convert string to RollState enum
+            default_roll_state_if_undecided = RollState[default_roll_state_if_undecided]
+
     auto_parameters = autoRollParameters(
         min_absolute_volume=min_absolute_volume,
         min_relative_volume=min_relative_volume,
@@ -353,6 +422,8 @@ def get_auto_roll_parameters_potentially_using_default(
         auto_roll_if_relative_volume_higher_than=auto_roll_if_relative_volume_higher_than,
         near_expiry_days=near_expiry_days,
         auto_roll_expired=auto_roll_expired,
+        passive_start_days=passive_start_days,
+        force_roll_max_trading_days=force_roll_max_trading_days,
     )
 
     return auto_parameters
@@ -456,9 +527,25 @@ def suggest_roll_state_for_instrument(
     expired_and_auto_rolling_expired = check_if_expired_and_auto_rolling_expired(
         roll_data=roll_data, auto_parameters=auto_parameters
     )
+    key_contract_expired_and_auto_rolling_expired = (
+        roll_data.any_key_contract_expired and auto_parameters.auto_roll_expired
+    )
 
-    if expired_and_auto_rolling_expired and no_position_held:
-        ## contract expired so roll regardless of liquidity
+    # Late-roll escalation: a position is held and the desired roll date has
+    # already passed. Never downgrade urgency in this state — if we're already
+    # in Force, Force_Outright or Close, hold it; otherwise escalate to Force.
+    past_desired_roll_date = roll_data.days_until_roll < 0
+    if past_desired_roll_date and not no_position_held:
+        current_state = roll_data.original_roll_status
+        if current_state in (RollState.Force, RollState.Force_Outright, RollState.Close):
+            return current_state
+        return RollState.Force
+
+    if (
+        expired_and_auto_rolling_expired
+        or key_contract_expired_and_auto_rolling_expired
+    ) and no_position_held:
+        ## priced/key contract expired so roll regardless of liquidity
         return RollState.Roll_Adjusted
 
     if forward_liquid:
@@ -476,6 +563,20 @@ def suggest_roll_state_for_instrument(
                 return RollState.Passive
     else:
         # forward illiquid
+        # Early passive: if a position is held and we are inside the passive
+        # start window with any forward volume, go Passive to let the position
+        # migrate naturally before we have to force.
+        if not no_position_held:
+            within_passive_window = check_if_within_passive_start_window(
+                roll_data=roll_data, auto_parameters=auto_parameters
+            )
+            forward_has_some_volume = (
+                roll_data.relative_volume > 0
+                and roll_data.absolute_forward_volume > 0
+            )
+            if within_passive_window and forward_has_some_volume:
+                return RollState.Passive
+
         if getting_close_to_desired_roll_date:
             ## forward illiquid and getting close
             # We don't want to trade the forward - it's not liquid yet.
@@ -486,7 +587,14 @@ def suggest_roll_state_for_instrument(
             return RollState.No_Open
         else:
             ## forward illiquid and miles away. Don't roll yet.
-            return RollState.No_Roll
+            # No_Roll is not always a valid transition from the current state
+            # (e.g. No_Open0 only permits Roll_Adjusted / Passive / No_Open).
+            # Fall back to the current state when No_Roll is not allowable.
+            allowable = roll_data.allowable_roll_states_as_list_of_str
+            if RollState.No_Roll.name in allowable:
+                return RollState.No_Roll
+            else:
+                return roll_data.original_roll_status
 
 
 def check_if_forward_liquid(
@@ -511,6 +619,22 @@ def check_if_forward_liquid(
         return True
 
     return False
+
+
+def check_if_within_passive_start_window(
+    roll_data: RollDataWithStateReporting,
+    auto_parameters: autoRollParameters,
+) -> bool:
+    """Within the broader window where we start passive rolling (default 30 days).
+
+    The window is bounded ``0 <= days_until_roll < passive_start_days``. Negative
+    values (past the desired roll date) are not "early passive" — late-roll
+    escalation handles them separately.
+    """
+    return (
+        0 <= roll_data.days_until_roll
+        < auto_parameters.passive_start_days
+    )
 
 
 def check_if_getting_close_to_desired_roll_date(
@@ -658,6 +782,9 @@ def setup_roll_data_with_state_reporting(
 
     days_until_roll = diag_contracts.days_until_roll(instrument_code)
     days_until_expiry = diag_contracts.days_until_price_expiry(instrument_code)
+    any_key_contract_expired = check_if_any_key_contract_has_expired(
+        data=data, instrument_code=instrument_code
+    )
 
     relative_volume = relative_volume_in_forward_contract_versus_price(
         data=data, instrument_code=instrument_code
@@ -679,6 +806,7 @@ def setup_roll_data_with_state_reporting(
         relative_volume=relative_volume,
         absolute_forward_volume=absolute_forward_volume,
         days_until_expiry=days_until_expiry,
+        any_key_contract_expired=any_key_contract_expired,
     )
 
     return roll_data_with_state
@@ -690,6 +818,7 @@ def modify_roll_state(
     original_roll_state: RollState,
     roll_state_required: RollState,
     confirm_adjusted_price_change: bool = True,
+    allow_auto_forward_fill: bool = False,
 ):
     if roll_state_required == original_roll_state:
         return
@@ -709,6 +838,7 @@ def modify_roll_state(
             instrument_code=instrument_code,
             original_roll_state=original_roll_state,
             confirm_adjusted_price_change=confirm_adjusted_price_change,
+            allow_auto_forward_fill=allow_auto_forward_fill,
         )
 
     ## Following roll states require trading: force, forceoutright, close
@@ -738,6 +868,7 @@ def state_change_to_roll_adjusted_prices(
     instrument_code: str,
     original_roll_state: RollState,
     confirm_adjusted_price_change: bool = True,
+    allow_auto_forward_fill: bool = False,
 ):
     # Going to roll adjusted prices
     update_positions = updatePositions(data)
@@ -746,6 +877,7 @@ def state_change_to_roll_adjusted_prices(
         data=data,
         instrument_code=instrument_code,
         confirm_adjusted_price_change=confirm_adjusted_price_change,
+        allow_auto_forward_fill=allow_auto_forward_fill,
     )
 
     if roll_result is success:
@@ -765,7 +897,10 @@ def state_change_to_roll_adjusted_prices(
 
 
 def roll_adjusted_and_multiple_prices(
-    data: dataBlob, instrument_code: str, confirm_adjusted_price_change: bool = True
+    data: dataBlob,
+    instrument_code: str,
+    confirm_adjusted_price_change: bool = True,
+    allow_auto_forward_fill: bool = False,
 ) -> status:
     """
     Roll multiple and adjusted prices
@@ -774,6 +909,9 @@ def roll_adjusted_and_multiple_prices(
 
     :param data: dataBlob
     :param instrument_code: str
+    :param confirm_adjusted_price_change: if True, prompt user to confirm
+    :param allow_auto_forward_fill: if True, auto-try forward fill on error
+        instead of prompting (safe for non-interactive/cron use)
     :return:
     """
     print(landing_strip(80))
@@ -781,7 +919,9 @@ def roll_adjusted_and_multiple_prices(
     print("Rolling adjusted prices!")
     print("")
     rolling_adj_and_mult_object = get_roll_adjusted_multiple_prices_object(
-        data=data, instrument_code=instrument_code
+        data=data,
+        instrument_code=instrument_code,
+        allow_auto_forward_fill=allow_auto_forward_fill,
     )
     if rolling_adj_and_mult_object is failure:
         print("Error when trying to calculate roll prices")
@@ -818,6 +958,7 @@ def roll_adjusted_and_multiple_prices(
 def get_roll_adjusted_multiple_prices_object(
     data: dataBlob,
     instrument_code: str,
+    allow_auto_forward_fill: bool = False,
 ) -> rollingAdjustedAndMultiplePrices:
     ## returns failure if goes wrong
     try:
@@ -830,12 +971,43 @@ def get_roll_adjusted_multiple_prices_object(
 
     except Exception as e:
         print("Error %s when trying to calculate roll prices" % str(e))
-        ## Possibly forward fill
-        rolling_adj_and_mult_object = (
-            _get_roll_adjusted_multiple_prices_object_ffill_option(
-                data, instrument_code
+        if allow_auto_forward_fill:
+            ## Non-interactive mode: auto-try forward fill without prompting
+            rolling_adj_and_mult_object = (
+                _get_roll_adjusted_multiple_prices_object_auto_ffill(
+                    data, instrument_code
+                )
             )
+        else:
+            ## Interactive mode: ask user
+            rolling_adj_and_mult_object = (
+                _get_roll_adjusted_multiple_prices_object_ffill_option(
+                    data, instrument_code
+                )
+            )
+
+    return rolling_adj_and_mult_object
+
+
+def _get_roll_adjusted_multiple_prices_object_auto_ffill(
+    data: dataBlob, instrument_code: str
+) -> rollingAdjustedAndMultiplePrices:
+    """Non-interactive forward fill attempt — safe for cron/automated use."""
+    data.log.debug(
+        "Auto-attempting forward fill for %s roll price calculation" % instrument_code
+    )
+    try:
+        rolling_adj_and_mult_object = rollingAdjustedAndMultiplePrices(
+            data, instrument_code, allow_forward_fill=True
         )
+        _unused_ = rolling_adj_and_mult_object.updated_multiple_prices
+
+    except Exception as e:
+        data.log.warning(
+            "Error %s when trying to calculate roll prices for %s even with forward fill"
+            % (str(e), instrument_code)
+        )
+        return failure
 
     return rolling_adj_and_mult_object
 

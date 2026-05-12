@@ -1515,6 +1515,7 @@ These are listed here for convenience, but more documentation is given below in 
 - run_systems: Runs [update_system_backtests](#run-updated-backtest-systems-for-one-or-more-strategies): Runs a backtest to decide what optimal positions are required
 - run_strategy_order_generator: Runs [update_strategy_orders](#generate-orders-for-each-strategy): Creates trades based on the output of run_systems
 - [run_stack_handler](#execute-orders): Executes trades placed on the stack by run_strategy_order_generator
+- run_auto_roll_status: Runs [auto_roll_status](#automated-roll-status-non-interactive): Non-interactive daily update of roll states. Opt-in (disabled in the default schedule)
 
 
 ## Core production system components
@@ -1974,6 +1975,31 @@ I recommend that you run a roll report after doing this to see what state things
 #### Cycle through instrument codes automatically, auto decide when to roll, automatically roll
 
 This is exactly like the previous option, except that if a decision is made to roll adjusted prices, this will happen automatically without user confirmation.
+
+### Automated roll status (non-interactive)
+(Daily, opt-in)
+
+`run_auto_roll_status` is a non-interactive daily process that applies the same suggestion logic as the fully-automatic mode of `interactive_update_roll_status`, but without any user prompts. It is intended to run after multiple/adjusted prices are updated and before the stack handler, so roll decisions use fresh price data.
+
+It is **disabled by default** — there is no crontab entry shipped active, and `control_config.yaml` does not start it automatically. To enable it, uncomment the relevant lines in `sysproduction/linux/crontab` and `syscontrol/control_config.yaml` (or override in your `private_control_config.yaml`).
+
+Python:
+```python
+from sysproduction.run_auto_roll_status import run_auto_roll_status
+run_auto_roll_status()
+```
+
+Linux script:
+```
+. $SCRIPT_PATH/run_auto_roll_status
+```
+
+The job reuses `autoRollParameters` (same defaults as the interactive flow) and `suggest_roll_state_for_instrument`, so interactive and automatic decisions stay consistent. It also performs two safety escalations on top of the interactive logic:
+
+- **Expiry escalation**: if the priced contract is within `near_expiry_days` and a position is still held, the state is forced to `Force` regardless of the suggested state. This closes the gap where a position would otherwise sit in `Passive` against an expired contract.
+- **Stuck-Force escalation**: if the instrument has been in `Force` for more than `force_roll_max_trading_days` without rolling (e.g., illiquid spread on the broker), the state is escalated to `Force_Outright`.
+
+See [docs/auto-roll-status.md](auto-roll-status.md) for the full state-transition matrix, configuration knobs, and operational guidance.
 
 ## Menu driven interactive scripts
 
