@@ -225,7 +225,7 @@ def get_days_ahead_to_consider_when_auto_cycling() -> int:
 
 
 def get_list_of_instruments_to_auto_cycle(data: dataBlob, days_ahead: int = 10) -> list:
-    diag_prices = diagPrices()
+    diag_prices = diagPrices(data)
     list_of_potential_instruments = (
         diag_prices.get_list_of_instruments_in_multiple_prices()
     )
@@ -248,17 +248,19 @@ def get_list_of_instruments_to_auto_cycle(data: dataBlob, days_ahead: int = 10) 
 def include_instrument_in_auto_cycle(
     data: dataBlob, instrument_code: str, days_ahead: int = 10
 ) -> bool:
-    days_until_expiry = days_until_earliest_expiry(data, instrument_code)
-    return days_until_expiry <= days_ahead
+    """
+    Returns True if the priced contract expires within ``days_ahead`` days.
 
-
-def days_until_earliest_expiry(data: dataBlob, instrument_code: str) -> int:
+    Keys off ``days_until_price_expiry`` so the selection criterion matches
+    the escalation check used downstream by ``process_instrument_roll_status``.
+    The previous ``min(carry, roll, price)`` could mask price expiry for
+    instruments with negative ``RollOffsetDays`` (e.g. NASDAQ micro), where
+    carry/roll days are already negative even though the priced contract is
+    still healthy.
+    """
     data_contracts = dataContracts(data)
-    carry_days = data_contracts.days_until_carry_expiry(instrument_code)
-    roll_days = data_contracts.days_until_roll(instrument_code)
-    price_days = data_contracts.days_until_price_expiry(instrument_code)
-
-    return min([carry_days, roll_days, price_days])
+    days_until_expiry = data_contracts.days_until_price_expiry(instrument_code)
+    return days_until_expiry <= days_ahead
 
 
 @dataclass
