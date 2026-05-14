@@ -268,9 +268,7 @@ def days_until_earliest_expiry(data: dataBlob, instrument_code: str) -> int:
     return min([carry_days, roll_days, price_days])
 
 
-def check_if_any_key_contract_has_expired(
-    data: dataBlob, instrument_code: str
-) -> bool:
+def check_if_any_key_contract_has_expired(data: dataBlob, instrument_code: str) -> bool:
     """
     True if any current key contract (carry/priced/forward) has already expired.
 
