@@ -323,6 +323,8 @@ class autoRollParameters:
     near_expiry_days: int
     default_roll_state_if_undecided: RollState
     auto_roll_expired: bool
+    passive_start_days: int = 30
+    force_roll_max_trading_days: int = 2
 
 
 ASK_FOR_STATE = "Ask"
@@ -356,6 +358,10 @@ def get_auto_roll_parameters_potentially_using_default(
         "default_roll_state_if_undecided"
     ]
     auto_roll_expired = default_parameters["auto_roll_expired"]
+    passive_start_days = default_parameters.get("passive_start_days", 30)
+    force_roll_max_trading_days = default_parameters.get(
+        "force_roll_max_trading_days", 2
+    )
 
     if use_default:
         pass
@@ -400,6 +406,16 @@ def get_auto_roll_parameters_potentially_using_default(
             "Automatically roll adjusted prices when a priced contract has expired and no position?"
         )
 
+    # Config-driven callers (e.g. run_auto_roll_status) load
+    # default_roll_state_if_undecided from YAML as a string. Convert to the
+    # enum here so suggest_roll_state_for_instrument can return it directly.
+    # ASK_FOR_STATE is left as a string sentinel for interactive prompting.
+    if (
+        isinstance(default_roll_state_if_undecided, str)
+        and default_roll_state_if_undecided != ASK_FOR_STATE
+    ):
+        default_roll_state_if_undecided = RollState[default_roll_state_if_undecided]
+
     auto_parameters = autoRollParameters(
         min_absolute_volume=min_absolute_volume,
         min_relative_volume=min_relative_volume,
@@ -407,6 +423,8 @@ def get_auto_roll_parameters_potentially_using_default(
         auto_roll_if_relative_volume_higher_than=auto_roll_if_relative_volume_higher_than,
         near_expiry_days=near_expiry_days,
         auto_roll_expired=auto_roll_expired,
+        passive_start_days=passive_start_days,
+        force_roll_max_trading_days=force_roll_max_trading_days,
     )
 
     return auto_parameters
@@ -596,6 +614,25 @@ def check_if_forward_liquid(
     return False
 
 
+def check_if_within_passive_start_window(
+    roll_data: RollDataWithStateReporting,
+    auto_parameters: autoRollParameters,
+) -> bool:
+    """Within the broader window where passive rolling would start (default 30 days).
+
+    The window is bounded ``0 <= days_until_roll < passive_start_days``.
+    Negative values (past the desired roll date) are not "early passive" — the
+    late-roll escalation in ``suggest_roll_state_for_instrument`` handles
+    those separately.
+
+    Exposed as a helper for callers (e.g. the non-interactive auto-roll
+    process) that want to gate their own early-passive logic on the same
+    boundary; it is intentionally not used inside
+    ``suggest_roll_state_for_instrument`` itself.
+    """
+    return 0 <= roll_data.days_until_roll < auto_parameters.passive_start_days
+
+
 def check_if_getting_close_to_desired_roll_date(
     roll_data: RollDataWithStateReporting,
     auto_parameters: autoRollParameters,
@@ -777,6 +814,7 @@ def modify_roll_state(
     original_roll_state: RollState,
     roll_state_required: RollState,
     confirm_adjusted_price_change: bool = True,
+    allow_auto_forward_fill: bool = False,
 ):
     if roll_state_required == original_roll_state:
         return
@@ -796,6 +834,7 @@ def modify_roll_state(
             instrument_code=instrument_code,
             original_roll_state=original_roll_state,
             confirm_adjusted_price_change=confirm_adjusted_price_change,
+            allow_auto_forward_fill=allow_auto_forward_fill,
         )
 
     ## Following roll states require trading: force, forceoutright, close
@@ -825,6 +864,7 @@ def state_change_to_roll_adjusted_prices(
     instrument_code: str,
     original_roll_state: RollState,
     confirm_adjusted_price_change: bool = True,
+    allow_auto_forward_fill: bool = False,
 ):
     # Going to roll adjusted prices
     update_positions = updatePositions(data)
@@ -833,6 +873,7 @@ def state_change_to_roll_adjusted_prices(
         data=data,
         instrument_code=instrument_code,
         confirm_adjusted_price_change=confirm_adjusted_price_change,
+        allow_auto_forward_fill=allow_auto_forward_fill,
     )
 
     if roll_result is success:
@@ -852,7 +893,10 @@ def state_change_to_roll_adjusted_prices(
 
 
 def roll_adjusted_and_multiple_prices(
-    data: dataBlob, instrument_code: str, confirm_adjusted_price_change: bool = True
+    data: dataBlob,
+    instrument_code: str,
+    confirm_adjusted_price_change: bool = True,
+    allow_auto_forward_fill: bool = False,
 ) -> status:
     """
     Roll multiple and adjusted prices
@@ -861,6 +905,9 @@ def roll_adjusted_and_multiple_prices(
 
     :param data: dataBlob
     :param instrument_code: str
+    :param confirm_adjusted_price_change: prompt user to confirm the roll
+    :param allow_auto_forward_fill: if True, auto-try forward fill on error
+        instead of prompting (safe for non-interactive/cron use)
     :return:
     """
     print(landing_strip(80))
@@ -868,7 +915,9 @@ def roll_adjusted_and_multiple_prices(
     print("Rolling adjusted prices!")
     print("")
     rolling_adj_and_mult_object = get_roll_adjusted_multiple_prices_object(
-        data=data, instrument_code=instrument_code
+        data=data,
+        instrument_code=instrument_code,
+        allow_auto_forward_fill=allow_auto_forward_fill,
     )
     if rolling_adj_and_mult_object is failure:
         print("Error when trying to calculate roll prices")
@@ -905,6 +954,7 @@ def roll_adjusted_and_multiple_prices(
 def get_roll_adjusted_multiple_prices_object(
     data: dataBlob,
     instrument_code: str,
+    allow_auto_forward_fill: bool = False,
 ) -> rollingAdjustedAndMultiplePrices:
     ## returns failure if goes wrong
     try:
@@ -917,12 +967,44 @@ def get_roll_adjusted_multiple_prices_object(
 
     except Exception as e:
         print("Error %s when trying to calculate roll prices" % str(e))
-        ## Possibly forward fill
-        rolling_adj_and_mult_object = (
-            _get_roll_adjusted_multiple_prices_object_ffill_option(
-                data, instrument_code
+        if allow_auto_forward_fill:
+            ## Non-interactive mode: auto-try forward fill without prompting
+            rolling_adj_and_mult_object = (
+                _get_roll_adjusted_multiple_prices_object_auto_ffill(
+                    data, instrument_code
+                )
             )
+        else:
+            ## Interactive mode: ask user
+            rolling_adj_and_mult_object = (
+                _get_roll_adjusted_multiple_prices_object_ffill_option(
+                    data, instrument_code
+                )
+            )
+
+    return rolling_adj_and_mult_object
+
+
+def _get_roll_adjusted_multiple_prices_object_auto_ffill(
+    data: dataBlob, instrument_code: str
+) -> rollingAdjustedAndMultiplePrices:
+    """Non-interactive forward fill attempt — safe for cron/automated use."""
+    data.log.debug(
+        "Auto-attempting forward fill for %s roll price calculation"
+        % instrument_code
+    )
+    try:
+        rolling_adj_and_mult_object = rollingAdjustedAndMultiplePrices(
+            data, instrument_code, allow_forward_fill=True
         )
+        _unused_ = rolling_adj_and_mult_object.updated_multiple_prices
+
+    except Exception as e:
+        data.log.warning(
+            "Error %s when trying to calculate roll prices for %s even with "
+            "forward fill" % (str(e), instrument_code)
+        )
+        return failure
 
     return rolling_adj_and_mult_object
 
