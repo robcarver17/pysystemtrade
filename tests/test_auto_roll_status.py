@@ -49,6 +49,7 @@ from sysproduction.interactive_update_roll_status import (
 # Fixtures: default parameters and roll data builders
 # ============================================================================
 
+
 def make_auto_params(
     auto_roll_if_relative_volume_higher_than=1.0,
     min_relative_volume=0.01,
@@ -101,6 +102,7 @@ DEFAULT_PARAMS = make_auto_params()
 # ============================================================================
 # 1. CORE DECISION LOGIC: suggest_roll_state_for_instrument
 # ============================================================================
+
 
 class TestSuggestRollStateExpired:
     """Expired priced contract scenarios.
@@ -263,7 +265,9 @@ class TestSuggestRollStateForwardLiquid:
 
     def test_liquid_with_position_close_to_roll_force_outright(self):
         """Forward liquid + position + close to roll + default=Force_Outright."""
-        params = make_auto_params(default_roll_state_if_undecided=RollState.Force_Outright)
+        params = make_auto_params(
+            default_roll_state_if_undecided=RollState.Force_Outright
+        )
         roll_data = make_roll_data(
             position_priced_contract=5,
             relative_volume=2.0,
@@ -382,6 +386,7 @@ class TestSuggestRollStateForwardIlliquid:
 # 2. EARLY PASSIVE ROLLING
 # ============================================================================
 
+
 class TestEarlyPassiveRolling:
     """Forward illiquid but has *some* volume within passive_start_days window."""
 
@@ -499,6 +504,7 @@ class TestEarlyPassiveRolling:
 # 3. VOLUME THRESHOLD LOGIC: check_if_forward_liquid
 # ============================================================================
 
+
 class TestCheckIfForwardLiquid:
     """Volume-based liquidity determination."""
 
@@ -552,25 +558,38 @@ class TestCheckIfForwardLiquid:
 # 4. TIME BOUNDARY LOGIC
 # ============================================================================
 
+
 class TestTimeBoundaries:
     """Near-expiry and passive start window checks."""
 
     def test_close_to_roll(self):
         roll_data = make_roll_data(days_until_roll=5)
-        assert check_if_getting_close_to_desired_roll_date(roll_data, DEFAULT_PARAMS) is True
+        assert (
+            check_if_getting_close_to_desired_roll_date(roll_data, DEFAULT_PARAMS)
+            is True
+        )
 
     def test_not_close_to_roll(self):
         roll_data = make_roll_data(days_until_roll=15)
-        assert check_if_getting_close_to_desired_roll_date(roll_data, DEFAULT_PARAMS) is False
+        assert (
+            check_if_getting_close_to_desired_roll_date(roll_data, DEFAULT_PARAMS)
+            is False
+        )
 
     def test_exactly_at_near_expiry_days(self):
         """days_until_roll == 10 → NOT close (strict <)."""
         roll_data = make_roll_data(days_until_roll=10)
-        assert check_if_getting_close_to_desired_roll_date(roll_data, DEFAULT_PARAMS) is False
+        assert (
+            check_if_getting_close_to_desired_roll_date(roll_data, DEFAULT_PARAMS)
+            is False
+        )
 
     def test_one_day_before_near_expiry(self):
         roll_data = make_roll_data(days_until_roll=9)
-        assert check_if_getting_close_to_desired_roll_date(roll_data, DEFAULT_PARAMS) is True
+        assert (
+            check_if_getting_close_to_desired_roll_date(roll_data, DEFAULT_PARAMS)
+            is True
+        )
 
     def test_within_passive_window(self):
         roll_data = make_roll_data(days_until_roll=20)
@@ -621,9 +640,12 @@ class TestAutoCycleSelectionExpiredKeyContracts:
             active_contract,
         ]
 
-        assert include_instrument_in_auto_cycle(
-            data=MagicMock(), instrument_code="BUTTER", days_ahead=30
-        ) is True
+        assert (
+            include_instrument_in_auto_cycle(
+                data=MagicMock(), instrument_code="BUTTER", days_ahead=30
+            )
+            is True
+        )
 
     @patch("sysproduction.interactive_update_roll_status.dataContracts")
     def test_do_not_include_when_priced_expiry_outside_window_and_no_key_expired(
@@ -640,9 +662,12 @@ class TestAutoCycleSelectionExpiredKeyContracts:
         active_contract.expired.return_value = False
         mock_data_contracts.get_contract_from_db.return_value = active_contract
 
-        assert include_instrument_in_auto_cycle(
-            data=MagicMock(), instrument_code="TEST", days_ahead=30
-        ) is False
+        assert (
+            include_instrument_in_auto_cycle(
+                data=MagicMock(), instrument_code="TEST", days_ahead=30
+            )
+            is False
+        )
 
     @patch("sysproduction.interactive_update_roll_status.dataContracts")
     def test_key_contract_helper_detects_expired_contract(
@@ -662,9 +687,12 @@ class TestAutoCycleSelectionExpiredKeyContracts:
             expired_contract,
         ]
 
-        assert check_if_any_key_contract_has_expired(
-            data=MagicMock(), instrument_code="CHEESE"
-        ) is True
+        assert (
+            check_if_any_key_contract_has_expired(
+                data=MagicMock(), instrument_code="CHEESE"
+            )
+            is True
+        )
 
     @patch("sysproduction.interactive_update_roll_status.dataContracts")
     def test_missing_forward_contract_is_tolerated(self, mock_data_contracts_class):
@@ -687,9 +715,12 @@ class TestAutoCycleSelectionExpiredKeyContracts:
             ContractNotFound("missing"),
         ]
 
-        assert check_if_any_key_contract_has_expired(
-            data=MagicMock(), instrument_code="NIKKEI"
-        ) is False
+        assert (
+            check_if_any_key_contract_has_expired(
+                data=MagicMock(), instrument_code="NIKKEI"
+            )
+            is False
+        )
 
     @patch("sysproduction.interactive_update_roll_status.dataContracts")
     def test_missing_priced_or_carry_contract_alerts_and_skips(
@@ -714,15 +745,19 @@ class TestAutoCycleSelectionExpiredKeyContracts:
         ]
 
         mock_data = MagicMock()
-        assert check_if_any_key_contract_has_expired(
-            data=mock_data, instrument_code="WIDGET"
-        ) is False
+        assert (
+            check_if_any_key_contract_has_expired(
+                data=mock_data, instrument_code="WIDGET"
+            )
+            is False
+        )
         mock_data.log.critical.assert_called_once()
 
 
 # ============================================================================
 # 5. EXPIRY ESCALATION
 # ============================================================================
+
 
 class TestExpiryEscalation:
     """
@@ -742,6 +777,7 @@ class TestExpiryEscalation:
 # ============================================================================
 # 13. EXPIRY ESCALATION IN process_instrument_roll_status
 # ============================================================================
+
 
 class TestLateRollEscalation:
     """Late-roll behaviour: when the desired roll date has passed and a
@@ -881,6 +917,7 @@ class TestBoundedPassiveWindow:
         from sysproduction.interactive_update_roll_status import (
             check_if_within_passive_start_window,
         )
+
         result = check_if_within_passive_start_window(roll_data, DEFAULT_PARAMS)
         assert result is False
 
@@ -895,6 +932,7 @@ class TestBoundedPassiveWindow:
         from sysproduction.interactive_update_roll_status import (
             check_if_within_passive_start_window,
         )
+
         result = check_if_within_passive_start_window(roll_data, DEFAULT_PARAMS)
         assert result is True
 
@@ -913,7 +951,7 @@ class TestBoundedPassiveWindow:
 
 class TestExpiryEscalationInProcess:
     """Test the expiry escalation logic in process_instrument_roll_status.
-    
+
     The current implementation uses days_until_expiry from roll_data directly
     to determine if escalation to Force is needed.
     """
@@ -921,43 +959,52 @@ class TestExpiryEscalationInProcess:
     @patch("sysproduction.run_auto_roll_status.setup_roll_data_with_state_reporting")
     @patch("sysproduction.run_auto_roll_status.suggest_roll_state_for_instrument")
     @patch("sysproduction.run_auto_roll_status.modify_roll_state")
-    def test_expiry_escalation_to_force(
-        self, mock_modify, mock_suggest, mock_setup
-    ):
+    def test_expiry_escalation_to_force(self, mock_modify, mock_suggest, mock_setup):
         """When priced contract is expiring soon with position, escalate to Force."""
         from sysproduction.run_auto_roll_status import process_instrument_roll_status
-        from sysproduction.interactive_update_roll_status import RollDataWithStateReporting
-        
+        from sysproduction.interactive_update_roll_status import (
+            RollDataWithStateReporting,
+        )
+
         # Setup roll_data with expiring contract and position
         # Allowable states must include Force for position > 0
         roll_data = RollDataWithStateReporting(
             instrument_code="VIX",
             original_roll_status=RollState.Passive,
             position_priced_contract=5,  # Has position
-            allowable_roll_states_as_list_of_str=['Roll_Adjusted', 'Passive', 'No_Roll', 'No_Open', 'Force', 'Force_Outright', 'Close'],
+            allowable_roll_states_as_list_of_str=[
+                "Roll_Adjusted",
+                "Passive",
+                "No_Roll",
+                "No_Open",
+                "Force",
+                "Force_Outright",
+                "Close",
+            ],
             days_until_roll=5,
             relative_volume=0.0,
             absolute_forward_volume=0,
             days_until_expiry=3,  # Expiring soon (< near_expiry_days=10)
         )
         mock_setup.return_value = roll_data
-        
+
         data = MagicMock()
         auto_params = DEFAULT_PARAMS
-        
+
         process_instrument_roll_status(
-            data=data, api=MagicMock(), instrument_code="VIX",
+            data=data,
+            api=MagicMock(),
+            instrument_code="VIX",
             auto_parameters=auto_params,
         )
-        
+
         # Should escalate to Force and call modify_roll_state
         mock_modify.assert_called_once()
         assert mock_modify.call_args[1]["roll_state_required"] == RollState.Force
-        
+
         # Should log EXPIRY ESCALATION
         escalation_logs = [
-            c for c in data.log.critical.call_args_list
-            if "EXPIRY ESCALATION" in str(c)
+            c for c in data.log.critical.call_args_list if "EXPIRY ESCALATION" in str(c)
         ]
         assert len(escalation_logs) == 1
 
@@ -969,13 +1016,20 @@ class TestExpiryEscalationInProcess:
     ):
         """No escalation when contract is expiring but no position held."""
         from sysproduction.run_auto_roll_status import process_instrument_roll_status
-        from sysproduction.interactive_update_roll_status import RollDataWithStateReporting
-        
+        from sysproduction.interactive_update_roll_status import (
+            RollDataWithStateReporting,
+        )
+
         roll_data = RollDataWithStateReporting(
             instrument_code="VIX",
             original_roll_status=RollState.Passive,
             position_priced_contract=0,  # No position
-            allowable_roll_states_as_list_of_str=['Roll_Adjusted', 'Passive', 'No_Roll', 'No_Open'],
+            allowable_roll_states_as_list_of_str=[
+                "Roll_Adjusted",
+                "Passive",
+                "No_Roll",
+                "No_Open",
+            ],
             days_until_roll=5,
             relative_volume=0.0,
             absolute_forward_volume=0,
@@ -983,21 +1037,22 @@ class TestExpiryEscalationInProcess:
         )
         mock_setup.return_value = roll_data
         mock_suggest.return_value = RollState.Roll_Adjusted
-        
+
         data = MagicMock()
         auto_params = DEFAULT_PARAMS
-        
+
         process_instrument_roll_status(
-            data=data, api=MagicMock(), instrument_code="VIX",
+            data=data,
+            api=MagicMock(),
+            instrument_code="VIX",
             auto_parameters=auto_params,
         )
-        
+
         # Should NOT escalate - should use suggest result
         assert mock_suggest.called
         # Should NOT log EXPIRY ESCALATION
         escalation_logs = [
-            c for c in data.log.critical.call_args_list
-            if "EXPIRY ESCALATION" in str(c)
+            c for c in data.log.critical.call_args_list if "EXPIRY ESCALATION" in str(c)
         ]
         assert len(escalation_logs) == 0
 
@@ -1009,13 +1064,20 @@ class TestExpiryEscalationInProcess:
     ):
         """No escalation when position held but contract not expiring soon."""
         from sysproduction.run_auto_roll_status import process_instrument_roll_status
-        from sysproduction.interactive_update_roll_status import RollDataWithStateReporting
-        
+        from sysproduction.interactive_update_roll_status import (
+            RollDataWithStateReporting,
+        )
+
         roll_data = RollDataWithStateReporting(
             instrument_code="ES",
             original_roll_status=RollState.Passive,
             position_priced_contract=5,  # Has position
-            allowable_roll_states_as_list_of_str=['Roll_Adjusted', 'Passive', 'No_Roll', 'No_Open'],
+            allowable_roll_states_as_list_of_str=[
+                "Roll_Adjusted",
+                "Passive",
+                "No_Roll",
+                "No_Open",
+            ],
             days_until_roll=50,
             relative_volume=2.0,
             absolute_forward_volume=500,
@@ -1023,24 +1085,27 @@ class TestExpiryEscalationInProcess:
         )
         mock_setup.return_value = roll_data
         mock_suggest.return_value = RollState.Passive  # Same as current
-        
+
         data = MagicMock()
         auto_params = DEFAULT_PARAMS
-        
+
         process_instrument_roll_status(
-            data=data, api=MagicMock(), instrument_code="ES",
+            data=data,
+            api=MagicMock(),
+            instrument_code="ES",
             auto_parameters=auto_params,
         )
-        
+
         # Should NOT log EXPIRY ESCALATION
         escalation_logs = [
-            c for c in data.log.critical.call_args_list
-            if "EXPIRY ESCALATION" in str(c)
+            c for c in data.log.critical.call_args_list if "EXPIRY ESCALATION" in str(c)
         ]
         assert len(escalation_logs) == 0
 
     @patch("sysproduction.run_auto_roll_status.setup_roll_data_with_state_reporting")
-    @patch("sysproduction.run_auto_roll_status._roll_adjusted_blocked_by_expiring_positions")
+    @patch(
+        "sysproduction.run_auto_roll_status._roll_adjusted_blocked_by_expiring_positions"
+    )
     @patch("sysproduction.run_auto_roll_status._log_auto_roll_position_diagnostics")
     @patch("sysproduction.run_auto_roll_status.suggest_roll_state_for_instrument")
     @patch("sysproduction.run_auto_roll_status.modify_roll_state")
@@ -1049,14 +1114,19 @@ class TestExpiryEscalationInProcess:
     ):
         """A zero priced-contract position must not hide an expiring non-priced DB leg."""
         from sysproduction.run_auto_roll_status import process_instrument_roll_status
-        from sysproduction.interactive_update_roll_status import RollDataWithStateReporting
+        from sysproduction.interactive_update_roll_status import (
+            RollDataWithStateReporting,
+        )
 
         roll_data = RollDataWithStateReporting(
             instrument_code="GASOILINE",
             original_roll_status=RollState.Passive,
             position_priced_contract=0,
             allowable_roll_states_as_list_of_str=[
-                "Roll_Adjusted", "Passive", "No_Roll", "No_Open"
+                "Roll_Adjusted",
+                "Passive",
+                "No_Roll",
+                "No_Open",
             ],
             days_until_roll=-30,
             relative_volume=0.3661,
@@ -1081,7 +1151,8 @@ class TestExpiryEscalationInProcess:
 
         mock_modify.assert_not_called()
         blocked_logs = [
-            c for c in data.log.critical.call_args_list
+            c
+            for c in data.log.critical.call_args_list
             if "ROLL_ADJUSTED BLOCKED" in str(c)
         ]
         assert len(blocked_logs) == 1

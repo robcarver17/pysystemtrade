@@ -90,7 +90,9 @@ def auto_roll_status_main(api: reportingApi, data: dataBlob):
         data=data, use_default=True
     )
 
-    days_ahead = max(auto_parameters.passive_start_days, auto_parameters.near_expiry_days)
+    days_ahead = max(
+        auto_parameters.passive_start_days, auto_parameters.near_expiry_days
+    )
 
     instrument_list = get_list_of_instruments_to_auto_cycle(
         data=api.data, days_ahead=days_ahead
@@ -98,7 +100,8 @@ def auto_roll_status_main(api: reportingApi, data: dataBlob):
 
     if not instrument_list:
         data.log.debug(
-            "No instruments within %d-day window requiring roll status check" % days_ahead
+            "No instruments within %d-day window requiring roll status check"
+            % days_ahead
         )
         return
 
@@ -146,7 +149,9 @@ def process_instrument_roll_status(
 
     _log_auto_roll_position_diagnostics(data, instrument_code, roll_data)
 
-    priced_contract_expiring_soon = roll_data.days_until_expiry < auto_parameters.near_expiry_days
+    priced_contract_expiring_soon = (
+        roll_data.days_until_expiry < auto_parameters.near_expiry_days
+    )
     position_held = roll_data.position_priced_contract != 0
 
     # Check if Force roll is stuck and needs escalation to Force_Outright
@@ -192,7 +197,11 @@ def process_instrument_roll_status(
         )
 
         # Determine reason for state selection
-        if roll_state_required == RollState.Force and roll_data.days_until_roll < 0 and roll_data.position_priced_contract != 0:
+        if (
+            roll_state_required == RollState.Force
+            and roll_data.days_until_roll < 0
+            and roll_data.position_priced_contract != 0
+        ):
             reason = "late_roll_escalation"
         elif roll_state_required == RollState.Passive:
             reason = "early_passive"
