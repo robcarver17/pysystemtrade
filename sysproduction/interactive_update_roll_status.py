@@ -13,6 +13,7 @@ from syscore.interactive.input import (
 )
 from syscore.interactive.menus import print_menu_of_values_and_get_response
 from syscore.constants import named_object, status, success, failure
+from syscore.exceptions import ContractNotFound
 from syscore.interactive.display import (
     print_with_landing_strips_around,
     landing_strip,
@@ -40,7 +41,7 @@ from sysproduction.reporting.data.rolls import volume_contracts_in_forward_contr
 
 from sysproduction.data.positions import diagPositions, updatePositions
 from sysproduction.data.controls import updateOverrides, dataTradeLimits
-from sysproduction.data.contracts import dataContracts
+from sysproduction.data.contracts import dataContracts, FORWARD_SUFFIX
 from sysproduction.data.prices import diagPrices, get_valid_instrument_code_from_user
 
 from sysproduction.reporting.data.rolls import (
@@ -97,6 +98,7 @@ class RollDataWithStateReporting(object):
     relative_volume: float
     absolute_forward_volume: int
     days_until_expiry: int
+    any_key_contract_expired: bool = False
 
     @property
     def original_roll_status_as_string(self):
@@ -225,7 +227,7 @@ def get_days_ahead_to_consider_when_auto_cycling() -> int:
 
 
 def get_list_of_instruments_to_auto_cycle(data: dataBlob, days_ahead: int = 10) -> list:
-    diag_prices = diagPrices()
+    diag_prices = diagPrices(data)
     list_of_potential_instruments = (
         diag_prices.get_list_of_instruments_in_multiple_prices()
     )
@@ -249,7 +251,12 @@ def include_instrument_in_auto_cycle(
     data: dataBlob, instrument_code: str, days_ahead: int = 10
 ) -> bool:
     days_until_expiry = days_until_earliest_expiry(data, instrument_code)
-    return days_until_expiry <= days_ahead
+    if days_until_expiry <= days_ahead:
+        return True
+
+    return check_if_any_key_contract_has_expired(
+        data=data, instrument_code=instrument_code
+    )
 
 
 def days_until_earliest_expiry(data: dataBlob, instrument_code: str) -> int:
@@ -259,6 +266,55 @@ def days_until_earliest_expiry(data: dataBlob, instrument_code: str) -> int:
     price_days = data_contracts.days_until_price_expiry(instrument_code)
 
     return min([carry_days, roll_days, price_days])
+
+
+def check_if_any_key_contract_has_expired(
+    data: dataBlob, instrument_code: str
+) -> bool:
+    """
+    True if any current key contract (carry/priced/forward) has already expired.
+
+    Selection on the (carry, roll, price) day windows can miss an instrument
+    whose carry contract is already expired but whose priced contract is still
+    outside the look-ahead window. update_sampled_contracts will alert on that
+    case; this check lets auto-roll see it before the morning checker fires.
+
+    ContractNotFound is tolerated only for the forward leg: a fresh
+    Roll_Adjusted advances the forward slot in the multiple-prices chain
+    before update_sampled_contracts writes the new contract, so an unsampled
+    forward is expected. Missing carry or priced contracts log critical
+    instead, since they should always exist.
+    """
+    data_contracts = dataContracts(data)
+    labelled_contracts = data_contracts.get_labelled_dict_of_current_contracts(
+        instrument_code
+    )
+    key_contract_ids = labelled_contracts["contracts"]
+    key_contract_labels = labelled_contracts["labels"]
+
+    for contract_id, label in zip(key_contract_ids, key_contract_labels):
+        contract = futuresContract(instrument_code, contract_id)
+        try:
+            actual_contract = data_contracts.get_contract_from_db(contract)
+        except ContractNotFound:
+            if label.endswith(FORWARD_SUFFIX):
+                data.log.debug(
+                    "Forward contract %s/%s not yet sampled in DB; "
+                    "treating as not-expired for auto-roll selection"
+                    % (instrument_code, contract_id)
+                )
+                continue
+            data.log.critical(
+                "Key contract %s/%s (%s) referenced by multiple-prices but "
+                "missing from contracts DB - investigate (delisted? manually "
+                "deleted? stale multiple-prices entry?). Skipping expiry "
+                "check for this leg." % (instrument_code, contract_id, label)
+            )
+            continue
+        if actual_contract.expired():
+            return True
+
+    return False
 
 
 @dataclass
@@ -658,6 +714,9 @@ def setup_roll_data_with_state_reporting(
 
     days_until_roll = diag_contracts.days_until_roll(instrument_code)
     days_until_expiry = diag_contracts.days_until_price_expiry(instrument_code)
+    any_key_contract_expired = check_if_any_key_contract_has_expired(
+        data=data, instrument_code=instrument_code
+    )
 
     relative_volume = relative_volume_in_forward_contract_versus_price(
         data=data, instrument_code=instrument_code
@@ -679,6 +738,7 @@ def setup_roll_data_with_state_reporting(
         relative_volume=relative_volume,
         absolute_forward_volume=absolute_forward_volume,
         days_until_expiry=days_until_expiry,
+        any_key_contract_expired=any_key_contract_expired,
     )
 
     return roll_data_with_state
