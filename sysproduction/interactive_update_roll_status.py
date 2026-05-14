@@ -512,9 +512,31 @@ def suggest_roll_state_for_instrument(
     expired_and_auto_rolling_expired = check_if_expired_and_auto_rolling_expired(
         roll_data=roll_data, auto_parameters=auto_parameters
     )
+    key_contract_expired_and_auto_rolling_expired = (
+        roll_data.any_key_contract_expired and auto_parameters.auto_roll_expired
+    )
 
-    if expired_and_auto_rolling_expired and no_position_held:
-        ## contract expired so roll regardless of liquidity
+    # Late-roll escalation: a position is held and the desired roll date has
+    # already passed. Escalate to Force_Outright (always tradeable as an
+    # outright close) rather than Force, since many instruments don't have a
+    # liquid calendar spread and would silently get stuck. Don't downgrade
+    # urgency: if we're already in Force, Force_Outright or Close, keep it.
+    past_desired_roll_date = roll_data.days_until_roll < 0
+    if past_desired_roll_date and not no_position_held:
+        current_state = roll_data.original_roll_status
+        if current_state in (
+            RollState.Force,
+            RollState.Force_Outright,
+            RollState.Close,
+        ):
+            return current_state
+        return RollState.Force_Outright
+
+    if (
+        expired_and_auto_rolling_expired
+        or key_contract_expired_and_auto_rolling_expired
+    ) and no_position_held:
+        ## priced/key contract expired so roll regardless of liquidity
         return RollState.Roll_Adjusted
 
     if forward_liquid:
@@ -542,7 +564,14 @@ def suggest_roll_state_for_instrument(
             return RollState.No_Open
         else:
             ## forward illiquid and miles away. Don't roll yet.
-            return RollState.No_Roll
+            # No_Roll is not always a valid transition from the current state
+            # (e.g. No_Open only permits Roll_Adjusted / Passive / No_Open).
+            # Fall back to the current state when No_Roll is not allowable.
+            allowable = roll_data.allowable_roll_states_as_list_of_str
+            if RollState.No_Roll.name in allowable:
+                return RollState.No_Roll
+            else:
+                return roll_data.original_roll_status
 
 
 def check_if_forward_liquid(
