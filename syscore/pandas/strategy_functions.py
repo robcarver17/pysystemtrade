@@ -167,7 +167,18 @@ def calculate_cost_deflator(price: pd.Series) -> pd.Series:
     vol_price = daily_returns.rolling(180, min_periods=3).std().ffill()
     final_vol = vol_price.iloc[-1]
 
+    # An all-NaN result means there is not enough history yet; callers already
+    # have their own missing-data policy. A finite zero (or an infinite value)
+    # is different: using it as a denominator creates non-finite cash costs.
+    if not np.isnan(final_vol) and (not np.isfinite(final_vol) or final_vol <= 0):
+        raise ValueError(
+            "Cost deflator cannot use a non-positive or infinite terminal volatility"
+        )
+
     cost_scalar = vol_price / final_vol
+
+    if not np.isfinite(cost_scalar.dropna()).all():
+        raise ValueError("Cost deflator contains non-finite values")
 
     return cost_scalar
 
