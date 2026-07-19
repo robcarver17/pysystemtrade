@@ -24,6 +24,8 @@ def robust_vol_calc(
     floor_min_periods: int = 100,
     floor_days: int = 500,
     backfill: bool = False,
+    min_nonzero_price_changes: int = 0,
+    max_consecutive_unchanged_days: int | None = None,
     **ignored_kwargs,
 ) -> pd.Series:
     """
@@ -78,6 +80,13 @@ def robust_vol_calc(
         # use the first vol in the past, sort of cheating
         vol = backfill_vol(vol)
 
+    vol = apply_price_history_eligibility(
+        vol,
+        daily_returns,
+        min_nonzero_price_changes=min_nonzero_price_changes,
+        max_consecutive_unchanged_days=max_consecutive_unchanged_days,
+    )
+
     return vol
 
 
@@ -118,6 +127,49 @@ def backfill_vol(vol: pd.Series) -> pd.Series:
     return vol_backfilled
 
 
+def apply_price_history_eligibility(
+    vol: pd.Series,
+    daily_returns: pd.Series,
+    min_nonzero_price_changes: int = 0,
+    max_consecutive_unchanged_days: int | None = None,
+) -> pd.Series:
+    """Mask volatility where the observed price history is not yet usable.
+
+    Both controls are opt-in so existing configurations retain their current
+    behaviour. Applying the mask after any volatility backfill ensures that a
+    backfilled estimate cannot make an instrument eligible before its prices
+    have actually varied.
+    """
+    if min_nonzero_price_changes < 0:
+        raise ValueError("min_nonzero_price_changes must be non-negative")
+    if (
+        max_consecutive_unchanged_days is not None
+        and max_consecutive_unchanged_days < 0
+    ):
+        raise ValueError("max_consecutive_unchanged_days must be non-negative")
+
+    if (
+        min_nonzero_price_changes == 0
+        and max_consecutive_unchanged_days is None
+    ):
+        return vol
+
+    aligned_returns = daily_returns.reindex(vol.index)
+    observed = aligned_returns.notna()
+    changed = observed & aligned_returns.ne(0.0)
+    eligible = pd.Series(True, index=vol.index)
+
+    if min_nonzero_price_changes > 0:
+        eligible &= changed.cumsum() >= min_nonzero_price_changes
+
+    if max_consecutive_unchanged_days is not None:
+        unchanged = observed & aligned_returns.eq(0.0)
+        unchanged_streak = unchanged.groupby((~unchanged).cumsum()).cumsum()
+        eligible &= unchanged_streak <= max_consecutive_unchanged_days
+
+    return vol.where(eligible)
+
+
 def mixed_vol_calc(
     daily_returns: pd.Series,
     days: int = 35,
@@ -126,6 +178,8 @@ def mixed_vol_calc(
     proportion_of_slow_vol: float = 0.3,
     vol_abs_min: float = 0.0000000001,
     backfill: bool = False,
+    min_nonzero_price_changes: int = 0,
+    max_consecutive_unchanged_days: int | None = None,
     **ignored_kwargs,
 ) -> pd.Series:
     """
@@ -177,6 +231,13 @@ def mixed_vol_calc(
     if backfill:
         # use the first vol in the past, sort of cheating
         vol = backfill_vol(vol)
+
+    vol = apply_price_history_eligibility(
+        vol,
+        daily_returns,
+        min_nonzero_price_changes=min_nonzero_price_changes,
+        max_consecutive_unchanged_days=max_consecutive_unchanged_days,
+    )
 
     return vol
 
