@@ -12,7 +12,7 @@ from syslogging.logger import *
 from sysobjects.spot_fx_prices import DEFAULT_CURRENCY, fxPrices, get_fx_tuple_from_code
 
 
-FXMACRODATA_API_BASE_URL = "https://fxmacrodata.com/api/v1"
+FXMACRODATA_API_BASE_URL = "https://api.fxmacrodata.com/v1"
 FXMACRODATA_API_KEY_ENV_VARS = ("FXMACRODATA_API_KEY", "FXMD_API_KEY")
 FXMACRODATA_DEFAULT_FX_CODES = [
     "%s%s" % (currency, DEFAULT_CURRENCY)
