@@ -14,7 +14,7 @@ from urllib.parse import urlencode
 from urllib.request import urlopen
 
 
-FXMD_CALENDAR_URL = "https://fxmacrodata.com/api/v1/calendar/{currency}"
+FXMD_CALENDAR_URL = "https://api.fxmacrodata.com/v1/calendar/{currency}"
 
 
 def fetch_release_events(
