@@ -57,7 +57,7 @@ def test_fxmacrodata_downloads_prices(monkeypatch):
         actual, expected, check_names=False, check_series_type=False
     )
     assert captured == {
-        "url": "https://fxmacrodata.com/api/v1/forex/eur/usd?start_date=2024-01-01&end_date=2024-01-31&api_key=test-key",
+        "url": "https://api.fxmacrodata.com/v1/forex/eur/usd?start_date=2024-01-01&end_date=2024-01-31&api_key=test-key",
         "accept": "application/json",
         "timeout": 12,
     }
