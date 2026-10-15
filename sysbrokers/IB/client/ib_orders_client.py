@@ -200,7 +200,7 @@ class ibOrdersClient(ibContractsClient):
 
         # Avoid IB "error" 10349: should be fixed in ib_async 3.0
         if ib_order.tif == "":
-            ib_order.tif = 'DAY'
+            ib_order.tif = "DAY"
 
         return ib_order
 
