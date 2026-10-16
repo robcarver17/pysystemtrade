@@ -59,6 +59,8 @@ class ibFxClient(ibPriceClient):
     ) -> MarketOrder:
         ib_BS_str, ib_qty = resolveBS(trade)
         ib_order = MarketOrder(ib_BS_str, ib_qty)
+        # explicit TIF avoids error 10349 (see ibOrdersClient._build_ib_order)
+        ib_order.tif = "DAY"
         if account_id is not arg_not_supplied:
             ib_order.account = account_id
 

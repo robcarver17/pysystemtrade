@@ -195,6 +195,10 @@ class ibOrdersClient(ibContractsClient):
             self.log.critical("Order type %s not recognised!" % order_type)
             return missing_order
 
+        # Without an explicit TIF the gateway applies its preset and sends error 10349,
+        # which ib_async treats as a cancellation although the order is still live
+        ib_order.tif = "DAY"
+
         if account_id is not arg_not_supplied:
             ib_order.account = account_id
 
