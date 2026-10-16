@@ -198,6 +198,10 @@ class ibOrdersClient(ibContractsClient):
         if account_id is not arg_not_supplied:
             ib_order.account = account_id
 
+        # Avoid IB "error" 10349: should be fixed in ib_async 3.0
+        if ib_order.tif == "":
+            ib_order.tif = "DAY"
+
         return ib_order
 
     def ib_cancel_order(self, original_order_object: ibOrder):
